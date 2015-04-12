@@ -1,0 +1,42 @@
+#! /usr/bin/env bash
+
+delete_git=1
+generate_html=1
+
+# evaluate destination argument
+(( $# > 1 )) && echo "Expected only 1 argument (destination file)." && exit 1
+dest=""; if (( $# == 1 )); then
+    dir="$(dirname $1)"; tar=$(echo $1 | sed -n "/\.tar\.gz$/p")
+    [[ ! -d $dir ]] && echo "Could not find directory: "$dir && exit 1
+    [[ -z $tar ]] && echo "Suffix should be '.tar.gz'." && exit 1
+    dest="$(cd $dir && pwd)"/"$(basename $1)"
+fi
+
+# determine absolute path of repository
+repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd $repo
+
+# construct versioned archive name
+version="$(sed -n "s/^\(.*\)version='\(.*\)',$/\2/p" setup.py)"
+[[ -z $version ]] && echo "Could not determine package version." && exit 2
+package="pyunicorn-"$version; archive=$package".tar.gz"
+[[ -z $dest ]] && dest="$(cd .. && pwd)"/$archive
+
+# prepare archive
+tmp=$dest"-tmp"
+rm -rf $dest $tmp; mkdir -p $tmp; cp -a $repo $tmp/$package
+cd $tmp/$package/docs
+(( $generate_html )) && make html || make clean > /dev/null
+cd ..; rm -rf build tools .cache .tox MANIFEST
+find . -name "*pyc" -type f -print | xargs /bin/rm -f
+find . -regex \
+    "\(.*pycache.*\)\|\(.*egg-info.*\)\|\(.*ipynb.*\)\|\(.*ropeproject.*\)" \
+    -type d -print | xargs /bin/rm -rf
+
+# delete git logs
+(( $delete_git )) && rm -rf .git*
+
+# compress
+echo; echo "---------------------------------------------------------------"
+echo "Writing package to: "$dest
+cd $tmp; tar -czf $dest $package; cd ..; rm -rf $tmp
