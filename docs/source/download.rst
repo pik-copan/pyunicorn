@@ -3,10 +3,13 @@
 Download
 ########
 
-**Obtaining pyunicorn**
-    ``pyunicorn`` will be available for download very soon. The current
-    development version can be obtained by request from `Jonathan F. Donges
-    <donges@pik-potsdam.de>`_.
+**Development version**
+    The current development version of ``pyunicorn`` can be obtained at
+    `github <https://github.com/pik-copan/pyunicorn>`_.
+
+**Stable release**
+    The latest stable release of pyunicorn can be obtained
+    `here <http://www.pik-potsdam.de/~donges/pyunicorn/pyunicorn-0.4.1.tar.gz>`_.
 
 **Reference**
     Please acknowledge and cite the use of this software and its authors when
