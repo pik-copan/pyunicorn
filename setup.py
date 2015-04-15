@@ -10,10 +10,11 @@ setup(
     long_description="Advanced statistical analysis and modeling of \
 general and spatially embedded complex networks with applications to \
 multivariate nonlinear time series analysis",
-    keywords='complex networks statistics modeling time series',
+    keywords='complex networks statistics modeling time series analysis \
+nonlinear climate recurrence plot surrogates spatial model',
     author='Jonathan F. Donges',
     author_email='donges@pik-potsdam.de',
-    url='http://www.pik-potsdam.de/members/donges/software-1',
+    url='http://www.pik-potsdam.de/~donges/pyunicorn/',
     platforms=['all'],
     packages=['pyunicorn', 'pyunicorn.core', 'pyunicorn.climate',
               'pyunicorn.timeseries', 'pyunicorn.funcnet',

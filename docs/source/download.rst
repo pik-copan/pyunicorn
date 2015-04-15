@@ -9,7 +9,11 @@ Download
 
 **Stable release**
     The latest stable release of pyunicorn can be obtained
-    `here <http://www.pik-potsdam.de/~donges/pyunicorn/pyunicorn-0.4.1.tar.gz>`_.
+    `here <https://github.com/pik-copan/pyunicorn/releases>`_.
+
+**PDF documentation**
+    An extensive PDF version of the documentation is available for
+    download `here <http://www.pik-potsdam.de/~donges/pyunicorn/docs/pyunicorn-0.4.1-docs.pdf>`_.
 
 **Reference**
     Please acknowledge and cite the use of this software and its authors when
