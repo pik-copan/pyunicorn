@@ -41,8 +41,6 @@ class RainfallClimateNetwork(ClimateNetwork):
     Rainfall climate networks are undirected due to the symmetry of the
     Spearman's rho matrix.
 
-    Derived from the class ClimateNetwork.
-
     Class RainfallClimateNetwork was created by `Marc Wiedermann
     <marcw@physik.hu-berlin.de>`__ during an internship
     at PIK in March 2010.

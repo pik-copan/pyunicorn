@@ -45,8 +45,6 @@ class InteractingNetworks(Network):
 
     Consistently node-weighted measures for interacting network topologies are
     derived, described and applied in [Wiedermann2011]_.
-
-    Derived from class Network.
     """
     #
     #  Definitions of internal methods

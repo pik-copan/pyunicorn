@@ -29,8 +29,6 @@ class ClimateData(Data):
     """
     Encapsulates spatio-temporal climate data.
 
-    Derived from the abstract class Data of pyunicorn.
-
     Provides methods to manipulate this data, i.e. calculate daily (monthly)
     mean values and anomaly values.
 
@@ -49,9 +47,9 @@ class ClimateData(Data):
         Initialize an instance of ClimateData.
 
         The spatio-temporal window is described by the following
-        dictionary:
+        dictionary::
 
-          - window = {"time_min": 0., "time_max": 0., "lat_min": 0.,
+            window = {"time_min": 0., "time_max": 0., "lat_min": 0.,
                       "lat_max": 0., "lon_min": 0., "lon_max": 0.}
 
         :type observable: 2D array [time, index]
@@ -124,9 +122,9 @@ class ClimateData(Data):
           - "iNetCDF" for irregular (e.g. geodesic) grids or station data.
 
         The :index:`spatio-temporal window` is described by the following
-        dictionary:
+        dictionary::
 
-          - window = {"time_min": 0., "time_max": 0., "lat_min": 0.,
+            window = {"time_min": 0., "time_max": 0., "lat_min": 0.,
                       "lat_max": 0., "lon_min": 0., "lon_max": 0.}
 
         :arg str file_name: The name of the data file.

@@ -42,8 +42,6 @@ class MutualInfoClimateNetwork(ClimateNetwork):
     information is a symmetrical measure. In contrast to Pearson correlation
     used in :class:`.TsonisClimateNetwork`, mutual information has the
     potential to detect nonlinear statistical interdependencies.
-
-    Derived from the class ClimateNetwork.
     """
 
     #

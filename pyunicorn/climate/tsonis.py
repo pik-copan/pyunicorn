@@ -39,8 +39,6 @@ class TsonisClimateNetwork(ClimateNetwork):
     correlation matrix.
 
     References: [Tsonis2004]_, [Tsonis2006]_, [Tsonis2008b]_, [Tsonis2008c]_.
-
-    Derived from the class ClimateNetwork.
     """
 
     #

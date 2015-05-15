@@ -36,8 +36,6 @@ class GeoNetwork(Network):
     Particularly adds more network measures and statistics based on the
     spatial embedding.
 
-    Derived from the class Network.
-
     :ivar node_weight_type: (string) - The type of geographical node weight to
                             be used.
     """

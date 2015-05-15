@@ -61,9 +61,6 @@ class JointRecurrencePlot(RecurrencePlot):
            JointRecurrencePlot(
                x, y, dim=(3,5), tau=(2,1),
                recurrence_rate=(0.05,0.04)).recurrence_rate()
-
-    :ivar JR: The joint recurrence matrix.
-    :ivar N: The length of both embedded time series x and y.
     """
 
     #
@@ -120,6 +117,12 @@ class JointRecurrencePlot(RecurrencePlot):
         :type tau: tuple of number
         :keyword tau: Embedding delay. Give separately for each time series.
         """
+
+        self.JR = None
+        """The joint recurrence matrix."""
+        self.N = 0
+        """The length of both embedded time series x and y."""
+
         #  Check for consistency: x and y need to have the same length
         if x.shape[0] == y.shape[0]:
 

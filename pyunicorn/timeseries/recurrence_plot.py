@@ -58,9 +58,6 @@ class RecurrencePlot(object):
 
            RecurrencePlot(time_series, dim=3, tau=2,
                           recurrence_rate=0.05).recurrence_rate()
-
-    :ivar R: The recurrence matrix.
-    :ivar N: The length of the embedded time series.
     """
 
     #
@@ -155,6 +152,8 @@ class RecurrencePlot(object):
 
         self.N = self.embedding.shape[0]
         """The number of state vectors (number of lines and rows) of the RP."""
+        self.R = None
+        """The recurrence matrix."""
 
         #  Get missing value indices
         if self.missing_values:

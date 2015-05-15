@@ -54,10 +54,6 @@ class CrossRecurrencePlot(RecurrencePlot):
 
            CrossRecurrencePlot(x, y, dim=3, tau=2,
                                recurrence_rate=0.05).recurrence_rate()
-
-    :ivar CR: The cross recurrence matrix.
-    :ivar N: The length of the embedded time series x.
-    :ivar M: The length of the embedded time series y.
     """
 
     #
@@ -107,6 +103,13 @@ class CrossRecurrencePlot(RecurrencePlot):
         #  Set sparse RQA flag
         self.sparse_rqa = sparse_rqa
         """Controls sequential calculation of RQA measures."""
+
+        self.CR = None
+        """The cross recurrence matrix."""
+        self.N = 0
+        """The length of the embedded time series x."""
+        self.M = 0
+        """The length of the embedded time series y."""
 
         #  Store time series
         self.x = x.copy().astype("float32")

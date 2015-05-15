@@ -34,8 +34,6 @@ class ClimateNetwork(GeoNetwork):
     """
     Encapsulates a similarity network embedded on a spherical surface.
 
-    Derived from class GeoNetwork of pyunicorn.
-
     Particularly provides functionality to generate a complex network from the
     matrix of a similarity measure of time series.
 

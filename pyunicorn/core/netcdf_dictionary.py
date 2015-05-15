@@ -36,14 +36,6 @@ class NetCDFDictionary(object):
     Encapsulates appropriate dictionary following NetCDF conventions.
 
     Also contains methods to load data from NetCDF and NetCDF4 files.
-
-    :ivar file_name: (string) - The name of the data file.
-    :ivar file_type: (string) - The format of the data file.
-    :ivar observable_name: (string) - The short name of the observable within
-                           data file (particularly relevant for NetCDF).
-    :ivar observable_long_name: (string) - The long name of the observable
-                                within data file.
-    :ivar grid: (Grid) - The Grid object associated with the data.
     """
 
     # TODO: implement silence_level consistently
