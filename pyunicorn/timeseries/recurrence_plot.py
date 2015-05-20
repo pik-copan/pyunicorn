@@ -165,7 +165,8 @@ class RecurrencePlot(object):
         #  plot accordingly
         self.threshold = kwds.get("threshold")
         self.threshold_std = kwds.get("threshold_std")
-        self.recurrence_rate = kwds.get("recurrence_rate")
+        #  Make sure not to overwrite the method recurrence_rate()
+        recurrence_rate = kwds.get("recurrence_rate")
         self.local_recurrence_rate = kwds.get("local_recurrence_rate")
         self.adaptive_neighborhood_size = \
             kwds.get("adaptive_neighborhood_size")
@@ -186,11 +187,11 @@ class RecurrencePlot(object):
                 #  neighborhood threshold in units of the time series' STD
                 RecurrencePlot.\
                     set_fixed_threshold_std(self, self.threshold_std)
-            elif self.recurrence_rate is not None:
+            elif recurrence_rate is not None:
                 #  Calculate the recurrence matrix R using a fixed recurrence
                 #  rate
                 RecurrencePlot.\
-                    set_fixed_recurrence_rate(self, self.recurrence_rate)
+                    set_fixed_recurrence_rate(self, recurrence_rate)
             elif self.local_recurrence_rate is not None:
                 #  Calculate the recurrence matrix R using a fixed local
                 #  recurrence rate
