@@ -274,3 +274,42 @@ class RecurrenceNetwork(RecurrencePlot, Network):
         #  definition of a recurrence plot) is directed by definition.
         Network.__init__(self, A, directed=False,
                          silence_level=self.silence_level)
+
+    def transitivity_dim_single_scale(self):
+        """
+        Return transitivity dimension for a single scale.
+
+        The single scale transitivity dimension can be interpreted as a global
+        measure of the dimensionality of the set of points underlying the
+        recurrence network ([Donner2011b]_.). The scale is determined by the
+        chosen recurrence threshold. Note that the maxima and minima of the
+        single scale transitivity dimension when varying the scale give a
+        more meaningful measure of dimensionality as is explained in
+        [Donner2011b]_.
+
+        **Attention:** currently only works correctly for supremum norm.
+
+        :rtype: float
+        :return: the single scale transitivity dimension.
+        """
+        return np.log(self.transitivity()) / np.log(3. / 4.)
+
+    def local_clustering_dim_single_scale(self):
+        """
+        Return local clustering dimension for a single scale.
+
+        The single scale local clustering dimension can be interpreted as a
+        local measureof the dimensionality of the set of points underlying the
+        recurrence network ([Donner2011b]_.). The scale is determined by the
+        chosen recurrence threshold. Note that the maxima and minima of the
+        single scale local clustering dimension when varying the scale give a
+        more meaningful measure of dimensionality as is explained in
+        [Donner2011b]_.
+
+        **Attention:**
+        currently only works correctly for supremum norm.
+
+        :rtype: 1d numpy array [node] of float
+        :return: the single scale transitivity dimension.
+        """
+        return np.log(self.local_clustering()) / np.log(3. / 4.)
