@@ -46,8 +46,6 @@ class HilbertClimateNetwork(ClimateNetwork):
 
     A preliminary study of Hilbert climate networks is presented in
     [Donges2009c]_.
-
-    Derived from the class ClimateNetwork.
     """
 
     #

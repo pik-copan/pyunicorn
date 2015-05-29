@@ -264,6 +264,14 @@ initialize an instance of Network."
             self.clear_link_attribute(attr)
         self._cache['paths'] = {}
 
+    def copy(self):
+        """
+        Return a copy of the network.
+        """
+        return Network(adjacency=self.sp_A, directed=self.directed,
+                       node_weights=self.node_weights,
+                       silence_level=self.silence_level)
+
     def undirected_copy(self):
         """
         Return an undirected copy of the network.
@@ -282,6 +290,25 @@ initialize an instance of Network."
         """
         return Network(adjacency=self.undirected_adjacency(),
                        directed=False, node_weights=self.node_weights,
+                       silence_level=self.silence_level)
+
+    def permuted_copy(self, permutation):
+        """
+        Return a copy of the network with node numbers rearranged. This
+        operation should not change topological information and network
+        measures.
+
+        :type permutation: array-like [int]
+        :arg permutation: desired permutation of nodes
+        :rtype: :class:`Network` instance
+        """
+        idx = np.array(permutation)
+        if sorted(idx) != range(self.N):
+            raise NetworkError("Incorrect permutation indices!")
+
+        return Network(adjacency=self.sp_A[idx][:, idx],
+                       node_weights=self.node_weights[idx],
+                       directed=self.directed,
                        silence_level=self.silence_level)
 
     def splitted_copy(self, node=-1, proportion=0.5):
@@ -2643,7 +2670,7 @@ orders larger than 5."
     #  Link valued measures
     #
 
-    @cached_const('base', 'matching idx', 'the matching index matrix')
+    @cached_const('base', 'matching idx', 'matching index matrix')
     def matching_index(self):
         """
         For each pair of nodes, return their matching index.
@@ -2654,7 +2681,7 @@ orders larger than 5."
         **Example:**
 
         >>> print r(Network.SmallTestNetwork().matching_index())
-        Calculating the matching index matrix...
+        Calculating matching index matrix...
         [[ 1.    0.5   0.25    0.      0.      0.    ]
          [ 0.5   1.    0.25    0.      0.2     0.    ]
          [ 0.25  0.25  1.      0.3333  0.25    0.    ]
@@ -2664,7 +2691,7 @@ orders larger than 5."
 
         :rtype: array([[0<=float<=1,0<=float<=1]])
         """
-        commons = self.sp_A * self.sp_A
+        commons = (self.sp_A * self.sp_A).astype(np.float).A
         kk = np.repeat([self.degree()], self.N, axis=0)
         return commons / (kk + kk.T - commons)
 
@@ -4316,7 +4343,8 @@ orders larger than 5."
         nsi_average_path_length = 0
 
         for i in range(N):
-            print i
+            if self.silence_level == 0:
+                print i
             di = np.array(self.graph.shortest_paths(i), dtype=float).flatten()
             di[np.where(di == np.inf)] = replace_inf_by
 

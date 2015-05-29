@@ -42,8 +42,6 @@ class CoupledClimateNetwork(InteractingNetworks, ClimateNetwork):
     The idea of coupled climate networks is based on the concept of coupled
     patterns, for a review refer to [Bretherton1992]_.
 
-    Derived from classes InteractingNetworks and ClimateNetwork.
-
     .. note::
        The two observables (layers) need to have the same time grid \
        (temporal sampling points).

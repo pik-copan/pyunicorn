@@ -63,7 +63,7 @@ Install ``pyunicorn`` using Python's ``distutils`` with the supplied
 Depending on your system, you may need root priviledges.  On UNIX-based
 operating systems (Linux, MacOSX etc.) this is achieved with ``sudo``.
 
-Install the latest stable release of ``pyunicorn``via the Python package
+Install the latest stable release of ``pyunicorn`` via the Python package
 index::
 
    $> pip install pyunicorn
@@ -95,13 +95,13 @@ The test suite can be run from anywhere in the project tree by issuing::
 To expose the defined test environments and target them independently::
 
     $> tox -l
-    $> tox -e py27-doctest,py27-style
+    $> tox -e py27-nose,py27-style
 
 To test single files::
 
-    $> tests/test_doctests.py core.interacting_networks      # doctests
-    $> nosetests tests/core/TestResitiveNetwork-circuits.py  # unit tests
-    $> py.test pyunicorn/core/network.py                     # style
+    $> tests/test_doctests.py core.network      # doctests
+    $> nosetests -vs tests/core/TestNetwork.py  # unit tests
+    $> py.test pyunicorn/core/network.py        # style
 
 License
 -------

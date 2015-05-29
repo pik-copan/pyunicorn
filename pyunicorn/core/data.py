@@ -42,15 +42,6 @@ class Data(object):
     (currently NetCDF and ASCII).
 
     Mainly an abstract class.
-
-    :ivar grid: (Grid) - The Grid object associated with the data.
-
-    :ivar file_name: (string) - The name of the data file.
-
-    :ivar file_type: (string) - The type of the data file (regular/irregular)
-
-    :ivar vertical_level: (number (int)) - The vertical level currently
-                          currently represented by the Data object.
     """
 
     #
@@ -62,9 +53,9 @@ class Data(object):
         """
         Initialize an instance of Data.
 
-        The spatio-temporal window is described by the following dictionary:
+        The spatio-temporal window is described by the following dictionary::
 
-          - window = {"time_min": 0., "time_max": 0., "lat_min": 0.,
+            window = {"time_min": 0., "time_max": 0., "lat_min": 0.,
                       "lat_max": 0., "lon_min": 0., "lon_max": 0.}
 
         :type observable: 2D array [time, index]
@@ -78,17 +69,14 @@ class Data(object):
         :arg dict window: Spatio-temporal window to select a view on the data.
         :arg int silence_level: The inverse level of verbosity of the object.
         """
-        #  Set silence level
+
         self.silence_level = silence_level
         """(number (int)) - The inverse level of verbosity of the object."""
-
-        #  Set full observable
         self._full_observable = observable
-
-        #  Set full grid
         self._full_grid = grid
+        self.grid = None
+        """The :class:`.Grid` object associated with the data."""
 
-        #  Set observable name and long name
         self.observable_name = observable_name
         """(string) - The short name of the observable within
                       data file (particularly relevant for NetCDF)."""
@@ -156,9 +144,9 @@ class Data(object):
           - "iNetCDF" for irregular (e.g. geodesic) grids or station data.
 
         The :index:`spatio-temporal window` is described by the following
-        dictionary:
+        dictionary::
 
-          - window = {"time_min": 0., "time_max": 0., "lat_min": 0.,
+            window = {"time_min": 0., "time_max": 0., "lat_min": 0.,
                       "lat_max": 0., "lon_min": 0., "lon_max": 0.}
 
         .. note::

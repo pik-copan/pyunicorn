@@ -46,8 +46,6 @@ class HavlinClimateNetwork(ClimateNetwork):
        So far, the cross-correlation functions are estimated using \
        convolution in Fourier space (FFT). This may not be reliable \
        for larger delays.
-
-    Derived from the class ClimateNetwork.
     """
 
     #

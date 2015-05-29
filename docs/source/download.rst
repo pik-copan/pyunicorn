@@ -13,7 +13,7 @@ Download
 
 **PDF documentation**
     An extensive PDF version of the documentation is available for
-    download `here <http://www.pik-potsdam.de/~donges/pyunicorn/docs/pyunicorn-0.4.1-docs.pdf>`_.
+    `download <http://www.pik-potsdam.de/~donges/pyunicorn/docs/>`_.
 
 **Reference**
     Please acknowledge and cite the use of this software and its authors when

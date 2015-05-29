@@ -31,8 +31,6 @@ class PartialCorrelationClimateNetwork(TsonisClimateNetwork):
 
     Constructs a static climate network based on partial correlation, as in
     [Ueoka2008]_.
-
-    Derived from the class TsonisClimateNetwork.
     """
 
     #
