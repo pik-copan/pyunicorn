@@ -217,35 +217,35 @@ class VisibilityGraph(InteractingNetworks):
     #  Specific measures for visibility graphs
     #
 
-    def left_degree(self):
+    def retarded_degree(self):
         """Return number of neighbors in the past of a node."""
         #  Prepare
-        left_degree = np.zeros(self.N)
+        retarded_degree = np.zeros(self.N)
         A = self.adjacency
 
         for i in xrange(self.N):
-            left_degree[i] = A[i, :i].sum()
+            retarded_degree[i] = A[i, :i].sum()
 
-        return left_degree
+        return retarded_degree
 
-    def right_degree(self):
+    def advanced_degree(self):
         """Return number of neighbors in the future of a node."""
         #  Prepare
-        right_degree = np.zeros(self.N)
+        advanced_degree = np.zeros(self.N)
         A = self.adjacency
 
         for i in xrange(self.N):
-            right_degree[i] = A[i, i:].sum()
+            advanced_degree[i] = A[i, i:].sum()
 
-        return right_degree
+        return advanced_degree
 
-    def left_local_clustering(self):
+    def retarded_local_clustering(self):
         """
         Return probability that two neighbors of a node in its past are
         connected.
         """
         #  Prepare
-        left_clustering = np.zeros(self.N)
+        retarded_clustering = np.zeros(self.N)
 
         #  Get full adjacency matrix
         A = self.adjacency
@@ -253,9 +253,9 @@ class VisibilityGraph(InteractingNetworks):
         N = self.N
 
         #  Get left degree
-        left_degree = self.left_degree()
+        retarded_degree = self.retarded_degree()
         #  Prepare normalization factor
-        norm = left_degree * (left_degree - 1) / 2.
+        norm = retarded_degree * (retarded_degree - 1) / 2.
 
         code = """
         long counter;
@@ -276,23 +276,23 @@ class VisibilityGraph(InteractingNetworks):
                         }
                     }
                 }
-                left_clustering(i) = counter / norm(i);
+                retarded_clustering(i) = counter / norm(i);
             }
         }
         """
-        args = ['N', 'A', 'norm', 'left_clustering']
+        args = ['N', 'A', 'norm', 'retarded_clustering']
         weave.inline(code, arg_names=args,
                      type_converters=weave.converters.blitz, compiler='gcc',
                      extra_compile_args=['-O3'])
-        return left_clustering
+        return retarded_clustering
 
-    def right_local_clustering(self):
+    def advanced_local_clustering(self):
         """
         Return probability that two neighbors of a node in its future are
         connected.
         """
         #  Prepare
-        right_clustering = np.zeros(self.N)
+        advanced_clustering = np.zeros(self.N)
 
         #  Get full adjacency matrix
         A = self.adjacency
@@ -300,9 +300,9 @@ class VisibilityGraph(InteractingNetworks):
         N = self.N
 
         #  Get right degree
-        right_degree = self.right_degree()
+        advanced_degree = self.advanced_degree()
         #  Prepare normalization factor
-        norm = right_degree * (right_degree - 1) / 2.
+        norm = advanced_degree * (advanced_degree - 1) / 2.
 
         code = """
         long counter;
@@ -323,67 +323,67 @@ class VisibilityGraph(InteractingNetworks):
                         }
                     }
                 }
-                right_clustering(i) = counter / norm(i);
+                advanced_clustering(i) = counter / norm(i);
             }
         }
         """
-        args = ['N', 'A', 'norm', 'right_clustering']
+        args = ['N', 'A', 'norm', 'advanced_clustering']
         weave.inline(code, arg_names=args,
                      type_converters=weave.converters.blitz, compiler='gcc',
                      extra_compile_args=['-O3'])
-        return right_clustering
+        return advanced_clustering
 
-    def left_closeness(self):
+    def retarded_closeness(self):
         """Return average path length to nodes in the past of a node."""
         #  Prepare
-        left_closeness = np.zeros(self.N)
+        retarded_closeness = np.zeros(self.N)
         path_lengths = self.path_lengths()
 
         for i in xrange(self.N):
-            left_closeness[i] = path_lengths[i, :i].mean() ** (-1)
+            retarded_closeness[i] = path_lengths[i, :i].mean() ** (-1)
 
-        return left_closeness
+        return retarded_closeness
 
-    def right_closeness(self):
+    def advanced_closeness(self):
         """Return average path length to nodes in the future of a node."""
         #  Prepare
-        right_closeness = np.zeros(self.N)
+        advanced_closeness = np.zeros(self.N)
         path_lengths = self.path_lengths()
 
         for i in xrange(self.N):
-            right_closeness[i] = path_lengths[i, i+1:].mean() ** (-1)
+            advanced_closeness[i] = path_lengths[i, i+1:].mean() ** (-1)
 
-        return right_closeness
+        return advanced_closeness
 
-    def left_betweenness(self):
+    def retarded_betweenness(self):
         """
         Return betweenness of a node with respect to all pairs of nodes in its
         past.
         """
         #  Prepare
-        left_betweenness = np.zeros(self.N)
+        retarded_betweenness = np.zeros(self.N)
 
         for i in xrange(self.N):
-            left_indices = np.arange(i)
-            left_betweenness[i] = self.nsi_betweenness(
-                sources=left_indices, targets=left_indices)[i]
+            retarded_indices = np.arange(i)
+            retarded_betweenness[i] = self.nsi_betweenness(
+                sources=retarded_indices, targets=retarded_indices)[i]
 
-        return left_betweenness
+        return retarded_betweenness
 
-    def right_betweenness(self):
+    def advanced_betweenness(self):
         """
         Return betweenness of a node with respect to all pairs of nodes in its
         future.
         """
         #  Prepare
-        right_betweenness = np.zeros(self.N)
+        advanced_betweenness = np.zeros(self.N)
 
         for i in xrange(self.N):
-            right_indices = np.arange(i+1, self.N)
-            right_betweenness[i] = self.nsi_betweenness(
-                sources=right_indices, targets=right_indices)[i]
+            advanced_indices = np.arange(i+1, self.N)
+            advanced_betweenness[i] = self.nsi_betweenness(
+                sources=advanced_indices, targets=advanced_indices)[i]
 
-        return right_betweenness
+        return advanced_betweenness
 
     def trans_betweenness(self):
         """
@@ -394,10 +394,10 @@ class VisibilityGraph(InteractingNetworks):
         trans_betweenness = np.zeros(self.N)
 
         for i in xrange(self.N):
-            left_indices = np.arange(i)
-            right_indices = np.arange(i+1, self.N)
+            retarded_indices = np.arange(i)
+            advanced_indices = np.arange(i+1, self.N)
             trans_betweenness[i] = self.nsi_betweenness(
-                sources=left_indices, targets=right_indices)[i]
+                sources=retarded_indices, targets=advanced_indices)[i]
 
         return trans_betweenness
 
@@ -411,8 +411,8 @@ class VisibilityGraph(InteractingNetworks):
         N_past = np.arange(self.N)
         N_future = N_past[::-1]
 
-        cdegree = (self.left_degree() * N_past
-                   + self.right_degree() * N_future) / float(self.N - 1)
+        cdegree = (self.retarded_degree() * N_past
+                   + self.advanced_degree() * N_future) / float(self.N - 1)
 
         return cdegree
 
@@ -425,6 +425,6 @@ class VisibilityGraph(InteractingNetworks):
         N_future = N_past[::-1]
 
         ccloseness = (self.N - 1) * (
-            self.left_closeness() / N_past + self.right_closeness() / N_future)
+            self.retarded_closeness() / N_past + self.advanced_closeness() / N_future)
 
         return ccloseness
