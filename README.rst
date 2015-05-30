@@ -83,10 +83,11 @@ Test suite
 Before committing changes to the codebase, please make sure that all tests
 pass. The test suite is managed by `tox <https://testrun.org/tox/>`_ and
 configured to use system-wide packages when available. Thus to avoid frequent
-waiting, we recommend you to install the following packages::
+waiting, we recommend you to install the current versions of the following
+packages::
 
     $> pip install tox nose networkx Sphinx
-    $> pip install pytest pytest-xdist pytest-flakes pytest-pep8
+    $> pip install pylint pytest pytest-xdist pytest-flakes pytest-pep8
 
 The test suite can be run from anywhere in the project tree by issuing::
 
