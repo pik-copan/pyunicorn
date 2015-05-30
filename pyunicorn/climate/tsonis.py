@@ -90,6 +90,14 @@ class TsonisClimateNetwork(ClimateNetwork):
 
         #  Constructor of ClimateNetwork is called within this method
         self.set_winter_only(winter_only)
+        ClimateNetwork.__init__(self, grid=self.data.grid,
+                                similarity_measure=self.similarity_measure(),
+                                threshold=self.threshold(),
+                                link_density=self._prescribed_link_density,
+                                non_local=self.non_local(),
+                                directed=False,
+                                node_weight_type=self.node_weight_type,
+                                silence_level=self.silence_level)
 
     def __str__(self):
         """

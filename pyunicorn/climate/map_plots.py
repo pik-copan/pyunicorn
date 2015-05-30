@@ -21,7 +21,7 @@ import numpy as np
 #  Import Ngl support functions for plotting, map projections etc.
 try:
     import Ngl
-except:
+except ImportError:
     print "climate: Package Ngl could not be loaded. Some functionality \
 in class MapPlots might not be available!"
 
@@ -164,10 +164,10 @@ class MapPlots(object):
                 resources.lbTitleString = dataset["title"]
 
             #  Generate map plot
-            map = Ngl.contour_map(wks, dataset["data"], resources)
+            cmap = Ngl.contour_map(wks, dataset["data"], resources)
 
         #  Clean up
-        del map
+        del cmap
         del resources
 
         Ngl.end()
@@ -226,10 +226,10 @@ class MapPlots(object):
                                          self.grid.grid_size()["lon"])
 
                 #  Generate map plot
-                map = Ngl.contour_map(wks, dataset["data"], resources)
+                cmap = Ngl.contour_map(wks, dataset["data"], resources)
 
             # Clear map
-            del map
+            del cmap
             Ngl.destroy(wks)
 
         #  Clean up
@@ -298,10 +298,10 @@ class MapPlots(object):
                               self.grid.grid_size()["lon"])
 
                 #  Generate map plot
-                map = Ngl.contour_map(wks, data, resources)
+                cmap = Ngl.contour_map(wks, data, resources)
 
             # Clear map
-            del map
+            del cmap
             Ngl.destroy(wks)
 
         #  Clean up
@@ -336,10 +336,10 @@ class MapPlots(object):
                       self.grid.grid_size()["lon"])
 
         #  Generate map plot
-        map = Ngl.contour_map(wks, data, resources)
+        cmap = Ngl.contour_map(wks, data, resources)
 
         # Clear map
-        del map
+        del cmap
         Ngl.destroy(wks)
 
         #  Clean up

@@ -34,7 +34,6 @@ from .utils import mpi
 from .core import *
 
 
-__name__ = "pyunicorn"
 __author__ = "Jonathan F. Donges <donges@pik-potsdam.de>"
 __copyright__ = \
     "Copyright (C) 2008-2015 Jonathan F. Donges and pyunicorn authors"

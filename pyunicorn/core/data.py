@@ -21,7 +21,7 @@ import numpy as np
 #  Import netCDF4 for a NetCDF4 reader
 try:
     import netCDF4
-except:
+except ImportError:
     print "pyunicorn: Package netCDF4 could not be loaded. Some \
 functionality in class Data might not be available!"
 
@@ -71,19 +71,25 @@ class Data(object):
         """
 
         self.silence_level = silence_level
-        """(number (int)) - The inverse level of verbosity of the object."""
+        """(int) - The inverse level of verbosity of the object."""
         self._full_observable = observable
         self._full_grid = grid
         self.grid = None
         """The :class:`.Grid` object associated with the data."""
 
         self.observable_name = observable_name
-        """(string) - The short name of the observable within
+        """(str) - The short name of the observable within
                       data file (particularly relevant for NetCDF)."""
 
         self.observable_long_name = observable_long_name
-        """(string) - The long name of the observable
-                      within data file."""
+        """(str) - The long name of the observable within data file."""
+
+        self._observable = None
+        """Current spatio-temporal view on the data."""
+
+        self.file_name = ""
+        self.file_type = ""
+        self.vertical_level = None
 
         #  Select a spatio-temporal window to look at the data, can later be
         #  changed in run time without having to reload data from a file.
@@ -133,8 +139,7 @@ class Data(object):
     #
 
     @classmethod
-    def Load(cls, file_name, observable_name, file_type,
-             dimension_names={"lat": "lat", "lon": "lon", "time": "time"},
+    def Load(cls, file_name, observable_name, file_type, dimension_names=None,
              window=None, vertical_level=None, silence_level=0):
         """
         Initialize an instance of Data.
@@ -164,14 +169,16 @@ class Data(object):
             file (particularly relevant for NetCDF).
         :arg str file_type: The type of the data file.
         :arg dict dimension_names: The names of the dimensions as used in the
-            NetCDF file. E.g., dimension_names = {"lat": "lat", "lon": "lon",
-            "time": "time"}.
+            NetCDF file. Default: {"lat": "lat", "lon": "lon", "time": "time"}
         :arg dict window: Spatio-temporal window to select a view on the data.
         :arg int vertical_level: The vertical level to be extracted from the
             data file. Is ignored for horizontal data sets. If None, the first
             level in the data file is chosen.
         :arg int silence_level: The inverse level of verbosity of the object.
         """
+        if dimension_names is None:
+            dimension_names = {"lat": "lat", "lon": "lon", "time": "time"}
+
         # Import data from given file
         res = cls._load_data(file_name, file_type, observable_name,
                              dimension_names, vertical_level)
@@ -460,7 +467,7 @@ by pyunicorn."
         full_lon_seq = self._full_grid.grid()["lon"]
 
         # Get time indices for temporal window boundaries
-        if (window["time_min"] == window["time_max"]):
+        if window["time_min"] == window["time_max"]:
             # If boundaries time are equal, use all available time points
             time_indices = np.repeat(True,
                                      self._full_grid.grid_size()["time"])
@@ -719,8 +726,9 @@ not supported!" % var_type
         decay_length = int(gamma * n_time / 2)
 
         #  Calculate decay and growth regions
-        growth_region = 0.5 * (1 + np.cos(np.arange(decay_length) * np.pi /
-                               float(decay_length) + np.pi))
+        growth_region = 0.5 * (
+            1 + np.cos(np.arange(decay_length) * np.pi /
+                       float(decay_length) + np.pi))
         growth_region = np.tile(growth_region, (n_nodes, 1))
         growth_region = growth_region.transpose()
 

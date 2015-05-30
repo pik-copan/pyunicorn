@@ -85,13 +85,16 @@ class HavlinClimateNetwork(ClimateNetwork):
         """(ClimateData) - The climate data used for network construction."""
 
         self.N = data.grid.N
-        self._threshold = threshold
         self._prescribed_link_density = link_density
-        self._non_local = non_local
-        self.node_weight_type = node_weight_type
-        self.silence_level = silence_level
 
         #  The constructor of ClimateNetwork is called within this method
+        ClimateNetwork.__init__(self, grid=self.data.grid,
+                                threshold=threshold,
+                                link_density=link_density,
+                                non_local=non_local,
+                                directed=False,
+                                node_weight_type=node_weight_type,
+                                silence_level=silence_level)
         self.set_max_delay(max_delay)
 
     def __str__(self):
@@ -117,7 +120,7 @@ class HavlinClimateNetwork(ClimateNetwork):
         if irreversible:
             try:
                 del self._correlation_lag
-            except:
+            except AttributeError:
                 pass
 
     #
@@ -248,7 +251,7 @@ following [Yamasaki2008]_..."
         """
         try:
             return self._similarity_measure
-        except:
+        except AttributeError:
             print "Correlation strength matrix was deleted earlier and \
 cannot be retrieved."
 
@@ -261,7 +264,7 @@ cannot be retrieved."
         """
         try:
             return self._correlation_lag
-        except:
+        except AttributeError:
             print "Lag matrix was deleted earlier and \
 cannot be retrieved."
 

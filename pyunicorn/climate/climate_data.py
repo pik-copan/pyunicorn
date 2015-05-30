@@ -79,6 +79,9 @@ class ClimateData(Data):
 
         #  Set flags
         self._flag_phase_mean = False
+        self._phase_mean = None
+
+        self.data_source = ""
 
         # If data are anomalies skip automatic calculation of anomalies
         if anomalies:
@@ -499,8 +502,7 @@ class ClimateData(Data):
         self._flag_phase_mean = False
         self._flag_anomaly = False
 
-
-def set_global_window(self):
+    def set_global_window(self):
         """
         Set the view on the whole data set.
 
@@ -520,7 +522,7 @@ def set_global_window(self):
         >>> data.grid.grid()["lat"]
         array([  0.,   5.,  10.,  15.,  20.,  25.], dtype=float32)
         """
-        Data.set_global_window()
+        Data.set_global_window(self)
 
         self._flag_phase_mean = False
         self._flag_anomaly = False

@@ -83,6 +83,8 @@ class CoupledClimateNetwork(InteractingNetworks, ClimateNetwork):
             used.
         :arg int silence_level: The inverse level of verbosity of the object.
         """
+        InteractingNetworks.__init__()
+
         #  Store single grids
         self.grid_1 = grid_1
         """(Grid) - The Grid object describing the first layer's spatial
@@ -242,8 +244,8 @@ of temporal sampling points!"
         :rtype: 2D Numpy array [index_1, index_2]
         :return: the cross adjacency matrix.
         """
-        return self.cross_adjacency(node_list_1=self.nodes_1,
-                                    node_list_2=self.nodes_2)
+        return self.cross_adjacency(node_list1=self.nodes_1,
+                                    node_list2=self.nodes_2)
 
     def path_lengths_1(self, link_attribute=None):
         """
@@ -298,8 +300,8 @@ of temporal sampling points!"
         :return: the cross path length matrix.
         """
         return InteractingNetworks.\
-            cross_path_lengths(self, node_list_1=self.nodes_1,
-                               node_list_2=self.nodes_2,
+            cross_path_lengths(self, node_list1=self.nodes_1,
+                               node_list2=self.nodes_2,
                                link_attribute=link_attribute)
 
     #
@@ -312,8 +314,8 @@ of temporal sampling points!"
 
         :return int: the number of links between nodes from different layers.
         """
-        return self.number_cross_links(node_list_1=self.nodes_1,
-                                       node_list_2=self.nodes_2)
+        return self.number_cross_links(node_list1=self.nodes_1,
+                                       node_list2=self.nodes_2)
 
     def number_internal_links(self):
         """
@@ -322,8 +324,10 @@ of temporal sampling points!"
         :rtype: (int, int)
         :return: the number of links within each layer.
         """
-        n_links_1 = InteractingNetworks.number_internal_links(self.nodes_1)
-        n_links_2 = InteractingNetworks.number_internal_links(self.nodes_2)
+        n_links_1 = InteractingNetworks.number_internal_links(
+            self, self.nodes_1)
+        n_links_2 = InteractingNetworks.number_internal_links(
+            self, self.nodes_2)
 
         return (n_links_1, n_links_2)
 
@@ -334,7 +338,7 @@ of temporal sampling points!"
         :return float: the density of links between the two layers.
         """
         return InteractingNetworks.cross_link_density(
-            self, node_list_1=self.nodes_1, node_list_2=self.nodes_2)
+            self, node_list1=self.nodes_1, node_list2=self.nodes_2)
 
     def internal_link_density(self):
         """
@@ -389,9 +393,9 @@ of temporal sampling points!"
         :return: the cross global clustering coefficients.
         """
         cc_12 = InteractingNetworks.cross_global_clustering(
-            self, node_list_1=self.nodes_1, node_list_2=self.nodes_2)
+            self, node_list1=self.nodes_1, node_list2=self.nodes_2)
         cc_21 = InteractingNetworks.cross_global_clustering(
-            self, node_list_1=self.nodes_2, node_list_2=self.nodes_1)
+            self, node_list1=self.nodes_2, node_list2=self.nodes_1)
 
         return (cc_12, cc_21)
 
@@ -410,9 +414,9 @@ of temporal sampling points!"
         :return: the cross transitivities.
         """
         ct_12 = InteractingNetworks.cross_transitivity(
-            self, node_list_1=self.nodes_1, node_list_2=self.nodes_2)
+            self, node_list1=self.nodes_1, node_list2=self.nodes_2)
         ct_21 = InteractingNetworks.cross_transitivity(
-            self, node_list_1=self.nodes_2, node_list_2=self.nodes_1)
+            self, node_list1=self.nodes_2, node_list2=self.nodes_1)
         return (ct_12, ct_21)
 
     def cross_average_path_length(self, link_attribute=None):
@@ -427,7 +431,7 @@ of temporal sampling points!"
         :return float: the cross average path length.
         """
         return InteractingNetworks.cross_average_path_length(
-            self, node_list_1=self.nodes_1, node_list_2=self.nodes_2,
+            self, node_list1=self.nodes_1, node_list2=self.nodes_2,
             link_attribute=link_attribute)
 
     def internal_average_path_length(self, link_attribute=None):
@@ -472,9 +476,9 @@ of temporal sampling points!"
         :return: the cross degree sequences.
         """
         cross_degree_1 = InteractingNetworks.cross_degree(
-            self, node_list_1=self.nodes_1, node_list_2=self.nodes_2)
+            self, node_list1=self.nodes_1, node_list2=self.nodes_2)
         cross_degree_2 = InteractingNetworks.cross_degree(
-            self, node_list_1=self.nodes_2, node_list_2=self.nodes_1)
+            self, node_list1=self.nodes_2, node_list2=self.nodes_1)
         return (cross_degree_1, cross_degree_2)
 
     def internal_degree(self):
@@ -506,9 +510,9 @@ of temporal sampling points!"
         :return: the cross local clustering coefficients.
         """
         cc_12 = InteractingNetworks.cross_local_clustering(
-            self, node_list_1=self.nodes_1, node_list_2=self.nodes_2)
+            self, node_list1=self.nodes_1, node_list2=self.nodes_2)
         cc_21 = InteractingNetworks.cross_local_clustering(
-            self, node_list_1=self.nodes_2, node_list_2=self.nodes_1)
+            self, node_list1=self.nodes_2, node_list2=self.nodes_1)
         return (cc_12, cc_21)
 
     def cross_closeness(self, link_attribute=None):
@@ -524,10 +528,10 @@ of temporal sampling points!"
         :return: the cross closeness sequence.
         """
         cc_12 = InteractingNetworks.cross_closeness(
-            self, node_list_1=self.nodes_1, node_list_2=self.nodes_2,
+            self, node_list1=self.nodes_1, node_list2=self.nodes_2,
             link_attribute=link_attribute)
         cc_21 = InteractingNetworks.cross_closeness(
-            self, node_list_1=self.nodes_2, node_list_2=self.nodes_1,
+            self, node_list1=self.nodes_2, node_list2=self.nodes_1,
             link_attribute=link_attribute)
         return (cc_12, cc_21)
 
@@ -568,7 +572,7 @@ of temporal sampling points!"
         :return: the cross betweenness sequence.
         """
         cb = InteractingNetworks.cross_betweenness(
-            self, node_list_1=self.nodes_1, node_list_2=self.nodes_2)
+            self, node_list1=self.nodes_1, node_list2=self.nodes_2)
         return (cb[self.nodes_1], cb[self.nodes_2])
 
     def internal_betweenness_1(self):

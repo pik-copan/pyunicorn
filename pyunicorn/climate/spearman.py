@@ -95,7 +95,8 @@ class SpearmanClimateNetwork(TsonisClimateNetwork):
     #  Defines methods to calculate the correlation matrix
     #
 
-    def rank_time_series(self, anomaly):
+    @staticmethod
+    def rank_time_series(anomaly):
         """
         Return rank time series.
 

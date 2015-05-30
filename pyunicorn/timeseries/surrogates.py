@@ -14,9 +14,9 @@ multivariate data and generating time series surrogates.
 # array object and fast numerics
 import numpy as np
 from numpy import random
-# C++ inline code
-import weave
 
+# C++ inline code
+from .. import weave_inline
 # easy progress bar handling
 from ..utils import progressbar
 
@@ -68,12 +68,16 @@ class Surrogates(object):
         self._fft_cached = False
         self._twins_cached = False
 
+        #  Cache
+        self._twins = None
+        self._original_data_fft = None
+
     def clear_cache(self):
         """Clean up cache."""
         try:
             del self._original_data_fft
             del self._twins
-        except:
+        except AttributeError:
             pass
 
     #
@@ -102,7 +106,8 @@ class Surrogates(object):
     #  Define methods to normalize and analyze the data
     #
 
-    def normalize_time_series_array(self, time_series_array):
+    @staticmethod
+    def normalize_time_series_array(time_series_array):
         """
         :index:`Normalize <pair: normalize; time series array>` an array of
         time series to zero mean and unit variance individually for each
@@ -129,7 +134,7 @@ class Surrogates(object):
             #  Remove mean value from time series at each node (grid point)
             time_series_array[i, :] -= mean[i]
             #  Normalize the standard deviation of anomalies to one
-            if (std[i] != 0):
+            if std[i] != 0:
                 time_series_array[i, :] /= std[i]
 
     def embed_time_series_array(self, time_series_array, dimension, delay):
@@ -183,12 +188,9 @@ class Surrogates(object):
             }
         }
         """
-        args = ['N', 'n_time', 'dimension', 'delay', 'time_series_array',
-                'embedding']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
-
+        weave_inline(locals(), code,
+                     ['N', 'n_time', 'dimension', 'delay', 'time_series_array',
+                      'embedding'])
         return embedding
 
     def recurrence_plot(self, embedding, threshold):
@@ -233,11 +235,8 @@ class Surrogates(object):
             }
         }
         """
-        args = ['n_time', 'dimension', 'threshold', 'embedding', 'R']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
-
+        weave_inline(locals(), code,
+                     ['n_time', 'dimension', 'threshold', 'embedding', 'R'])
         return R
 
     def twins(self, embedding_array, threshold, min_dist=7):
@@ -354,12 +353,9 @@ class Surrogates(object):
             }
         }
         """
-        args = ['N', 'n_time', 'dimension', 'threshold', 'min_dist',
-                'embedding_array', 'R', 'nR', 'twins']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
-
+        weave_inline(locals(), code,
+                     ['N', 'n_time', 'dimension', 'threshold', 'min_dist',
+                      'embedding_array', 'R', 'nR', 'twins'])
         return twins
 
     #
@@ -690,11 +686,8 @@ class Surrogates(object):
             }
         }
         """
-        args = ['N', 'n_time', 'original_data', 'twins', 'surrogates']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
-
+        weave_inline(locals(), code,
+                     ['N', 'n_time', 'original_data', 'twins', 'surrogates'])
         return surrogates
 
     #
@@ -702,7 +695,8 @@ class Surrogates(object):
     #  original_data and surrogate data for significance testing.
     #
 
-    def eval_fast_code(self, function, original_data, surrogates):
+    @staticmethod
+    def eval_fast_code(function, original_data, surrogates):
         """
         Evaluate performance of fast and slow versions of algorithms.
 
@@ -730,7 +724,8 @@ class Surrogates(object):
         #  Return error
         return np.sqrt(((fast_result - slow_result)**2).sum())
 
-    def test_pearson_correlation(self, original_data, surrogates, fast=True):
+    @staticmethod
+    def test_pearson_correlation(original_data, surrogates, fast=True):
         """
         Return a test matrix of the Pearson correlation coefficient (zero lag).
 
@@ -806,18 +801,15 @@ class Surrogates(object):
         """
         args = ['original_data', 'surrogates', 'correlation', 'n_time', 'N',
                 'norm']
-
         if fast:
-            weave.inline(fastCode, arg_names=args, compiler='gcc',
-                         extra_compile_args=['-O3'])
+            weave_inline(locals(), fastCode, args, blitz=False)
         else:
-            weave.inline(code, arg_names=args,
-                         type_converters=weave.converters.blitz,
-                         compiler='gcc', extra_compile_args=['-O3'])
+            weave_inline(locals(), code, args)
 
         return correlation
 
-    def test_mutual_information(self, original_data, surrogates, n_bins=32,
+    @staticmethod
+    def test_mutual_information(original_data, surrogates, n_bins=32,
                                 fast=True):
         """
         Return a test matrix of mutual information (zero lag).
@@ -1128,15 +1120,10 @@ class Surrogates(object):
                 'original_data', 'surrogates', 'symbolic_original',
                 'symbolic_surrogates', 'hist_original', 'hist_surrogates',
                 'hist2d', 'mi']
-
         if fast:
-            weave.inline(fastCode, arg_names=args, compiler='gcc',
-                         extra_compile_args=['-O3'])
+            weave_inline(locals(), fastCode, args, blitz=False)
         else:
-            weave.inline(code, arg_names=args,
-                         type_converters=weave.converters.blitz,
-                         compiler='gcc', extra_compile_args=['-O3'])
-
+            weave_inline(locals(), code, args)
         return mi
 
     #
@@ -1179,7 +1166,8 @@ original_data data..."
         return (hist, lbb)
 
     def test_threshold_significance(self, surrogate_function, test_function,
-                                    realizations=1, n_bins=100, range=(-1, 1)):
+                                    realizations=1, n_bins=100,
+                                    interval=(-1, 1)):
         """
         Return a test distribution for a similarity measure.
 
@@ -1201,8 +1189,8 @@ original_data data..."
             time series.
         :arg int n_bins: The number of bins for estimating probability
             distribution of test similarity measure.
-        :type range: (float, float)
-        :arg range: The range over which to estimate similarity measure
+        :type interval: (float, float)
+        :arg interval: The range over which to estimate similarity measure
             distribution.
         :rtype: tuple of 1D arrays ([bins],[bins])
         :return: similarity measure test histogram and lower bin boundaries.
@@ -1244,14 +1232,14 @@ original_data data..."
                                                             surrogates))
 
             #  Test if correlation measure values are outside range
-            if correlation_measure_test.min() < range[0]:
+            if correlation_measure_test.min() < interval[0]:
                 print "Warning! Correlation measure value left of range."
-            if correlation_measure_test.max() > range[1]:
+            if correlation_measure_test.max() > interval[1]:
                 print "Warning! Correlation measure value right of range."
 
             #  Estimate density of current realization
-            (hist, lbb) = numpy_hist(correlation_measure_test, n_bins, range,
-                                     normed=True)
+            (hist, lbb) = numpy_hist(correlation_measure_test, n_bins,
+                                     interval, normed=True)
 
             #  Add to density estimate over all realizations
             density_estimate += hist

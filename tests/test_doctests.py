@@ -5,15 +5,19 @@
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
+"""
+When scanned by unittest, export all pyunicorn doctests.
+When invoked by shell, run doctests in pyunicorn submodules given as arguments
+(must be globally importable).
+"""
+
 from os import walk
 from os.path import normpath, join, dirname, sep
 from importlib import import_module
-from sys import exit
 import argparse
 import doctest
 
 import numpy as np
-
 
 ignored_folders = ['ropeproject', 'progressbar']
 ignored_modules = ['__init__', 'progressbar', 'navigator']
@@ -23,22 +27,23 @@ def r(obj):
     """
     Round numbers, arrays or iterables thereof for doctests.
     """
-    if type(obj) in [np.ndarray, np.matrix]:
+    if isinstance(obj, (np.ndarray, np.matrix)):
         if obj.dtype.kind == 'f':
-            return np.around(obj.astype(np.float128),
-                             decimals=4).astype(np.float)
+            rounded = np.around(obj.astype(np.float128),
+                                decimals=4).astype(np.float)
         elif obj.dtype.kind == 'i':
-            return obj.astype(np.int)
-    elif type(obj) is list:
-        return map(r, obj)
-    elif type(obj) is tuple:
-        return tuple(map(r, obj))
-    elif type(obj) in [float, np.float32, np.float64, np.float128]:
-        return np.float(np.around(np.float128(obj), decimals=4))
-    elif type(obj) in [int, np.int8, np.int16]:
-        return int(obj)
+            rounded = obj.astype(np.int)
+    elif isinstance(obj, list):
+        rounded = map(r, obj)
+    elif isinstance(obj, tuple):
+        rounded = tuple(map(r, obj))
+    elif isinstance(obj, (float, np.float32, np.float64, np.float128)):
+        rounded = np.float(np.around(np.float128(obj), decimals=4))
+    elif isinstance(obj, (int, np.int8, np.int16)):
+        rounded = int(obj)
     else:
-        return obj
+        rounded = obj
+    return rounded
 
 
 def rr(obj):
@@ -80,10 +85,10 @@ def main():
     for mod in parser.parse_args().modules:
         try:
             module = import_module('pyunicorn.' + mod)
+            doctest.testmod(module, **doctest_opts)
         except ImportError:
             print "Failed to import module: ", mod
             exit(1)
-        doctest.testmod(module, **doctest_opts)
 
 
 if __name__ == "__main__":

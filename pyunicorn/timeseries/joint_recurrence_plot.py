@@ -117,6 +117,9 @@ class JointRecurrencePlot(RecurrencePlot):
         :type tau: tuple of number
         :keyword tau: Embedding delay. Give separately for each time series.
         """
+        RecurrencePlot.__init__(
+            np.array([]), metric=metric, normalize=normalize,
+            silence_level=silence_level)
 
         self.JR = None
         """The joint recurrence matrix."""
@@ -125,10 +128,6 @@ class JointRecurrencePlot(RecurrencePlot):
 
         #  Check for consistency: x and y need to have the same length
         if x.shape[0] == y.shape[0]:
-
-            #  Set silence_level
-            self.silence_level = silence_level
-            """The inverse level of verbosity of the object."""
 
             #  Store time series
             self.x = x.copy().astype("float32")
@@ -139,10 +138,6 @@ class JointRecurrencePlot(RecurrencePlot):
             #  Reshape time series
             self.x.shape = (self.x.shape[0], -1)
             self.y.shape = (self.y.shape[0], -1)
-
-            #  Store type of metric
-            self.metric = metric
-            """The metric used for measuring distances in phase space."""
 
             #  Normalize time series
             if normalize:

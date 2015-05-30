@@ -16,12 +16,11 @@ Provides classes for generating and analyzing complex climate networks.
 
 # array object and fast numerics
 import numpy as np
-# C++ inline code
-import weave
 
 #  Import progress bar for easy progress bar handling
 from ..utils import progressbar
-
+# C++ inline code
+from .. import weave_inline
 #  Import cnNetwork for Network base class
 from .climate_network import ClimateNetwork
 
@@ -84,13 +83,8 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         #  Set instance variables
         self.data = data
         """(ClimateData) - The climate data used for network construction."""
-
         self.N = self.data.grid.N
-        self._threshold = threshold
         self._prescribed_link_density = link_density
-        self._non_local = non_local
-        self.node_weight_type = node_weight_type
-        self.silence_level = silence_level
 
         #  Class specific settings
         self.mi_file = "mutual_information_" + data.data_source + "_" \
@@ -99,6 +93,12 @@ class MutualInfoClimateNetwork(ClimateNetwork):
                       matrix."""
 
         #  The constructor of ClimateNetwork is called within this method.
+        ClimateNetwork.__init__(self, grid=self.data.grid,
+                                threshold=threshold,
+                                non_local=non_local,
+                                directed=False,
+                                node_weight_type=node_weight_type,
+                                silence_level=silence_level)
         self.set_winter_only(winter_only)
 
     def __str__(self):
@@ -424,12 +424,9 @@ anomaly values using Weave..."
                 'symbolic', 'hist', 'hist2d', 'mi']
 
         if fast:
-            weave.inline(fastCode, arg_names=args, compiler='gcc',
-                         extra_compile_args=['-O3'])
+            weave_inline(locals(), fastCode, args, blitz=False)
         else:
-            weave.inline(code, arg_names=args,
-                         type_converters=weave.converters.blitz,
-                         compiler='gcc', extra_compile_args=['-O3'])
+            weave_inline(locals(), code, args)
 
         if self.silence_level <= 1:
             print "Done!"
@@ -477,8 +474,9 @@ anomaly values..."
         p = np.zeros((self.N, n_bins))
 
         for i in xrange(self.N):
-            p[i, :] = (histogram(anomaly[:, i], bins=n_bins,
-                       range=(range_min, range_max))[0]).astype("float64")
+            p[i, :] = histogram(
+                anomaly[:, i], bins=n_bins, range=(range_min, range_max)
+            )[0].astype("float64")
 
         #  Normalize by total number of samples = length of each time series
         p /= n_samples
@@ -504,9 +502,10 @@ anomaly values..."
 
             for j in xrange(i):
                 #  Calculate the joint probability distribution
-                pxy = (histogram2d(anomaly[:, i], anomaly[:, j], bins=n_bins,
-                       range=((range_min, range_max),
-                              (range_min, range_max)))[0]).astype("float64")
+                pxy = histogram2d(
+                    anomaly[:, i], anomaly[:, j], bins=n_bins,
+                    range=((range_min, range_max),
+                           (range_min, range_max)))[0].astype("float64")
 
                 #  Normalize joint distribution
                 pxy /= n_samples
@@ -539,7 +538,7 @@ anomaly values..."
         """
         return self._weave_calculate_mutual_information(anomaly)
 
-    def mutual_information(self, anomaly):
+    def mutual_information(self, anomaly=None):
         """
         Return mutual information matrix at zero lag.
 
@@ -570,7 +569,7 @@ anomaly values..."
 dimensions!"
                 raise
 
-        except:
+        except (IOError, RuntimeError):
             if self.silence_level <= 1:
                 print "An error occured while loading data from", \
                       self.mi_file, "."

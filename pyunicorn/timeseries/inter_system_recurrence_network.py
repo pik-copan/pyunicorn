@@ -174,14 +174,17 @@ class InterSystemRecurrenceNetwork(InteractingNetworks):
             if threshold is not None:
                 #  Calculate the ISRN using the radius of neighborhood
                 #  threshold
-                self.set_fixed_threshold(threshold)
+                ISRM = self.set_fixed_threshold(threshold)
             elif recurrence_rate is not None:
                 #  Calculate the ISRN using a fixed recurrence rate
-                self.set_fixed_recurrence_rate(recurrence_rate)
+                ISRM = self.set_fixed_recurrence_rate(recurrence_rate)
             else:
                 #  Raise error
                 print "Error: Please give either threshold or recurrence_rate \
 to construct the joint recurrence plot!"
+            #  Initialize the underlying InteractingNetworks object
+            InteractingNetworks.__init__(self, adjacency=ISRM, directed=False,
+                                         silence_level=self.silence_level)
 
             #  No treatment of missing values yet!
             self.missing_values = False
@@ -267,10 +270,7 @@ dimension!"
 
         #  Set diagonal of ISRM to zero to avoid self-loops
         ISRM.flat[::self.N + 1] = 0
-
-        #  Initialize the underlying InteractingNetworks object
-        InteractingNetworks.__init__(self, adjacency=ISRM, directed=False,
-                                     silence_level=self.silence_level)
+        return ISRM
 
     def set_fixed_recurrence_rate(self, density):
         """

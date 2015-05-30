@@ -15,10 +15,9 @@ analysis (RQA) and recurrence network analysis.
 # array object and fast numerics
 import numpy as np
 
-# C++ inline code
-import weave
 
 from .recurrence_plot import RecurrencePlot
+from .. import weave_inline   # C++ inline code
 
 
 #
@@ -96,13 +95,9 @@ class CrossRecurrencePlot(RecurrencePlot):
         :arg number dim: The embedding dimension.
         :arg number tau: The embedding delay.
         """
-        #  Set silence_level
-        self.silence_level = silence_level
-        """The inverse level of verbosity of the object."""
-
-        #  Set sparse RQA flag
-        self.sparse_rqa = sparse_rqa
-        """Controls sequential calculation of RQA measures."""
+        RecurrencePlot.__init__(
+            np.array([]), metric=metric, normalize=normalize,
+            sparse_rqa=sparse_rqa, silence_level=silence_level)
 
         self.CR = None
         """The cross recurrence matrix."""
@@ -120,10 +115,6 @@ class CrossRecurrencePlot(RecurrencePlot):
         #  Reshape time series
         self.x.shape = (self.x.shape[0], -1)
         self.y.shape = (self.y.shape[0], -1)
-
-        #  Store type of metric
-        self.metric = metric
-        """The metric used for measuring distances in phase space."""
 
         #  Normalize time series
         if normalize:
@@ -238,11 +229,9 @@ to construct the cross recurrence plot!"
             }
         }
         """
-        args = ['ntime_x', 'ntime_y', 'dim', 'x_embedded', 'y_embedded',
-                'distance']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
+        weave_inline(locals(), code,
+                     ['ntime_x', 'ntime_y', 'dim', 'x_embedded', 'y_embedded',
+                      'distance'])
         return distance
 
     def euclidean_distance_matrix(self, x_embedded, y_embedded):
@@ -283,11 +272,9 @@ to construct the cross recurrence plot!"
             }
         }
         """
-        args = ['ntime_x', 'ntime_y', 'dim', 'x_embedded', 'y_embedded',
-                'distance']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
+        weave_inline(locals(), code,
+                     ['ntime_x', 'ntime_y', 'dim', 'x_embedded', 'y_embedded',
+                      'distance'])
         return distance
 
     def supremum_distance_matrix(self, x_embedded, y_embedded):
@@ -330,11 +317,9 @@ to construct the cross recurrence plot!"
             }
         }
         """
-        args = ['ntime_x', 'ntime_y', 'dim', 'x_embedded', 'y_embedded',
-                'distance']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
+        weave_inline(locals(), code,
+                     ['ntime_x', 'ntime_y', 'dim', 'x_embedded', 'y_embedded',
+                      'distance'])
         return distance
 
     def set_fixed_threshold(self, threshold):

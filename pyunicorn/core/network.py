@@ -55,23 +55,23 @@ def nz_coords(matrix):
 
 def cache_helper(self, cat, key, msg, func, *args, **kwargs):
     """
-    Cache result of a function in a subdict of :attr:`self._cache`.
+    Cache result of a function in a subdict of :attr:`self.cache`.
 
     :arg str cat: cache category
     :arg str key: cache key
     :arg str msg: message to be displayed during first calculation
     :arg func func: function to be cached
     """
-    if self._cache[cat].setdefault(key) is None:
+    if self.cache[cat].setdefault(key) is None:
         if msg is not None and self.silence_level <= 1:
             print 'Calculating ' + msg + '...'
-        self._cache[cat][key] = func(self, *args, **kwargs)
-    return self._cache[cat][key]
+        self.cache[cat][key] = func(self, *args, **kwargs)
+    return self.cache[cat][key]
 
 
 def cached_const(cat, key, msg=None):
     """
-    Cache result of decorated method in a fixed subdict of :attr:`self._cache`.
+    Cache result of decorated method in a fixed subdict of :attr:`self.cache`.
     """
     def wrapper(func):
         @wraps(func)
@@ -84,7 +84,7 @@ def cached_const(cat, key, msg=None):
 def cached_var(cat, msg=None):
     """
     Cache result of decorated method in a variable subdict of
-    :attr:`self._cache`, specified as first argument to the decorated method.
+    :attr:`self.cache`, specified as first argument to the decorated method.
     """
     def wrapper(func):
         @wraps(func)
@@ -94,11 +94,21 @@ def cached_var(cat, msg=None):
     return wrapper
 
 
+def weave_inline(local_dict, code, args, blitz=True, **kwargs):
+    """ Default configuration for C inline code. """
+    return weave.inline(
+        code, arg_names=args, local_dict=local_dict,
+        compiler='gcc', extra_compile_args=['-O3 -w'],
+        type_converters=weave.converters.blitz if blitz else None,
+        verbose=0, **kwargs)
+
+
 class NetworkError(Exception):
     """
     Used for all exceptions raised by Network.
     """
     def __init__(self, value):
+        Exception.__init__(self)
         self.value = value
 
     def __str__(self):
@@ -193,7 +203,7 @@ class Network(object):
         self.total_node_weight = 0
         """total node weight"""
 
-        self._cache = {'base': {}, 'nsi': {}, 'paths': {}}
+        self.cache = {'base': {}, 'nsi': {}, 'paths': {}}
         """(dict) cache of re-usable computation results"""
 
         if adjacency is not None:
@@ -245,7 +255,7 @@ initialize an instance of Network."
         """
         Clear cache of information that can be recalculated from basic data.
         """
-        self._cache['base'] = {}
+        self.cache['base'] = {}
         self.clear_nsi_cache()
         self.clear_paths_cache()
 
@@ -254,15 +264,15 @@ initialize an instance of Network."
         Clear cache of information that can be recalculated from basic data
         and depends on the node weights.
         """
-        self._cache['nsi'] = {}
+        self.cache['nsi'] = {}
 
     def clear_paths_cache(self):
         """
         Clear cache of path legths for link attributes.
         """
-        for attr in self._cache['paths'].keys():
+        for attr in self.cache['paths'].keys():
             self.clear_link_attribute(attr)
-        self._cache['paths'] = {}
+        self.cache['paths'] = {}
 
     def copy(self):
         """
@@ -499,17 +509,17 @@ initialize an instance of Network."
         """A^+ = A + Id. matrix used in n.s.i. measures"""
         return self.sp_A + sp.identity(self.N, dtype=self.sp_dtype)
 
-    def _sp_diag_w(self):
+    def sp_diag_w(self):
         """Sparse diagonal matrix of node weights"""
         return sp.diags([self.node_weights], [0],
                         shape=(self.N, self.N), format='csc')
 
-    def _sp_diag_w_inv(self):
+    def sp_diag_w_inv(self):
         """Sparse diagonal matrix of inverse node weights"""
         return sp.diags([1 / self.node_weights], [0],
                         shape=(self.N, self.N), format='csc')
 
-    def _sp_diag_sqrt_w(self):
+    def sp_diag_sqrt_w(self):
         """Sparse diagonal matrix of square roots of node weights"""
         return sp.diags([np.sqrt(self.node_weights)], [0],
                         shape=(self.N, self.N), format='csc')
@@ -518,7 +528,7 @@ initialize an instance of Network."
     #  Load and save Network object
     #
 
-    def save(self, filename, format=None, *args, **kwds):
+    def save(self, filename, fileformat=None, *args, **kwds):
         """
         Save the Network object to a file.
 
@@ -539,16 +549,16 @@ initialize an instance of Network."
 
         :arg str filename: The name of the file where the Network object is to
             be stored.
-        :arg str format: the format of the file (if one wants to override the
-          format determined from the filename extension, or the filename itself
-          is a stream). ``None`` means auto-detection. Possible values are:
-          ``"ncol"`` (NCOL format), ``"lgl"`` (LGL format), ``"graphml"``,
-          ``"graphmlz"`` (GraphML and gzipped GraphML format), ``"gml"`` (GML
-          format), ``"dot"``, ``"graphviz"`` (DOT format, used by GraphViz),
-          ``"net"``, ``"pajek"`` (Pajek format), ``"dimacs"`` (DIMACS format),
-          ``"edgelist"``, ``"edges"`` or ``"edge"`` (edge list),
-          ``"adjacency"`` (adjacency matrix), ``"pickle"`` (Python pickled
-          format), ``"svg"`` (Scalable Vector Graphics).
+        :arg str fileformat: the format of the file (if one wants to override
+            the format determined from the filename extension, or the filename
+            itself is a stream). ``None`` means auto-detection. Possible values
+            are: ``"ncol"`` (NCOL format), ``"lgl"`` (LGL format),
+            ``"graphml"``, ``"graphmlz"`` (GraphML and gzipped GraphML format),
+            ``"gml"`` (GML format), ``"dot"``, ``"graphviz"`` (DOT format, used
+            by GraphViz), ``"net"``, ``"pajek"`` (Pajek format), ``"dimacs"``
+            (DIMACS format), ``"edgelist"``, ``"edges"`` or ``"edge"`` (edge
+            list), ``"adjacency"`` (adjacency matrix), ``"pickle"`` (Python
+            pickled format), ``"svg"`` (Scalable Vector Graphics).
         """
         #  Store node weights as an igraph vertex attribute for saving
         #  Link attributes/weights are stored automatically if they exist
@@ -556,10 +566,10 @@ initialize an instance of Network."
             self.graph.vs.set_attribute_values(
                 "node_weight_nsi", list(self.node_weights))
 
-        self.graph.write(f=filename, format=format, *args, **kwds)
+        self.graph.write(f=filename, format=fileformat, *args, **kwds)
 
     @staticmethod
-    def Load(filename, format=None, silence_level=0, *args, **kwds):
+    def Load(filename, fileformat=None, silence_level=0, *args, **kwds):
         """
         Return a Network object stored in a file.
 
@@ -578,7 +588,7 @@ initialize an instance of Network."
         any changes.
 
         :arg str filename: The name of the file containing the Network object.
-        :arg str format: the format of the file (if known in advance).
+        :arg str fileformat: the format of the file (if known in advance).
           ``None`` means auto-detection. Possible values are: ``"ncol"`` (NCOL
           format), ``"lgl"`` (LGL format), ``"graphml"``, ``"graphmlz"``
           (GraphML and gzipped GraphML format), ``"gml"`` (GML format),
@@ -592,8 +602,7 @@ initialize an instance of Network."
         :return: :class:`Network` instance.
         """
         #  Load to igraph Graph object
-        graph = igraph.Graph.Read(f=filename, format=format, *args, **kwds)
-
+        graph = igraph.Graph.Read(f=filename, format=fileformat, *args, **kwds)
         return Network.FromIGraph(graph=graph, silence_level=silence_level)
 
     #
@@ -942,7 +951,6 @@ initialize an instance of Network."
             total_link_prob = link_prob.sum()
 
             def _link_target():
-                """ """
                 thd = random.uniform(low=0, high=total_link_prob)
                 i = 0
                 cum = link_prob[0]
@@ -958,7 +966,7 @@ initialize an instance of Network."
                 total_link_prob += 1
                 inc_target.append(j)
                 # link it to some i's:
-                for ii in range(n_links_new):
+                for _ in xrange(n_links_new):
                     i = _link_target()
                     # print j,i
                     while i == j:
@@ -977,7 +985,7 @@ initialize an instance of Network."
                     link_prob[j] = w[j] * kstar[j]**preferential_exponent
                     total_link_prob += link_prob[i] + link_prob[j]
                 # print total_link_prob, link_prob.sum()
-                for ii in range(n_growths):
+                for _ in xrange(n_growths):
                     # increase weight of some i:
                     i = inc_target[int(
                         random.uniform(low=0, high=len(inc_target)))]
@@ -1032,7 +1040,7 @@ initialize an instance of Network."
                         A[i, j] = A[j, i] = 1
                         nbs[i].append(j)
                         nbs[j].append(i)
-                link_target += [i for iii in range(n_links_new + n_links_old)]
+                link_target += [i for _ in xrange(n_links_new + n_links_old)]
 
             # last_grown = np.zeros(N)
             for j in range(n_initials, N):
@@ -1108,7 +1116,6 @@ initialize an instance of Network."
         hold_prob = 1 - split_prob
 
         def _inc_target():
-            """ """
             thd = random.uniform(low=0, high=total_inc_prob)
             i = 0
             cum = inc_prob[0]
@@ -1316,7 +1323,7 @@ can only take values <<in>> or <<out>>."
 
         :rtype: square array([[float]])
         """
-        return (self._sp_nsi_diag_k() - self.sp_Aplus() * self._sp_diag_w()).A
+        return (self.sp_nsi_diag_k() - self.sp_Aplus() * self.sp_diag_w()).A
 
     #
     #  Calculate frequency and cumulative distributions
@@ -1324,7 +1331,7 @@ can only take values <<in>> or <<out>>."
 
     # TODO: add sensible default for n_bins depending on len(values)
     @staticmethod
-    def _histogram(values, n_bins, range=None):
+    def _histogram(values, n_bins, interval=None):
         """
         Return a normalized histogram of a list of values,
         its statistical error, and the lower bin boundaries.
@@ -1332,7 +1339,7 @@ can only take values <<in>> or <<out>>."
         **Example:** Get the relative frequencies only:
 
         >>> r(Network._histogram(
-        ...     values=[1,2,13], n_bins=3, range=(0,30))[0])
+        ...     values=[1,2,13], n_bins=3, interval=(0,30))[0])
         array([ 0.6667,  0.3333,  0. ])
 
         :type values: 1d array or list of floats
@@ -1341,15 +1348,15 @@ can only take values <<in>> or <<out>>."
         :type n_bins: int > 0
         :arg  n_bins: Number of bins to be used for the histogram.
 
-        :type range: tuple (float,float), or None
-        :arg  range: Optional range to use. If None, the minimum and maximum
-                     values are used. (Default: None)
+        :type interval: tuple (float,float), or None
+        :arg  interval: Optional interval to use. If None, the minimum and
+                        maximum values are used. (Default: None)
 
         :rtype:  tuple (list,list,list)
         :return: A list of relative bin frequencies, a list of estimated
                  statistical errors, and a list of lower bin boundaries.
         """
-        hist = np.histogram(values, bins=n_bins, range=range, normed=False)
+        hist = np.histogram(values, bins=n_bins, range=interval, normed=False)
         frequencies = hist[0].astype('float64')
         bin_starts = hist[1][:-1]
 
@@ -1368,7 +1375,7 @@ can only take values <<in>> or <<out>>."
         return (rel_freqs, error, bin_starts)
 
     @staticmethod
-    def _cum_histogram(values, n_bins, range=None):
+    def _cum_histogram(values, n_bins, interval=None):
         """
         Return a normalized cumulative histogram of a list of values,
         and the lower bin boundaries.
@@ -1376,7 +1383,7 @@ can only take values <<in>> or <<out>>."
         **Example:** Get the relative frequencies only:
 
         >>> r(Network._cum_histogram(
-        ...     values=[1,2,13], n_bins=3, range=(0,30))[0])
+        ...     values=[1,2,13], n_bins=3, interval=(0,30))[0])
         array([ 1. ,  0.3333,  0. ])
 
         :type values: 1d array or list of floats
@@ -1385,17 +1392,17 @@ can only take values <<in>> or <<out>>."
         :type n_bins: int > 0
         :arg  n_bins: Number of bins to be used for the histogram.
 
-        :type range: tuple (float,float), or None
-        :arg  range: Optional range to use. If None, the minimum and maximum
-                     values are used. (Default: None)
+        :type interval: tuple (float,float), or None
+        :arg  interval: Optional range to use. If None, the minimum and maximum
+                        values are used. (Default: None)
 
         :rtype:  tuple (list,list)
         :return: A list of cumulative relative bin frequencies
                  (entry [i] is the sum of the frequencies of all bins j >= i),
                  and a list of lower bin boundaries.
         """
-        (rel_freqs, error, bin_starts) = \
-            Network._histogram(values=values, n_bins=n_bins, range=range)
+        (rel_freqs, _, bin_starts) = \
+            Network._histogram(values=values, n_bins=n_bins, interval=interval)
         cum_rel_freqs = rel_freqs[::-1].cumsum()[::-1]
         return (cum_rel_freqs, bin_starts)
 
@@ -1499,8 +1506,8 @@ can only take values <<in>> or <<out>>."
 
         :arg str attribute_name: name of link attribute
         """
-        if attribute_name in self._cache['paths']:
-            del self._cache['paths'][attribute_name]
+        if attribute_name in self.cache['paths']:
+            del self.cache['paths'][attribute_name]
 
     def del_link_attribute(self, attribute_name):
         """
@@ -1509,7 +1516,7 @@ can only take values <<in>> or <<out>>."
         :arg str attribute_name: name of link attribute to be deleted
         """
         # TODO: add example
-        if attribute_name in self._cache['paths']:
+        if attribute_name in self.cache['paths']:
             self.clear_link_attribute(attribute_name)
             self.graph.es.__delattr__(attribute_name)
         else:
@@ -1601,12 +1608,12 @@ can only take values <<in>> or <<out>>."
         else:
             return self.sp_Aplus() * self.node_weights
 
-    def _sp_nsi_diag_k(self):
+    def sp_nsi_diag_k(self):
         """Sparse diagonal matrix of n.s.i. degrees"""
         return sp.diags([self.nsi_degree_uncorr()], [0],
                         shape=(self.N, self.N), format='csc')
 
-    def _sp_nsi_diag_k_inv(self):
+    def sp_nsi_diag_k_inv(self):
         """Sparse diagonal matrix of inverse n.s.i. degrees"""
         return sp.diags([np.power(self.nsi_degree_uncorr(), -1)], [0],
                         shape=(self.N, self.N), format='csc')
@@ -1869,7 +1876,7 @@ can only take values <<in>> or <<out>>."
 
         # A+ * (Dw * k) is faster than (A+ * Dw) * k
         nsi_k = self.nsi_degree()
-        return self.sp_Aplus() * (self._sp_diag_w() * nsi_k) / nsi_k
+        return self.sp_Aplus() * (self.sp_diag_w() * nsi_k) / nsi_k
 
     @cached_const('nsi', 'max nbr degree', "n.s.i. maximum neighbour degree")
     def nsi_max_neighbors_degree(self):
@@ -1899,7 +1906,7 @@ can only take values <<in>> or <<out>>."
 
         self.nsi_degree()
         # matrix with the degrees of nodes' neighbours as rows
-        return (self.sp_Aplus() * self._sp_nsi_diag_k()).max(axis=1).T.A[0]
+        return (self.sp_Aplus() * self.sp_nsi_diag_k()).max(axis=1).T.A[0]
 
     #
     #   Measures of clustering, transitivity and cliquishness
@@ -2027,11 +2034,7 @@ for orders 0, 1 and 2."
             # T(0) = double(cliques) / double(stars);
             # """
 
-            # args = ['T', 'N', 'A']
-            # weave.inline(code, arg_names=args,
-            #              type_converters=weave.converters.blitz,
-            #              compiler='gcc', extra_compile_args=['-O3'])
-
+            # weave_inline(code, ['T', 'N', 'A'])
             # return T[0]
 
             if estimate:
@@ -2147,11 +2150,9 @@ orders 0, 1 and 2."
                 }
             }
             """
-            args = ['local_cliquishness', 'neighbors', 'N', 'A', 'degree',
-                    'order']
-            weave.inline(code, arg_names=args,
-                         type_converters=weave.converters.blitz,
-                         compiler='gcc', extra_compile_args=['-O3'])
+            weave_inline(locals(), code,
+                         ['local_cliquishness', 'neighbors', 'N', 'A',
+                          'degree', 'order'])
             return local_cliquishness
 
         elif order == 5:
@@ -2218,11 +2219,9 @@ orders 0, 1 and 2."
                 }
             }
             """
-            args = ['local_cliquishness', 'neighbors', 'N', 'A', 'degree',
-                    'order']
-            weave.inline(code, arg_names=args,
-                         type_converters=weave.converters.blitz,
-                         compiler='gcc', extra_compile_args=['-O3'])
+            weave_inline(locals(), code,
+                         ['local_cliquishness', 'neighbors', 'N', 'A',
+                          'degree', 'order'])
             return local_cliquishness
 
         elif order > 5:
@@ -2304,7 +2303,7 @@ orders larger than 5."
         """
         # TODO: implement other versions as weĺl
         N, k, Ap = self.N, self.nsi_degree(), self.sp_Aplus()
-        commons = Ap * self._sp_diag_w() * Ap
+        commons = Ap * self.sp_diag_w() * Ap
         kk = np.repeat([k], N, axis=0)
         return Ap.A * commons.A / np.maximum(kk, kk.T)
 
@@ -2356,7 +2355,7 @@ orders larger than 5."
             return None
 
         N, w, k = self.N, self.node_weights, self.nsi_degree()
-        A_Dw = self.sp_A * self._sp_diag_w()
+        A_Dw = self.sp_A * self.sp_diag_w()
         numerator = (A_Dw * self.sp_Aplus() * A_Dw.T).diagonal()
         return (numerator + 2*k*w - w**2) / k**2
 
@@ -2403,7 +2402,7 @@ orders larger than 5."
                        "local clustering coefficients...")
 
             Ap = self.sp_Aplus()
-            Ap_Dw = Ap * self._sp_diag_w()
+            Ap_Dw = Ap * self.sp_diag_w()
             numerator = (Ap_Dw * Ap_Dw * Ap).diagonal()
             return (numerator/typical_weight**2 - 3.0*k - 1.0) / (k * (k-1.0))
 
@@ -2453,9 +2452,9 @@ orders larger than 5."
             return None
 
         A = self.sp_Aplus()
-        A_Dw = A * self._sp_diag_w()
+        A_Dw = A * self.sp_diag_w()
         num = (A_Dw * A_Dw * A_Dw).diagonal().sum()
-        denum = (self._sp_diag_w() * A_Dw * A_Dw).sum()
+        denum = (self.sp_diag_w() * A_Dw * A_Dw).sum()
 
         return num / denum
 
@@ -2494,14 +2493,14 @@ orders larger than 5."
 
         # numerator is determined as above
         Ap = self.sp_Aplus()
-        Ap_Dw = Ap * self._sp_diag_w()
+        Ap_Dw = Ap * self.sp_diag_w()
         numerator = (Ap_Dw * Ap_Dw * Ap).diagonal()
 
         # denominator depends on degrees of neighbours
         N, k = self.N, self.nsi_degree()
         mink = np.array([[min(k[i], k[j]) for j in xrange(N)]
                          for i in xrange(N)])
-        denominator = (mink * (self._sp_diag_w() * Ap)).diagonal()
+        denominator = (mink * (self.sp_diag_w() * Ap)).diagonal()
         return numerator / denominator
 
     #
@@ -2786,15 +2785,10 @@ orders larger than 5."
         #  This restricts TBC to 0 <= TBC <= 1
         # maxTBC =  ( self.N**2 - 3 * self.N + 2 ) / 2
 
-        try:
-            return np.abs(np.array(
-                self.graph.betweenness(nobigint=no_big_int)))
-        except:
-            print "WARNING: igraph's no_big_int not available, trying without."
-            return np.abs(np.array(self.graph.betweenness()))
+        return np.abs(np.array(self.graph.betweenness(nobigint=no_big_int)))
 
     @cached_const('base', 'inter btw', 'interregional betweenness')
-    def interregional_betweenness(self, sources=[], targets=[]):
+    def interregional_betweenness(self, sources=None, targets=None):
         """
         For each node, return its interregional betweenness for given sets
         of source and target nodes.
@@ -2903,17 +2897,16 @@ orders larger than 5."
 
         # initialize node lists:
         is_source = zn.copy()
-        if "sources" in kwargs:
+        if "sources" in kwargs and kwargs["sources"] is not None:
             for i in kwargs["sources"]:
                 is_source[i] = 1
         else:
             for i in rN:
                 is_source[i] = 1
-        if "targets" in kwargs:
+        if "targets" in kwargs and kwargs["targets"] is not None:
             targets = kwargs["targets"]
         else:
             targets = rN
-        n_targets = len(targets)
 
         # node offsets for flat arrays:
         offsets = np.zeros(N)
@@ -3041,11 +3034,10 @@ orders larger than 5."
             flat_predecessors = list(np.zeros(E, dtype=int))
             # Note: this cannot be transferred as numpy array since if too
             # large we get an glibc error...
-            args = ['N', 'E', 'w', 'k', 'j', 'betweenness_to_j', 'excess_to_j',
-                    'offsets', 'flat_neighbors', 'is_source',
-                    'flat_predecessors']
-            weave.inline(code, arg_names=args, compiler='gcc',
-                         extra_compile_args=['-O3 -w'], verbose=0)
+            weave_inline(locals(), code,
+                         ['N', 'E', 'w', 'k', 'j', 'betweenness_to_j',
+                          'excess_to_j', 'offsets', 'flat_neighbors',
+                          'is_source', 'flat_predecessors'], blitz=False)
             del flat_predecessors
             betweenness_times_w += w[j] * (betweenness_to_j - excess_to_j)
 
@@ -3135,7 +3127,7 @@ orders larger than 5."
 
         :rtype: 1d numpy array [node] of floats
         """
-        DwR = self._sp_diag_sqrt_w()
+        DwR = self.sp_diag_sqrt_w()
         sp_Astar = DwR * self.sp_Aplus() * DwR
         _, evecs = eigsh(sp_Astar, k=1, sigma=self.total_node_weight**2,
                          maxiter=100, tol=1e-8)
@@ -3169,12 +3161,12 @@ orders larger than 5."
             if self.silence_level <= 1:
                 print "Calculating PageRank..."
             return np.array(self.graph.personalized_pagerank(
-                            directed=use_directed, weights=None))
+                directed=use_directed, weights=None))
         else:
             if self.silence_level <= 1:
                 print "Calculating weighted PageRank..."
             return np.array(self.graph.personalized_pagerank(
-                            directed=use_directed, weights=link_attribute))
+                directed=use_directed, weights=link_attribute))
 
     def closeness(self, link_attribute=None):
         """
@@ -3425,8 +3417,6 @@ orders larger than 5."
 
     # TODO: remove this slow version after regression test:
     def _arenas_betweenness_slow(self):
-        """
-        """
         print "WARNING: _arenas_betweenness_slow() is deprecated!"
 
         t0 = time.time()
@@ -3466,7 +3456,7 @@ orders larger than 5."
                     aw[j] = self.node_weights[vertexList[j]]
 
                 #  Generate a Network object representing the subgraph
-                subnetwork = Network(adjacency, directed=False, awVector=aw)
+                subnetwork = Network(adjacency, directed=False)
 
                 #  Get the number of nodes of the subgraph (the component size)
                 nNodes = subnetwork.N
@@ -3516,8 +3506,6 @@ orders larger than 5."
     def _mpi_nsi_arenas_betweenness(
             N, sp_P, this_Aplus, w, this_w, start_i, end_i,
             exclude_neighbors, stopping_mode, this_twinness):
-        """
-        """
         error_message, result = '', None
         try:
             component_betweenness = np.zeros(N)
@@ -3550,7 +3538,7 @@ orders larger than 5."
                 component_betweenness += this_w[i-start_i] * B_sum
 
             result = component_betweenness, start_i, end_i
-        except:
+        except RuntimeError:
             e = sys.exc_info()
             error_message = (str(e[0]) + '\n' + str(e[1]))
 
@@ -3662,8 +3650,8 @@ orders larger than 5."
                     twinness = self.nsi_twinness()
 
                 #  Get the sparse P matrix that gets modified and inverted
-                sp_P = (subnet._sp_nsi_diag_k_inv() * subnet.sp_Aplus()
-                        * subnet._sp_diag_w()).todok()
+                sp_P = (subnet.sp_nsi_diag_k_inv() * subnet.sp_Aplus()
+                        * subnet.sp_diag_w()).todok()
 
                 if mpi.available:
                     parts = max(1, int(np.ceil(
@@ -3747,8 +3735,6 @@ orders larger than 5."
     # deactivated and replaced by corrected and faster version (see below):
     # TODO: remove after regression test
     def _newman_betweenness_badly(self, link_attribute=None):
-        """
-        """
         print "WARNING: _newman_betweenness_badly() is deprecated!"
 
         #  Initialize the array to hold random walk betweenness
@@ -3834,14 +3820,10 @@ orders larger than 5."
                     rwb(i) *= norm;
                 }
                 """
-                args = ['adjacency', 'T', 'rwb', 'N']
                 # added -w since numerous warnings of type "Warnung: veraltete
                 # Konvertierung von Zeichenkettenkonstante in »char*«"
                 # occurred:
-                weave.inline(code, arg_names=args,
-                             type_converters=weave.converters.blitz,
-                             compiler='gcc', extra_compile_args=['-O3 -w'],
-                             verbose=0)
+                weave_inline(locals(), code, ['adjacency', 'T', 'rwb', 'N'])
 
                 #  Normalize RWB by component size
                 rwb *= nNodes
@@ -3861,8 +3843,6 @@ orders larger than 5."
     # Each parallel job will consist of a call to this function:
     @staticmethod
     def _mpi_newman_betweenness(this_A, V, N, start_i, end_i):
-        """
-        """
         error_message = ''
         result = None, None, None
         try:
@@ -3891,16 +3871,13 @@ orders larger than 5."
                 }
             }
             """
-            args = ['this_A', 'V', 'this_betweenness', 'N', 'this_N',
-                    'start_i']
-            weave.inline(code, arg_names=args,
-                         type_converters=weave.converters.blitz,
-                         compiler='gcc', extra_compile_args=['-O3 -w'],
-                         verbose=0)
+            weave_inline(locals(), code,
+                         ['this_A', 'V', 'this_betweenness', 'N', 'this_N',
+                          'start_i'])
             result = this_betweenness, start_i, end_i
-        except:
-            error_message = (str(sys.exc_info()[0]) + '\n'
-                             + str(sys.exc_info()[1]))  # grab exception text
+        except (RuntimeError, weave.build_tools.CompileError):
+            error_message = (str(sys.exc_info()[0]) + '\n' +
+                             str(sys.exc_info()[1]))  # grab exception text
 
         return error_message, result
 
@@ -4039,8 +4016,6 @@ orders larger than 5."
     @staticmethod
     def _mpi_nsi_newman_betweenness(this_A, V, N, w, this_not_adj_or_equal,
                                     start_i, end_i):
-        """
-        """
         this_N = int(end_i - start_i)
         start_i = int(start_i)
         this_betweenness = np.zeros(this_N)
@@ -4066,11 +4041,9 @@ orders larger than 5."
             }
         }
         """
-        args = ['this_A', 'V', 'this_betweenness', 'N', 'w',
-                'this_not_adj_or_equal', 'this_N', 'start_i']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3 -w'], verbose=0)
+        weave_inline(locals(), code,
+                     ['this_A', 'V', 'this_betweenness', 'N', 'w',
+                      'this_not_adj_or_equal', 'this_N', 'start_i'])
         return this_betweenness, start_i, end_i
 
     def nsi_newman_betweenness(self, add_local_ends=False):
@@ -4179,8 +4152,8 @@ orders larger than 5."
 
                 # sp_M = area-weighted Kirchhoff matrix * diag(w)^(-1)
                 Ap = subnet.sp_Aplus()
-                Dw, DwI = subnet._sp_diag_w(), subnet._sp_diag_w_inv()
-                Dk, DkI = subnet._sp_nsi_diag_k(), subnet._sp_nsi_diag_k_inv()
+                Dw, DwI = subnet.sp_diag_w(), subnet.sp_diag_w_inv()
+                Dk, DkI = subnet.sp_nsi_diag_k(), subnet.sp_nsi_diag_k_inv()
                 sp_M = Dw * (Dk - Ap * Dw) * DwI
 
                 # invert sp_M without last row/col (see above)
@@ -4562,9 +4535,9 @@ orders larger than 5."
         """
         if alpha is None:
             alpha = 1.0 / self.degree().mean()
-        return matfuncs.expm2(np.log(2.0) * (
-            alpha * self.adjacency - np.identity(self.N))
-        ).sum(axis=0).flatten()
+        return matfuncs.expm2(
+            np.log(2.0) * (alpha * self.adjacency -
+                           np.identity(self.N))).sum(axis=0).flatten()
 
     def nsi_spreading(self, alpha=None):
         """
@@ -4580,8 +4553,9 @@ orders larger than 5."
         if alpha is None:
             alpha = self.total_node_weight / k.dot(w)
         # print alpha
-        return (matfuncs.expm2(np.log(2.0)*(Aplus * alpha * w - sp.identity(N))
-                               ).dot(Aplus) * w.reshape((N, 1))).sum(axis=0)
+        return (matfuncs.expm2(
+            np.log(2.0)*(Aplus * alpha * w - sp.identity(N))).dot(Aplus) *
+                w.reshape((N, 1))).sum(axis=0)
 
     def do_nsi_pca_clustering(self, max_n_clusters=None):
         """
@@ -4611,7 +4585,7 @@ orders larger than 5."
         # stacked with its transpose would have to be used!
 
         # CSS (corrected sum of squares); proportional to covariance matrix
-        DwR = self._sp_diag_sqrt_w()
+        DwR = self.sp_diag_sqrt_w()
         DAD = DwR * self.sp_Aplus() * DwR
         corr = self.nsi_degree() * np.sqrt(self.node_weights)
         CSS = DAD * DAD - np.outer(corr, corr) / self.total_node_weight
@@ -4663,8 +4637,7 @@ orders larger than 5."
                 cluster_fit,    # fraction of node's variance explained by
                                 # chosen eigenvector, for each node
                 evals,          # eigenvalues
-                evecs           # matrix with columns=eigenvectors
-                )
+                evecs)          # matrix with columns=eigenvectors
 
     def do_nsi_clustering(self, d0=None, tree_dotfile=None,
                           distances=None, candidates=None):
@@ -4747,7 +4720,7 @@ orders larger than 5."
         else:
             try:
                 distance_keys = distances.keys()
-            except:
+            except AttributeError:
                 distance_keys = [(i, j) for i in range(N) for j in range(N)]
         M = len(distance_keys)
         rM = xrange(M)
@@ -4906,10 +4879,10 @@ orders larger than 5."
             dict_Delta[ij] = (float)dict_Delta[ij] + Delta_inc;
         }
         """
-        args = ['n_cands', 'cands', 'D_cluster', 'D_invpos', 'w', 'd0',
-                'D_firstpos', 'D_nextpos', 'N', 'dict_D', 'dict_Delta']
-        weave.inline(code, arg_names=args, compiler='gcc',
-                     extra_compile_args=['-O3 -w'], verbose=0)
+        weave_inline(locals(), code,
+                     ['n_cands', 'cands', 'D_cluster', 'D_invpos', 'w', 'd0',
+                      'D_firstpos', 'D_nextpos', 'N', 'dict_D', 'dict_Delta'],
+                     blitz=False)
         print "initialization of error increments needed", \
               time.time()-t0, "sec."
 
@@ -5167,10 +5140,10 @@ orders larger than 5."
                 posa1 = D_nextpos[posa1];
             }
             """
-            args = ['a', 'b', 'D_cluster', 'D_invpos', 'w', 'd0',
-                    'D_firstpos', 'D_nextpos', 'N', 'dict_D', 'dict_Delta']
-            weave.inline(code, arg_names=args, compiler='gcc',
-                         extra_compile_args=['-O3 -w'], verbose=0)
+            weave_inline(locals(), code,
+                         ['a', 'b', 'D_cluster', 'D_invpos', 'w', 'd0',
+                          'D_firstpos', 'D_nextpos', 'N', 'dict_D',
+                          'dict_Delta'], blitz=False)
             sumt3 = time.time()-t0
 
             # finally update D:
@@ -5202,7 +5175,7 @@ orders larger than 5."
             for k1, k2 in delkeys:
                 try:
                     del dict_D[k1*N+k2], dict_D[k2*N+k1]
-                except:
+                except KeyError:
                     pass
             actives.remove(b)
             clid[a] = c
@@ -5244,7 +5217,7 @@ orders larger than 5."
             "children": children, "sibling": sibling, "parent": parent
         }
 
-    def do_nsi_hamming_clustering(self, admissible_joins=None,
+    def do_nsi_hamming_clustering(self, admissible_joins=None, alpha=0.01,
                                   tree_dotfile=None):
         """
         Perform agglomerative clustering based on Hamming distances.
@@ -5448,14 +5421,11 @@ orders larger than 5."
             result(1) = newpart1;
             result(2) = newpart2;
             """
-            args = ['nActiveIndices', 'mind0', 'minwp0', 'lastunited',
-                    'part1', 'part2',
-                    'distances', 'theActiveIndices', 'linkedWeights',
-                    'weightProducts', 'errors', 'result', 'mayJoin']
-            weave.inline(code, arg_names=args,
-                         type_converters=weave.converters.blitz,
-                         compiler='gcc', extra_compile_args=['-O3 -w'],
-                         verbose=0)
+            weave_inline(locals(), code,
+                         ['nActiveIndices', 'mind0', 'minwp0', 'lastunited',
+                          'part1', 'part2', 'distances', 'theActiveIndices',
+                          'linkedWeights', 'weightProducts', 'errors',
+                          'result', 'mayJoin'])
 
             mind = result[0]
             part1 = int(result[1])

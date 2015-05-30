@@ -14,10 +14,8 @@ analysis (RQA) and recurrence network analysis.
 
 # array object and fast numerics
 import numpy as np
-# C++ inline code
-import weave
 
-from .. import InteractingNetworks
+from .. import InteractingNetworks, weave_inline
 
 
 #
@@ -167,9 +165,7 @@ class VisibilityGraph(InteractingNetworks):
             """
             args = ['x', 't', 'N', 'A']
 
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
+        weave_inline(locals(), code, args)
         return A
 
     def visibility_relations_horizontal(self):
@@ -207,10 +203,7 @@ class VisibilityGraph(InteractingNetworks):
             for (i = 0; i < N - 1; i++)
                 A(i,i+1) = A(i+1,i) = 1;
         """
-        args = ['x', 't', 'N', 'A']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
+        weave_inline(locals(), code, ['x', 't', 'N', 'A'])
         return A
 
     #
@@ -280,10 +273,7 @@ class VisibilityGraph(InteractingNetworks):
             }
         }
         """
-        args = ['N', 'A', 'norm', 'retarded_clustering']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
+        weave_inline(locals(), code, ['N', 'A', 'norm', 'retarded_clustering'])
         return retarded_clustering
 
     def advanced_local_clustering(self):
@@ -327,10 +317,7 @@ class VisibilityGraph(InteractingNetworks):
             }
         }
         """
-        args = ['N', 'A', 'norm', 'advanced_clustering']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
+        weave_inline(locals(), code, ['N', 'A', 'norm', 'advanced_clustering'])
         return advanced_clustering
 
     def retarded_closeness(self):
@@ -424,7 +411,7 @@ class VisibilityGraph(InteractingNetworks):
         N_past = np.arange(self.N)
         N_future = N_past[::-1]
 
-        ccloseness = (self.N - 1) * (
-            self.retarded_closeness() / N_past + self.advanced_closeness() / N_future)
+        ccloseness = (self.N - 1) * (self.retarded_closeness() / N_past +
+                                     self.advanced_closeness() / N_future)
 
         return ccloseness

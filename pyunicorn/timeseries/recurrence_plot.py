@@ -16,8 +16,9 @@ from math import factorial
 
 # array object and fast numerics
 import numpy as np
+
 # C++ inline code
-import weave
+from .. import weave_inline
 
 
 #
@@ -172,8 +173,11 @@ class RecurrencePlot(object):
 
         #  Initialize cache
         self._distance_matrix_cached = False
+        self._distance_matrix = None
         self._diagline_dist_cached = False
+        self._diagline_dist = None
         self._vertline_dist_cached = False
+        self._vertline_dist = None
 
         #  Precompute recurrence matrix only if sequential RQA is switched off.
         if not sparse_rqa:
@@ -361,11 +365,9 @@ Recurrence matrix is not stored in memory."
         # = recursively computed values of orthogonal polynomials:
         r = np.zeros((N1, dim, m))
         for j in range(dim):
-            r[:, j, :] = dt**j \
-                - (r[:, :j, :]
-                   * ((dt**j).reshape((N1, 1, m)) * r[:, :j, :]
-                      ).sum(axis=2).reshape((N1, j, 1))
-                   ).sum(axis=1)
+            r[:, j, :] = dt**j - (
+                r[:, :j, :] * ((dt**j).reshape((N1, 1, m)) * r[:, :j, :]).sum(
+                    axis=2).reshape((N1, j, 1))).sum(axis=1)
             r[:, j, :] /= np.sqrt((r[:, j, :]**2).sum(axis=1)).reshape((N1, 1))
         for j in range(dim):
             r[:, j, :] *= factorial(j) / \
@@ -416,10 +418,8 @@ Recurrence matrix is not stored in memory."
             }
         }
         """
-        args = ['n_time', 'dim', 'tau', 'time_series', 'embedding']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
+        weave_inline(locals(), code,
+                     ['n_time', 'dim', 'tau', 'time_series', 'embedding'])
         return embedding
 
     #
@@ -461,10 +461,8 @@ Recurrence matrix is not stored in memory."
             }
         }
         """
-        args = ['n_time', 'dim', 'embedding', 'distance']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
+        weave_inline(locals(), code,
+                     ['n_time', 'dim', 'embedding', 'distance'])
         return distance
 
     def euclidean_distance_matrix(self, embedding):
@@ -503,10 +501,8 @@ Recurrence matrix is not stored in memory."
             }
         }
         """
-        args = ['n_time', 'dim', 'embedding', 'distance']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
+        weave_inline(locals(), code,
+                     ['n_time', 'dim', 'embedding', 'distance'])
         return distance
 
     def supremum_distance_matrix(self, embedding):
@@ -547,10 +543,8 @@ Recurrence matrix is not stored in memory."
             }
         }
         """
-        args = ['n_time', 'dim', 'embedding', 'distance']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
+        weave_inline(locals(), code,
+                     ['n_time', 'dim', 'embedding', 'distance'])
         return distance
 
     def set_fixed_threshold(self, threshold):
@@ -737,11 +731,9 @@ adaptive neighborhood size algorithm..."
             }
         }
         """
-        args = ['n_time', 'adaptive_neighborhood_size', 'sorted_neighbors',
-                'order', 'recurrence']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
+        weave_inline(locals(), code,
+                     ['n_time', 'adaptive_neighborhood_size',
+                      'sorted_neighbors', 'order', 'recurrence'])
         self.R = recurrence
 
     @staticmethod
@@ -813,10 +805,8 @@ adaptive neighborhood size algorithm..."
             samples(k) = distance(i,j);
         }
         """
-        args = ['distance', 'samples', 'n_time', 'n_samples']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
+        weave_inline(locals(), code,
+                     ['distance', 'samples', 'n_time', 'n_samples'])
 
         #  Sort and get threshold
         samples.sort()
@@ -904,10 +894,8 @@ adaptive neighborhood size algorithm..."
             }
             """
 
-        args = ['n_time', 'dim', 'embedding', 'distances', 'M']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
+        weave_inline(locals(), code,
+                     ['n_time', 'dim', 'embedding', 'distances', 'M'])
         return distances
 
     #
@@ -1072,9 +1060,7 @@ adaptive neighborhood size algorithm..."
                     """
                     args = ['n_time', 'diagline', 'recmat']
 
-                weave.inline(code, arg_names=args,
-                             type_converters=weave.converters.blitz,
-                             compiler='gcc', extra_compile_args=['-O3'])
+                weave_inline(locals(), code, args)
 
             #  Calculations for sequential RQA
             elif self.sparse_rqa and self.metric == "supremum":
@@ -1181,9 +1167,7 @@ adaptive neighborhood size algorithm..."
                     """
                     args = ['n_time', 'diagline', 'embedding', 'eps', 'dim']
 
-                weave.inline(code, arg_names=args,
-                             type_converters=weave.converters.blitz,
-                             compiler='gcc', extra_compile_args=['-O3'])
+                weave_inline(locals(), code, args)
 
             #  Function just runs over the upper triangular matrix
             self._diagline_dist = 2*diagline
@@ -1229,10 +1213,7 @@ adaptive neighborhood size algorithm..."
 
         }
         """
-        args = ['dist', 'resampled_dist', 'N', 'M']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
+        weave_inline(locals(), code, ['dist', 'resampled_dist', 'N', 'M'])
         return resampled_dist
 
     def resample_diagline_dist(self, M):
@@ -1465,9 +1446,7 @@ adaptive neighborhood size algorithm..."
                     """
                     args = ['n_time', 'vertline', 'recmat']
 
-                weave.inline(code, arg_names=args,
-                             type_converters=weave.converters.blitz,
-                             compiler='gcc', extra_compile_args=['-O3'])
+                weave_inline(locals(), code, args)
 
             #  Calculations for sequential RQA
             elif self.sparse_rqa and self.metric == "supremum":
@@ -1566,9 +1545,7 @@ adaptive neighborhood size algorithm..."
                     """
                     args = ['n_time', 'vertline', 'embedding', 'eps', 'dim']
 
-                weave.inline(code, arg_names=args,
-                             type_converters=weave.converters.blitz,
-                             compiler='gcc', extra_compile_args=['-O3'])
+                weave_inline(locals(), code, args)
 
             #  Function covers the whole recurrence matrix
             self._vertline_dist = vertline
@@ -1766,10 +1743,7 @@ adaptive neighborhood size algorithm..."
             }
         }
         """
-        args = ['n_time', 'white_vertline', 'R']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
+        weave_inline(locals(), code, ['n_time', 'white_vertline', 'R'])
 
         #  Function covers the whole recurrence matrix
         return white_vertline
@@ -1930,10 +1904,7 @@ adaptive neighborhood size algorithm..."
             }
         }
         """
-        args = ['min_dist', 'N', 'R', 'nR', 'twins']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
+        weave_inline(locals(), code, ['min_dist', 'N', 'R', 'nR', 'twins'])
         return twins
 
     def twin_surrogates(self, n_surrogates=1, min_dist=7):
@@ -2031,8 +2002,7 @@ adaptive neighborhood size algorithm..."
             }
         }
         """
-        args = ['n_surrogates', 'N', 'dim', 'twins', 'embedding', 'surrogates']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
+        weave_inline(locals(), code,
+                     ['n_surrogates', 'N', 'dim', 'twins', 'embedding',
+                      'surrogates'])
         return surrogates

@@ -16,9 +16,9 @@ Provides classes for generating and analyzing complex climate networks.
 
 #  array object and fast numerics
 import numpy as np
-#  C++ inline code
-import weave
 
+#  C++ inline code
+from .. import weave_inline
 #  Import cnTsonisClimateNetwork for TsonisClimateNetwork class
 from .climate_network import ClimateNetwork
 
@@ -52,7 +52,7 @@ class RainfallClimateNetwork(ClimateNetwork):
 
     def __init__(self, data, threshold=None, link_density=None,
                  non_local=False, node_weight_type="surface",
-                 event_threshold=[0, 1], scale_fac=37265, offset=10**(-7),
+                 event_threshold=(0, 1), scale_fac=37265, offset=10**(-7),
                  silence_level=0):
         """
         Initialize an instance of RainfallClimateNetwork.
@@ -172,7 +172,8 @@ class RainfallClimateNetwork(ClimateNetwork):
         # Return the correlation matrix
         return self.calculate_corr(final_mask, anomaly)
 
-    def calculate_rainfall(self, observable, scale_fac, offset):
+    @staticmethod
+    def calculate_rainfall(observable, scale_fac, offset):
         """
         Returns the rainfall in mm on each measuring point.
 
@@ -194,7 +195,8 @@ class RainfallClimateNetwork(ClimateNetwork):
 
         return rainfall
 
-    def calculate_top_events(self, rainfall, event_threshold):
+    @staticmethod
+    def calculate_top_events(rainfall, event_threshold):
         """
         Returns a mask with boolean values. The entries are false, when the
         rainfall of one day is zero, or when the rainfall is not inside the
@@ -237,7 +239,8 @@ class RainfallClimateNetwork(ClimateNetwork):
 
         return final_mask
 
-    def rank_time_series(self, anomaly):
+    @staticmethod
+    def rank_time_series(anomaly):
         """
         Return rank time series.
 
@@ -335,9 +338,7 @@ class RainfallClimateNetwork(ClimateNetwork):
             }
         }
         """
-        args = ['m', 'tmax', 'spearman_rho', 'final_mask',
-                'time_series_ranked']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=["-O3"])
+        weave_inline(locals(), code,
+                     ['m', 'tmax', 'spearman_rho', 'final_mask',
+                      'time_series_ranked'])
         return spearman_rho

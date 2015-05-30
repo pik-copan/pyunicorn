@@ -54,12 +54,13 @@ try:
     """(mpi4py.MPI.Comm instance) MPI communicator."""
     available = True
     """(bool) indicates that slaves are available."""
-except:
+except ImportError:
     available = False
 
 
-class MPIException (Exception):
+class MPIException(Exception):
     def __init__(self, value):
+        Exception.__init__()
         self.value = value
 
     def __str__(self):
@@ -381,8 +382,7 @@ if am_master:
                   "     std.dev. of time per slave: " +
                   str(total_time.std()) + "\n" +
                   "     coeff. of var. of actual over estd. time per slave: " +
-                  str(slave_quotients.std()/slave_quotients.mean()) + "\n"
-                  )
+                  str(slave_quotients.std()/slave_quotients.mean()) + "\n")
         else:
             print("\n" +
                   "MPI: processing statistics\n" +
@@ -398,8 +398,7 @@ if am_master:
                   "     std.dev. of time per call: " +
                   str(call_times.std()) + "\n" +
                   "     coeff. of var. of actual over estd. time per call: " +
-                  str(call_quotients.std()/call_quotients.mean()) + "\n"
-                  )
+                  str(call_quotients.std()/call_quotients.mean()) + "\n")
 
     def terminate():
         """
@@ -459,8 +458,8 @@ else:  # am_slave and available:
         # wait for orders:
         while True:
             # get next task from queue:
-            (name_to_call, args, kwargs, module, time_est
-             ) = comm.recv(source=0)
+            (name_to_call, args, kwargs, module, time_est) = \
+                comm.recv(source=0)
             # TODO: add some timeout and check whether master lives!
             if name_to_call == "terminate":
                 if _verbose:

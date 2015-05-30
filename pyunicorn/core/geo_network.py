@@ -15,12 +15,10 @@ multivariate data and generating time series surrogates.
 import numpy as np
 # random number generation
 from numpy import random
-# C++ inline code
-import weave
 # high performance graph theory tools written in pure ANSI-C
 import igraph
 
-from .network import Network, cached_const
+from .network import Network, cached_const, weave_inline
 from .grid import Grid
 
 
@@ -77,6 +75,11 @@ class GeoNetwork(Network):
         #  Set area weights
         self.set_node_weight_type(node_weight_type)
 
+        #  cartesian coordinates of nodes
+        self.cartesian = None
+        self.grid_neighbours = None
+        self.grid_neighbours_set = None
+
     def __str__(self):
         """Return a string representation of the GeoNetwork object."""
         text = Network.__str__(self) + "\nGeographical network boundaries:\n"
@@ -125,7 +128,7 @@ class GeoNetwork(Network):
     #  Load and save GeoNetwork object
     #
 
-    def save(self, filename_network, filename_grid=None, format_network=None,
+    def save(self, filename_network, filename_grid=None, fileformat=None,
              *args, **kwds):
         """
         Save the GeoNetwork object to files.
@@ -151,27 +154,26 @@ class GeoNetwork(Network):
             object is to be stored.
         :arg str filename_grid:  The name of the file where the Grid object is
             to be stored (including ending).
-        :arg str format_network: the format of the file (if one wants to
-            override the format determined from the filename extension, or the
-            filename itself is a stream). ``None`` means auto-detection.
-            Possible values are: ``"ncol"`` (NCOL format), ``"lgl"`` (LGL
-            format), ``"graphml"``, ``"graphmlz"`` (GraphML and gzipped GraphML
-            format), ``"gml"`` (GML format), ``"dot"``, ``"graphviz"`` (DOT
-            format, used by GraphViz), ``"net"``, ``"pajek"`` (Pajek format),
-            ``"dimacs"`` (DIMACS format), ``"edgelist"``, ``"edges"`` or
-            ``"edge"`` (edge list), ``"adjacency"`` (adjacency matrix),
-            ``"pickle"`` (Python pickled format), ``"svg"`` (Scalable Vector
-            Graphics).
+        :arg str fileformat: the format of the file (if one wants to override
+            the format determined from the filename extension, or the filename
+            itself is a stream). ``None`` means auto-detection.  Possible
+            values are: ``"ncol"`` (NCOL format), ``"lgl"`` (LGL format),
+            ``"graphml"``, ``"graphmlz"`` (GraphML and gzipped GraphML format),
+            ``"gml"`` (GML format), ``"dot"``, ``"graphviz"`` (DOT format, used
+            by GraphViz), ``"net"``, ``"pajek"`` (Pajek format), ``"dimacs"``
+            (DIMACS format), ``"edgelist"``, ``"edges"`` or ``"edge"`` (edge
+            list), ``"adjacency"`` (adjacency matrix), ``"pickle"`` (Python
+            pickled format), ``"svg"`` (Scalable Vector Graphics).
         """
         #  Store network
-        Network.save(self, filename=filename_network, format=format_network,
+        Network.save(self, filename=filename_network, fileformat=fileformat,
                      *args, **kwds)
 
         #  Store grid
         if filename_grid is not None:
             self.grid.save(filename=filename_grid)
 
-    def save_for_cgv(self, filename, format="graphml"):
+    def save_for_cgv(self, filename, fileformat="graphml"):
         """
         Save the GeoNetwork and its attributes for the CGV visualization
         software.
@@ -187,7 +189,7 @@ class GeoNetwork(Network):
         distance as an link property.
 
         :arg str file_name: The file name should end with ".dot" or ".gml".
-        :arg str format: The file format: "graphml"  - GraphML format
+        :arg str fileformat: The file format: "graphml"  - GraphML format
             "graphmlz" - gzipped GraphML format
             "graphviz" - GraphViz format
         """
@@ -199,14 +201,14 @@ class GeoNetwork(Network):
         self.set_link_attribute("ang_dist", self.grid.angular_distance())
 
         #  Save network, independent of filename!
-        if format in ["graphml", "graphmlz", "graphviz"]:
-            self.graph.save(filename, format=format)
+        if fileformat in ["graphml", "graphmlz", "graphviz"]:
+            self.graph.save(filename, format=fileformat)
         else:
             print "ERROR: the chosen format is not supported by save_for_cgv \
 for use with the CGV software."
 
     @staticmethod
-    def Load(filename_network, filename_grid, format_network=None,
+    def Load(filename_network, filename_grid, fileformat=None,
              silence_level=0, *args, **kwds):
         """
         Return a GeoNetwork object stored in files.
@@ -229,7 +231,7 @@ for use with the CGV software."
             object is to be stored.
         :arg str filename_grid:  The name of the file where the Grid object is
             to be stored (including ending).
-        :arg str format_network: the format of the file (if known in advance)
+        :arg str fileformat: the format of the file (if known in advance)
           ``None`` means auto-detection. Possible values are: ``"ncol"`` (NCOL
           format), ``"lgl"`` (LGL format), ``"graphml"``, ``"graphmlz"``
           (GraphML and gzipped GraphML format), ``"gml"`` (GML format),
@@ -245,7 +247,7 @@ for use with the CGV software."
         grid = Grid.Load(filename_grid)
 
         #  Load to igraph Graph object
-        graph = igraph.Graph.Read(f=filename_network, format=format_network,
+        graph = igraph.Graph.Read(f=filename_network, format=fileformat,
                                   *args, **kwds)
 
         #  Extract adjacency matrix
@@ -612,13 +614,11 @@ sequence and link distance distribution..."
         }
         printf("Trials %d, Rewirings %d", count, iterations);
         """
-        args = ['iterations', 'eps', 'A', 'D', 'E', 'edges']
         #  Heitzig: added -w since numerous warnings of type "Warnung:
         #  Veraltete Konvertierung von Zeichenkettenkonstante in »char*«"
         #  occurred:
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3 -w'])
+        weave_inline(locals(), code,
+                     ['iterations', 'eps', 'A', 'D', 'E', 'edges'])
 
         #  Update all other properties of GeoNetwork
         self.adjacency = A
@@ -715,13 +715,11 @@ sequence, link distance distribution and average link distance sequence..."
             }
         }
         """
-        args = ['iterations', 'eps', 'A', 'D', 'E', 'edges']
         #  Heitzig: added -w since numerous warnings of type "Warnung:
         #  Veraltete Konvertierung von Zeichenkettenkonstante in »char*«"
         #  occurred:
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3 -w'])
+        weave_inline(locals(), code,
+                     ['iterations', 'eps', 'A', 'D', 'E', 'edges'])
 
         #  Update all other properties of GeoNetwork
         self.adjacency = A
@@ -826,13 +824,11 @@ average link distance sequence..."
             }
         }
         """
-        args = ['iterations', 'eps', 'A', 'D', 'E', 'edges', 'degree']
         #  Heitzig: added -w since numerous warnings of type "Warnung:
         #  Veraltete Konvertierung von Zeichenkettenkonstante in »char*«"
         #  occurred:
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3 -w'])
+        weave_inline(locals(), code,
+                     ['iterations', 'eps', 'A', 'D', 'E', 'edges', 'degree'])
 
         #  Update all other properties of GeoNetwork
         self.adjacency = A
@@ -1094,11 +1090,11 @@ average link distance sequence..."
             D = self.grid.euclidean_distance()
 
         #  Determine range for link distance histograms
-        range = (0, D.max())
+        interval = (0, D.max())
 
         #  Get link distance distribution
         (dist, error, lbb) = self._histogram(D[A == 1], n_bins=n_bins,
-                                             range=range)
+                                             interval=interval)
 
         if geometry_corrected:
             geometric_ld_dist = \
@@ -1940,7 +1936,7 @@ average link distance sequence..."
             return [], [], [], [(0.0, 0.0)]
         # find grid neighbours:
         if geodesic:
-            if "cartesian" in self.__dict__:
+            if self.cartesian is not None:
                 pos = self.cartesian
             else:
                 # find cartesian coordinates of nodes,
@@ -1964,14 +1960,14 @@ average link distance sequence..."
                 lend = np.zeros(N).astype("int32")
                 lnew = 0
                 near = np.zeros(N).astype("int32")
-                next = np.zeros(N).astype("int32")
+                foll = np.zeros(N).astype("int32")
                 dist = np.zeros(N)
                 ier = 0
                 stripack.trmesh(self.cartesian[:, 0],
                                 self.cartesian[:, 1],
                                 self.cartesian[:, 2],
                                 list_, lptr, lend, lnew,  # output vars
-                                near, next, dist,
+                                near, foll, dist,
                                 ier)  # output var
                 self.grid_neighbours = [None for i in range(N)]
                 self.grid_neighbours_set = [None for i in range(N)]
@@ -2021,18 +2017,18 @@ average link distance sequence..."
             steps = [(i, o)]
             for it in range(N):  # at most this many steps we need
                 nbi = self.grid_neighbours[i]
+                j = nbi[0]
                 try:
                     j = nbi[(nbi.index(o)-1) % len(nbi)]
-                except:
+                except IndexError:
                     print "O!", i, o, j, nbi, self.grid_neighbours[o], steps
                     raise
-                    # j = nbi[0]
                 if j in nodes_set:
                     i = j
                     partial_boundary.append(i)
                     try:
                         remaining.remove(i)
-                    except:
+                    except KeyError:
                         pass
                 else:
                     partial_fullshape.append(

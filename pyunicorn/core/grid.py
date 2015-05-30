@@ -20,22 +20,23 @@ import cPickle
 
 #  array object and fast numerics
 import numpy as np
-#  C++ inline code
-import weave
 
 # Import package to calculate points inside a polygon
 try:
     from matplotlib import path
-except:
+except ImportError:
     print "An error occurred when importing matplotlib.path! \
 Some functionality in Grid class might not be available."
+
+#  C++ inline code
+from .network import weave_inline
 
 
 #
 #  Define class Grid
 #
 
-class Grid:
+class Grid(object):
 
     """
     Encapsulates a horizontal spatio-temporal grid on the sphere.
@@ -91,7 +92,8 @@ class Grid:
         self.n_grid_points = self._grid_size["time"] * self.N
         """(number (int)) - The total number of data points / samples."""
 
-        #  Set flags
+        #  Cache
+        self._angular_distance = None
         self._angular_distance_cached = False
 
     def clear_cache(self):
@@ -117,10 +119,10 @@ class Grid:
             (including ending).
         """
         try:
-            file = open(filename, 'w')
-            cPickle.dump(self, file)
-            file.close()
-        except:
+            f = open(filename, 'w')
+            cPickle.dump(self, f)
+            f.close()
+        except IOError:
             print "An error occurred while saving Grid instance to \
                    cPickle file", filename
 
@@ -144,7 +146,7 @@ class Grid:
             np.savetxt(filename + "_lat.txt", lat_seq)
             np.savetxt(filename + "_lon.txt", lon_seq)
             np.savetxt(filename + "_time.txt", time_seq)
-        except:
+        except IOError:
             print "An error occurred while saving Grid instance to \
 text files", filename
 
@@ -159,12 +161,12 @@ text files", filename
         :return: :class:`Grid` instance.
         """
         try:
-            file = open(filename, 'r')
-            grid = cPickle.load(file)
-            file.close()
+            f = open(filename, 'r')
+            grid = cPickle.load(f)
+            f.close()
 
             return grid
-        except:
+        except IOError:
             print "An error occurred while loading Grid instance from \
 cPickle file", filename
 
@@ -185,7 +187,7 @@ cPickle file", filename
             lat_seq = np.loadtxt(filename + "_lat.txt")
             lon_seq = np.loadtxt(filename + "_lon.txt")
             time_seq = np.loadtxt(filename + "_time.txt")
-        except:
+        except IOError:
             print "An error occurred while loading Grid instance from \
 text files", filename
 
@@ -509,11 +511,9 @@ text files", filename
             }
         }
         """
-        args = ['cos_lat', 'sin_lat', 'cos_lon', 'sin_lon', 'weave_angdist',
-                'N']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
+        weave_inline(locals(), code,
+                     ['cos_lat', 'sin_lat', 'cos_lon', 'sin_lon',
+                      'weave_angdist', 'N'])
         return weave_angdist
 
     def angular_distance(self):
@@ -573,10 +573,7 @@ text files", filename
             }
         }
         """
-        args = ['x', 'y', 'distance', 'N']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
+        weave_inline(locals(), code, ['x', 'y', 'distance', 'N'])
         return distance
 
     def boundaries(self):
@@ -688,10 +685,10 @@ grid..."
 
         #  Determine range for link distance histograms
         max_range = D.max()
-        range = (0, max_range)
+        interval = (0, max_range)
 
         #  Calculate geometry related factor of distributions to divide it out
-        (dist, lbb) = np.histogram(a=D, bins=n_bins, range=range)
+        (dist, lbb) = np.histogram(a=D, bins=n_bins, range=interval)
         #  Subtract self.N from first bin because of spurious links with zero
         #  distance on the diagonal of the angular distance matrix
         dist[0] -= self.N
@@ -735,7 +732,8 @@ grid..."
 
         return path.Path(remapped_region).contains_points(lat_lon_map)
 
-    def region(self, name):
+    @staticmethod
+    def region(name):
         """Return some standard regions."""
         if name == 'ENSO':
             return np.array([-79.28273150749884, -10.49311965331937,

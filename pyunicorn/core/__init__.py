@@ -32,12 +32,12 @@ Known Bugs
 #  Import classes
 #
 
-from .data import Data
+from .network import Network, NetworkError, nz_coords, weave_inline
 from .geo_network import GeoNetwork
 from .grid import Grid
+from .data import Data
 from .interacting_networks import InteractingNetworks
 from .netcdf_dictionary import NetCDFDictionary
-from .network import Network, NetworkError, nz_coords
 from .resistive_network import ResNetwork
 
 #

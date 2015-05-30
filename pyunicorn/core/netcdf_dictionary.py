@@ -21,7 +21,7 @@ import numpy as np
 #  Import netCDF4 for Dataset class
 try:
     from netCDF4 import Dataset
-except:
+except ImportError:
     print "pyunicorn: Package netCDF4 could not be loaded. \
 Some functionality in class NetCDFDictionary might not be available!"
 
@@ -39,14 +39,7 @@ class NetCDFDictionary(object):
     """
 
     # TODO: implement silence_level consistently
-    def __init__(self, data_dict={
-            "global_attributes": {
-                "title": "Quasi-empty default dictionary"},
-            "dimensions": {"x": 1},
-            "variables": {
-                "obs": {"array": np.array((1,)), "dims": ('x',),
-                        "attributes": {"long_name": "observable"}}}},
-            silence_level=0):
+    def __init__(self, data_dict=None, silence_level=0):
         """
         Return a NetCDF object containing an appropriately structured
         dictionary.
@@ -54,14 +47,21 @@ class NetCDFDictionary(object):
         If no data_dict is given, a default quasi-empty dictionary is created.
 
         :type data_dict: dictionary
-        :arg data_dict: Contains data in a structure structure following
-                        NetCDF conventions: {"global_attributes": {},
-                        "dimensions": {}, "variables": {"obs": {"array": (),
-                        "dims": (), "attributes": ()}}}
+        :arg data_dict: Contains data in a structure following NetCDF
+            conventions: {"global_attributes": {}, "dimensions": {},
+            "variables": {"obs": {"array": (), "dims": (), "attributes": ()}}}
 
         :type silence_level: int >= 0
         :arg silence_level: The higher, the less progress info is output.
         """
+        if data_dict is None:
+            data_dict = {
+                "global_attributes": {
+                    "title": "Quasi-empty default dictionary"},
+                "dimensions": {"x": 1},
+                "variables": {
+                    "obs": {"array": np.array((1,)), "dims": ('x',),
+                            "attributes": {"long_name": "observable"}}}}
         self.dict = data_dict
 
         self.silence_level = silence_level
@@ -86,7 +86,7 @@ class NetCDFDictionary(object):
     #
 
     @staticmethod
-    def from_file(file_name, with_array=['all']):
+    def from_file(file_name, with_array=('all')):
         """
         Load NetCDF4 file into a dictionary.
 
@@ -102,7 +102,7 @@ class NetCDFDictionary(object):
         try:
             cdf = Dataset(file_name, "r")
             print "MODULE: File %s opened." % file_name
-        except:
+        except RuntimeError:
             print "MODULE: File %s couldn't be opened." % file_name
             return
 
@@ -131,7 +131,7 @@ class NetCDFDictionary(object):
                     print "MODULE: Array %s loaded to dictionary." % var
                 except MemoryError:
                     print "Memory Error during loading of array %s" % var
-                except:
+                except RuntimeError:
                     print "Other Error during loading of array %s" % var
 
                 try:
@@ -141,7 +141,7 @@ class NetCDFDictionary(object):
                 except MemoryError:
                     print "MODULE: Memory Error during conversion of \
 array %s." % var
-                except:
+                except RuntimeError:
                     print "MODULE: Other Error during conversion of \
 array %s." % var
 
@@ -215,7 +215,7 @@ overwritten." % file_name
                     var, var_type, self.dict["variables"][var]["dims"],
                     zlib=compress, complevel=comp_level,
                     least_significant_digit=least_significant_digit)
-            except:
+            except RuntimeError:
                 print "MODULE: Couldn't create variable %s in NetCDF file." \
                       % var
 

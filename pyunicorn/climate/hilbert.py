@@ -20,7 +20,7 @@ import numpy as np
 #  Import scipy.signal for signal processing
 try:
     import scipy.signal
-except:
+except ImportError:
     print "climate: Package scipy.signal could not be loaded. Some \
 functionality in class HilbertClimateNetwork might not be available!"
 
@@ -87,13 +87,16 @@ class HilbertClimateNetwork(ClimateNetwork):
         """(ClimateData) - The climate data used for network construction."""
 
         self.N = data.grid.N
-        self._threshold = threshold
         self._prescribed_link_density = link_density
-        self._non_local = non_local
-        self.node_weight_type = node_weight_type
-        self.silence_level = silence_level
 
         #  The constructor of ClimateNetwork is called within this method
+        ClimateNetwork.__init__(self, grid=self.data.grid,
+                                threshold=threshold,
+                                link_density=link_density,
+                                non_local=non_local,
+                                directed=directed,
+                                node_weight_type=node_weight_type,
+                                silence_level=silence_level)
         self.set_directed(directed)
 
     def __str__(self):
@@ -117,7 +120,7 @@ class HilbertClimateNetwork(ClimateNetwork):
         if irreversible:
             try:
                 del self._coherence_phase
-            except:
+            except AttributeError:
                 pass
 
     #

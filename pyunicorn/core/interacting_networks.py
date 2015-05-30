@@ -19,11 +19,8 @@ multivariate data and generating time series surrogates.
 import numpy as np
 from numpy import random
 
-#  C++ code embedding
-import weave
-
-#  Import Network base class
-from .network import Network
+#  Import Network base class and C++ code embedding
+from .network import Network, weave_inline
 
 
 #
@@ -194,11 +191,9 @@ chosen link density."
         }
 
         """
-        args = ['cross_A_new', 'number_cross_links', 'nodes1', 'nodes2',
-                'N1', 'N2', 'A_new']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
+        weave_inline(locals(), code,
+                     ['cross_A_new', 'number_cross_links', 'nodes1', 'nodes2',
+                      'N1', 'N2', 'A_new'])
 
         #  Initialize new instance of InteractingNetworks
         return InteractingNetworks(adjacency=A_new,
@@ -422,11 +417,9 @@ chosen link density."
             }
         }
         """
-        args = ['cross_A', 'cross_links', 'number_cross_links', 'number_swaps',
-                'N1', 'N2', 'A_new', 'nodes1', 'nodes2']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
+        weave_inline(locals(), code,
+                     ['cross_A', 'cross_links', 'number_cross_links',
+                      'number_swaps', 'N1', 'N2', 'A_new', 'nodes1', 'nodes2'])
 
         #  Initialize new instance of InteractingNetworks
         return InteractingNetworks(adjacency=A_new,
@@ -884,10 +877,9 @@ chosen link density."
                 counter_triangles / double(counter_triples);
         }
         """
-        args = ['N1', 'N2', 'A', 'nodes1', 'nodes2', 'cross_transitivity']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
+        weave_inline(locals(), code,
+                     ['N1', 'N2', 'A', 'nodes1', 'nodes2',
+                      'cross_transitivity'])
         return cross_transitivity[0]
 
     def cross_transitivity_sparse(self, node_list1, node_list2):
@@ -947,8 +939,8 @@ chosen link density."
             cross_transitivity = counter_triangles / counter_triples
         return cross_transitivity
 
-    def _calculate_general_average_path_length(self, path_lengths,
-                                               internal=False):
+    @staticmethod
+    def _calculate_general_average_path_length(path_lengths, internal=False):
         """
         Calculate general average path length for interacting networks.
 
@@ -1189,11 +1181,9 @@ chosen link density."
             }
         }
         """
-        args = ['N1', 'N2', 'A', 'norm', 'nodes1', 'nodes2',
-                'cross_clustering']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
+        weave_inline(locals(), code,
+                     ['N1', 'N2', 'A', 'norm', 'nodes1', 'nodes2',
+                      'cross_clustering'])
         return cross_clustering
 
     def cross_local_clustering_sparse(self, node_list1, node_list2):
@@ -1541,11 +1531,9 @@ chosen link density."
             }
         }
         """
-        args = ['N1', 'N2', 'A', 'nsi_cc',
-                'node_weight', 'node_list1', 'node_list2']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
+        weave_inline(locals(), code,
+                     ['N1', 'N2', 'A', 'nsi_cc', 'node_weight', 'node_list1',
+                      'node_list2'])
 
         nsi_cc[norm != 0] = nsi_cc[norm != 0] / norm[norm != 0]
         nsi_cc[norm == 0] = 0
@@ -1774,11 +1762,9 @@ chosen link density."
 
         T(0) = T_1 / T_2;
         """
-        args = ['N1', 'N2', 'A', 'T',
-                'node_weight', 'node_list1', 'node_list2']
-        weave.inline(code, arg_names=args,
-                     type_converters=weave.converters.blitz, compiler='gcc',
-                     extra_compile_args=['-O3'])
+        weave_inline(locals(), code,
+                     ['N1', 'N2', 'A', 'T', 'node_weight', 'node_list1',
+                      'node_list2'])
         return T[0]
 
     def nsi_cross_average_path_length(self, node_list1, node_list2):

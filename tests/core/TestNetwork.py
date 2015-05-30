@@ -30,13 +30,13 @@ parallel = False
 
 def compareResults(desired, actual, rev_perm=None):
     assert type(desired) is type(actual)
-    if type(desired) is dict:
-        [compareResults(*rs, rev_perm=rev_perm)
-         for rs in zip(desired.values(), actual.values())]
+    if isinstance(desired, dict):
+        _ = [compareResults(*rs, rev_perm=rev_perm)
+             for rs in zip(desired.values(), actual.values())]
     else:
         if sp.issparse(desired):
             desired, actual = desired.A, actual.A
-        if type(desired) is np.ndarray:
+        if isinstance(desired, np.ndarray):
             actual = actual[rev_perm]
             if len(actual.shape) == 2:
                 actual = actual[:, rev_perm]
@@ -45,7 +45,7 @@ def compareResults(desired, actual, rev_perm=None):
 
 def compareMeasures(orig, pnets, rev_perms, tasks):
     for (measure, i) in tasks:
-        method, args = (measure, ()) if type(measure) is str else measure
+        method, args = (measure, ()) if isinstance(measure, str) else measure
         compareResults(getattr(orig, method)(*args),
                        getattr(pnets[i], method)(*args), rev_perms[i])
 

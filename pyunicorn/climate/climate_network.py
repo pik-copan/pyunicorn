@@ -81,9 +81,8 @@ class ClimateNetwork(GeoNetwork):
         #  FIXME: Is taking the absolute value by default OK?
         self._similarity_measure = np.abs(similarity_measure.astype("float32"))
         self._non_local = non_local
-        self.node_weight_type = node_weight_type
-
         self.N = grid.N
+        self.node_weight_type = node_weight_type
 
         #  Sets the threshold and generates the network by thresholding and
         #  calling the "constructor" of parent class GeoNetwork.
@@ -94,6 +93,10 @@ class ClimateNetwork(GeoNetwork):
         else:
             print "Either threshold or link_density have to be prescribed \
 for network construction!"
+        GeoNetwork.__init__(self, adjacency=self.adjacency, grid=self.grid,
+                            directed=self.directed,
+                            node_weight_type=self.node_weight_type,
+                            silence_level=self.silence_level)
 
     def __str__(self):
         """
@@ -131,7 +134,7 @@ for network construction!"
         if irreversible:
             try:
                 del self._similarity_measure
-            except:
+            except AttributeError:
                 pass
 
     #
@@ -139,7 +142,7 @@ for network construction!"
     #
 
     def save(self, filename_network, filename_grid=None,
-             filename_similarity_measure=None, format_network=None, *args,
+             filename_similarity_measure=None, fileformat=None, *args,
              **kwds):
         """
         Save the ClimateNetwork object to files.
@@ -169,22 +172,21 @@ for network construction!"
             to be stored (including ending).
         :arg str filename_similarity_measure:  The name of the file where the
             similarity measure matrix is to be stored.
-        :arg str format_network: the format of the file (if one wants to
-            override the format determined from the filename extension, or the
-            filename itself is a stream). ``None`` means auto-detection.
-            Possible values are: ``"ncol"`` (NCOL format), ``"lgl"`` (LGL
-            format), ``"graphml"``, ``"graphmlz"`` (GraphML and gzipped GraphML
-            format), ``"gml"`` (GML format), ``"dot"``, ``"graphviz"`` (DOT
-            format, used by GraphViz), ``"net"``, ``"pajek"`` (Pajek format),
-            ``"dimacs"`` (DIMACS format), ``"edgelist"``, ``"edges"`` or
-            ``"edge"`` (edge list), ``"adjacency"`` (adjacency matrix),
-            ``"pickle"`` (Python pickled format), ``"svg"`` (Scalable Vector
-            Graphics).
+        :arg str fileformat: the format of the file (if one wants to override
+            the format determined from the filename extension, or the filename
+            itself is a stream). ``None`` means auto-detection.  Possible
+            values are: ``"ncol"`` (NCOL format), ``"lgl"`` (LGL format),
+            ``"graphml"``, ``"graphmlz"`` (GraphML and gzipped GraphML format),
+            ``"gml"`` (GML format), ``"dot"``, ``"graphviz"`` (DOT format, used
+            by GraphViz), ``"net"``, ``"pajek"`` (Pajek format), ``"dimacs"``
+            (DIMACS format), ``"edgelist"``, ``"edges"`` or ``"edge"`` (edge
+            list), ``"adjacency"`` (adjacency matrix), ``"pickle"`` (Python
+            pickled format), ``"svg"`` (Scalable Vector Graphics).
         """
         #  Store GeoNetwork
         GeoNetwork.save(self, filename_network=filename_network,
                         filename_grid=filename_grid,
-                        format_network=format_network,
+                        fileformat=fileformat,
                         *args, **kwds)
 
         #  Store similarity measure
@@ -194,7 +196,7 @@ for network construction!"
 
     @staticmethod
     def Load(filename_network, filename_grid, filename_similarity_measure,
-             format_network=None, *args, **kwds):
+             fileformat=None, *args, **kwds):
         """
         Return a ClimateNetwork object stored in files.
 
@@ -218,7 +220,7 @@ for network construction!"
             to be stored (including ending).
         :arg str filename_similarity_measure:  The name of the file where the
             similarity measure matrix is to be stored.
-        :arg str format_network: the format of the file (if known in advance)
+        :arg str fileformat: the format of the file (if known in advance)
             ``None`` means auto-detection. Possible values are: ``"ncol"``
             (NCOL format), ``"lgl"`` (LGL format), ``"graphml"``,
             ``"graphmlz"`` (GraphML and gzipped GraphML format), ``"gml"`` (GML
@@ -235,7 +237,7 @@ for network construction!"
         similarity_measure = np.load(filename_similarity_measure)
 
         #  Load to igraph Graph object
-        graph = igraph.Graph.Read(f=filename_network, format=format_network,
+        graph = igraph.Graph.Read(f=filename_network, format=fileformat,
                                   *args, **kwds)
 
         #  Extract adjacency matrix
@@ -249,10 +251,10 @@ for network construction!"
             node_weights = None
 
         #  Create ClimateNetwork instance
-        net = ClimateNetwork(adjacency=A, grid=grid,
-                             similarity_measure=similarity_measure,
-                             directed=graph.is_directed(),
-                             node_weights=node_weights)
+        net = ClimateNetwork(grid=grid, similarity_measure=similarity_measure,
+                             directed=graph.is_directed())
+        net.adjacency = A
+        net.node_weights = node_weights
 
         #  Overwrite igraph Graph object in Network instance to restore link
         #  attributes/weights
@@ -486,7 +488,7 @@ connections..."
         """
         try:
             return self._similarity_measure
-        except:
+        except AttributeError:
             print "The similarity matrix was deleted earlier and cannot be \
 returned."
 
@@ -513,7 +515,7 @@ returned."
         >>> net = ClimateNetwork.SmallTestNetwork()
         >>> net.set_non_local(non_local=True)
         >>> r(net.adjacency)
-        array([[0, 0, 0, 1, 1, 1], [0, 0, 1, 1, 1, 0], [0, 1, 0, 0, 1, 0],
+        array([[0, 0, 0, 1, 1, 1], [0, 0, 0, 1, 1, 0], [0, 0, 0, 0, 1, 0],
                [1, 1, 0, 0, 0, 0], [1, 1, 1, 0, 0, 0], [1, 0, 0, 0, 0, 0]])
 
         :arg bool non_local: Determines, whether links between spatially close
@@ -521,7 +523,7 @@ returned."
         """
         #  Only change the network if there is a real change in non_local
         if self.non_local() != non_local:
-            self._nonLocal = non_local
+            self._non_local = non_local
             #  Regenerate the climate network using the new setting
             self.set_threshold(self.threshold())
 

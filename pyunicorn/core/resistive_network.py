@@ -33,14 +33,6 @@ Overriden inherited methods::
     (ndarray) get_adjacency: returns complex adjacency if needed
 """
 
-# Import things we inherit from
-
-from . import GeoNetwork
-from . import Grid
-
-# a network Error (use uncertain)
-# from . import NetworkError
-
 #  Import NumPy for the array object and fast numerics
 import numpy as np
 
@@ -50,20 +42,16 @@ from scipy import sparse
 #  Import iGraph for high performance graph theory tools written in pure ANSI-C
 import igraph
 
+# Import things we inherit from
+from .geo_network import GeoNetwork
+from .grid import Grid
+
+# a network Error (use uncertain)
+# from .network import NetworkError
+
 # Weave for inline C
-try:
-    from scipy import weave
-    flagWeave = True
-
-except ImportError:
-    try:
-        import weave
-        flagWeave = True
-
-    except ImportError:
-        print "Could not import weave. Using fallback Python code instead of C"
-        print "Consider installing weave for a *significant* speed-up"
-        flagWeave = False
+from .network import weave_inline
+flagWeave = True
 
 
 class ResNetwork(GeoNetwork):
@@ -140,8 +128,9 @@ class ResNetwork(GeoNetwork):
         if grid is None:
             if silence_level < 2:
                 print "Using dummy grid"
-            grid = Grid(time_seq=np.arange(10), lat_seq=np.absolute(
-                np.linspace(-90, 90, adjacency.shape[0])),
+            grid = Grid(
+                time_seq=np.arange(10), lat_seq=np.absolute(
+                    np.linspace(-90, 90, adjacency.shape[0])),
                 lon_seq=np.linspace(-180, 180, adjacency.shape[0]),
                 silence_level=0)
 
@@ -155,10 +144,16 @@ class ResNetwork(GeoNetwork):
         # 3a) set the resitance values
         #     this sets the property and forces the
         #     updating of the admittance and R
+        self.sparse_Adm = None
+        self.adm_graph = None
+        self.sparse_R = None
         self.update_resistances(resistances)
 
         # 3b) switch weave support internally as well
         self.flagWeave = flagWeave
+
+        # 4) cache
+        self._effective_resistances = None
 
     def __str__(self):
         """Return a short summary of the resistive network.
@@ -190,7 +185,7 @@ class ResNetwork(GeoNetwork):
 ###############################################################################
     @staticmethod
     def SmallTestNetwork():
-        """
+        r"""
         Create a small test network with unit resistances of the following
         topology::
 
@@ -207,7 +202,7 @@ class ResNetwork(GeoNetwork):
         **Examples:**
 
         >>> res = ResNetwork.SmallTestNetwork()
-        >>> isinstance(res,ResNetwork)
+        >>> isinstance(res, ResNetwork)
         True
         """
         adjacency = np.array([[0, 1, 0, 0, 0],
@@ -226,8 +221,9 @@ class ResNetwork(GeoNetwork):
                                 [0, 2, 8, 0, 10],
                                 [0, 0, 0, 10, 0]])
         # a grid
-        grid = Grid(time_seq=np.arange(10), lat_seq=np.absolute(
-            np.linspace(-90, 90, adjacency.shape[0])),
+        grid = Grid(
+            time_seq=np.arange(10), lat_seq=np.absolute(
+                np.linspace(-90, 90, adjacency.shape[0])),
             lon_seq=np.linspace(-180, 180, adjacency.shape[0]),
             silence_level=0)
 
@@ -245,7 +241,7 @@ class ResNetwork(GeoNetwork):
         **Examples:**
 
         >>> res = ResNetwork.SmallComplexNetwork()
-        >>> isinstance(res,ResNetwork)
+        >>> isinstance(res, ResNetwork)
         True
         >>> res.flagComplex
         True
@@ -281,7 +277,8 @@ class ResNetwork(GeoNetwork):
         return ResNetwork(resistances)
 
     def update_resistances(self, resistances):
-        """ Update the resistance matrix
+        """
+        Update the resistance matrix
 
         This function is called to changed the resistance matrix. It sets the
         property and the calls the :meth:`update_admittance` and
@@ -349,7 +346,8 @@ class ResNetwork(GeoNetwork):
         self.update_R()
 
     def update_admittance(self):
-        """Updates admittance matrix which is inverse the resistances
+        """
+        Updates admittance matrix which is inverse the resistances
 
         :rtype: none
 
@@ -363,7 +361,6 @@ class ResNetwork(GeoNetwork):
          [ 0.     0.     0.     0.1    0.   ]]
         >>> print type(res.get_admittance())
         <type 'numpy.ndarray'>
-
         """
         # a sparse matrix for the admittance values
         # we start w/ a lil_matrix, maybe convert that
@@ -477,7 +474,7 @@ class ResNetwork(GeoNetwork):
 
          """
 
-        return (np.diag(sum(self.get_admittance())) - self.get_admittance())
+        return np.diag(sum(self.get_admittance())) - self.get_admittance()
 
     def admittive_degree(self):
         """admittive degree of the network
@@ -703,7 +700,7 @@ class ResNetwork(GeoNetwork):
         >>> print "%.3f" % res.diameter_effective_resistance()
         Re-computing all effective resistances
         14.444
-        >>> print type( res.diameter_effective_resistance() )
+        >>> print type(res.diameter_effective_resistance())
         <type 'numpy.float64'>
 
         >>> res = ResNetwork.SmallTestNetwork()
@@ -712,12 +709,10 @@ class ResNetwork(GeoNetwork):
         14.444
 
         """
-
         # try to use pre-computed values
-        try:
+        if self._effective_resistances is not None:
             diameter = np.max(self._effective_resistances)
-
-        except AttributeError:
+        else:
             print "Re-computing all effective resistances"
             self.average_effective_resistance()
             diameter = np.max(self._effective_resistances)
@@ -725,7 +720,6 @@ class ResNetwork(GeoNetwork):
         return diameter
 
     def effective_resistance_closeness_centrality(self, a):
-
         """
         The effective resistance closeness centrality (ERCC) of node a
 
@@ -809,7 +803,7 @@ class ResNetwork(GeoNetwork):
          [ 0.          0.24444444  0.          0.24444444  0.        ]
          [ 0.          0.53333333  0.24444444  0.          0.4       ]
          [ 0.          0.          0.          0.4         0.        ]]
-        >>> #update to unit resistances
+        >>> # update to unit resistances
         >>> res.update_resistances(res.adjacency)
         >>> print res.edge_current_flow_betweenness()
         [[ 0.          0.4         0.          0.          0.        ]
@@ -894,9 +888,9 @@ class ResNetwork(GeoNetwork):
 
             return_val = VCFB;
         """
-        VCFB = weave.inline(code,
+        VCFB = weave_inline(locals(), code,
                             ['N', 'Is', 'It', 'admittance', 'R', 'i', 'VCFB'],
-                            compiler="gcc", headers=["<math.h>"])
+                            blitz=False, headers=["<math.h>"])
         return VCFB
 
     def _edge_current_flow_betweenness_python(self):
@@ -971,9 +965,9 @@ class ResNetwork(GeoNetwork):
 
             return_val = ECFB;
         """
-        weave.inline(code, ['N', 'Is', 'It', 'admittance', 'R', 'ECFB'],
-                     compiler="gcc", headers=["<math.h>"])
-
+        weave_inline(locals(), code,
+                     ['N', 'Is', 'It', 'admittance', 'R', 'ECFB'],
+                     blitz=False, headers=["<math.h>"])
         return ECFB
 
 ###############################################################################

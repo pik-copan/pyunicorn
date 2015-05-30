@@ -88,6 +88,7 @@ class CouplingAnalysisPurePython(object):
             numpy.array([1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880])
         self.patternized = False
         self.has_fft = False
+        self.originalFFT = None
 
         #  lag_mode dict
         self.lag_modi = {"all": 0, "sum": 1, "max": 2}
@@ -266,7 +267,7 @@ class CouplingAnalysisPurePython(object):
             for j in xrange((i+1)*only_tri, self.N):
 
                 if mode == 2:
-                    max = 0.0
+                    maxcross = 0.0
                     argmax = 0
 
                 # loop over taus INCLUDING the last tau value
@@ -288,12 +289,12 @@ class CouplingAnalysisPurePython(object):
                     elif mode == 2:
                         # calculate max and argmax by comparing to previous
                         # value and storing max
-                        if numpy.abs(crossij) > max:
-                            max = numpy.abs(crossij)
+                        if numpy.abs(crossij) > maxcross:
+                            maxcross = numpy.abs(crossij)
                             argmax = t
 
                 if mode == 2:
-                    corrmat[0, i, j] = max
+                    corrmat[0, i, j] = maxcross
                     corrmat[1, i, j] = argmax - tau_max
 
         if self.only_tri:
@@ -566,14 +567,14 @@ class CouplingAnalysisPurePython(object):
         # Precalculation of the log
         gfunc = numpy.zeros(corr_range+1)
         for t in xrange(1, corr_range + 1):
-                gfunc[t] = t*numpy.log(t)
+            gfunc[t] = t*numpy.log(t)
 
         # loop over all node pairs, NOT symmetric due to time shifts!
         for i in xrange(self.N-only_tri):
             for j in xrange((i+1)*only_tri, self.N):
 
                 if mode == 2:
-                    max = 0.0
+                    maxcross = 0.0
                     argmax = 0
 
                 # loop over taus from -tau_max to tau_max INCLUDING the last
@@ -583,17 +584,17 @@ class CouplingAnalysisPurePython(object):
 
                     # here the joint probability distribution is calculated
                     for k in xrange(corr_range):
-                            indexi = array[tau_max, i, k]
-                            indexj = array[t, j, k]
-                            hist2D[indexi, indexj] += 1
+                        indexi = array[tau_max, i, k]
+                        indexj = array[t, j, k]
+                        hist2D[indexi, indexj] += 1
 
                     # here the joint entropy is calculated by summing over all
                     # pattern combinations
                     jointent = 0.0
                     for l in xrange(bins):
-                            for m in xrange(bins):
-                                jointent -= gfunc[hist2D[l, m]]
-                                hist2D[l, m] = 0
+                        for m in xrange(bins):
+                            jointent -= gfunc[hist2D[l, m]]
+                            hist2D[l, m] = 0
 
                     jointent /= float(corr_range)
                     jointent += numpy.log(float(corr_range))
@@ -618,12 +619,12 @@ class CouplingAnalysisPurePython(object):
                     elif mode == 2:
                         # calculate max and argmax by comparing to previous
                         # value and storing max
-                        if mi > max:
-                            max = mi
+                        if mi > maxcross:
+                            maxcross = mi
                             argmax = tau
 
                 if mode == 2:
-                    corrmat[0, i, j] = max
+                    corrmat[0, i, j] = maxcross
                     corrmat[1, i, j] = argmax
 
         if self.only_tri:
