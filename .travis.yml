@@ -5,7 +5,6 @@ python:
 sudo: true
 env:
     matrix:
-        fast_finish: true
         # possibly different versions in the future
         - IGRAPH=0.7.1
 
