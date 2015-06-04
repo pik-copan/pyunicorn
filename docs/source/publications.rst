@@ -227,21 +227,6 @@ Climate networks / Coupled climate networks
     `doi:10.1103/PhysRevE.88.052807
     <http://dx.doi.org/10.1103/PhysRevE.88.052807>`__
 
-Power Grids/Power Networks
-===========================================
-*Resistance based networks*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Schultz2014]_, [Schultz2014a]_.
-
-.. [Schultz2014] P. Schultz "Stability Analysis of Power Grid Networks".
-    *M.Sc. Thesis*, Humboldt-Universität zu Berlin (2014)
-
-.. [Schultz2014a] P. Schultz, J. Heitzig, J. Kurths
-    A Random Growth Model for Power Grids and Other 
-    Spatially Embedded Infrastructure Networks".
-    In *Eur. Phys. J. Special Topics: Resilient Power Grids and Extreme Events* (2014)
-
-
 *General*
 ~~~~~~~~~
 [Tsonis2004]_, [Tsonis2006]_, [Gozolchiani2008]_, [Tsonis2008b]_,
@@ -293,11 +278,25 @@ Power Grids/Power Networks
     In *Progress Of Theoretical Physics Supplement*, vol. 179, p178-188 (2009)
     `doi:10.1143/PTPS.179.178 <http://dx.doi.org/10.1143/PTPS.179.178>`__
 
+Power Grids/Power Networks
+===========================================
+*Resistance based networks*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Schultz2014]_, [Schultz2014a]_.
+
+.. [Schultz2014] P. Schultz "Stability Analysis of Power Grid Networks".
+    *M.Sc. Thesis*, Humboldt-Universität zu Berlin (2014)
+
+.. [Schultz2014a] P. Schultz, J. Heitzig, J. Kurths
+    A Random Growth Model for Power Grids and Other
+    Spatially Embedded Infrastructure Networks".
+    In *Eur. Phys. J. Special Topics: Resilient Power Grids and Extreme Events* (2014)
+
 Time series analysis and synchronization (general)
 ==================================================
 
-[Pecora1998]_, [Schreiber2000]_, [Kantz2006]_, [Thiel2006]_, [Bergner2008]_,
-[Pompe2011]_.
+[Pecora1998]_, [Schreiber2000]_, [Kraskov2004]_, [Kantz2006]_, [Thiel2006]_,
+[Bergner2008]_, [Pompe2011]_, [Runge2012b]_.
 
 .. [Pecora1998] L.M. Pecora and T.L. Carroll.
     "Master Stability Functions for Synchronized Coupled Systems".
@@ -310,6 +309,12 @@ Time series analysis and synchronization (general)
     In *Physica D* vol. 142 (no. 3-4), p346-382 (2000)
     `doi:10.1016/S0167-2789(00)00043-9
     <http://dx.doi.org/10.1016/S0167-2789(00)00043-9>`__
+
+.. [Kraskov2004] A. Kraskov, H. Stögbauer, P. Grassberger.
+    "Estimating mutual information".
+    In *Physical Review E*, vol. 69(6), 066138 (2004)
+    `doi:10.1103/PhysRevE.69.066138
+    <http://dx.doi.org/10.1103/PhysRevE.69.066138>`__
 
 .. [Kantz2006] H. Kantz and T. Schreiber.
     "Nonlinear Time Series Analysis".
@@ -334,6 +339,12 @@ Time series analysis and synchronization (general)
     In *Physical Review E* vol. 83, 051122 (2011)
     `doi:10.1103/PhysRevE.83.051122
     <http://dx.doi.org/10.1103/PhysRevE.83.051122>`__
+
+.. [Runge2012b] J. Runge, J. Heitzig, N. Marwan, J. Kurths.
+    "Quantifying causal coupling strength: A lag-specific measure for multivariate time series related to transfer entropy".
+    In *Physical Review E*, vol. 86(6), 1-15 (2012)
+    `doi:10.1103/PhysRevE.86.061121
+    <http://dx.doi.org/10.1103/PhysRevE.86.061121>`__
 
 Recurrence networks / quantification analysis / plots
 =====================================================
