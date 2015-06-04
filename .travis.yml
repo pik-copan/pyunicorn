@@ -12,7 +12,7 @@ before_install:
     # no igraph (>=0.7) package available for Ubuntu 12.04 LTS
     - wget http://igraph.org/nightly/get/c/igraph-$IGRAPH.tar.gz
     - tar -xzf igraph-$IGRAPH.tar.gz
-    - cd igraph-$IGRAPH && ./configure && make -s && sudo make -s install
+    - cd igraph-$IGRAPH && ./configure && make -s && sudo make -s install && cd ..
 
 install:
     # runtime dependencies
