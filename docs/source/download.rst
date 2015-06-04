@@ -1,28 +1,29 @@
 
-########
 Download
-########
+========
 
-**Development version**
-    The current development version of ``pyunicorn`` can be obtained at
-    `github <https://github.com/pik-copan/pyunicorn>`_.
+.. include:: ../../README.rst
+    :start-after: network analysis.
+    :end-before: Dependencies
 
-**Stable release**
-    The latest stable release of pyunicorn can be obtained
-    `here <https://github.com/pik-copan/pyunicorn/releases>`_.
+Platforms and Compatibility
+---------------------------
+``pyunicorn`` is written in Python 2.7. The software is quite flexible, we have
+it running on Linux and MacOSX machines, the institute's IBM iDataPlex cluster
+and even on Windows.
 
-**PDF documentation**
-    An extensive PDF version of the documentation is available for
-    `download <http://www.pik-potsdam.de/~donges/pyunicorn/docs/>`_.
+.. include:: ../../README.rst
+    :start-after: latexpdf
+    :end-before: Installing
 
-**Reference**
-    Please acknowledge and cite the use of this software and its authors when
-    results are used in publications or published elsewhere. You can use the
-    following reference:
+Numpy, Scipy, Matplotlib, igraph and other packages should be available via a
+package management system on Linux or MacOSX. All packages can be downloaded,
+compiled and installed following the instructions on their homepages.
 
-    Donges, J.F., J. Heitzig, J. Runge, H.C. Schultz, M. Wiedermann, A. Zech,
-    J.H. Feldhoff, A. Rheinwalt, H. Kutza, A. Radebach, N. Marwan and J.
-    Kurths (2013, April). Advanced functional network analysis in the
-    geosciences: The pyunicorn package. Geophysical Research Abstracts (Vol.
-    15, p. 3558). `Link to abstract <http://meetingorganizer.copernicus.org/
-    EGU2013/EGU2013-3558-1.pdf>`_
+An easy way to go may be a Python distribution like `Anaconda
+<https://store.continuum.io/cshop/anaconda/>`_ or `Enthought
+<http://www.enthought.com>`_ that already include many libraries.
+
+.. include:: ../../README.rst
+    :start-after: documentation)
+    :end-before: Test suite

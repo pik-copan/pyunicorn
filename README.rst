@@ -18,21 +18,27 @@ for constructing functional networks from multivariate data as well as modern
 techniques of nonlinear analysis of single time series like recurrence
 quantification analysis (RQA) and recurrence network analysis.
 
-Get more information
---------------------
-This page only contains bare-bones instructions for installing ``pyunicorn``.
-For more information, jump right to the `pyunicorn homepage`_.
+Code
+----
+`Stable releases <https://github.com/pik-copan/pyunicorn/releases>`_
 
-.. _pyunicorn homepage: http://www.pik-potsdam.de/~donges/pyunicorn/
+`Development version <https://github.com/pik-copan/pyunicorn>`_
 
-Get the latest code
--------------------
-Git repository not yet public.
+Documentation
+-------------
+For extensive HTML documentation, jump right to the `pyunicorn homepage
+<http://www.pik-potsdam.de/~donges/pyunicorn/>`_. Recent `PDF versions
+<http://www.pik-potsdam.de/~donges/pyunicorn/docs/>`_ are also available.
+
+On a local development version, HTML and PDF documentation can be generated
+using ``Sphinx``::
+
+    $> cd docs; make clean html latexpdf
 
 Dependencies
 ------------
-``pyunicorn`` relies on the following additional open source or freely
-available packages that have to be installed on your machine.
+``pyunicorn`` relies on the following open source or freely available packages
+which have to be installed on your machine.
 
 Required:
   - `Numpy <http://numpy.scipy.org/>`_ 1.8+
@@ -40,9 +46,8 @@ Required:
   - `Weave <https://github.com/scipy/weave>`_ 0.15+
   - `igraph, python-igraph <http://igraph.sourceforge.net/>`_ 0.7+
 
-Optional *(required for certain classes and methods)*:
-  - `PyNGL <http://www.pyngl.ucar.edu/Download/>`_ (for class
-    NetCDFDictionary)
+Optional *(used only in certain classes and methods)*:
+  - `PyNGL <http://www.pyngl.ucar.edu/Download/>`_ (for class NetCDFDictionary)
   - `netcdf4-python <http://code.google.com/p/netcdf4-python/>`_ (for classes
     Data and NetCDFDictionary)
   - `Matplotlib <http://matplotlib.sourceforge.net>`_ 1.3+
@@ -50,33 +55,22 @@ Optional *(required for certain classes and methods)*:
     maps)
   - `mpi4py <http://code.google.com/p/mpi4py/>`_ (for parallelizing costly
     computations)
-  - `Sphinx <http://sphinx-doc.org/>`_ (for generating documentation in
-    formats other than HTML, e.g. PDF)
+  - `Sphinx <http://sphinx-doc.org/>`_ (for generating documentation)
 
-Install pyunicorn
------------------
-Install ``pyunicorn`` using Python's ``distutils`` with the supplied
-``setup.py`` script::
+Installing
+----------
+**Stable release**
+    Via the Python Package Index::
 
-   $> python setup.py install
+        $> pip install pyunicorn
 
-Depending on your system, you may need root priviledges.  On UNIX-based
-operating systems (Linux, MacOSX etc.) this is achieved with ``sudo``.
+**Development version**
+    Via ``distutils`` with the supplied ``setup.py`` script::
 
-Install the latest stable release of ``pyunicorn`` via the Python package
-index::
+        $> python setup.py install
 
-   $> pip install pyunicorn
-
-Documentation
--------------
-Using ``Sphinx``, currently HTML and PDF can be generated::
-
-    $> cd docs; make clean html latexpdf
-
-Mailing list
-------------
-Not implemented yet.
+    Depending on your system, you may need root priviledges. On UNIX-based
+    operating systems (Linux, MacOSX etc.) this is achieved with ``sudo``.
 
 Test suite
 ----------
@@ -96,13 +90,30 @@ The test suite can be run from anywhere in the project tree by issuing::
 To expose the defined test environments and target them independently::
 
     $> tox -l
-    $> tox -e py27-nose,py27-style
+    $> tox -e py27-nose,py27-pylint
 
 To test single files::
 
     $> tests/test_doctests.py core.network      # doctests
     $> nosetests -vs tests/core/TestNetwork.py  # unit tests
+    $> pylint pyunicorn/core/network.py         # code analysis
     $> py.test pyunicorn/core/network.py        # style
+
+Mailing list
+------------
+Not implemented yet.
+
+Reference
+---------
+Please acknowledge and cite the use of this software and its authors when
+results are used in publications or published elsewhere. You can use the
+following reference:
+
+Donges, J.F., J. Heitzig, J. Runge, H.C. Schultz, M. Wiedermann, A. Zech, J.H.
+Feldhoff, A. Rheinwalt, H. Kutza, A. Radebach, N. Marwan and J.  Kurths (2013,
+April). Advanced functional network analysis in the geosciences: The pyunicorn
+package. Geophysical Research Abstracts (Vol.  15, p. 3558). `Link to abstract
+<http://meetingorganizer.copernicus.org/ EGU2013/EGU2013-3558-1.pdf>`_
 
 License
 -------

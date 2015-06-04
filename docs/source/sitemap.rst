@@ -8,7 +8,6 @@ Sitemap
 
     index
     download
-    installing
     tutorials
     methods
     api_doc

@@ -3,6 +3,5 @@ Development
 ===========
 
 .. include:: ../../README.rst
-    :start-after: latexpdf
-    :end-before: License
-
+    :start-after: ``sudo``.
+    :end-before: Reference

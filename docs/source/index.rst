@@ -4,7 +4,7 @@ Introduction
 
 .. include:: ../../README.rst
     :start-after: =========
-    :end-before: Get more information
+    :end-before: Code
 
 For example, to generate a recurrence network with 1000 nodes from a sinusoidal
 signal and compute its network transitivity you simply need to type

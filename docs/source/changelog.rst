@@ -4,6 +4,9 @@ Changelog
 
 A summary of major changes made in each release of ``pyunicorn``:
 
+**0.4.2**
+ - Improved Pylint compliance.
+
 **0.4.1**
  - Removed a whole lot of ``get_`` s from the API. For example,
    ``Network.get_degree()`` is now ``Network.degree()``.

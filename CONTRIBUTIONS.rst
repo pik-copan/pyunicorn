@@ -33,6 +33,7 @@
       (consolidated and updated codebase during an internship at PIK)
     - `Paul Schultz <pschultz@pik-potsdam.de>`_ and `Stefan Schinkel
       <mail@dreeg.org>`_ supplied resistive networks and corresponding tests
+
 **Related publications**
     See :doc:`publications` (``docs/source/publications.rst``).
 
