@@ -111,19 +111,19 @@ class CouplingAnalysis(object):
         >>> similarity_matrix, lag_matrix = coup_ana.cross_correlation(
         ...     tau_max=2)
         >>> r((similarity_matrix, lag_matrix))
-        (array([[ 1.   , -0.4109, -0.2523, -0.3332],
-               [-0.2988,  1.    ,  0.5270,  0.6666],
-               [-0.3558,  0.4899,  1.    ,  0.7121],
-               [ 0.5509,  0.6666,  0.3676,  1.    ]]),
-         array([[0, 2, 2, 1], [2, 0, 1, 0],
-                [1, 0, 0, 2], [1, 0, 0, 0]]))
+        (array([[ 1.    , 0.698 , 0.7788, 0.7535],
+                [ 0.4848, 1.    , 0.4507, 0.52  ],
+                [ 0.6219, 0.5704, 1.    , 0.5996],
+                [ 0.4833, 0.5503, 0.5002, 1.    ]]),
+         array([[0, 2, 1, 2], [0, 0, 0, 0],
+                [0, 2, 0, 1], [0, 2, 0, 0]]))
         >>> r(coup_ana.symmetrize_by_absmax(similarity_matrix, lag_matrix))
-        (array([[ 1.   , -0.4109, -0.3558,  0.5509],
-               [-0.4109,  1.    ,  0.5270,  0.6666],
-               [-0.3558,  0.5270,  1.    ,  0.7121],
-               [ 0.5509,  0.6666,  0.7121,  1.    ]]),
-         array([[ 0,  2, -1, -1], [-2,  0,  1,  0],
-                [ 1, -1,  0,  2], [ 1,  0, -2,  0]]))
+        (array([[ 1.    , 0.698 , 0.7788, 0.7535],
+                [ 0.698 , 1.    , 0.5704, 0.5503],
+                [ 0.7788, 0.5704, 1.    , 0.5996],
+                [ 0.7535, 0.5503, 0.5996, 1.    ]]),
+         array([[ 0, 2, 1, 2], [-2, 0, -2, -2],
+                [-1, 2, 0, 1], [-2, 2, -1, 0]]))
 
         :type similarity_matrix: array-like [float]
         :arg  similarity_matrix: array-like [node, node] matrix of similarity
@@ -166,7 +166,8 @@ class CouplingAnalysis(object):
     #
     def cross_correlation(self, tau_max=0, lag_mode='max'):
 
-        r"""Return cross correlation between all pairs of nodes.
+        r"""
+        Return cross correlation between all pairs of nodes.
 
         Two lag-modes are available (default: lag_mode='max'):
 
