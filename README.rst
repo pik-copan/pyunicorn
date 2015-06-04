@@ -65,9 +65,9 @@ Installing
         $> pip install pyunicorn
 
 **Development version**
-    Via ``distutils`` with the supplied ``setup.py`` script::
+    Via the supplied ``setup.py`` script::
 
-        $> python setup.py install
+        $> pip install .
 
     Depending on your system, you may need root priviledges. On UNIX-based
     operating systems (Linux, MacOSX etc.) this is achieved with ``sudo``.
