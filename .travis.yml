@@ -17,7 +17,7 @@ before_install:
     - ./miniconda.sh -b
     - export PATH=/home/travis/miniconda/bin:$PATH
     - conda update --yes conda
-    - travis_retry conda install --yes python=$TRAVIS_PYTHON_VERSION pip numpy scipy cython
+    - travis_retry conda install --yes python=$TRAVIS_PYTHON_VERSION pip virtualenv numpy scipy cython
 
     # no igraph (>=0.7) package available for Ubuntu 12.04 LTS
     - travis_retry wget http://igraph.org/nightly/get/c/igraph-$IGRAPH.tar.gz
