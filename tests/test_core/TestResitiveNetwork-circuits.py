@@ -21,7 +21,7 @@ debug = 0
 
 
 def testParallelTrivial():
-    """ Trivial parallel case:
+    r""" Trivial parallel case:
     a)  0 --- 1 --- 2
 
         /---- 3 ---\
@@ -173,7 +173,7 @@ def testParallelRandom():
 
         try:
             nx.shortest_path(G, source=a, target=b)
-        except:
+        except RuntimeError:
             continue
 
         i, j = [], []
@@ -254,7 +254,7 @@ def testSerialRandom():
         G = nx.fast_gnp_random_graph(N, p)
         try:
             nx.shortest_path(G, source=0, target=N-1)
-        except:
+        except RuntimeError:
             continue
         # convert to plain ndarray
         nw1 = nx2nw(G)
@@ -271,5 +271,5 @@ def testSerialRandom():
         # increment runs
         runs += 1
         # assertion
-        print (ER1*2-ER2)
+        print ER1*2-ER2
         assert (ER1*2-ER2) < 1E-6

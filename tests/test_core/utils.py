@@ -10,7 +10,7 @@
 import numpy as np
 
 
-def makeNW(idI, idJ, val=[]):
+def makeNW(idI, idJ, val=None):
     """Construct NW from edges
     """
 
@@ -25,7 +25,7 @@ def makeNW(idI, idJ, val=[]):
     nw = np.zeros((N+1, N+1))
 
     # fill values or ones
-    if len(val) < 1:
+    if val is None:
         val = [1] * len(idI)
     elif len(val) == 1:
         val = val*len(idI)
@@ -44,7 +44,7 @@ def parallelCopy(nw, a, b):
     """
 
     if sum(np.diag(nw)) > 0:
-        print("Graph has selfloops")
+        print "Graph has selfloops"
         print "doesn't work yet"
         raise NotImplementedError
 

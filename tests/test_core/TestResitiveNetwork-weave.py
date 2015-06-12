@@ -19,14 +19,18 @@ resC = ResNetwork.SmallComplexNetwork()
 
 def testVCFB():
     for i in range(5):
-        vcfbPython = res._vertex_current_flow_betweenness_python(i)
-        vcfbWeave = res._vertex_current_flow_betweenness_weave(i)
+        res.flagWeave = False
+        vcfbPython = res.vertex_current_flow_betweenness(i)
+        res.flagWeave = True
+        vcfbWeave = res.vertex_current_flow_betweenness(i)
         assert vcfbPython == vcfbWeave
 
 
 def testECFB():
-    ecfbPython = res._edge_current_flow_betweenness_python()
-    ecfbWeave = res._edge_current_flow_betweenness_weave()
+    res.flagWeave = False
+    ecfbPython = res.edge_current_flow_betweenness()
+    res.flagWeave = True
+    ecfbWeave = res.edge_current_flow_betweenness()
     l = len(ecfbPython)
     for i in range(l):
         for j in range(l):
