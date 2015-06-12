@@ -44,6 +44,7 @@
     - Python 2.7
     - `Numpy <http://numpy.scipy.org/>`_ 1.8+
     - `Scipy <http://www.scipy.org/>`_ 0.14+
+    - `Cython <http://cython.org/>`_ 0.21+
     - `Weave <https://github.com/scipy/weave>`_ 0.15+
     - `Matplotlib <http://matplotlib.sourceforge.net>`_ 1.3+
     - `igraph, python-igraph <http://igraph.sourceforge.net/>`_ 0.7+

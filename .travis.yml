@@ -1,12 +1,17 @@
 language: python
 python:
-    - "2.7"
+    - 2.7
 
 sudo: true
+matrix:
+    fast_finish: true
 env:
-    matrix:
+    global:
         # possibly different versions in the future
         - IGRAPH=0.7.1
+    matrix:
+        - NUMPY=1.8 SCIPY=0.14 CYTHON=0.21
+        - NUMPY=1.9 SCIPY=0.15 CYTHON=0.22
 
 before_install:
     # update system, prepare numeric libraries
@@ -29,17 +34,22 @@ before_install:
     - cd igraph-$IGRAPH && ./configure && make && sudo make install && cd ..
 
 install:
-    # runtime dependencies
-    - travis_retry conda create -q -n test-env python=$TRAVIS_PYTHON_VERSION numpy scipy cython
+    # test environment
+    - travis_retry conda create -q -n test-env python=$TRAVIS_PYTHON_VERSION
     - source activate test-env
+
+    # runtime dependencies
+    - travis_retry conda install --yes numpy=$NUMPY scipy=$SCIPY cython=$CYTHON
     - travis_retry pip install -q -r requirements.txt
+
     # testing dependencies
     - travis_retry pip install -q networkx Sphinx tox nose pylint pytest pytest-xdist pytest-flakes pytest-pep8
-    # self
-    - pip install .
 
 script:
-    # run test suite
+    # check distribution
+    - pip install .
+
+    # test suite
     - tox
 
 notifications:
