@@ -14,7 +14,7 @@ before_install:
     - travis_retry sudo apt-get install -qq libatlas-dev libatlas-base-dev liblapack-dev gfortran
 
     # current python packages via miniconda
-    - if [["$TRAVIS_PYTHON_VERSION" == "2.7"]]; then export MINICONDA=""; else export MINICONDA="3"; fi
+    - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then export MINICONDA=""; else export MINICONDA="3"; fi
     - travis_retry wget http://repo.continuum.io/miniconda/Miniconda$MINICONDA-latest-Linux-x86_64.sh -O miniconda.sh
     - bash miniconda.sh -b -p $HOME/miniconda
     - export PATH="$HOME/miniconda/bin:$PATH"
@@ -30,7 +30,7 @@ before_install:
 
 install:
     # runtime dependencies
-    - travis_retry conda create -q -n test-env --python=$TRAVIS_PYTHON_VERSION numpy scipy cython
+    - travis_retry conda create -q -n test-env python=$TRAVIS_PYTHON_VERSION numpy scipy cython
     - source activate test-env
     - travis_retry pip install -q -r requirements.txt
     # testing dependencies
