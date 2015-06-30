@@ -341,7 +341,8 @@ Time series analysis and synchronization (general)
     <http://dx.doi.org/10.1103/PhysRevE.83.051122>`__
 
 .. [Runge2012b] J. Runge, J. Heitzig, N. Marwan, J. Kurths.
-    "Quantifying causal coupling strength: A lag-specific measure for multivariate time series related to transfer entropy".
+    "Quantifying causal coupling strength: A lag-specific measure for
+    multivariate time series related to transfer entropy".
     In *Physical Review E*, vol. 86(6), 1-15 (2012)
     `doi:10.1103/PhysRevE.86.061121
     <http://dx.doi.org/10.1103/PhysRevE.86.061121>`__

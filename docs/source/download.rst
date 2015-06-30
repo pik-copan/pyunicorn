@@ -4,6 +4,10 @@ Download
 
 .. include:: ../../README.rst
     :start-after: network analysis.
+    :end-before: `Changelog
+
+.. include:: ../../README.rst
+    :start-after: CONTRIBUTIONS.rst>`_
     :end-before: Dependencies
 
 Platforms and Compatibility

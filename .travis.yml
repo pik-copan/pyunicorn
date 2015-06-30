@@ -39,7 +39,7 @@ install:
     - source activate test-env
 
     # runtime dependencies
-    - travis_retry conda install --yes numpy=$NUMPY scipy=$SCIPY cython=$CYTHON
+    - travis_retry conda install numpy=$NUMPY scipy=$SCIPY cython=$CYTHON
     - travis_retry pip install -q -r requirements.txt
 
     # testing dependencies

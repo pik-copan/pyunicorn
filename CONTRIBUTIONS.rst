@@ -31,14 +31,15 @@
     - Hannes Kutza
     - `Boyan Beronov <boyan.beronov@pik-potsdam.de>`_
       (consolidated and updated codebase during an internship at PIK)
-    - `Paul Schultz <pschultz@pik-potsdam.de>`_ and `Stefan Schinkel
-      <mail@dreeg.org>`_ supplied resistive networks and corresponding tests
+    - `Paul Schultz <pschultz@pik-potsdam.de>`_, `Stefan Schinkel
+      <mail@dreeg.org>`_ (supplied ``resistive_network`` and corresponding
+      tests)
 
 **Related publications**
-    See :doc:`publications` (``docs/source/publications.rst``).
+    See :doc:`publications`/`publications <docs/source/publications.rst>`_.
 
 **Version**
-    0.4.1
+    0.5.0
 
 **Dependencies**
     - Python 2.7

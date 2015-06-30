@@ -4,8 +4,17 @@ Changelog
 
 A summary of major changes made in each release of ``pyunicorn``:
 
-**0.4.2**
- - Improved Pylint compliance.
+**0.5.0**
+ - Substantial update of ``CouplingAnalysis``.
+ - New methods in ``RecurrenceNetwork``: ``transitivity_dim_single_scale``,
+   ``local_clustering_dim_single_scale``.
+ - Renamed time-directed measures in ``VisibilityGraph``: ``left/right`` ->
+   ``retarded/advanced``.
+ - Improved documentation and extended publication list.
+ - Began transition from ``Weave`` to ``Cython``.
+ - Added unit tests and improved Pylint compliance.
+ - Set up continuous testing with Travis CI.
+ - Fixed some minor bugs.
 
 **0.4.1**
  - Removed a whole lot of ``get_`` s from the API. For example,

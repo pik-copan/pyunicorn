@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
     name='pyunicorn',
-    version='0.4.1',
+    version='0.5.0',
     # metadata for upload to PyPI
     description="Unified complex network and recurrence analysis toolbox",
     long_description="Advanced statistical analysis and modeling of \

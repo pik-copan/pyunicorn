@@ -20,9 +20,10 @@ quantification analysis (RQA) and recurrence network analysis.
 
 Code
 ----
-`Stable releases <https://github.com/pik-copan/pyunicorn/releases>`_
-
+`Stable releases <https://github.com/pik-copan/pyunicorn/releases>`_,
 `Development version <https://github.com/pik-copan/pyunicorn>`_
+
+`Changelog <docs/source/changelog.rst>`_, `Contributions <CONTRIBUTIONS.rst>`_
 
 Documentation
 -------------
@@ -113,9 +114,9 @@ following reference:
 Donges, J.F., J. Heitzig, J. Runge, H.C. Schultz, M. Wiedermann, A. Zech, J.H.
 Feldhoff, A. Rheinwalt, H. Kutza, A. Radebach, N. Marwan and J.  Kurths (2013,
 April). Advanced functional network analysis in the geosciences: The pyunicorn
-package. Geophysical Research Abstracts (Vol.  15, p. 3558). `Link to abstract
+package. Geophysical Research Abstracts (Vol.  15, p. 3558). `Abstract
 <http://meetingorganizer.copernicus.org/ EGU2013/EGU2013-3558-1.pdf>`_
 
 License
 -------
-``pyunicorn`` is **BSD-licensed** (3 clause), see ``LICENSE.txt``.
+``pyunicorn`` is `**BSD-licensed** <LICENSE.txt>`_ (3 clause).
