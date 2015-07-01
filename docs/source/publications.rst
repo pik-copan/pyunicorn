@@ -292,9 +292,10 @@ Power Grids/Power Networks
     Spatially Embedded Infrastructure Networks".
     In *Eur. Phys. J. Special Topics: Resilient Power Grids and Extreme Events* (2014)
 
-Time series analysis and synchronization (general)
-==================================================
-
+Time series analysis and synchronization
+========================================
+*General*
+~~~~~~~~~
 [Pecora1998]_, [Schreiber2000]_, [Kraskov2004]_, [Kantz2006]_, [Thiel2006]_,
 [Bergner2008]_, [Pompe2011]_, [Runge2012b]_.
 
@@ -346,6 +347,25 @@ Time series analysis and synchronization (general)
     In *Physical Review E*, vol. 86(6), 1-15 (2012)
     `doi:10.1103/PhysRevE.86.061121
     <http://dx.doi.org/10.1103/PhysRevE.86.061121>`__
+
+*Event synchronization*
+~~~~~~~~~~~~~~~~~~~~~~~
+[Quiroga2002]_, [Boers2014]_.
+
+.. [Quiroga2002] R.Q. Quiroga, T. Kreuz, P. Grassberger.
+    "Quantifying causal coupling strength: A lag-specific measure for
+    multivariate time series related to transfer entropy".
+    In *Physical Review E*, vol. 66(4), 041904 (2002)
+    `doi:10.1103/PhysRevE.66.041904
+    <http://dx.doi.org/10.1103/PhysRevE.66.041904>`__
+
+.. [Boers2014] N. Boers, B. Bookhagen, H.M.J. Barbosa, N. Marwan, J. Kurths.
+    J.A. Marengo.
+    "Event synchronization: a simple and fast method to measure synchronicity
+    and time delay patterns".
+    In *Nature communications*, vol. 5, 1--7 (2014)
+    `doi:10.1038/ncomms6199
+    <http://dx.doi.org/10.1038/ncomms6199>`__
 
 Recurrence networks / quantification analysis / plots
 =====================================================

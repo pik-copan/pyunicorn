@@ -15,7 +15,7 @@ from pyunicorn.funcnet import EventSynchronization
 
 def NonVecEventSync(es1, es2, taumax):
     """
-    Compute non-vectorized eventsynchronization
+    Compute non-vectorized event synchronization
 
     :type es1: 1D Numpy array
     :arg es1: Event series containing '0's and '1's
@@ -72,11 +72,12 @@ def UndirectedESyncMat(eventmatrix, taumax):
 
 def testVectorization():
     """
-    Test if the vectorized implementation coincides with the straigth forward
+    Test if the vectorized implementation coincides with the straight forward
     one.
     """
     for taumax in [1, 5, 16]:
         length, N, eventprop = 100, 50, 0.2
         eventmatrix = 1-(np.random.rand(length, N) > eventprop).astype(int)
         ES = EventSynchronization(eventmatrix, taumax)
-        assert (UndirectedESyncMat(eventmatrix, taumax) == ES.directed()).all()
+        assert np.allclose(UndirectedESyncMat(eventmatrix, taumax),
+                           ES.directed())
