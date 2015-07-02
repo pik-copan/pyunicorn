@@ -12,7 +12,7 @@ When invoked by shell, run doctests in pyunicorn submodules given as arguments
 """
 
 from os import walk
-from os.path import normpath, join, dirname, sep
+from os.path import normpath, join, dirname, sep, splitext
 from importlib import import_module
 import argparse
 import doctest
@@ -68,8 +68,9 @@ def load_tests(loader, tests, ignore):
     modules = []
     for d, _, fs in walk(lib):
         if focus(d, ignored_folders):
-            modules.extend(join(d, f)[:-3].replace(sep, '.') for f in fs
-                           if f.endswith('.py') and focus(f, ignored_modules))
+            modules.extend(join(d, splitext(f)[0]).replace(sep, '.')
+                           for f in fs if splitext(f)[1] in ['.py', '.pyx']
+                           and focus(f, ignored_modules))
     for module in modules:
         tests.addTests(doctest.DocTestSuite(module, **doctest_opts))
     return tests

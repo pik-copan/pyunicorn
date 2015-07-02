@@ -22,8 +22,7 @@ before_install:
     - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then export MINICONDA=""; else export MINICONDA="3"; fi
     - travis_retry wget http://repo.continuum.io/miniconda/Miniconda$MINICONDA-latest-Linux-x86_64.sh -O miniconda.sh
     - bash miniconda.sh -b -p $HOME/miniconda
-    - export PATH="$HOME/miniconda/bin:$PATH"
-    - hash -r
+    - export PATH="$HOME/miniconda/bin:$PATH"; hash -r
     - conda config --set always_yes yes --set changeps1 no
     - travis_retry conda update -q conda
     - conda info -a
@@ -36,7 +35,7 @@ before_install:
 install:
     # test environment
     # https://github.com/conda/conda/issues/1367
-    - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then export CONDA_PY="2.7.9"; else export CONDA_PY=$TRAVIS_PYTHON_VERSION; fi
+    - export CONDA_PY=$TRAVIS_PYTHON_VERSION
     - travis_retry conda create -q -n test-env python=$CONDA_PY
     - source activate test-env
 

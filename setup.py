@@ -1,11 +1,27 @@
 #!/usr/bin/env python
 
 from distutils.core import setup
+from distutils.extension import Extension
+
+try:
+    from Cython.Build import cythonize
+    CYTHON = True
+except ImportError:
+    CYTHON = False
+
+extensions = [
+    Extension('*', ['pyunicorn/%s/*.%s' % (pkg, 'pyx' if CYTHON else 'c')])
+    for pkg in ['core']]
+
+if CYTHON:
+    extensions = cythonize(extensions, compiler_directives={
+        'language_level': 2, 'embedsignature': True,
+        'boundscheck': False, 'wraparound': False, 'initializedcheck': False,
+        'nonecheck': False})
 
 setup(
     name='pyunicorn',
     version='0.5.0',
-    # metadata for upload to PyPI
     description="Unified complex network and recurrence analysis toolbox",
     long_description="Advanced statistical analysis and modeling of \
 general and spatially embedded complex networks with applications to \
@@ -19,12 +35,10 @@ nonlinear climate recurrence plot surrogates spatial model',
     packages=['pyunicorn', 'pyunicorn.core', 'pyunicorn.climate',
               'pyunicorn.timeseries', 'pyunicorn.funcnet',
               'pyunicorn.utils', 'pyunicorn.utils.progressbar'],
-    requires=['numpy (>=1.8)', 'scipy (>=0.14)', 'cython (>=0.21)',
-              'weave (>=0.15)', 'pythonigraph (>=0.7)'],
+    ext_modules=extensions,
+    requires=['numpy (>=1.8)', 'scipy (>=0.14)', 'weave (>=0.15)',
+              'pythonigraph (>=0.7)'],
     provides=['pyunicorn'],
     scripts=[],
-    include_package_data=True,
-    tests_require=['tox', 'nose', 'networkx', 'Sphinx', 'pylint', 'pytest',
-                   'pytestxdist', 'pytestflakes', 'pytestpep8'],
     license='BSD',
 )

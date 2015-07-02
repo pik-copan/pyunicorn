@@ -3,8 +3,8 @@ __pycache__/
 *.py[cod]
 
 # C extensions / Cython / Weave
+*.c
 *.so
-*__.data
 
 # Distribution / packaging
 .Python
@@ -52,3 +52,6 @@ coverage.xml
 
 # Sphinx documentation
 docs/build/
+
+# Calculation dumps
+*.data

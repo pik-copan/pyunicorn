@@ -11,16 +11,16 @@ Provides classes for analyzing spatially embedded complex networks, handling
 multivariate data and generating time series surrogates.
 """
 
-#
-#  Import essential packages
-#
-
 #  Import NumPy for the array object and fast numerics
 import numpy as np
 from numpy import random
 
-#  Import Network base class and C++ code embedding
-from .network import Network, weave_inline
+#  Import Network base class and Cython code
+from .network import Network, NetworkError
+from .numerics import                                    \
+    _randomlySetCrossLinks, _randomlyRewireCrossLinks,   \
+    _cross_transitivity, _nsi_cross_transitivity,        \
+    _cross_local_clustering, _nsi_cross_local_clustering
 
 
 #
@@ -65,8 +65,7 @@ class InteractingNetworks(Network):
         :arg int silence_level: The inverse level of verbosity of the object.
         """
         #  Call constructor of parent class Network
-        Network.__init__(self, adjacency=adjacency,
-                         directed=directed,
+        Network.__init__(self, adjacency=adjacency, directed=directed,
                          node_weights=node_weights,
                          silence_level=silence_level)
 
@@ -132,16 +131,13 @@ class InteractingNetworks(Network):
         :rtype:  :class:`InteractingNetworks`
         :return: The initial InteractingNetworks with random cross links
         """
-
-        #  retrieve number of nodes
-        N1, N2 = len(node_list1), len(node_list2)
-
         #  store node lists as arrays
         nodes1 = np.array(node_list1, dtype=int)
         nodes2 = np.array(node_list2, dtype=int)
-
+        #  retrieve number of nodes
+        N1, N2 = len(nodes1), len(nodes2)
         #  retrieve cross adjacency matrix
-        cross_A = network.cross_adjacency(node_list1, node_list2).copy()
+        cross_A = network.cross_adjacency(nodes1, nodes2).astype(int)
 
         #  determine number of cross links
         if cross_link_density is not None:
@@ -152,52 +148,18 @@ chosen link density."
             number_cross_links = int(cross_A.sum())
             print "Creating a null model for the given interacting networks."
         #  else: take the explicitly chosen number of cross links
-
         if number_cross_links > (N1 * N2):
             print "The number of cross links exceeds maximum."
             print "Setting link density of initial interacting network."
             number_cross_links = int(cross_A.sum())
 
         #  retrieve adjacency matrix of the full interacting network
-        A_new = network.adjacency.copy()
-
+        A_new = network.adjacency.astype(int)
         #  create new empty cross adjacency matrix
         cross_A_new = np.zeros((N1, N2))
 
-        code = """
-        int n_1, n_2, node1, node2;
-
-        //  initialize random generator
-        srand48(time(0));
-
-        //  create random cross links
-        for (int i =0 ; i < number_cross_links; i++) {
-            do {
-                n_1 = floor(drand48() * N1);
-                n_2 = floor(drand48() * N2);
-            } while (cross_A_new(n_1,n_2) == 1);
-
-            cross_A_new(n_1,n_2) = 1;
-        }
-
-        //  overwrite the initial adjacency matrix of the full interacting
-        //  network with the randomly rewired cross edges of the considered
-        //  two subnetworks
-        for (int i = 0; i < N1; i++) {
-            for (int j = 0; j < N2; j++) {
-                node1 = nodes1(i);
-                node2 = nodes2(j);
-
-                A_new(node1,node2) = A_new(node2,node1) = cross_A_new(i,j);
-            }
-        }
-
-        """
-        weave_inline(locals(), code,
-                     ['cross_A_new', 'number_cross_links', 'nodes1', 'nodes2',
-                      'N1', 'N2', 'A_new'])
-
-        #  Initialize new instance of InteractingNetworks
+        _randomlySetCrossLinks(A_new, cross_A_new, number_cross_links,
+                               nodes1, nodes2, N1, N2)
         return InteractingNetworks(adjacency=A_new,
                                    directed=network.directed,
                                    node_weights=network.node_weights,
@@ -231,16 +193,13 @@ chosen link density."
         :rtype:  :class:`InteractingNetworks`
         :return: The initial InteractingNetworks with random cross links
         """
-
-        #  retrieve number of nodes
-        N1, N2 = len(node_list1), len(node_list2)
-
         #  store node lists as arrays
         nodes1 = np.array(node_list1, dtype=int)
         nodes2 = np.array(node_list2, dtype=int)
-
+        #  retrieve number of nodes
+        N1, N2 = len(nodes1), len(nodes2)
         #  retrieve cross adjacency matrix
-        cross_A = network.cross_adjacency_sparse(node_list1, node_list2).copy()
+        cross_A = network.cross_adjacency_sparse(nodes1, nodes2).astype(int)
 
         #  determine number of cross links
         if cross_link_density is not None:
@@ -258,8 +217,7 @@ chosen link density."
             number_cross_links = int(sum(cross_A.values()))
 
         #  retrieve adjacency matrix of the full interacting network
-        A_new = network.sp_A.copy()
-
+        A_new = network.sp_A.astype(int)
         #  create new empty cross adjacency matrix
         cross_A_new = np.zeros((N1, N2))
 
@@ -279,7 +237,6 @@ chosen link density."
                 A_new[node1, node2] = cross_A_new[i, j]
                 A_new[node2, node1] = cross_A_new[i, j]
 
-        #  Initialize new instance of InteractingNetworks
         return InteractingNetworks(adjacency=A_new,
                                    directed=network.directed,
                                    node_weights=network.node_weights,
@@ -346,84 +303,21 @@ chosen link density."
         """
         #  retrieve cross adjacency matrix of the considered interacting
         #  network
-        cross_A = network.cross_adjacency(node_list1, node_list2).copy()
-
+        cross_A = network.cross_adjacency(node_list1, node_list2).astype(int)
         #  determine number of cross links
         number_cross_links = int(cross_A.sum())
-
-        #  retrieve number of nodes of the considered two subnetworks
-        N1, N2 = len(node_list1), len(node_list2)
-
         #  Store node lists as arrays
         nodes1 = np.array(node_list1, dtype=int)
         nodes2 = np.array(node_list2, dtype=int)
-
         #  retrieve adjacency matrix of the full interacting network
-        A_new = network.adjacency.copy()
-
+        A_new = network.adjacency.astype(int)
         #  determine number of cross link permutations that will be performed
         number_swaps = int(swaps * number_cross_links)
-
         #  Create list of cross links
         cross_links = np.array(cross_A.nonzero()).transpose()
 
-        code = """
-        int e_1, e_2, ending_point_e_1, node1, node2, a, b, c, d;
-
-        //  implement permutations
-
-        //  initialize random number generator
-        srand48(time(0));
-
-        for (int i = 0; i < number_swaps; i++) {
-            do {
-                //  choose two random edges (accessible via the vector
-                //  cross_links
-                e_1 = floor(drand48() * number_cross_links);
-                e_2 = floor(drand48() * number_cross_links);
-
-                a = cross_links(e_1,0);
-                b = cross_links(e_1,1);
-                c = cross_links(e_2,0);
-                d = cross_links(e_2,1);
-
-                //  repeat the procedure in case there already exists
-                //  a link between starting point of e_1 and
-                // ending point of e_2 or vice versa
-            } while (cross_A(a,d) == 1 || cross_A(c,b) == 1);
-
-            //  delete initial edges within the cross adjacency matrix
-            cross_A(a,b) = 0;
-            cross_A(c,d) = 0;
-
-            //  create new edges within the cross adjacency matrix by
-            //  swapping the ending points of e_1 and e_2
-            cross_A(a,d) = 1;
-            cross_A(c,b) = 1;
-
-            // likewise, adjust the vector cross_links:
-            ending_point_e_1 = cross_links(e_1,1);
-            cross_links(e_1,1) = cross_links(e_2,1);
-            cross_links(e_2,1) = ending_point_e_1;
-        }
-
-        //  overwrite the initial adjacency matrix of the full interacting
-        //  network with the randomly rewired cross edges of the considered
-        //  two subnetworks
-        for (int i = 0; i < N1; i++) {
-            for (int j = 0; j < N2; j++) {
-                node1 = nodes1(i);
-                node2 = nodes2(j);
-
-                A_new(node1,node2) = A_new(node2,node1) = cross_A(i,j);
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['cross_A', 'cross_links', 'number_cross_links',
-                      'number_swaps', 'N1', 'N2', 'A_new', 'nodes1', 'nodes2'])
-
-        #  Initialize new instance of InteractingNetworks
+        _randomlyRewireCrossLinks(A_new, cross_A, cross_links, nodes1, nodes2,
+                                  number_cross_links, number_swaps)
         return InteractingNetworks(adjacency=A_new,
                                    directed=network.directed,
                                    node_weights=network.node_weights,
@@ -470,10 +364,7 @@ chosen link density."
         #  Create igraph Graph object describing the subgraph
         subgraph = self.graph.subgraph(node_list)
         #  Get adjacency matrix
-        adjacency = \
-            np.array(subgraph.get_adjacency(type=2).data).astype("int8")
-
-        return adjacency
+        return np.array(subgraph.get_adjacency(type=2).data).astype(np.int8)
 
     def cross_adjacency(self, node_list1, node_list2):
         """
@@ -593,8 +484,7 @@ chosen link density."
         :rtype: 2D array [index1, index2]
         :return: the cross path length matrix for a pair of subnetworks.
         """
-        return self.\
-            path_lengths(link_attribute)[node_list1, :][:, node_list2]
+        return self.path_lengths(link_attribute)[node_list1, :][:, node_list2]
 
     #
     #  Define scalar statistics for interacting networks
@@ -621,7 +511,7 @@ chosen link density."
             subnetworks.
         """
         if self.directed:
-            print "Not implemented yet!"
+            raise NetworkError("Not implemented yet...")
         else:
             return self.cross_adjacency(node_list1, node_list2).sum()
 
@@ -642,7 +532,6 @@ chosen link density."
         :return int: the number of links within a given subnetwork.
         """
         n_links = self.internal_adjacency(node_list).sum()
-
         if self.directed:
             return n_links
         else:
@@ -668,9 +557,8 @@ chosen link density."
         :return float: the density of links between two subnetworks.
         """
         N1, N2 = len(node_list1), len(node_list2)
-
         if self.directed:
-            print "Not implemented yet!"
+            raise NetworkError("Not implemented yet...")
         else:
             n_cl = self.number_cross_links(node_list1, node_list2)
             return float(n_cl) / (N1 * N2)
@@ -693,7 +581,6 @@ chosen link density."
         """
         N = len(node_list)
         n_links = self.number_internal_links(node_list)
-
         if self.directed:
             return float(n_links) / (N * (N - 1))
         else:
@@ -730,7 +617,6 @@ chosen link density."
         """
         clustering = self.local_clustering()
         internal_clustering = clustering[node_list].mean()
-
         return internal_clustering
 
     def cross_global_clustering(self, node_list1, node_list2):
@@ -764,7 +650,6 @@ chosen link density."
         """
         #  Get cross local clustering sequences
         cc = self.cross_local_clustering(node_list1, node_list2)
-
         return cc.mean()
 
     def cross_global_clustering_sparse(self, node_list1, node_list2):
@@ -800,7 +685,6 @@ chosen link density."
         """
         #  Get cross local clustering sequences
         cc = self.cross_local_clustering_sparse(node_list1, node_list2)
-
         return cc.mean()
 
     def cross_transitivity(self, node_list1, node_list2):
@@ -832,57 +716,8 @@ chosen link density."
             subnetwork
         :return float: the cross transitivity for a pair of subnetworks.
         """
-        #  Get full adjacency matrix
-        A = self.adjacency
-        #  Get subnetwork sizes
-        N1, N2 = len(node_list1), len(node_list2)
-        #  Convert node lists to Numpy arrays
-        nodes1, nodes2 = np.array(node_list1), np.array(node_list2)
-
-        #  Initialize
-        cross_transitivity = np.zeros(1)
-
-        code = """
-        long counter_triangles, counter_triples;
-        int node1, node2, node3;
-
-        //  Set counter
-        counter_triangles = 0;
-        counter_triples = 0;
-
-        //  Calculate cross transitivity from subnetwork 1 to subnetwork 2
-
-        //  Loop over nodes in subnetwork 1
-        for (int i = 0; i < N1; i++) {
-            node1 = nodes1(i);
-
-            //  Loop over unique pairs of nodes in subnetwork 2
-            for (int j = 0; j < N2; j++) {
-                node2 = nodes2(j);
-
-                for (int k = 0; k < j; k++) {
-                    node3 = nodes2(k);
-
-                    if (A(node1,node2) == 1 && A(node2,node3) == 1
-                        && A(node3,node1) == 1) {
-                        counter_triangles++;
-                    }
-                    if (A(node1,node2) == 1 && A(node1,node3) == 1) {
-                        counter_triples++;
-                    }
-                }
-            }
-        }
-
-        if (counter_triples != 0) {
-            cross_transitivity(0) =
-                counter_triangles / double(counter_triples);
-        }
-        """
-        weave_inline(locals(), code,
-                     ['N1', 'N2', 'A', 'nodes1', 'nodes2',
-                      'cross_transitivity'])
-        return cross_transitivity[0]
+        return _cross_transitivity(self.adjacency.astype(int),
+                                   np.array(node_list1), np.array(node_list2))
 
     def cross_transitivity_sparse(self, node_list1, node_list2):
         """
@@ -937,7 +772,7 @@ chosen link density."
                             if A[node2, node3] == 1:
                                 counter_triangles += 1
 
-        if not counter_triples == 0:
+        if counter_triples:
             cross_transitivity = counter_triangles / counter_triples
         return cross_transitivity
 
@@ -975,7 +810,6 @@ chosen link density."
 
         #  Reverse changes to path_lengths
         path_lengths[unconnected_pairs] = np.inf
-
         return average_path_length
 
     def cross_average_path_length(self, node_list1, node_list2,
@@ -1042,7 +876,6 @@ chosen link density."
         :return float: the internal average path length.
         """
         path_lengths = self.internal_path_lengths(node_list, link_attribute)
-
         return self._calculate_general_average_path_length(path_lengths,
                                                            internal=True)
 
@@ -1078,11 +911,10 @@ chosen link density."
         :return: the cross degree sequence.
         """
         if self.directed:
-            print "Not implemented yet!"
+            raise NetworkError("Not implemented yet...")
         else:
             cross_A = self.cross_adjacency(node_list1, node_list2)
             cross_degree = cross_A.sum(axis=1)
-
             return cross_degree
 
     def internal_degree(self, node_list):
@@ -1104,10 +936,9 @@ chosen link density."
         :return: the internal degree sequence.
         """
         if self.directed:
-            print "Not implemented yet!"
+            raise NetworkError("Not implemented yet...")
         else:
             degree = self.internal_adjacency(node_list).sum(axis=0)
-
             return degree
 
     def cross_local_clustering(self, node_list1, node_list2):
@@ -1138,54 +969,16 @@ chosen link density."
         :rtype: 1D array [node index]
         :return: the cross local clustering coefficient.
         """
-        #  Get cross degree sequence
-        cross_degree = self.cross_degree(node_list1, node_list2)
-        #  Get full adjacency matrix
-        A = self.adjacency
-        #  Get layer sizes
-        N1, N2 = len(node_list1), len(node_list2)
-        #  Convert node lists to Numpy arrays
         nodes1, nodes2 = np.array(node_list1), np.array(node_list2)
-
-        #  Initialize
-        cross_clustering = np.zeros(N1)
-
+        #  Get cross degree sequence
+        cross_degree = self.cross_degree(nodes1, nodes2)
         #  Prepare normalization factor
         norm = cross_degree * (cross_degree - 1) / 2.
+        #  Initialize
+        cross_clustering = np.zeros_like(nodes1, dtype=np.float)
 
-        code = """
-        long counter;
-        int node1, node2, node3;
-
-        //  Calculate cross clustering from subnetwork 1 to subnetwork 2
-        for (int i = 0; i < N1; i++) {
-            node1 = nodes1(i);
-
-            //  Check if node1(i) has cross degree larger than 1
-            if (norm(i) != 0) {
-                //  Reset counter
-                counter = 0;
-
-                //  Loop over unique pairs of nodes in subnetwork 2
-                for (int j = 0; j < N2; j++) {
-                    node2 = nodes2(j);
-
-                    for (int k = 0; k < j; k++) {
-                        node3 = nodes2(k);
-
-                        if (A(node1,node2) == 1 && A(node2,node3) == 1
-                            && A(node3,node1) == 1) {
-                            counter++;
-                        }
-                    }
-                }
-                cross_clustering(i) = counter / norm(i);
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['N1', 'N2', 'A', 'norm', 'nodes1', 'nodes2',
-                      'cross_clustering'])
+        _cross_local_clustering(self.adjacency.astype(int), norm,
+                                nodes1, nodes2, cross_clustering)
         return cross_clustering
 
     def cross_local_clustering_sparse(self, node_list1, node_list2):
@@ -1425,14 +1218,9 @@ chosen link density."
         :rtype: 1D array [node index]
         :return: the n.s.i. cross-degree for layer 1.
         """
-
         cross_A = (self.adjacency +
                    np.eye(self.N))[node_list1, :][:, node_list2]
-        node_weights = self.node_weights
-
-        nsi_cross_degree = (cross_A * node_weights[node_list2]).sum(axis=1)
-
-        return nsi_cross_degree
+        return (cross_A * self.node_weights[node_list2]).sum(axis=1)
 
     def nsi_cross_mean_degree(self, node_list1, node_list2):
         """
@@ -1451,12 +1239,9 @@ chosen link density."
         :arg [int] node_list2: list of node indices describing the subnetwork 2
         :return float: the n.s.i. cross-mean degree for layer 1.
         """
-
         nsi_cross = self.nsi_cross_degree(node_list1, node_list2)
         node_weights = self.node_weights[node_list1]
-
         W_i = sum(node_weights)
-
         return sum(nsi_cross * node_weights) / W_i
 
     def nsi_internal_degree(self, node_list):
@@ -1476,7 +1261,6 @@ chosen link density."
         :rtype: 1D array [node index]
         :return: the n.s.i. internal degree sequence
         """
-
         return self.nsi_cross_degree(node_list, node_list)
 
     def nsi_cross_local_clustering(self, node_list1, node_list2):
@@ -1498,48 +1282,16 @@ chosen link density."
         :rtype: 1D array [node index]
         :return: the n.s.i. cross-local clustering coefficient for layer 1.
         """
+        nodes1 = np.array(node_list1, dtype=int)
+        nodes2 = np.array(node_list2, dtype=int)
+        nsi_cc = np.zeros_like(nodes1, dtype=np.float)
+        _nsi_cross_local_clustering(
+            self.adjacency + np.eye(self.N, dtype=int),
+            nsi_cc, nodes1, nodes2, self.node_weights)
 
-        node_list1 = np.array(node_list1)
-        node_list2 = np.array(node_list2)
-
-        A = self.adjacency + np.eye(self.N)
-        node_weight = self.node_weights
-
-        norm = self.nsi_cross_degree(node_list1, node_list2)**2
-        N1, N2 = len(node_list1), len(node_list2)
-
-        nsi_cc = np.zeros(N1)
-
-        code = """
-        int node_v, node_p, node_q;
-
-        for(int v=0; v<N1; v++) {
-            node_v = node_list1(v);
-
-            for(int p=0; p<N2; p++) {
-                node_p = node_list2(p);
-                if( A(node_v,node_p) == 1) {
-                    nsi_cc(v) = nsi_cc(v) +
-                        node_weight(node_p) * node_weight(node_p);
-
-                    for(int q=p+1; q<N2; q++) {
-                        node_q = node_list2(q);
-                        if( A(node_p,node_q) && A(node_q,node_v) == 1) {
-                            nsi_cc(v) = nsi_cc(v) +
-                                2 * node_weight(node_p) * node_weight(node_q);
-                        }
-                    }
-                }
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['N1', 'N2', 'A', 'nsi_cc', 'node_weight', 'node_list1',
-                      'node_list2'])
-
+        norm = self.nsi_cross_degree(nodes1, nodes2) ** 2
         nsi_cc[norm != 0] = nsi_cc[norm != 0] / norm[norm != 0]
         nsi_cc[norm == 0] = 0
-
         return nsi_cc
 
     def nsi_cross_closeness_centrality(self, node_list1, node_list2):
@@ -1561,7 +1313,6 @@ chosen link density."
         :rtype: 1D array [node index]
         :return: the n.s.i. cross-closeness for layer 1.
         """
-
         shortest_paths = self.path_lengths()
         node_weights = self.node_weights
 
@@ -1570,11 +1321,7 @@ chosen link density."
 
         nsi_cross_paths = nsi_shortest_paths[node_list1, :][:, node_list2]
         W = sum(node_weights[node_list2])
-
-        nsi_cross_closeness = \
-            W / np.dot(nsi_cross_paths, node_weights[node_list2])
-
-        return nsi_cross_closeness
+        return W / np.dot(nsi_cross_paths, node_weights[node_list2])
 
     def nsi_internal_closeness_centrality(self, node_list):
         """
@@ -1594,7 +1341,6 @@ chosen link density."
         :rtype: 1D array [node index]
         :return: the n.s.i. internal closeness sequence
         """
-
         return self.nsi_cross_closeness_centrality(node_list, node_list)
 
     def nsi_cross_global_clustering(self, node_list1, node_list2):
@@ -1613,13 +1359,9 @@ chosen link density."
         :return float: the n.s.i. cross-global clustering coefficient for the
             subnetwork 1 with regard to subnetwork 2.
         """
-
         nsi_cc = self.nsi_cross_local_clustering(node_list1, node_list2)
-        node_weights = self.node_weights
-
-        W = sum(node_weights[node_list1])
-
-        return sum(node_weights[node_list1] * nsi_cc) / W
+        node_weights = self.node_weights[node_list1]
+        return sum(node_weights * nsi_cc) / sum(node_weights)
 
     def nsi_internal_local_clustering(self, node_list):
 
@@ -1641,7 +1383,6 @@ chosen link density."
         :return: the n.s.i. internal-local clustering coefficient for all nodes
             within the induced subnetwork
         """
-
         return self.nsi_cross_local_clustering(node_list, node_list)
 
     def nsi_cross_betweenness(self, node_list1, node_list2):
@@ -1668,9 +1409,8 @@ chosen link density."
         :return: the n.s.i. cross betweenness sequence for the whole network
             with respect to two subnetworks.
         """
-
-        return self.nsi_interregional_betweenness(
-            sources=node_list1, targets=node_list2)
+        return self.nsi_interregional_betweenness(sources=node_list1,
+                                                  targets=node_list2)
 
     def nsi_cross_edge_density(self, node_list1, node_list2):
         """
@@ -1678,12 +1418,12 @@ chosen link density."
 
         **Examples:**
 
-        >>> InteractingNetworks.SmallTestNetwork().\
-                nsi_cross_edge_density([1,2,3],[0,5])
-        0.10909090909090907
-        >>> InteractingNetworks.SmallTestNetwork().\
-                nsi_cross_edge_density([0],[1,4,5])
-        0.78947368421052622
+        >>> r(InteractingNetworks.SmallTestNetwork().\
+                nsi_cross_edge_density([1,2,3],[0,5]))
+        0.1091
+        >>> r(InteractingNetworks.SmallTestNetwork().\
+                nsi_cross_edge_density([0],[1,4,5]))
+        0.7895
 
         :arg [int] node_list1: list of node indices describing the first
             subnetwork
@@ -1692,13 +1432,8 @@ chosen link density."
         :return float: the n.s.i. cross density of edges between two
             subnetworks 1 and 2.
         """
-
-        node_weights = self.node_weights
-
-        W_j = sum(node_weights[node_list2])
-        mean_degree = self.nsi_cross_mean_degree(node_list1, node_list2)
-
-        return mean_degree / W_j
+        W_j = sum(self.node_weights[node_list2])
+        return self.nsi_cross_mean_degree(node_list1, node_list2) / W_j
 
     def nsi_cross_transitivity(self, node_list1, node_list2):
         """
@@ -1721,53 +1456,9 @@ chosen link density."
         :return float: the n.s.i. cross transitivity for a pair of subnetworks
             1 and 2.
         """
-
-        node_list1 = np.array(node_list1)
-        node_list2 = np.array(node_list2)
-
-        A = self.adjacency + np.eye(self.N)
-        node_weight = self.node_weights
-
-        N1, N2 = len(node_list1), len(node_list2)
-
-        T = np.zeros(1)
-
-        code = """
-        int node_v, node_p, node_q;
-        double T_1=0, T_2=0;
-
-        for(int v=0; v<N1; v++) {
-            node_v = node_list1(v);
-
-            for(int p=0; p<N2; p++) {
-                node_p = node_list2(p);
-                if( A(node_v, node_p) == 1) {
-                    T_1 = T_1 + node_weight(node_p) *
-                            node_weight(node_p) * node_weight(node_v);
-                    T_2 = T_2 + node_weight(node_p) *
-                            node_weight(node_p) * node_weight(node_v);
-
-                    for(int q=p+1; q<N2; q++) {
-                        node_q = node_list2(q);
-                        if( A(node_v, node_q) == 1) {
-                            T_2 = T_2 + 2 * node_weight(node_v) *
-                                    node_weight(node_p) * node_weight(node_q);
-                            if ( A(node_p, node_q) == 1) {
-                                T_1 = T_1 + 2 * node_weight(node_v) *
-                                    node_weight(node_p) * node_weight(node_q);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        T(0) = T_1 / T_2;
-        """
-        weave_inline(locals(), code,
-                     ['N1', 'N2', 'A', 'T', 'node_weight', 'node_list1',
-                      'node_list2'])
-        return T[0]
+        return _nsi_cross_transitivity(
+            self.adjacency + np.eye(self.N, dtype=int),
+            np.array(node_list1), np.array(node_list2), self.node_weights)
 
     def nsi_cross_average_path_length(self, node_list1, node_list2):
         """
@@ -1789,11 +1480,8 @@ chosen link density."
         :return float: the n.s.i. cross-average path length between a pair of
             subnetworks.
         """
-
         shortest_paths = self.path_lengths()
-
         nsi_shortest_paths = shortest_paths + np.eye(len(shortest_paths))
-
         node_weights = self.node_weights
 
         Wi = sum(node_weights[node_list1])
@@ -1801,22 +1489,15 @@ chosen link density."
 
         w_v = np.zeros([len(node_list2), len(node_list1)])
         w_v[:] = node_weights[node_list1]
-
         w_q = np.zeros([len(node_list1), len(node_list2)])
         w_q[:] = node_weights[node_list2]
 
         Wij = w_v.transpose() + w_q
-
         nsi_cross_paths = nsi_shortest_paths[node_list1, :][:, node_list2]
-
         Wij = Wij[np.isinf(nsi_cross_paths)].sum()
-
         nsi_shortest_paths[np.isinf(nsi_shortest_paths)] = self.N - 1
-
         nsi_cross_paths = nsi_shortest_paths[node_list1, :][:, node_list2]
 
         Lij = np.sum(nsi_cross_paths*node_weights[node_list2], axis=1)
-
         Lij = np.sum(Lij * node_weights[node_list1], axis=0)
-
         return Lij / (Wi*Wj - Wij)

@@ -53,7 +53,7 @@ master_doc = 'sitemap'
 
 # General information about the project.
 project = u'pyunicorn'
-copyright = u'2008-2015, Jonathan F. Donges and Jobst Heitzig'
+copyright = u'2008-2015, Jonathan F. Donges and pyunicorn authors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -210,9 +210,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [(
-    'sitemap', 'pyunicorn.tex',
-    u'pyunicorn Documentation', u'Jonathan F. Donges, Jobst Heitzig',
-    'manual', False),
+    'sitemap', 'pyunicorn.tex', u'pyunicorn Documentation',
+    u'Jonathan F. Donges and pyunicorn authors', 'manual', False),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -242,7 +241,7 @@ latex_show_urls = 'inline'
 # (source start file, name, description, authors, manual section).
 man_pages = [(
     'index', 'pyunicorn', u'pyunicorn Documentation',
-    [u'Jonathan F. Donges, Jobst Heitzig'], 1)
+    [u'Jonathan F. Donges and pyunicorn authors'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -256,7 +255,7 @@ man_pages = [(
 #  dir menu entry, description, category)
 texinfo_documents = [(
     'index', 'pyunicorn', u'pyunicorn Documentation',
-    u'Jonathan F. Donges, Jobst Heitzig', 'pyunicorn',
+    u'Jonathan F. Donges and pyunicorn authors', 'pyunicorn',
     'One line description of project.', 'Miscellaneous'),
 ]
 
