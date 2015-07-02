@@ -13,7 +13,7 @@ import networkx as nx
 
 
 from pyunicorn import ResNetwork
-from .utils import *
+from .ResistiveNetwork_utils import *
 
 debug = 0
 """ Test for basic sanity, parallel and serial circiuts

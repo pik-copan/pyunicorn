@@ -36,7 +36,7 @@
       tests)
 
 **Related publications**
-    See :doc:`publications`/`publications <docs/source/publications.rst>`_.
+    See `Publications <docs/source/publications.rst>`_.
 
 **Version**
     0.5.0

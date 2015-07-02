@@ -26,8 +26,8 @@ package="pyunicorn-"$version; archive=$package".tar.gz"
 tmp=$dest"-tmp"
 rm -rf $dest $tmp; mkdir -p $tmp; cp -a $repo $tmp/$package
 cd $tmp/$package/docs
-(( $generate_html )) && make html || make clean > /dev/null
-cd ..; rm -rf build tools .cache .tox MANIFEST
+(( $generate_html )) && make clean html || make clean > /dev/null
+cd ..; rm -rf build dist tools .cache .tox .travis.yml MANIFEST
 find . -name "*pyc" -type f -print | xargs /bin/rm -f
 find . -regex \
     "\(.*pycache.*\)\|\(.*egg-info.*\)\|\(.*ipynb.*\)\|\(.*ropeproject.*\)" \

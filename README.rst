@@ -92,7 +92,7 @@ The test suite can be run from anywhere in the project tree by issuing::
 To expose the defined test environments and target them independently::
 
     $> tox -l
-    $> tox -e py27-nose,py27-pylint
+    $> tox -e py27-units,py27-pylint
 
 To test single files::
 
@@ -119,4 +119,4 @@ package. Geophysical Research Abstracts (Vol.  15, p. 3558). `Abstract
 
 License
 -------
-``pyunicorn`` is `**BSD-licensed** <LICENSE.txt>`_ (3 clause).
+``pyunicorn`` is `BSD-licensed <LICENSE.txt>`_ (3 clause).
