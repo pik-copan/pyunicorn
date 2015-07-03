@@ -144,20 +144,16 @@ class RainfallClimateNetwork(ClimateNetwork):
         :rtype: 2D Numpy array (index, index)
         :return: the Spearman's rho matrix at zero lag.
         """
-        # !!!Notice the all calculations are done with the transposed dataset!!
-        observable = self.data.observable()
-        observable = observable.transpose()
-
         # Calculate the real rainfall from observable
-        rainfall = self.calculate_rainfall(observable, scale_fac, offset)
+        rainfall = self.calculate_rainfall(self.data.observable().T,
+                                           scale_fac, offset)
 
         if self.silence_level <= 1:
             print "Calculating Rainfall-Anomaly using Weave..."
 
         # Calculate the anomaly for the rainfall dataset
-        # anomaly = self.calculate_rainfall_anomaly(rainfall, time_cycle)
-        anomaly = self.calculate_rainfall(self.data.anomaly(), scale_fac,
-                                          offset)
+        anomaly = self.calculate_rainfall(self.data.anomaly().T,
+                                          scale_fac, offset)
 
         # Correct anomaly for offset due to rescaling
         anomaly -= scale_fac * offset
@@ -217,7 +213,7 @@ class RainfallClimateNetwork(ClimateNetwork):
         """
         rainfall_copy = rainfall.copy()
 
-        m = len(rainfall) * len(rainfall.transpose())
+        m = len(rainfall) * len(rainfall.T)
 
         onelist = rainfall.reshape(m)
 
@@ -274,7 +270,7 @@ class RainfallClimateNetwork(ClimateNetwork):
 
         m = len(anomaly)
 
-        tmax = len(anomaly.transpose())
+        tmax = len(anomaly.T)
 
         spearman_rho = np.zeros((m, m))
 
