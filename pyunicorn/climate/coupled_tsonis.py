@@ -115,11 +115,11 @@ class CoupledTsonisClimateNetwork(CoupledClimateNetwork):
 number of temporal sampling points!\n"
 
     def __str__(self):
-        """Return a string representation of CoupledClimateNetwork object."""
-        text = "Coupled Tsonis climate network "
-        text += CoupledClimateNetwork.__str__(self)
-
-        return text
+        """
+        Return a string representation of CoupledClimateNetwork object.
+        """
+        return ('CoupledTsonisClimateNetwork:\n' +
+                CoupledClimateNetwork.__str__(self))
 
     #
     #  Defines methods to calculate the correlation matrix

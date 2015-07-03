@@ -81,10 +81,8 @@ class PartialCorrelationClimateNetwork(TsonisClimateNetwork):
         """
         Return a string representation of PartialCorrelationClimateNetwork.
         """
-        text = "Partial correlation climate network: \n"
-        text += TsonisClimateNetwork.__str__(self)
-
-        return text
+        return ('PartialCorrelationClimateNetwork:\n' +
+                TsonisClimateNetwork.__str__(self))
 
     #
     #  Defines methods to calculate the correlation matrix

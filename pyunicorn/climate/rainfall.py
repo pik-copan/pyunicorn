@@ -98,11 +98,9 @@ class RainfallClimateNetwork(ClimateNetwork):
         self.time_cycle = self.data.time_cycle
 
         #  Calculate correlation measure
-        correlation = self._calculate_correlation(event_threshold,
-                                                  scale_fac, offset,
-                                                  time_cycle=self.time_cycle)
+        correlation = self._calculate_correlation(
+            event_threshold, scale_fac, offset, time_cycle=self.time_cycle)
 
-        #  Call the constructor of the parent class ClimateNetwork
         ClimateNetwork.__init__(self, grid=self.data.grid,
                                 similarity_measure=correlation,
                                 threshold=self.threshold(),
@@ -111,6 +109,12 @@ class RainfallClimateNetwork(ClimateNetwork):
                                 directed=False,
                                 node_weight_type=self.node_weight_type,
                                 silence_level=self.silence_level)
+
+    def __str__(self):
+        """
+        Returns a string representation of RainfallClimateNetwork.
+        """
+        return 'RainfallClimateNetwork:\n' + ClimateNetwork.__str__(self)
 
     #
     # Defines methods to calculate the correlation matrix

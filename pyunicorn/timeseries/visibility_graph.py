@@ -90,6 +90,13 @@ class VisibilityGraph(InteractingNetworks):
         InteractingNetworks.__init__(self, A, directed=False,
                                      silence_level=silence_level)
 
+    def __str__(self):
+        """
+        Returns a string representation.
+        """
+        return 'VisibilityGraph: time series shape %s.\n%s' % (
+            self.time_series.shape, InteractingNetworks.__str__(self))
+
     #
     #  Visibility methods
     #

@@ -117,9 +117,14 @@ class JointRecurrencePlot(RecurrencePlot):
         :type tau: tuple of number
         :keyword tau: Embedding delay. Give separately for each time series.
         """
+        threshold = kwds.get("threshold")
+        threshold_std = kwds.get("threshold_std")
+        recurrence_rate = kwds.get("recurrence_rate")
+
         RecurrencePlot.__init__(
-            np.array([]), metric=metric, normalize=normalize,
-            silence_level=silence_level)
+            self, np.empty((2, 0)), metric=metric[0], normalize=normalize,
+            threshold=threshold[0] if threshold else 0,
+            recurrence_rate=recurrence_rate, silence_level=silence_level)
 
         self.JR = None
         """The joint recurrence matrix."""
@@ -170,16 +175,12 @@ class JointRecurrencePlot(RecurrencePlot):
             self.x_embedded = self.x_embedded[:min_N, :]
             self.y_embedded = self.y_embedded[:min_N, :]
 
-            #  Get threshold or recurrence rate from **kwds, construct
-            #  recurrence plot accordingly
-            threshold = kwds.get("threshold")
-            threshold_std = kwds.get("threshold_std")
-            recurrence_rate = kwds.get("recurrence_rate")
-
+            #  construct recurrence plot accordingly to
+            #  threshold / recurrence rate
             if np.abs(lag) > x.shape[0]:
                 #  Lag must be smaller than size of recurrence plot
-                print "Error: Delay value (lag) must not exceed length of \
-time series!"
+                raise ValueError(
+                    "Delay value (lag) must not exceed length of time series!")
             elif threshold is not None:
                 #  Calculate the recurrence matrix R using the radius of
                 #  neighborhood threshold
@@ -195,16 +196,25 @@ time series!"
                 JointRecurrencePlot.\
                     set_fixed_recurrence_rate(self, recurrence_rate)
             else:
-                #  Raise error
-                print "Error: Please give either threshold or recurrence_rate \
-to construct the joint recurrence plot!"
+                raise NameError(
+                    "Please give either threshold or recurrence_rate " +
+                    "to construct the joint recurrence plot!")
 
             #  No treatment of missing values yet!
             self.missing_values = False
 
         else:
-            print "Error: Both time series x and y need to have \
-the same length!"
+            raise ValueError(
+                "Both time series x and y need to have the same length!")
+
+    def __str__(self):
+        """
+        Returns a string representation.
+        """
+        return ('JointRecurrencePlot: time series shapes %s.\n' +
+                'Embedding dimension %i\nThreshold %s, %s metric') % (
+                    self.x.shape, self.dim if self.dim else 0,
+                    self.threshold, self.metric)
 
     #
     #  Service methods

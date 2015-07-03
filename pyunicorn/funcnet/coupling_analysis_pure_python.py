@@ -64,18 +64,18 @@ class CouplingAnalysisPurePython(object):
         #  Flatten observable anomaly array along lon/lat dimension to allow
         #  for more convinient indexing and transpose the whole array as this
         #  is faster in loops
-        if numpy.rank(dataarray) == 4:
+        if numpy.ndim(dataarray) == 4:
             (self.total_time, n_lev, n_lat, n_lon) = dataarray.shape
             self.N = n_lev * n_lat * n_lon
             self.dataarray = numpy.\
                 fastCopyAndTranspose(dataarray.reshape(-1, self.N))
-        if numpy.rank(dataarray) == 3:
+        if numpy.ndim(dataarray) == 3:
             (self.total_time, n_lat, n_lon) = dataarray.shape
             self.N = n_lat * n_lon
             self.dataarray = numpy.\
                 fastCopyAndTranspose(dataarray.reshape(-1, self.N))
 
-        elif numpy.rank(dataarray) == 2:
+        elif numpy.ndim(dataarray) == 2:
             (self.total_time, self.N) = dataarray.shape
             self.dataarray = numpy.fastCopyAndTranspose(dataarray)
 
@@ -98,9 +98,9 @@ class CouplingAnalysisPurePython(object):
         Return a string representation of the CouplingAnalysisPurePython
         object.
         """
-        text = CouplingAnalysisPurePython.__str__(self)
-
-        return text
+        shape = self.dataarray.shape
+        return 'CouplingAnalysisPurePython: %i variables, %i timesteps.' % (
+            shape[0], shape[1])
 
     #
     #  Define methods to calculate correlation strength and lags

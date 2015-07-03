@@ -211,8 +211,8 @@ class Network(object):
         elif edge_list is not None:
             self.set_edge_list(edge_list)
         else:
-            print "Error: An adjacency matrix or edge list has to be given to \
-initialize an instance of Network."
+            raise NetworkError("An adjacency matrix or edge list has to be " +
+                               "given to initialize an instance of Network.")
 
         self._set_node_weights(node_weights)
         self.degree()
@@ -224,19 +224,13 @@ initialize an instance of Network."
         **Example:**
 
         >>> print Network.SmallTestNetwork()
-        Undirected network, 6 nodes, 7 links, link_density 0.466666666667
+        Network: undirected, 6 nodes, 7 links, link density 0.467.
 
         :rtype: string
         """
-        if self.directed:
-            str_directed = "Directed"
-        else:
-            str_directed = "Undirected"
-
-        text = (str_directed + " network, " + str(self.N) + " nodes, "
-                + str(self.n_links) + " links, "
-                + "link_density " + str(self.link_density))
-        return text
+        return ('Network: %sdirected, %i nodes, %i links, ' +
+                'link density %.3f.') % ('' if self.directed else 'un', self.N,
+                                         self.n_links, self.link_density)
 
     def __len__(self):
         """
@@ -292,9 +286,9 @@ initialize an instance of Network."
         **Example:**
 
         >>> net = Network(adjacency=[[0,1],[0,0]], directed=True); print net
-        Directed network, 2 nodes, 1 links, link_density 0.5
+        Network: directed, 2 nodes, 1 links, link density 0.500.
         >>> print net.undirected_copy()
-        Undirected network, 2 nodes, 1 links, link_density 1.0
+        Network: undirected, 2 nodes, 1 links, link density 1.000.
 
         :rtype: :class:`Network` instance
         """
@@ -336,9 +330,9 @@ initialize an instance of Network."
         **Example:**
 
         >>> net = Network.SmallTestNetwork(); print net
-        Undirected network, 6 nodes, 7 links, link_density 0.466666666667
+        Network: undirected, 6 nodes, 7 links, link density 0.467.
         >>> net2 = net.splitted_copy(node=5, proportion=0.2); print net2
-        Undirected network, 7 nodes, 9 links, link_density 0.428571428571
+        Network: undirected, 7 nodes, 9 links, link density 0.429.
         >>> print net.node_weights; print net2.node_weights
         [ 1.5  1.7  1.9  2.1  2.3  2.5]
         [ 1.5  1.7  1.9  2.1  2.3  2.  0.5]
@@ -398,9 +392,9 @@ initialize an instance of Network."
         **Example:**
 
         >>> net = Network.SmallTestNetwork(); print net
-        Undirected network, 6 nodes, 7 links, link_density 0.466666666667
+        Network: undirected, 6 nodes, 7 links, link density 0.467.
         >>> net.adjacency = [[0,1],[1,0]]; print net
-        Undirected network, 2 nodes, 1 links, link_density 1.0
+        Network: undirected, 2 nodes, 1 links, link density 1.000.
 
         :type adjacency: square array-like [[0|1]]
         :arg  adjacency: Entry [i,j] indicates whether node i links to node j.
@@ -433,7 +427,7 @@ initialize an instance of Network."
         self.graph = igraph.Graph(n=N, edges=list(edges),
                                   directed=self.directed)
         self.graph.simplify()
-        self.clear_cache()
+        Network.clear_cache(self)
 
     @adjacency.setter
     def adjacency(self, adjacency):
@@ -693,7 +687,7 @@ initialize an instance of Network."
 
         >>> print Network.ErdosRenyi(n_nodes=10, n_links=18)
         Generating Erdos-Renyi random graph with 10 nodes and 18 links...
-        Undirected network, 10 nodes, 18 links, link_density 0.4
+        Network: undirected, 10 nodes, 18 links, link density 0.400.
 
         :type n_nodes: int > 0
         :arg  n_nodes: Number of nodes. (Default: 100)
@@ -1206,9 +1200,7 @@ initialize an instance of Network."
         :type p: float > 0
         :arg p: Probability of rewiring each edge.
         """
-        print "Not implemented yet..."
-
-        return None
+        raise NetworkError("Not implemented yet...")
 
     def randomly_rewire(self, iterations):
         """
@@ -1217,10 +1209,10 @@ initialize an instance of Network."
         **Example:** Generate a network of 100 nodes with degree 5 each:
 
         >>> net = Network.SmallTestNetwork(); print net
-        Undirected network, 6 nodes, 7 links, link_density 0.466666666667
+        Network: undirected, 6 nodes, 7 links, link density 0.467.
         >>> net.randomly_rewire(iterations=10); print net
         Randomly rewiring the network,preserving the degree sequence...
-        Undirected network, 6 nodes, 7 links, link_density 0.466666666667
+        Network: undirected, 6 nodes, 7 links, link density 0.467.
 
         :type iterations: int > 0
         :arg iterations: Number of iterations. In each iteration, two randomly
@@ -1304,7 +1296,8 @@ can only take values <<in>> or <<out>>."
 
             return np.diag(diagonal, 0) - self.adjacency
         else:
-            print "ERROR: only implemented for link_attribute=None."
+            raise NotImplementedError(
+                "Only implemented for link_attribute=None.")
 
     def nsi_laplacian(self):
         """
@@ -1871,8 +1864,7 @@ can only take values <<in>> or <<out>>."
         :rtype: 1d numpy array [node] of floats >= 0
         """
         if self.directed:
-            print "ERROR: not implemented for directed networks."
-            return None
+            raise NotImplementedError("Not implemented for directed networks.")
 
         # A+ * (Dw * k) is faster than (A+ * Dw) * k
         nsi_k = self.nsi_degree()
@@ -1901,8 +1893,7 @@ can only take values <<in>> or <<out>>."
         :rtype: 1d numpy array [node] of floats >= 0
         """
         if self.directed:
-            print "ERROR: not implemented for directed networks."
-            return None
+            raise NotImplementedError("Not implemented for directed networks.")
 
         self.nsi_degree()
         # matrix with the degrees of nodes' neighbours as rows
@@ -1993,9 +1984,8 @@ can only take values <<in>> or <<out>>."
             print "Calculating transitivity of order", order, "..."
 
         if order == 0 or order == 1 or order == 2:
-            print "Error: Higher order transitivity is not defined \
-for orders 0, 1 and 2."
-
+            raise NetworkError("Higher order transitivity is not defined " +
+                               "for orders 0, 1 and 2.")
         elif order == 3:
             return self.transitivity()
 
@@ -2059,11 +2049,10 @@ for orders 0, 1 and 2."
             pass
 
         elif order > 5:
-            print "Error: Higher order transitivity is not yet implemented \
-for orders larger than 5."
-
+            raise NotImplementedError("Higher order transitivity is not yet " +
+                                      "implemented for orders larger than 5.")
         else:
-            print "Error: Order has to be a positive integer."
+            raise ValueError("Order has to be a positive integer.")
 
     def local_cliquishness(self, order):
         """
@@ -2088,8 +2077,8 @@ for orders larger than 5."
             print "Calculating local cliquishness of order", order, "..."
 
         if order == 0 or order == 1 or order == 2:
-            print "Error: Local cliquishness is not defined for \
-orders 0, 1 and 2."
+            raise NetworkError(
+                "Local cliquishness is not defined for orders 0, 1 and 2.")
 
         elif order == 3:
             return self.local_clustering()
@@ -2225,11 +2214,10 @@ orders 0, 1 and 2."
             return local_cliquishness
 
         elif order > 5:
-            print "Error: Local cliquishness is not yet implemented for \
-orders larger than 5."
-
+            raise NotImplementedError("Local cliquishness is not yet " +
+                                      "implemented for orders larger than 5.")
         else:
-            print "Error: Order has to be a positive integer."
+            raise ValueError("Order has to be a positive integer.")
 
     @staticmethod
     def weighted_local_clustering(weighted_A):
@@ -2351,8 +2339,7 @@ orders larger than 5."
         :rtype: array([float])
         """
         if self.directed:
-            print "ERROR: not implemented for directed networks."
-            return None
+            raise NotImplementedError("Not implemented for directed networks.")
 
         N, w, k = self.N, self.node_weights, self.nsi_degree()
         A_Dw = self.sp_A * self.sp_diag_w()
@@ -2431,8 +2418,7 @@ orders larger than 5."
         :rtype: float between 0 and 1
         """
         if self.directed:
-            print "ERROR: not implemented for directed networks."
-            return None
+            raise NotImplementedError("Not implemented for directed networks.")
 
         return (self.nsi_local_clustering().dot(self.node_weights)
                 / self.total_node_weight)
@@ -2448,8 +2434,7 @@ orders larger than 5."
         :rtype: float between 0 and 1
         """
         if self.directed:
-            print "ERROR: not implemented for directed networks."
-            return None
+            raise NotImplementedError("Not implemented for directed networks.")
 
         A = self.sp_Aplus()
         A_Dw = A * self.sp_diag_w()
@@ -2488,8 +2473,7 @@ orders larger than 5."
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
         if self.directed:
-            print "ERROR: not implemented for directed networks."
-            return None
+            raise NotImplementedError("Not implemented for directed networks.")
 
         # numerator is determined as above
         Ap = self.sp_Aplus()
@@ -4522,7 +4506,8 @@ orders larger than 5."
             #  Return the normalized hamming distance
             return hamming / float(self.N * (self.N - 1))
         else:
-            print "ERROR: Only defined for networks with same number of nodes."
+            raise NetworkError(
+                "Only defined for networks with same number of nodes.")
 
     def spreading(self, alpha=None):
         """

@@ -28,10 +28,9 @@ rm -rf $dest $tmp; mkdir -p $tmp; cp -a $repo $tmp/$package
 cd $tmp/$package/docs
 (( $generate_html )) && make clean html || make clean > /dev/null
 cd ..; rm -rf build dist tools .cache .tox .travis.yml MANIFEST
-find . -name "*pyc" -type f -print | xargs /bin/rm -f
-find . -regex \
-    "\(.*pycache.*\)\|\(.*egg-info.*\)\|\(.*ipynb.*\)\|\(.*ropeproject.*\)" \
-    -type d -print | xargs /bin/rm -rf
+find . -regex ".*\(\.pyc\|__\.data\)" -type f -print | xargs rm -f
+find . -regex ".*\(pycache\|egg-info\|ipynb\|ropeproject\).*" -type d -print \
+    | xargs rm -rf
 
 # delete git logs
 (( $delete_git )) && rm -rf .git*

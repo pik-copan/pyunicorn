@@ -91,11 +91,9 @@ class InterSystemRecurrenceNetwork(InteractingNetworks):
         :type metric: tuple of string
         :arg metric: The metric for measuring distances in phase space
                      ("manhattan", "euclidean", "supremum").
-        :type normalize: boolean
-        :arg normalize: Decide whether to normalize the time series to zero
-                        mean and unit standard deviation.
-        :type silence_level: number
-        :arg silence_level: The inverse level of verbosity of the object.
+        :arg bool normalize: Decide whether to normalize the time series to
+                             zero mean and unit standard deviation.
+        :arg int silence_level: The inverse level of verbosity of the object.
         :arg kwds: Additional options.
         :type threshold: tuple of number (three numbers)
         :keyword threshold: The recurrence threshold keyword for generating
@@ -106,10 +104,9 @@ class InterSystemRecurrenceNetwork(InteractingNetworks):
         :keyword recurrence_rate: The recurrence rate keyword for generating
                                   the recurrence plot using a fixed recurrence
                                   rate. Give separately for each time series.
-        :type dim: number (int)
-        :keyword dim: The embedding dimension. Must be the same for both time
-                      series.
-        :type tau: tuple of number (int)
+        :keyword int dim: The embedding dimension. Must be the same for both
+                          time series.
+        :type tau: tuple of int
         :keyword tau: The embedding delay. Give separately for each time
                       series.
         """
@@ -155,6 +152,7 @@ class InterSystemRecurrenceNetwork(InteractingNetworks):
                 RecurrencePlot.normalize_time_series(self.y)
 
             #  Embed time series if required
+            self.dim = dim
             if dim is not None and tau is not None:
                 self.x_embedded = \
                     RecurrencePlot.embed_time_series(self.x, dim, tau[0])
@@ -170,6 +168,7 @@ class InterSystemRecurrenceNetwork(InteractingNetworks):
             #  ISRN accordingly
             threshold = kwds.get("threshold")
             recurrence_rate = kwds.get("recurrence_rate")
+            self.threshold = threshold
 
             if threshold is not None:
                 #  Calculate the ISRN using the radius of neighborhood
@@ -179,19 +178,28 @@ class InterSystemRecurrenceNetwork(InteractingNetworks):
                 #  Calculate the ISRN using a fixed recurrence rate
                 ISRM = self.set_fixed_recurrence_rate(recurrence_rate)
             else:
-                #  Raise error
-                print "Error: Please give either threshold or recurrence_rate \
-to construct the joint recurrence plot!"
-            #  Initialize the underlying InteractingNetworks object
+                raise NameError(
+                    "Please give either threshold or recurrence_rate " +
+                    "to construct the joint recurrence plot!")
+
             InteractingNetworks.__init__(self, adjacency=ISRM, directed=False,
                                          silence_level=self.silence_level)
-
             #  No treatment of missing values yet!
             self.missing_values = False
 
         else:
-            print "Error: Both time series x and y need to have the same \
-dimension!"
+            raise ValueError(
+                "Both time series x and y need to have the same dimension!")
+
+    def __str__(self):
+        """
+        Returns a string representation.
+        """
+        return ('InterSystemRecurrenceNetwork: time series shapes %s, %s.\n' +
+                'Embedding dimension %i\nThreshold %s, %s metric.\n%s') % (
+                    self.x.shape, self.y.shape, self.dim if self.dim else 0,
+                    self.threshold, self.metric,
+                    InteractingNetworks.__str__(self))
 
     #
     #  Service methods

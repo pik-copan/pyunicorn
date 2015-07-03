@@ -94,7 +94,7 @@ class RecurrencePlot(object):
             :attr:`.RecurrencePlot.time_series`.
         :arg bool sparse_rqa: Toggles sequential RQA computation using less
             memory for use with long time series.
-        :arg number silence_level: Inverse level of verbosity of the object.
+        :arg int silence_level: Inverse level of verbosity of the object.
         :arg number threshold: The recurrence threshold keyword for generating
             the recurrence plot using a fixed threshold.
         :arg number threshold_std: The recurrence threshold keyword for
@@ -188,13 +188,13 @@ class RecurrencePlot(object):
             elif self.threshold_std is not None:
                 #  Calculate the recurrence matrix R using the radius of
                 #  neighborhood threshold in units of the time series' STD
-                RecurrencePlot.\
-                    set_fixed_threshold_std(self, self.threshold_std)
+                RecurrencePlot.set_fixed_threshold_std(
+                    self, self.threshold_std)
             elif recurrence_rate is not None:
                 #  Calculate the recurrence matrix R using a fixed recurrence
                 #  rate
-                RecurrencePlot.\
-                    set_fixed_recurrence_rate(self, recurrence_rate)
+                RecurrencePlot.set_fixed_recurrence_rate(
+                    self, recurrence_rate)
             elif self.local_recurrence_rate is not None:
                 #  Calculate the recurrence matrix R using a fixed local
                 #  recurrence rate
@@ -206,9 +206,18 @@ class RecurrencePlot(object):
                 RecurrencePlot.set_adaptive_neighborhood_size(
                     self, self.adaptive_neighborhood_size)
             else:
-                #  Raise error
-                print "Error: Please give either threshold or recurrence_rate \
-to construct the recurrence plot!"
+                raise NameError(
+                    "Please give either threshold or recurrence_rate " +
+                    "to construct the recurrence plot!")
+
+    def __str__(self):
+        """
+        Returns a string representation.
+        """
+        return ('RecurrencePlot: time series shape %s.\n' +
+                'Embedding dimension %i\nThreshold %s, %s metric') % (
+                    self.time_series.shape, self.dim if self.dim else 0,
+                    self.threshold, self.metric)
 
     def clear_cache(self, irreversible=False):
         """Clean up memory."""
@@ -256,13 +265,13 @@ Recurrence matrix is not stored in memory."
             #  Return distance matrix according to chosen metric:
             if metric == "manhattan":
                 self._distance_matrix = \
-                    self.manhattan_distance_matrix(embedding)
+                    RecurrencePlot.manhattan_distance_matrix(self, embedding)
             elif metric == "euclidean":
-                self._distance_matrix = self.\
-                    euclidean_distance_matrix(embedding)
+                self._distance_matrix = \
+                    RecurrencePlot.euclidean_distance_matrix(self, embedding)
             elif metric == "supremum":
-                self._distance_matrix = self.\
-                    supremum_distance_matrix(embedding)
+                self._distance_matrix = \
+                    RecurrencePlot.supremum_distance_matrix(self, embedding)
 
             self._distance_matrix_cached = True
 
@@ -390,8 +399,8 @@ Recurrence matrix is not stored in memory."
 
         :type time_series: 1D array
         :arg time_series: The scalar time series to be embedded.
-        :arg number dim: The embedding dimension.
-        :arg number tau: The embedding delay.
+        :arg int dim: The embedding dimension.
+        :arg int tau: The embedding delay.
         :rtype: 2D array (time, dimension)
         :return: the embedded phase space trajectory.
         """
@@ -560,7 +569,8 @@ Recurrence matrix is not stored in memory."
             print "Calculating recurrence plot at fixed threshold..."
 
         #  Get distance matrix, according to self.metric
-        distance = self.distance_matrix(self.embedding, self.metric)
+        distance = RecurrencePlot.distance_matrix(
+            self, self.embedding, self.metric)
 
         #  Get number of nodes
         n_time = distance.shape[0]

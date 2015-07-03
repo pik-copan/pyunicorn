@@ -105,20 +105,20 @@ for network construction!"
         **Example:**
 
         >>> print ClimateNetwork.SmallTestNetwork()
-        Undirected network, 6 nodes, 7 links, link_density 0.466666666667
-        Geographical network boundaries:
+        ClimateNetwork:
+        GeoNetwork:
+        Network: undirected, 6 nodes, 7 links, link density 0.467.
+        Geographical boundaries:
                  time     lat     lon
            min    0.0    0.00    2.50
            max    9.0   25.00   15.00
-        Threshold = 0.5
+        Threshold: 0.5
         Local connections filtered out: False
         """
-        text = GeoNetwork.__str__(self)
-        text += "\nThreshold = " + str(self.threshold())
-        text += "\nLocal connections filtered out: " + \
-                str(self.non_local())
-
-        return text
+        return ('ClimateNetwork:\n%s\nThreshold: %s\n' +
+                'Local connections filtered out: %s') % (
+                    GeoNetwork.__str__(self), self.threshold(),
+                    self.non_local())
 
     def clear_cache(self, irreversible=False):
         """
@@ -136,6 +136,20 @@ for network construction!"
                 del self._similarity_measure
             except AttributeError:
                 pass
+
+    def _regenerate_network(self):
+        """
+        Regenerate the current climate network according to new similarity
+        measure.
+        """
+        ClimateNetwork.__init__(self, grid=self.data.grid,
+                                similarity_measure=self._similarity_measure,
+                                threshold=self._threshold,
+                                link_density=self.link_density,
+                                non_local=self._non_local,
+                                directed=self.directed,
+                                node_weight_type=self.node_weight_type,
+                                silence_level=self.silence_level)
 
     #
     #  Load and save ClimateNetwork object

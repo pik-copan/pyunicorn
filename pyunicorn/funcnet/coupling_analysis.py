@@ -61,17 +61,14 @@ class CouplingAnalysis(object):
 
     def __str__(self):
         """Return a string representation of the CouplingAnalysis object."""
-        text = CouplingAnalysis.__str__(self)
-
-        return text
+        return 'CouplingAnalysis: %i variables, %i timesteps.' % (
+            self.N, self.n_time)
 
     @staticmethod
     def test_data():
-
         """
         Return example test data as discussed in pyunicorn description paper.
         """
-
         numpy.random.seed(42)
         noise = numpy.random.randn(1000, 4)
         data = noise
@@ -80,19 +77,7 @@ class CouplingAnalysis(object):
             data[t, 1] = 0.8 * data[t-1, 1] + 0.5 * data[t-2, 0] + noise[t, 1]
             data[t, 2] = 0.7 * data[t-1, 0] + noise[t, 2]
             data[t, 3] = 0.7 * data[t-2, 0] + noise[t, 3]
-
         return data
-        # return numpy.array(
-        #   [[ 0.77660516, -2.01163192,  0.09600993, -1.11162767],
-        #    [ 1.65889602, -0.22372264, -0.44640601,  0.69750562],
-        #    [ 0.01330197,  1.36374369, -0.54593782,  0.59673937],
-        #    [ 2.32844604,  0.29933479,  0.04857109, -0.15667461],
-        #    [-0.80080118, -1.11100112,  0.06016349, -1.12803442],
-        #    [-1.16433538, -1.46249166, -0.0364203 ,  0.09615883],
-        #    [ 1.68238403,  0.22191866, -0.13925702, -0.22751562],
-        #    [-0.0086563 ,  1.72203867,  1.76003454,  0.26190748],
-        #    [-0.57731838,  0.95973436,  1.48255192,  0.59388952],
-        #    [ 0.21311645,  1.06136778,  0.89155714,  1.02664768]])
 
     def symmetrize_by_absmax(self, similarity_matrix, lag_matrix):
 

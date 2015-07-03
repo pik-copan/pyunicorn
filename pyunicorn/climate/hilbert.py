@@ -81,30 +81,32 @@ class HilbertClimateNetwork(ClimateNetwork):
         """
         if silence_level <= 1:
             print "Generating a Hilbert climate network..."
+        self.silence_level = silence_level
 
         #  Set instance variables
+        self._coherence_phase = None
         self.data = data
         """(ClimateData) - The climate data used for network construction."""
-
         self.N = data.grid.N
+        self._threshold = threshold
         self._prescribed_link_density = link_density
 
-        #  The constructor of ClimateNetwork is called within this method
+        self._set_directed(directed, calculate_coherence=True)
         ClimateNetwork.__init__(self, grid=self.data.grid,
+                                similarity_measure=self._similarity_measure,
                                 threshold=threshold,
                                 link_density=link_density,
                                 non_local=non_local,
                                 directed=directed,
                                 node_weight_type=node_weight_type,
                                 silence_level=silence_level)
-        self.set_directed(directed)
+        self._set_directed(directed, calculate_coherence=False)
 
     def __str__(self):
-        """Return a string representation."""
-        text = "Hilbert climate network: \n"
-        text += ClimateNetwork.__str__(self)
-
-        return text
+        """
+        Return a string representation.
+        """
+        return 'HilbertClimateNetwork:\n' + ClimateNetwork.__str__(self)
 
     def clear_cache(self, irreversible=False):
         """
@@ -127,39 +129,38 @@ class HilbertClimateNetwork(ClimateNetwork):
     #  Defines methods to calculate Hilbert correlation measures
     #
 
+    def _set_directed(self, directed, calculate_coherence=True):
+        """
+        Switch between directed and undirected Hilbert climate network.
+
+        :arg bool directed: Determines whether the network is constructed as
+            directed.
+        :arg bool calculate_coherence: Determines whether coherence and phase
+            are calculated from data or the directed adjacency matrix is
+            constructed from coherence and phase information.
+        """
+        if calculate_coherence:
+            results = self._calculate_hilbert_correlation(self.data.anomaly())
+            self._similarity_measure = results[0]
+            self._coherence_phase = results[1]
+            self.directed = directed
+        else:
+            # The phase is only used for directed Hilbert networks.
+            if directed:
+                self.adjacency = self.adjacency * (self.phase_shift() > 0)
+
     def set_directed(self, directed):
         """
         Switch between directed and undirected Hilbert climate network.
 
         Also performs the complete network generation.
 
-        :arg bool directed: Determines, whether the network is constructed as
+        :arg bool directed: Determines whether the network is constructed as
             directed.
         """
-        self.directed = directed
-
-        #  Calculate coherence and phase from data.
-        #  The phase is only used for directed Hilbert networks.
-        results = self._calculate_hilbert_correlation(self.data.anomaly())
-        similarity_measure = results[0]
-        self._coherence_phase = results[1]
-
-        #  Call constructor of parent class ClimateNetwork
-        ClimateNetwork.__init__(self, grid=self.data.grid,
-                                similarity_measure=similarity_measure,
-                                threshold=self.threshold(),
-                                link_density=self._prescribed_link_density,
-                                non_local=self.non_local(),
-                                directed=directed,
-                                node_weight_type=self.node_weight_type,
-                                silence_level=self.silence_level)
-
-        if directed:
-            #  Calculate the directed adjacency matrix using coherence phase
-            #  information and reconstruct the network using this information.
-            directed_adjacency = \
-                self.adjacency * (self.phase_shift() > 0)
-            self.adjacency = directed_adjacency
+        self._set_directed(directed, calculate_coherence=True)
+        self._regenerate_network()
+        self._set_directed(directed, calculate_coherence=False)
 
     def _calculate_hilbert_correlation(self, anomaly):
         """

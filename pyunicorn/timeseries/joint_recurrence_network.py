@@ -138,11 +138,18 @@ class JointRecurrenceNetwork(JointRecurrencePlot, Network):
                 Network.__init__(self, A, directed=False,
                                  silence_level=silence_level)
             else:
-                print "Error: Both time series x and y need to have the same \
-length!"
+                raise ValueError(
+                    "Both time series x and y need to have the same length!")
         else:
-            print "Error: Delay value (lag) must not exceed length of \
-time series!"
+            raise ValueError(
+                "Delay value (lag) must not exceed length of time series!")
+
+    def __str__(self):
+        """
+        Returns a string representation.
+        """
+        return 'JointRecurrenceNetwork:\n%s\n%s' % (
+            JointRecurrencePlot.__str__(self), Network.__str__(self))
 
     def clear_cache(self):
         """
