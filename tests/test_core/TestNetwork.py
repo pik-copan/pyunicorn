@@ -90,14 +90,15 @@ def testPermutations():
     """
     comparePermutations(
         Network.SmallTestNetwork(), 3, [
-            "degree", "indegree", "outdegree", "nsi_degree",
-            "nsi_average_neighbors_degree", "nsi_max_neighbors_degree",
-            "undirected_adjacency", "laplacian", "nsi_laplacian",
-            "local_clustering", "global_clustering", "transitivity",
-            ("higher_order_transitivity", [4]), ("local_cliquishness", [4]),
-            ("local_cliquishness", [5]), "nsi_twinness", "assortativity",
-            "nsi_local_clustering", "nsi_global_clustering",
-            "nsi_transitivity", "nsi_local_soffer_clustering", "path_lengths",
+            "degree", "indegree", "outdegree", "nsi_degree", "nsi_indegree",
+            "nsi_outdegree", "nsi_average_neighbors_degree",
+            "nsi_max_neighbors_degree", "undirected_adjacency", "laplacian",
+            "nsi_laplacian", "local_clustering", "global_clustering",
+            "transitivity", ("higher_order_transitivity", [4]),
+            ("local_cliquishness", [4]), ("local_cliquishness", [5]),
+            "nsi_twinness", "assortativity", "nsi_local_clustering",
+            "nsi_global_clustering", "nsi_transitivity",
+            "nsi_local_soffer_clustering", "path_lengths",
             "average_path_length", "nsi_average_path_length", "diameter",
             "matching_index", "link_betweenness", "betweenness",
             "eigenvector_centrality", "nsi_eigenvector_centrality", "pagerank",

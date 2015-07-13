@@ -1604,7 +1604,7 @@ can only take values <<in>> or <<out>>."
         :rtype: array([float])
         """
         if self.directed:
-            return None  # TODO: generate error message
+            return self.nsi_indegree() + self.nsi_outdegree()
         else:
             return self.sp_Aplus() * self.node_weights
 
@@ -1656,6 +1656,50 @@ can only take values <<in>> or <<out>>."
             return self.nsi_degree_uncorr()
         else:
             return self.nsi_degree_uncorr()/typical_weight - 1.0
+
+    def nsi_indegree(self):
+        """
+        For each node, return its n.s.i. indegree
+
+        **Examples:**
+
+        >>> net = Network.SmallTestNetwork()
+        >>> net.nsi_indegree()
+        array([ 8.4,  8. ,  5.9,  5.3,  7.4,  4. ])
+        >>> net.splitted_copy().nsi_indegree()
+        array([ 8.4,  8. ,  5.9,  5.3,  7.4,  4. ,  4. ])
+
+        as compared to the unweighted version:
+
+        >>> net = Network.SmallTestNetwork()
+        >>> net.indegree()
+        array([3, 3, 2, 2, 3, 1])
+        >>> net.splitted_copy().indegree()
+        array([4, 3, 2, 2, 3, 2, 2])
+        """
+        return self.node_weights * self.sp_Aplus()
+
+    def nsi_outdegree(self):
+        """
+        For each node, return its n.s.i.outdegree
+
+        **Examples:**
+
+        >>> net = Network.SmallTestNetwork()
+        >>> net.nsi_outdegree()
+        array([ 8.4,  8. ,  5.9,  5.3,  7.4,  4. ])
+        >>> net.splitted_copy().nsi_outdegree()
+        array([ 8.4,  8. ,  5.9,  5.3,  7.4,  4. ,  4. ])
+
+        as compared to the unweighted version:
+
+        >>> net = Network.SmallTestNetwork()
+        >>> net.outdegree()
+        array([3, 3, 2, 2, 3, 1])
+        >>> net.splitted_copy().outdegree()
+        array([4, 3, 2, 2, 3, 2, 2])
+        """
+        return self.sp_Aplus() * self.node_weights
 
     @cached_const('base', 'degree df', 'the degree frequency distribution')
     def degree_distribution(self):
