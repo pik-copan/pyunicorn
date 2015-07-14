@@ -10,6 +10,10 @@ Download
     :start-after: CONTRIBUTIONS.rst>`_
     :end-before: Dependencies
 
+.. include:: ../../README.rst
+    :start-after: Not implemented yet.
+    :end-before: License
+
 Platforms and Compatibility
 ---------------------------
 ``pyunicorn`` is written in Python 2.7. The software is quite flexible, we have
