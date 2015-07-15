@@ -44,7 +44,7 @@ class EventSynchronization(object):
         the timesteps and the second dimensions covering the variables. Each
         variable at a specific timestep is either '1' if an event occured or
         '0' if it did not, e.g. for 3 variables with 10 timesteps the
-        evenmatrix could look like
+        eventmatrix could look like
 
             array([[0, 1, 0],
                    [0, 0, 0],
@@ -168,7 +168,7 @@ class EventSynchronization(object):
         TAU = np.min((tauX[1:, :], tauX[:-1, :],
                       tauY[:, 1:], tauY[:, :-1]), axis=0) / 2
 
-        EffTau = np.minimum(TAU, self.taumax)  # efficte Tau
+        EffTau = np.minimum(TAU, self.taumax)  # effective Tau
         EquTimeEv = 0.5*np.sum(DSTxy == 0)  # Contribution of equal time events
         # count number of sync events
         countXY = np.sum((DSTxy > 0) * (DSTxy <= EffTau)) + EquTimeEv
