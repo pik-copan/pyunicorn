@@ -675,6 +675,30 @@ class Network(object):
                        silence_level=1)
 
     @staticmethod
+    def SmallDirectedTestNetwork():
+        """
+        Return a 6-node directed test network with node and edge weights.
+
+        The node weights are [1.5, 1.7, 1.9, 2.1, 2.3, 2.5],
+        a typical node weight for corrected n.s.i. measures would be 2.0.
+
+        :rtype: Network instance
+        """
+        nw = Network(adjacency=[[0, 1, 0, 1, 0, 0], [0, 0, 1, 0, 1, 0],
+                                [0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0],
+                                [1, 0, 1, 0, 0, 0], [1, 0, 0, 0, 0, 0]],
+                     directed=True,
+                     node_weights=[1.5, 1.7, 1.9, 2.1, 2.3, 2.5],
+                     silence_level=1)
+        nw.set_link_attribute("link_weights", np.array([[0, 1.3, 0, 2.5, 0, 0],
+                                                        [0, 0, 1.9, 0, 1.0, 0],
+                                                        [0, 0, 0, 0, 0, 0],
+                                                        [0, 3.0, 0, 0, 0, 0],
+                                                        [2.1, 0, 2.7, 0, 0, 0],
+                                                        [1.5, 0, 0, 0, 0, 0]]))
+        return nw
+
+    @staticmethod
     def ErdosRenyi(n_nodes=100, link_probability=None, n_links=None,
                    silence_level=0):
         """
@@ -1568,8 +1592,8 @@ can only take values <<in>> or <<out>>."
 
         **Example:**
 
-        >>> Network.SmallTestNetwork().indegree()
-        array([3, 3, 2, 2, 3, 1])
+        >>> Network.SmallDirectedTestNetwork().indegree()
+        array([2, 2, 2, 1, 1, 0])
 
         :rtype: array([int>=0])
         """
@@ -1582,8 +1606,8 @@ can only take values <<in>> or <<out>>."
 
         **Example:**
 
-        >>> Network.SmallTestNetwork().outdegree()
-        array([3, 3, 2, 2, 3, 1])
+        >>> Network.SmallDirectedTestNetwork().outdegree()
+        array([2, 2, 0, 1, 2, 1])
 
         :rtype: array([int>=0])
         """
@@ -1656,19 +1680,19 @@ can only take values <<in>> or <<out>>."
 
         **Examples:**
 
-        >>> net = Network.SmallTestNetwork()
+        >>> net = Network.SmallDirectedTestNetwork()
         >>> net.nsi_indegree()
-        array([ 8.4,  8. ,  5.9,  5.3,  7.4,  4. ])
+        array([ 6.3,  5.3,  5.9,  3.6,  4. ,  2.5])
         >>> net.splitted_copy().nsi_indegree()
-        array([ 8.4,  8. ,  5.9,  5.3,  7.4,  4. ,  4. ])
+        array([ 6.3,  5.3,  5.9,  3.6,  4. ,  2.5,  2.5])
 
         as compared to the unweighted version:
 
-        >>> net = Network.SmallTestNetwork()
+        >>> net = Network.SmallDirectedTestNetwork()
         >>> net.indegree()
-        array([3, 3, 2, 2, 3, 1])
+        array([2, 2, 2, 1, 1, 0])
         >>> net.splitted_copy().indegree()
-        array([4, 3, 2, 2, 3, 2, 2])
+        array([3, 2, 2, 1, 1, 1, 1])
         """
         return self.node_weights * self.sp_Aplus()
 
@@ -1678,19 +1702,19 @@ can only take values <<in>> or <<out>>."
 
         **Examples:**
 
-        >>> net = Network.SmallTestNetwork()
+        >>> net = Network.SmallDirectedTestNetwork()
         >>> net.nsi_outdegree()
-        array([ 8.4,  8. ,  5.9,  5.3,  7.4,  4. ])
+        array([ 5.3,  5.9,  1.9,  3.8,  5.7,  4. ])
         >>> net.splitted_copy().nsi_outdegree()
-        array([ 8.4,  8. ,  5.9,  5.3,  7.4,  4. ,  4. ])
+        array([ 5.3,  5.9,  1.9,  3.8,  5.7,  4. ,  4. ])
 
         as compared to the unweighted version:
 
-        >>> net = Network.SmallTestNetwork()
+        >>> net = Network.SmallDirectedTestNetwork()
         >>> net.outdegree()
-        array([3, 3, 2, 2, 3, 1])
+        array([2, 2, 0, 1, 2, 1])
         >>> net.splitted_copy().outdegree()
-        array([4, 3, 2, 2, 3, 2, 2])
+        array([2, 2, 0, 1, 2, 2, 2])
         """
         return self.sp_Aplus() * self.node_weights
 
