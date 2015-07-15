@@ -25,6 +25,10 @@ from .. import weave_inline
 from .climate_network import ClimateNetwork
 
 
+LONG_TYPE = np.int64
+DOUBLE_TYPE = np.float32
+
+
 #
 #  Define class MutualInfoClimateNetwork
 #
@@ -79,12 +83,14 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         """
         if silence_level <= 1:
             print "Generating a mutual information climate network..."
+        self.silence_level = silence_level
 
         #  Set instance variables
         self.data = data
         """(ClimateData) - The climate data used for network construction."""
         self.N = self.data.grid.N
         self._prescribed_link_density = link_density
+        self._winter_only = winter_only
 
         #  Class specific settings
         self.mi_file = "mutual_information_" + data.data_source + "_" \
@@ -92,23 +98,20 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         """(string) - The name of the file for storing the mutual information
                       matrix."""
 
-        #  The constructor of ClimateNetwork is called within this method.
+        self._set_winter_only(winter_only)
         ClimateNetwork.__init__(self, grid=self.data.grid,
+                                similarity_measure=self._similarity_measure,
                                 threshold=threshold,
                                 non_local=non_local,
                                 directed=False,
                                 node_weight_type=node_weight_type,
                                 silence_level=silence_level)
-        self.set_winter_only(winter_only)
 
     def __str__(self):
         """
-        Return a string representation of MutualInformationClimateNetwork.
+        Return a string representation of MutualInfoClimateNetwork.
         """
-        text = "Mutual information climate network: \n"
-        text += ClimateNetwork.__str__(self)
-
-        return text
+        return 'MutualInfoClimateNetwork:\n' + ClimateNetwork.__str__(self)
 
     #
     #  Defines methods to calculate the mutual information matrix
@@ -167,16 +170,16 @@ anomaly values using Weave..."
         scaling = float(1. / (range_max - range_min))
 
         #  Create array to hold symbolic trajectories
-        symbolic = np.empty(anomaly.shape, dtype="int32")
+        symbolic = np.empty(anomaly.shape, dtype=LONG_TYPE)
 
         #  Initialize array to hold 1d-histograms of individual time series
-        hist = np.zeros((N, n_bins), dtype="int32")
+        hist = np.zeros((N, n_bins), dtype=LONG_TYPE)
 
         #  Initialize array to hold 2d-histogram for one pair of time series
-        hist2d = np.zeros((n_bins, n_bins), dtype="int32")
+        hist2d = np.zeros((n_bins, n_bins), dtype=LONG_TYPE)
 
         #  Initialize mutual information array
-        mi = np.zeros((N, N), dtype="float32")
+        mi = np.zeros((N, N), dtype=DOUBLE_TYPE)
 
         code = r"""
         int i, j, k, l, m;
@@ -592,34 +595,32 @@ dimensions!"
         """
         return self._winter_only
 
-    def set_winter_only(self, winter_only):
+    def _set_winter_only(self, winter_only):
         """
         Toggle use of exclusively winter data points for network generation.
 
-        Also explicitly re(generates) the instance of MutualInfoClimateNetwork.
-
-        :arg bool winter_only: Indicates, whether only winter months were used
+        :arg bool winter_only: Indicates whether only winter months were used
             for network generation.
         """
         self._winter_only = winter_only
-
         if winter_only:
             winter_anomaly = self.data.anomaly_selected_months([0, 1, 11])
             mi = self.mutual_information(winter_anomaly)
         else:
             mi = self.mutual_information(self.data.anomaly())
-            # correlationMeasure = self.\
-            #     _weaveCalculateMIMatrix(self.data.getCycleAnomaly())
+        self._similarity_measure = mi
 
-        #  Call the constructor of the parent class ClimateNetwork
-        ClimateNetwork.__init__(self, grid=self.data.grid,
-                                similarity_measure=mi,
-                                threshold=self.threshold(),
-                                link_density=self._prescribed_link_density,
-                                non_local=self.non_local(),
-                                directed=False,
-                                node_weight_type=self.node_weight_type,
-                                silence_level=self.silence_level)
+    def set_winter_only(self, winter_only):
+        """
+        Toggle use of exclusively winter data points for network generation.
+
+        Also explicitly regenerates the instance of MutualInfoClimateNetwork.
+
+        :arg bool winter_only: Indicates whether only winter months were used
+            for network generation.
+        """
+        self._set_winter_only(winter_only)
+        self._regenerate_network()
 
     #
     #  Defines methods to calculate  weighted network measures

@@ -71,8 +71,10 @@ class InteractingNetworks(Network):
                          silence_level=silence_level)
 
     def __str__(self):
-        """Return a string representation of InteractingNetworks object."""
-        return Network.__str__(self)
+        """
+        Return a string representation of InteractingNetworks object.
+        """
+        return 'InteractingNetworks:\n' + Network.__str__(self)
 
     #
     #  Graph generation methods

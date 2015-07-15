@@ -102,14 +102,13 @@ class Data(object):
 
     def __str__(self):
         """Return a string representation of the object."""
-        self.print_data_info()
+        if self.file_name:
+            self.print_data_info()
 
-        text = "Number of spatial grid points (nodes): " + str(self.grid.N)
-        text += "\nNumber of measurements: " + str(self.grid.n_grid_points)
-        text += "\nGeographical data window boundaries: " \
-                + str(self.window())
-
-        return text
+        return ('Data: %i grid points, %i measurements.\n' +
+                'Geographical boundaries:\n%s') % (
+                    self.grid.N, self.grid.n_grid_points,
+                    self.grid.print_boundaries())
 
     def set_silence_level(self, silence_level):
         """

@@ -85,11 +85,11 @@ class SpearmanClimateNetwork(TsonisClimateNetwork):
                                       silence_level=silence_level)
 
     def __str__(self):
-        """Returns a string representation of SpearmanClimateNetwork."""
-        text = "Spearman climate network: \n"
-        text += TsonisClimateNetwork.__str__(self)
-
-        return text
+        """
+        Returns a string representation of SpearmanClimateNetwork.
+        """
+        return ('SpearmanClimateNetwork:\n' +
+                TsonisClimateNetwork.__str__(self))
 
     #
     #  Defines methods to calculate the correlation matrix

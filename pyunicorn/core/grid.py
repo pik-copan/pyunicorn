@@ -96,6 +96,13 @@ class Grid(object):
         self._angular_distance = None
         self._angular_distance_cached = False
 
+    def __str__(self):
+        """
+        Return a string representation of the Grid object.
+        """
+        return 'Grid: %i grid points, %i timesteps.' % (
+            self._grid_size['space'], self._grid_size['time'])
+
     def clear_cache(self):
         """
         Clean up cache.
