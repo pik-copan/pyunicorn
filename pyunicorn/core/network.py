@@ -1613,6 +1613,22 @@ can only take values <<in>> or <<out>>."
         """
         return self.sp_A.sum(axis=1).T.A.squeeze().astype(int)
 
+    @cached_const('base', 'bildegree')
+    def bildegree(self):
+        """
+        Return list of bilateral degrees, i.e. the number of in- and out-going
+        edges.
+
+        **Exmaple:**
+
+        >>> Network.SmallDirectedTestNetwork().bildegree()
+        array([0, 0, 0, 0, 0, 0], dtype=int16)
+        >>> net = Network.SmallTestNetwork()
+        >>> (net.bildegree() == net.degree()).all()
+        True
+        """
+        return (self.sp_A * self.sp_A).diagonal()
+
     @cached_const('nsi', 'degree', 'n.s.i. degree')
     def nsi_degree_uncorr(self):
         """
@@ -1674,6 +1690,7 @@ can only take values <<in>> or <<out>>."
         else:
             return self.nsi_degree_uncorr()/typical_weight - 1.0
 
+    @cached_const('nsi', 'indegree')
     def nsi_indegree(self):
         """
         For each node, return its n.s.i. indegree
@@ -1696,6 +1713,7 @@ can only take values <<in>> or <<out>>."
         """
         return self.node_weights * self.sp_Aplus()
 
+    @cached_const('nsi', 'outdegree')
     def nsi_outdegree(self):
         """
         For each node, return its n.s.i.outdegree
@@ -2012,6 +2030,94 @@ can only take values <<in>> or <<out>>."
         :rtype: float between 0 and 1
         """
         return self.local_clustering().mean()
+
+    @cached_const('base', 'local cyclemotiv',
+                  'local cycle motif clustering coefficient')
+    def local_cyclemotif_clustering(self):
+        """
+        For each node, return the clustering coeffiction with respect to the
+        cycle motive.
+
+        >>> Network.SmallDirectedTestNetwork().local_cyclemotif_clustering()
+        Calculating local cycle motif clustering coefficient...
+        array([ 0.25,  0.25,  0.  ,  0.  ,  0.5 ,  0.  ])
+
+        :rtype: 1d numpy array [node] of floats between 0 and 1
+        """
+        A = self.sp_A
+        t = (A * A * A).diagonal()
+        T = self.indegree() * self.outdegree() - self.bildegree()
+        T = T.astype(float)
+        T[T == 0] = np.nan
+        C = t / T
+        C[np.isnan(C)] = 0
+        return C
+
+    @cached_const('base', 'local midmotiv',
+                  'local mid. motif clustering coefficient')
+    def local_midmotif_clustering(self):
+        """
+        For each node, return the clustering coeffiction with respect to the
+        mid. motive.
+
+        >>> Network.SmallDirectedTestNetwork().local_midmotif_clustering()
+        Calculating local mid. motif clustering coefficient...
+        array([ 0. ,  0. ,  0. ,  1. ,  0.5,  0. ])
+
+        :rtype: 1d numpy array [node] of floats between 0 and 1
+        """
+        A = self.sp_A
+        t = (A * A.T * A).diagonal()
+        T = self.indegree() * self.outdegree() - self.bildegree()
+        T = T.astype(float)
+        T[T == 0] = np.nan
+        C = t / T
+        C[np.isnan(C)] = 0
+        return C
+
+    @cached_const('base', 'local inmotiv',
+                  'local in motif clustering coefficient')
+    def local_inmotif_clustering(self):
+        """
+        For each node, return the clustering coeffiction with respect to the
+        in motive.
+
+        >>> Network.SmallDirectedTestNetwork().local_inmotif_clustering()
+        Calculating local in motif clustering coefficient...
+        array([ 0. ,  0.5,  0.5,  0. ,  0. ,  0. ])
+
+        :rtype: 1d numpy array [node] of floats between 0 and 1
+        """
+        A = self.sp_A
+        t = (A.T * A * A).diagonal()
+        T = self.indegree() * (self.indegree() - 1)
+        T = T.astype(float)
+        T[T == 0] = np.nan
+        C = t / T
+        C[np.isnan(C)] = 0
+        return C
+
+    @cached_const('base', 'local outmotiv',
+                  'local out motif clustering coefficient')
+    def local_outmotif_clustering(self):
+        """
+        For each node, return the clustering coeffiction with respect to the
+        out motive.
+
+        >>> Network.SmallDirectedTestNetwork().local_outmotif_clustering()
+        Calculating local out motif clustering coefficient...
+        array([ 0.5,  0.5,  0. ,  0. ,  0. ,  0. ])
+
+        :rtype: 1d numpy array [node] of floats between 0 and 1
+        """
+        A = self.sp_A
+        t = (A * A * A.T).diagonal()
+        T = self.outdegree() * (self.outdegree() - 1)
+        T = T.astype(float)
+        T[T == 0] = np.nan
+        C = t / T
+        C[np.isnan(C)] = 0
+        return C
 
     @cached_const('base', 'transitivity', 'transitivity coefficient (C_1)')
     def transitivity(self):
@@ -2409,7 +2515,7 @@ can only take values <<in>> or <<out>>."
         if self.directed:
             raise NotImplementedError("Not implemented for directed networks.")
 
-        N, w, k = self.N, self.node_weights, self.nsi_degree()
+        w, k = self.node_weights, self.nsi_degree()
         A_Dw = self.sp_A * self.sp_diag_w()
         numerator = (A_Dw * self.sp_Aplus() * A_Dw.T).diagonal()
         return (numerator + 2*k*w - w**2) / k**2
