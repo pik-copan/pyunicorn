@@ -70,15 +70,14 @@ class NetCDFDictionary(object):
         """
 
     def __str__(self):
-        """Return a string representation of the object."""
-
-        text = "Dictionary following NetCDF conventions."
-        text += "\nGlobal attributes: " + str(self.dict["global_attributes"])
-        text += "\nVariables:"
+        """
+        Return a string representation of the object.
+        """
+        text = 'NetCDFDictionary:\nGlobal attributes:\n%s\nVariables:' % (
+            self.dict["global_attributes"])
         for key in self.dict["variables"].keys():
-            text += "\n\t" + key + "\t-> shape of array is:" \
-                    + str(self.dict["variables"][key]["array"].shape)
-
+            text += '\n\t%s\t-> array shape %s' % (
+                key, self.dict["variables"][key]["array"].shape)
         return text
 
     #

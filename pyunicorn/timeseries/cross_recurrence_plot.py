@@ -95,9 +95,13 @@ class CrossRecurrencePlot(RecurrencePlot):
         :arg number dim: The embedding dimension.
         :arg number tau: The embedding delay.
         """
+        threshold = kwds.get("threshold")
+        recurrence_rate = kwds.get("recurrence_rate")
+
         RecurrencePlot.__init__(
-            np.array([]), metric=metric, normalize=normalize,
-            sparse_rqa=sparse_rqa, silence_level=silence_level)
+            self, np.empty((2, 0)), metric=metric, normalize=normalize,
+            sparse_rqa=sparse_rqa, threshold=threshold,
+            recurrence_rate=recurrence_rate, silence_level=silence_level)
 
         self.CR = None
         """The cross recurrence matrix."""
@@ -135,11 +139,7 @@ class CrossRecurrencePlot(RecurrencePlot):
             self.x_embedded = self.x
             self.y_embedded = self.y
 
-        #  Get threshold or recurrence rate from **kwds, construct recurrence
-        #  plot accordingly
-        threshold = kwds.get("threshold")
-        recurrence_rate = kwds.get("recurrence_rate")
-
+        #  construct recurrence plot accordingly to threshold / recurrence rate
         if threshold is not None:
             #  Calculate the recurrence matrix R using the radius of
             #  neighborhood threshold
@@ -149,9 +149,18 @@ class CrossRecurrencePlot(RecurrencePlot):
             CrossRecurrencePlot.\
                 set_fixed_recurrence_rate(self, recurrence_rate)
         else:
-            #  Raise error
-            print "Error: Please give either threshold or recurrence_rate \
-to construct the cross recurrence plot!"
+            raise NameError(
+                "Please give either threshold or recurrence_rate " +
+                "to construct the cross recurrence plot!")
+
+    def __str__(self):
+        """
+        Returns a string representation.
+        """
+        return ('CrossRecurrencePlot: time series shapes %s, %s.\n' +
+                'Embedding dimension %i\nThreshold %s, %s metric') % (
+                    self.x.shape, self.y.shape, self.dim if self.dim else 0,
+                    self.threshold, self.metric)
 
     #
     #  Service methods

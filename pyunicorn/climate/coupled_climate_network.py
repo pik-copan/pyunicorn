@@ -83,8 +83,6 @@ class CoupledClimateNetwork(InteractingNetworks, ClimateNetwork):
             used.
         :arg int silence_level: The inverse level of verbosity of the object.
         """
-        InteractingNetworks.__init__()
-
         #  Store single grids
         self.grid_1 = grid_1
         """(Grid) - The Grid object describing the first layer's spatial
@@ -130,17 +128,17 @@ class CoupledClimateNetwork(InteractingNetworks, ClimateNetwork):
                                     directed=directed,
                                     node_weight_type=node_weight_type,
                                     silence_level=silence_level)
+            InteractingNetworks.__init__(self, self.adjacency)
         else:
             print "The two observables (layers) have to have the same number \
 of temporal sampling points!"
 
     def __str__(self):
-        """Return a string representation of CoupledClimateNetwork object."""
-        text = ClimateNetwork.__str__(self)
-        text += "\nN1 = " + str(self.N_1)
-        text += "\nN2 = " + str(self.N_2)
-
-        return text
+        """
+        Return a string representation of CoupledClimateNetwork object.
+        """
+        return 'CoupledClimateNetwork:\n%s\nN1: %s\nN2: %s' % (
+            ClimateNetwork.__str__(self), self.N_1, self.N_2)
 
     #
     #  Define methods for handling the coupled network

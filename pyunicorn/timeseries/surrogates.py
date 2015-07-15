@@ -72,6 +72,13 @@ class Surrogates(object):
         self._twins = None
         self._original_data_fft = None
 
+    def __str__(self):
+        """
+        Returns a string representation.
+        """
+        return 'Surrogates: time series shape %s.' % (
+            self.original_data.shape,)
+
     def clear_cache(self):
         """Clean up cache."""
         try:

@@ -138,6 +138,13 @@ class RecurrenceNetwork(RecurrencePlot, Network):
                              node_weights=node_weights,
                              silence_level=silence_level)
 
+    def __str__(self):
+        """
+        Returns a string representation.
+        """
+        return 'RecurrenceNetwork:\n%s\n%s' % (
+            RecurrencePlot.__str__(self), Network.__str__(self))
+
     def clear_cache(self):
         """
         Clean up memory by deleting information that can be recalculated from

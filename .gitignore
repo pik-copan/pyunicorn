@@ -2,8 +2,9 @@
 __pycache__/
 *.py[cod]
 
-# C extensions
+# C extensions / Cython / Weave
 *.so
+*__.data
 
 # Distribution / packaging
 .Python
@@ -50,4 +51,4 @@ coverage.xml
 *.pot
 
 # Sphinx documentation
-docs/_build/
+docs/build/

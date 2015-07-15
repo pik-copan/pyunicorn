@@ -79,32 +79,33 @@ class HavlinClimateNetwork(ClimateNetwork):
         """
         if silence_level <= 1:
             print "Generating a Havlin climate network..."
+        self.silence_level = silence_level
 
         #  Set instance variables
+        self._max_delay = 0
+        self._correlation_lag = None
         self.data = data
         """(ClimateData) - The climate data used for network construction."""
-
         self.N = data.grid.N
         self._prescribed_link_density = link_density
 
-        #  The constructor of ClimateNetwork is called within this method
+        self._set_max_delay(max_delay)
         ClimateNetwork.__init__(self, grid=self.data.grid,
+                                similarity_measure=self._similarity_measure,
                                 threshold=threshold,
                                 link_density=link_density,
                                 non_local=non_local,
                                 directed=False,
                                 node_weight_type=node_weight_type,
                                 silence_level=silence_level)
-        self.set_max_delay(max_delay)
 
     def __str__(self):
-        """Return a string version of the instance of HavlinClimateNetwork."""
-        text = "Havlin climate network: \n"
-        text += ClimateNetwork.__str__(self)
-        text += "\nMaximum delay used for correlation strength estimation: " \
-                + str(self.get_max_delay())
-
-        return text
+        """
+        Return a string version of the instance of HavlinClimateNetwork.
+        """
+        return ('HavlinClimateNetwork:\n%s\nMaximum delay used for ' +
+                'correlation strength estimation: %s') % (
+                    ClimateNetwork.__str__(self), self.get_max_delay())
 
     def clear_cache(self, irreversible=False):
         """
@@ -215,11 +216,9 @@ following [Yamasaki2008]_..."
         """
         return self._max_delay
 
-    def set_max_delay(self, max_delay):
+    def _set_max_delay(self, max_delay):
         """
         Set the maximum lag time used for cross-correlation estimation.
-
-        (Re)generates the current Havlin climate network accordingly.
 
         :arg int max_delay: The maximum delay for cross-correlation functions.
         """
@@ -229,18 +228,19 @@ following [Yamasaki2008]_..."
         #  Calculate correlation strength and lag
         results = self._calculate_correlation_strength(self.data.anomaly(),
                                                        max_delay)
-        similarity_measure = results[0]
+        self._similarity_measure = results[0]
         self._correlation_lag = results[1]
 
-        #  Call constructor of parent class ClimateNetwork
-        ClimateNetwork.__init__(self, grid=self.data.grid,
-                                similarity_measure=similarity_measure,
-                                threshold=self.threshold(),
-                                link_density=self._prescribed_link_density,
-                                non_local=self.non_local(),
-                                directed=False,
-                                node_weight_type=self.node_weight_type,
-                                silence_level=self.silence_level)
+    def set_max_delay(self, max_delay):
+        """
+        Set the maximum lag time used for cross-correlation estimation.
+
+        (Re)generates the current Havlin climate network accordingly.
+
+        :arg int max_delay: The maximum delay for cross-correlation functions.
+        """
+        self._set_max_delay(max_delay)
+        self._regenerate_network()
 
     def correlation_strength(self):
         """

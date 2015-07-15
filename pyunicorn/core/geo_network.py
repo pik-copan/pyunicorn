@@ -81,10 +81,11 @@ class GeoNetwork(Network):
         self.grid_neighbours_set = None
 
     def __str__(self):
-        """Return a string representation of the GeoNetwork object."""
-        text = Network.__str__(self) + "\nGeographical network boundaries:\n"
-        text += self.grid.print_boundaries()
-        return text
+        """
+        Return a string representation of the GeoNetwork object.
+        """
+        return ('GeoNetwork:\n' + Network.__str__(self) +
+                '\nGeographical boundaries:\n' + self.grid.print_boundaries())
 
     def clear_cache(self):
         """
@@ -311,9 +312,10 @@ for use with the CGV software."
         ...     grid=Grid.SmallTestGrid(), n_nodes=6, n_links=5)
         Generating Erdos-Renyi random graph with 6 nodes and 5 links...
         Setting area weights according to type surface...
-        Undirected network, 6 nodes, 5 links, link_density 0.333333333333
-        Geographical network boundaries:
-                 time     lat     lon
+        GeoNetwork:
+        Network: undirected, 6 nodes, 5 links, link density 0.333.
+        Geographical boundaries:
+                   time     lat     lon
            min    0.0    0.00    2.50
            max    9.0   25.00   15.00
 
@@ -1927,8 +1929,8 @@ average link distance sequence..."
             # tries to import stripack.so which must have been compiled with
             # f2py -c -m stripack stripack.f90
         except:
-            raise Exception("NOTE: stripack.so not available, boundary()" +
-                            " won't work.")
+            raise RuntimeError("NOTE: stripack.so not available, " +
+                               "boundary() won't work.")
 
         N = self.N
         nodes_set = set(nodes)
@@ -1983,7 +1985,8 @@ average link distance sequence..."
                     self.grid_neighbours[i] = nbsi
                     self.grid_neighbours_set[i] = set(nbsi)
         else:
-            raise Exception("not yet implemented for lat-lon-regular grids!")
+            raise NotImplementedError(
+                "Not yet implemented for lat-lon-regular grids!")
 
         remaining = nodes_set.copy()
         boundary = []

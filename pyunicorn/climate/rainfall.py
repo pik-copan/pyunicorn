@@ -98,11 +98,9 @@ class RainfallClimateNetwork(ClimateNetwork):
         self.time_cycle = self.data.time_cycle
 
         #  Calculate correlation measure
-        correlation = self._calculate_correlation(event_threshold,
-                                                  scale_fac, offset,
-                                                  time_cycle=self.time_cycle)
+        correlation = self._calculate_correlation(
+            event_threshold, scale_fac, offset, time_cycle=self.time_cycle)
 
-        #  Call the constructor of the parent class ClimateNetwork
         ClimateNetwork.__init__(self, grid=self.data.grid,
                                 similarity_measure=correlation,
                                 threshold=self.threshold(),
@@ -111,6 +109,12 @@ class RainfallClimateNetwork(ClimateNetwork):
                                 directed=False,
                                 node_weight_type=self.node_weight_type,
                                 silence_level=self.silence_level)
+
+    def __str__(self):
+        """
+        Returns a string representation of RainfallClimateNetwork.
+        """
+        return 'RainfallClimateNetwork:\n' + ClimateNetwork.__str__(self)
 
     #
     # Defines methods to calculate the correlation matrix
@@ -144,20 +148,16 @@ class RainfallClimateNetwork(ClimateNetwork):
         :rtype: 2D Numpy array (index, index)
         :return: the Spearman's rho matrix at zero lag.
         """
-        # !!!Notice the all calculations are done with the transposed dataset!!
-        observable = self.data.observable()
-        observable = observable.transpose()
-
         # Calculate the real rainfall from observable
-        rainfall = self.calculate_rainfall(observable, scale_fac, offset)
+        rainfall = self.calculate_rainfall(self.data.observable().T,
+                                           scale_fac, offset)
 
         if self.silence_level <= 1:
             print "Calculating Rainfall-Anomaly using Weave..."
 
         # Calculate the anomaly for the rainfall dataset
-        # anomaly = self.calculate_rainfall_anomaly(rainfall, time_cycle)
-        anomaly = self.calculate_rainfall(self.data.anomaly(), scale_fac,
-                                          offset)
+        anomaly = self.calculate_rainfall(self.data.anomaly().T,
+                                          scale_fac, offset)
 
         # Correct anomaly for offset due to rescaling
         anomaly -= scale_fac * offset
@@ -217,7 +217,7 @@ class RainfallClimateNetwork(ClimateNetwork):
         """
         rainfall_copy = rainfall.copy()
 
-        m = len(rainfall) * len(rainfall.transpose())
+        m = len(rainfall) * len(rainfall.T)
 
         onelist = rainfall.reshape(m)
 
@@ -274,7 +274,7 @@ class RainfallClimateNetwork(ClimateNetwork):
 
         m = len(anomaly)
 
-        tmax = len(anomaly.transpose())
+        tmax = len(anomaly.T)
 
         spearman_rho = np.zeros((m, m))
 

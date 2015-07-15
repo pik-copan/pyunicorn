@@ -76,28 +76,22 @@ class TsonisClimateNetwork(ClimateNetwork):
         """
         if silence_level <= 1:
             print "Generating a Tsonis climate network..."
+        self.silence_level = silence_level
 
         #  Set instance variables
         self.data = data
         """(ClimateData) - The climate data used for network construction."""
-
         self.N = self.data.grid.N
-        self._threshold = threshold
-        self._prescribed_link_density = link_density
-        self._non_local = non_local
-        self.node_weight_type = node_weight_type
-        self.silence_level = silence_level
 
-        #  Constructor of ClimateNetwork is called within this method
-        self.set_winter_only(winter_only)
+        self._set_winter_only(winter_only)
         ClimateNetwork.__init__(self, grid=self.data.grid,
                                 similarity_measure=self.similarity_measure(),
-                                threshold=self.threshold(),
-                                link_density=self._prescribed_link_density,
-                                non_local=self.non_local(),
+                                threshold=threshold,
+                                link_density=link_density,
+                                non_local=non_local,
                                 directed=False,
-                                node_weight_type=self.node_weight_type,
-                                silence_level=self.silence_level)
+                                node_weight_type=node_weight_type,
+                                silence_level=silence_level)
 
     def __str__(self):
         """
@@ -106,22 +100,21 @@ class TsonisClimateNetwork(ClimateNetwork):
         **Example:**
 
         >>> print TsonisClimateNetwork.SmallTestNetwork()
-        Tsonis climate network:
-        Undirected network, 6 nodes, 6 links, link_density 0.4
-        Geographical network boundaries:
+        TsonisClimateNetwork:
+        ClimateNetwork:
+        GeoNetwork:
+        Network: undirected, 6 nodes, 6 links, link density 0.400.
+        Geographical boundaries:
                  time     lat     lon
            min    0.0    0.00    2.50
            max    9.0   25.00   15.00
-        Threshold = 0.5
+        Threshold: 0.5
         Local connections filtered out: False
         Use only data points from winter months: False
         """
-        text = "Tsonis climate network: \n"
-        text += ClimateNetwork.__str__(self)
-        text += "\nUse only data points from winter months: " \
-                + str(self.winter_only())
-
-        return text
+        return ('TsonisClimateNetwork:\n%s\n' +
+                'Use only data points from winter months: %s') % (
+                    ClimateNetwork.__str__(self), self.winter_only())
 
     #
     #  Methods for testing purposes
@@ -141,8 +134,7 @@ class TsonisClimateNetwork(ClimateNetwork):
         :rtype: Network instance
         """
         return TsonisClimateNetwork(data=ClimateData.SmallTestData(),
-                                    threshold=0.5,
-                                    winter_only=False,
+                                    threshold=0.5, winter_only=False,
                                     silence_level=2)
 
     #
@@ -241,6 +233,21 @@ values..."
         """
         return self._winter_only
 
+    def _set_winter_only(self, winter_only):
+        """
+        Toggle use of exclusively winter data points for network generation.
+
+        :arg bool winter_only: Indicates, whether only winter months were used
+            for network generation.
+        """
+        self._winter_only = winter_only
+        if winter_only:
+            winter_anomaly = self.data.anomaly_selected_months([0, 1, 11])
+            correlation = self._calculate_correlation(winter_anomaly)
+        else:
+            correlation = self._calculate_correlation(self.data.anomaly())
+        self._similarity_measure = correlation
+
     def set_winter_only(self, winter_only):
         """
         Toggle use of exclusively winter data points for network generation.
@@ -257,23 +264,8 @@ values..."
         :arg bool winter_only: Indicates, whether only winter months were used
             for network generation.
         """
-        self._winter_only = winter_only
-
-        if winter_only:
-            winter_anomaly = self.data.anomaly_selected_months([0, 1, 11])
-            correlation = self._calculate_correlation(winter_anomaly)
-        else:
-            correlation = self._calculate_correlation(self.data.anomaly())
-
-        #  Call the constructor of the parent class ClimateNetwork
-        ClimateNetwork.__init__(self, grid=self.data.grid,
-                                similarity_measure=correlation,
-                                threshold=self.threshold(),
-                                link_density=self._prescribed_link_density,
-                                non_local=self.non_local(),
-                                directed=False,
-                                node_weight_type=self.node_weight_type,
-                                silence_level=self.silence_level)
+        self._set_winter_only(winter_only)
+        self._regenerate_network()
 
     #
     #  Defines methods to calculate  weighted network measures

@@ -62,12 +62,15 @@ class ResNetwork(GeoNetwork):
 
     **Examples:**
 
-    >>> print GeoNetwork.SmallTestNetwork()
-    Undirected network, 6 nodes, 7 links, link_density 0.466666666667
-    Geographical network boundaries:
+    >>> print ResNetwork.SmallTestNetwork()
+    ResNetwork:
+    GeoNetwork:
+    Network: undirected, 5 nodes, 5 links, link density 0.500.
+    Geographical boundaries:
              time     lat     lon
-       min    0.0    0.00    2.50
-       max    9.0   25.00   15.00
+       min    0.0    0.00 -180.00
+       max    9.0   90.00  180.00
+    Average resistance: 2.4
     """
 ###############################################################################
 # ##                       MAGIC FUNCTIONS                                 ## #
@@ -99,16 +102,6 @@ class ResNetwork(GeoNetwork):
 
         :type silence_level: number (int)
         :arg silence_level: The inverse level of verbosity of the object.
-
-        **Examples:**
-
-        >>> print ResNetwork.SmallTestNetwork()
-        Undirected network, 5 nodes, 5 links, link_density 0.5
-        Geographical network boundaries:
-                 time     lat      lon
-           min    0.0    0.00  -180.00
-           max    9.0   90.00   180.00
-        Average resistance: 2.4
         """
 
         # 1) prepare params so we can init() the parent
@@ -156,29 +149,11 @@ class ResNetwork(GeoNetwork):
         self._effective_resistances = None
 
     def __str__(self):
-        """Return a short summary of the resistive network.
-
-        :return: A short summary of the network
-        :rtype: string
-
-
-        **Examples:**
-
-        >>> res =  ResNetwork.SmallTestNetwork(); print res
-        Undirected network, 5 nodes, 5 links, link_density 0.5
-        Geographical network boundaries:
-                 time     lat     lon
-           min    0.0    0.00 -180.00
-           max    9.0   90.00  180.00
-        Average resistance: 2.4
-        >>> type(res.__str__())
-        <type 'str'>
         """
-
-        text = GeoNetwork.__str__(self)
-        text += "\nAverage resistance: " + str(self.resistances.mean())
-
-        return text
+        Return a short summary of the resistive network.
+        """
+        return 'ResNetwork:\n%s\nAverage resistance: %s' % (
+            GeoNetwork.__str__(self), self.resistances.mean())
 
 ###############################################################################
 # ##                       PUBLIC FUNCTIONS                                ## #

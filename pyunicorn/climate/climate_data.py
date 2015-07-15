@@ -41,7 +41,7 @@ class ClimateData(Data):
     #
 
     def __init__(self, observable, grid, time_cycle, anomalies=False,
-                 observable_name=None, observable_long_name=None, window=None,
+                 observable_name="", observable_long_name=None, window=None,
                  silence_level=0):
         """
         Initialize an instance of ClimateData.
@@ -89,6 +89,12 @@ class ClimateData(Data):
             self._anomaly = observable
         else:
             self._flag_anomaly = False
+
+    def __str__(self):
+        """
+        Returns a string representation.
+        """
+        return 'ClimateData:\n' + Data.__str__(self)
 
     def clear_cache(self):
         """
@@ -282,15 +288,13 @@ class ClimateData(Data):
         """
         if self.time_cycle == 12:
             return self.indices_selected_phases(selected_months)
-        if self.time_cycle == 360:
+        elif self.time_cycle == 360:
             selected_days = []
-
             for month in selected_months:
                 for day in xrange(30):
                     selected_days.append(month * 30 + day)
 
             return self.indices_selected_phases(selected_days)
-
         else:
             raise NotImplementedError("Currently only time cycles 12 and 360 "
                                       "are supported")
