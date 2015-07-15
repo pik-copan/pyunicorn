@@ -10,6 +10,7 @@ Generic consistency checks.
 """
 
 from pyunicorn import core, climate, timeseries, funcnet
+import numpy as np
 
 
 def test_init_str():
@@ -28,6 +29,7 @@ def simple_instances():
     ca = funcnet.CouplingAnalysis.test_data()[:50]
     ts = ca[:, 0]
     t1, t2, t3 = [{'threshold': t} for t in [0.2, (0.2, 0.2), (0.2, 0.2, 0.2)]]
+    es = 1-(np.random.rand(100, 10) > 0.4).astype(int)
     return [
         core.Network.SmallTestNetwork(),
         core.Grid.SmallTestGrid(),
@@ -55,4 +57,5 @@ def simple_instances():
         timeseries.VisibilityGraph(ts),
         funcnet.CouplingAnalysis(ca),
         funcnet.CouplingAnalysisPurePython(ca),
+        funcnet.EventSynchronization(es, 16)
     ]

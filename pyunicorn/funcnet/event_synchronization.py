@@ -91,11 +91,13 @@ class EventSynchronization(object):
         """
         Return a string representation of the EventSynchronization object.
         """
-        text = ("Event synchronization object of event series with " +
-                str(self.__N) + " variables and " + str(self.__T) +
-                " timesteps. Maximum delay 'taumax' is " + str(self.taumax) +
-                ".")
-        return text
+#        text = ("Event synchronization object of event series with " +
+#                str(self.__N) + " variables and " + str(self.__T) +
+#                " timesteps. Maximum delay 'taumax' is " + str(self.taumax) +
+#                ".")
+#        return text
+        return ('EventSynchronization: %i variables, %i timesteps, taumax: %i'
+                % (self.__N, self.__T, self.taumax))
 
     #
     #  Definitions of event synchronization measures
