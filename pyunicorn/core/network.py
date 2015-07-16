@@ -2031,6 +2031,24 @@ can only take values <<in>> or <<out>>."
         """
         return self.local_clustering().mean()
 
+    def _motif_clustering_helper(self, t_func, T):
+        """
+        Helper function to compute the local motif clustering coefficients.
+        For each node, returns a specific clustering coefficient, depending
+        on the input arguments.
+
+        :arg function t_func: multiplication of adjacency-type matrices
+        :arg 1d numpy array [node]: denominator made out of (in/out/bil)degrees
+        :rtype: 1d numpy array [node] of floats between 0 and 1
+        """
+        A = self.sp_A
+        t = t_func(A).diagonal()
+        T = T.astype(float)
+        T[T == 0] = np.nan
+        C = t / T
+        C[np.isnan(C)] = 0
+        return C
+
     @cached_const('base', 'local cyclemotiv',
                   'local cycle motif clustering coefficient')
     def local_cyclemotif_clustering(self):
@@ -2044,14 +2062,10 @@ can only take values <<in>> or <<out>>."
 
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
-        A = self.sp_A
-        t = (A * A * A).diagonal()
+        def t_func(x):
+            return x * x * x
         T = self.indegree() * self.outdegree() - self.bildegree()
-        T = T.astype(float)
-        T[T == 0] = np.nan
-        C = t / T
-        C[np.isnan(C)] = 0
-        return C
+        return self._motif_clustering_helper(t_func, T)
 
     @cached_const('base', 'local midmotiv',
                   'local mid. motif clustering coefficient')
@@ -2066,14 +2080,10 @@ can only take values <<in>> or <<out>>."
 
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
-        A = self.sp_A
-        t = (A * A.T * A).diagonal()
+        def t_func(x):
+            return x * x.T * x
         T = self.indegree() * self.outdegree() - self.bildegree()
-        T = T.astype(float)
-        T[T == 0] = np.nan
-        C = t / T
-        C[np.isnan(C)] = 0
-        return C
+        return self._motif_clustering_helper(t_func, T)
 
     @cached_const('base', 'local inmotiv',
                   'local in motif clustering coefficient')
@@ -2088,14 +2098,10 @@ can only take values <<in>> or <<out>>."
 
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
-        A = self.sp_A
-        t = (A.T * A * A).diagonal()
+        def t_func(x):
+            return x.T * x * x
         T = self.indegree() * (self.indegree() - 1)
-        T = T.astype(float)
-        T[T == 0] = np.nan
-        C = t / T
-        C[np.isnan(C)] = 0
-        return C
+        return self._motif_clustering_helper(t_func, T)
 
     @cached_const('base', 'local outmotiv',
                   'local out motif clustering coefficient')
@@ -2110,14 +2116,10 @@ can only take values <<in>> or <<out>>."
 
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
-        A = self.sp_A
-        t = (A * A * A.T).diagonal()
+        def t_func(x):
+            return x * x * x.T
         T = self.outdegree() * (self.outdegree() - 1)
-        T = T.astype(float)
-        T[T == 0] = np.nan
-        C = t / T
-        C[np.isnan(C)] = 0
-        return C
+        return self._motif_clustering_helper(t_func, T)
 
     @cached_const('base', 'transitivity', 'transitivity coefficient (C_1)')
     def transitivity(self):
