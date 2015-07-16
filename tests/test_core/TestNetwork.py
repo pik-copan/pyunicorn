@@ -65,6 +65,19 @@ def comparePermutations(net, permutations, measures):
         pool.join()
 
 
+def compareNSI(net, nsi_measures):
+    net_copies = [net.splitted_copy(node=i) for i in range(net.N)]
+    for nsi_measure in nsi_measures:
+        print nsi_measure
+        for i, netc in enumerate(net_copies):
+            # test for invariance of old nodes
+            assert np.allclose(getattr(netc, nsi_measure)()[0:net.N],
+                               getattr(net, nsi_measure)())
+            # test for invariance of origianl and copied node
+            assert np.allclose(getattr(netc, nsi_measure)()[i],
+                               getattr(netc, nsi_measure)()[-1])
+
+
 # -----------------------------------------------------------------------------
 # stability
 # -----------------------------------------------------------------------------
@@ -110,3 +123,29 @@ def testPermutations():
             "local_vulnerability", "coreness", "msf_synchronizability",
             "spreading", "nsi_spreading"
         ])
+
+
+def testNSI():
+    """
+    Consistency of nsi measures with splitted network copies
+    """
+    dnw = Network.SmallDirectedTestNetwork()
+    nw = Network.SmallTestNetwork()
+    nsi_measures = ["nsi_degree", "nsi_indegree", "nsi_outdegree",
+                    "nsi_closeness", "nsi_harmonic_closeness",
+                    "nsi_exponential_closeness", "nsi_arenas_betweenness",
+                    "nsi_spreading",
+                    "nsi_local_cyclemotif_clustering",
+                    "nsi_local_midmotif_clustering",
+                    "nsi_local_inmotif_clustering",
+                    "nsi_local_outmotif_clustering"]
+    nsi_undirected_measures = ["nsi_local_clustering",
+                               "nsi_average_neighbors_degree",
+                               "nsi_max_neighbors_degree",
+                               "nsi_eigenvector_centrality",
+                               "nsi_local_clustering",
+                               "nsi_local_soffer_clustering",
+                               "nsi_newman_betweenness"]
+
+    compareNSI(dnw, nsi_measures)
+    compareNSI(nw, nsi_measures + nsi_undirected_measures)

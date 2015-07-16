@@ -367,8 +367,8 @@ class Network(object):
         new_w[N] = proportion * w[node]
         new_w[node] = (1.0 - proportion) * w[node]
 
-        return Network(adjacency=new_A, directed=False, node_weights=new_w,
-                       silence_level=self.silence_level)
+        return Network(adjacency=new_A, directed=self.directed,
+                       node_weights=new_w, silence_level=self.silence_level)
 
     @property
     def adjacency(self):
@@ -2031,7 +2031,7 @@ can only take values <<in>> or <<out>>."
         """
         return self.local_clustering().mean()
 
-    def _motif_clustering_helper(self, t_func, T):
+    def _motif_clustering_helper(self, t_func, T, nsi=False):
         """
         Helper function to compute the local motif clustering coefficients.
         For each node, returns a specific clustering coefficient, depending
@@ -2041,20 +2041,29 @@ can only take values <<in>> or <<out>>."
         :arg 1d numpy array [node]: denominator made out of (in/out/bil)degrees
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
-        A = self.sp_A
-        t = t_func(A).diagonal()
+        if nsi:
+            A = self.sp_Aplus() * sp.csc_matrix(np.eye(self.N) *
+                                                self.node_weights)
+            AT = self.sp_Aplus().T * sp.csc_matrix(np.eye(self.N) *
+                                                   self.node_weights)
+        else:
+            A = self.sp_A
+            AT = A.T
+        t = t_func(A, AT).diagonal()
         T = T.astype(float)
         T[T == 0] = np.nan
-        C = t / T
+        C = t / (self.node_weights * T) if nsi else t / T
         C[np.isnan(C)] = 0
         return C
 
-    @cached_const('base', 'local cyclemotiv',
+    @cached_const('base', 'local cyclemotif',
                   'local cycle motif clustering coefficient')
     def local_cyclemotif_clustering(self):
         """
-        For each node, return the clustering coeffiction with respect to the
-        cycle motive.
+        For each node, return the clustering coefficient with respect to the
+        cycle motif.
+
+        **Example:**
 
         >>> Network.SmallDirectedTestNetwork().local_cyclemotif_clustering()
         Calculating local cycle motif clustering coefficient...
@@ -2062,17 +2071,19 @@ can only take values <<in>> or <<out>>."
 
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
-        def t_func(x):
+        def t_func(x, xT):
             return x * x * x
         T = self.indegree() * self.outdegree() - self.bildegree()
         return self._motif_clustering_helper(t_func, T)
 
-    @cached_const('base', 'local midmotiv',
+    @cached_const('base', 'local midmotif',
                   'local mid. motif clustering coefficient')
     def local_midmotif_clustering(self):
         """
-        For each node, return the clustering coeffiction with respect to the
-        mid. motive.
+        For each node, return the clustering coefficient with respect to the
+        mid. motif.
+
+        **Example:**
 
         >>> Network.SmallDirectedTestNetwork().local_midmotif_clustering()
         Calculating local mid. motif clustering coefficient...
@@ -2080,17 +2091,19 @@ can only take values <<in>> or <<out>>."
 
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
-        def t_func(x):
-            return x * x.T * x
+        def t_func(x, xT):
+            return x * xT * x
         T = self.indegree() * self.outdegree() - self.bildegree()
         return self._motif_clustering_helper(t_func, T)
 
-    @cached_const('base', 'local inmotiv',
+    @cached_const('base', 'local inmotif',
                   'local in motif clustering coefficient')
     def local_inmotif_clustering(self):
         """
-        For each node, return the clustering coeffiction with respect to the
-        in motive.
+        For each node, return the clustering coefficient with respect to the
+        in motif.
+
+        **Example:**
 
         >>> Network.SmallDirectedTestNetwork().local_inmotif_clustering()
         Calculating local in motif clustering coefficient...
@@ -2098,17 +2111,19 @@ can only take values <<in>> or <<out>>."
 
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
-        def t_func(x):
-            return x.T * x * x
+        def t_func(x, xT):
+            return xT * x * x
         T = self.indegree() * (self.indegree() - 1)
         return self._motif_clustering_helper(t_func, T)
 
-    @cached_const('base', 'local outmotiv',
+    @cached_const('base', 'local outmotif',
                   'local out motif clustering coefficient')
     def local_outmotif_clustering(self):
         """
-        For each node, return the clustering coeffiction with respect to the
-        out motive.
+        For each node, return the clustering coefficient with respect to the
+        out motif.
+
+        **Example:**
 
         >>> Network.SmallDirectedTestNetwork().local_outmotif_clustering()
         Calculating local out motif clustering coefficient...
@@ -2116,10 +2131,149 @@ can only take values <<in>> or <<out>>."
 
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
-        def t_func(x):
-            return x * x * x.T
+        def t_func(x, xT):
+            return x * x * xT
         T = self.outdegree() * (self.outdegree() - 1)
         return self._motif_clustering_helper(t_func, T)
+
+    @cached_const('nsi', 'local cyclemotif',
+                  'local nsi cycle motif clustering coefficient')
+    def nsi_local_cyclemotif_clustering(self):
+        """
+        For each node, return the nsi clustering coefficient with respect to
+        the cycle motif.
+
+        **Examples:**
+
+        >>> net = Network.SmallDirectedTestNetwork()
+        >>> net.nsi_local_cyclemotif_clustering()
+        Calculating local nsi cycle motif clustering coefficient...
+        array([ 0.18448637,  0.20275024,  0.3220339 ,  0.32236842,  0.34385965,
+                0.625     ])
+        >>> net.splitted_copy(node=1).nsi_local_cyclemotif_clustering()
+        Calculating local nsi cycle motif clustering coefficient...
+        array([ 0.18448637,  0.20275024,  0.3220339 ,  0.32236842,  0.34385965,
+                0.625     ,  0.20275024])
+
+        as compared to the unweighted version:
+
+        >>> net = Network.SmallDirectedTestNetwork()
+        >>> net.local_cyclemotif_clustering()
+        Calculating local cycle motif clustering coefficient...
+        array([ 0.25,  0.25,  0.  ,  0.  ,  0.5 ,  0.  ])
+        >>> net.splitted_copy(node=1).local_cyclemotif_clustering()
+        Calculating local cycle motif clustering coefficient...
+        array([ 0.33333333,  0.125     ,  0.        ,  0.        ,  0.5       ,
+                0.        ,  0.125     ])
+        """
+        def t_func(x, xT):
+            return x * x * x
+        T = self.nsi_indegree() * self.nsi_outdegree()
+        return self._motif_clustering_helper(t_func, T, nsi=True)
+
+    @cached_const('nsi', 'local midemotif',
+                  'local nsi mid. motif clustering coefficient')
+    def nsi_local_midmotif_clustering(self):
+        """
+        For each node, return the nsi clustering coefficient with respect to
+        the mid motif.
+
+        **Examples:**
+
+        >>> net = Network.SmallDirectedTestNetwork()
+        >>> net.nsi_local_midmotif_clustering()
+        Calculating local nsi mid. motif clustering coefficient...
+        array([ 0.45372866,  0.51646946,  1.        ,  1.        ,  0.88815789,
+                1.        ])
+        >>> net.splitted_copy(node=4).nsi_local_midmotif_clustering()
+        Calculating local nsi mid. motif clustering coefficient...
+        array([ 0.45372866,  0.51646946,  1.        ,  1.        ,  0.88815789,
+                1.        ,  0.88815789])
+
+        as compared to the unweighted version:
+
+        >>> net = Network.SmallDirectedTestNetwork()
+        >>> net.local_midmotif_clustering()
+        Calculating local mid. motif clustering coefficient...
+        array([ 0. ,  0. ,  0. ,  1. ,  0.5,  0. ])
+        >>> net.splitted_copy(node=4).local_midmotif_clustering()
+        Calculating local mid. motif clustering coefficient...
+        array([ 0. ,  0. ,  0. ,  1. ,  0.8,  0. ,  0.8])
+        """
+        def t_func(x, xT):
+            return x * xT * x
+        T = self.nsi_indegree() * self.nsi_outdegree()
+        return self._motif_clustering_helper(t_func, T, nsi=True)
+
+    @cached_const('nsi', 'local inemotif',
+                  'local nsi in motif clustering coefficient')
+    def nsi_local_inmotif_clustering(self):
+        """
+        For each node, return the nsi clustering coefficient with respect to
+        the in motif.
+
+        **Examples:**
+
+        >>> net = Network.SmallDirectedTestNetwork()
+        >>> net.nsi_local_inmotif_clustering()
+        Calculating local nsi in motif clustering coefficient...
+        array([ 0.52884858,  0.66998932,  0.66934789,  0.75694444,  0.755625  ,
+                1.        ])
+        >>> net.splitted_copy(node=1).nsi_local_inmotif_clustering()
+        Calculating local nsi in motif clustering coefficient...
+        array([ 0.52884858,  0.66998932,  0.66934789,  0.75694444,  0.755625  ,
+                1.        ,  0.66998932])
+
+        as compared to the unweighted version:
+
+        >>> net = Network.SmallDirectedTestNetwork()
+        >>> net.local_inmotif_clustering()
+        Calculating local in motif clustering coefficient...
+        array([ 0. ,  0.5,  0.5,  0. ,  0. ,  0. ])
+        >>> net.splitted_copy(node=1).local_inmotif_clustering()
+        Calculating local in motif clustering coefficient...
+        array([ 0.        ,  0.5       ,  0.66666667,  0.        ,  1.        ,
+                0.        ,  0.5       ])
+        """
+        def t_func(x, xT):
+            return xT * x * x
+        T = self.nsi_indegree()**2
+        return self._motif_clustering_helper(t_func, T, nsi=True)
+
+    @cached_const('nsi', 'local outemotif',
+                  'local nsi out motif clustering coefficient')
+    def nsi_local_outmotif_clustering(self):
+        """
+        For each node, return the nsi clustering coefficient with respect to
+        the out motif.
+
+        **Examples:**
+
+        >>> net = Network.SmallDirectedTestNetwork()
+        >>> net.nsi_local_outmotif_clustering()
+        Calculating local nsi out motif clustering coefficient...
+        array([ 0.66998932,  0.66934789,  1.        ,  0.75277008,  0.58387196,
+                0.765625  ])
+        >>> net.splitted_copy(node=0).nsi_local_outmotif_clustering()
+        Calculating local nsi out motif clustering coefficient...
+        array([ 0.66998932,  0.66934789,  1.        ,  0.75277008,  0.58387196,
+                0.765625  ,  0.66998932])
+
+        as compared to the unweighted version:
+
+        >>> net = Network.SmallDirectedTestNetwork()
+        >>> net.local_outmotif_clustering()
+        Calculating local out motif clustering coefficient...
+        array([ 0.5,  0.5,  0. ,  0. ,  0. ,  0. ])
+        >>> net.splitted_copy(node=0).local_outmotif_clustering()
+        Calculating local out motif clustering coefficient...
+        array([ 0.5       ,  0.5       ,  0.        ,  0.        ,  0.33333333,
+                1.        ,  0.5       ])
+        """
+        def t_func(x, xT):
+            return x * x * xT
+        T = self.nsi_outdegree()**2
+        return self._motif_clustering_helper(t_func, T, nsi=True)
 
     @cached_const('base', 'transitivity', 'transitivity coefficient (C_1)')
     def transitivity(self):
