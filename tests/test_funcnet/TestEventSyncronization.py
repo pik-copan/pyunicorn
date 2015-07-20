@@ -80,4 +80,4 @@ def testVectorization():
         eventmatrix = 1-(np.random.rand(length, N) > eventprop).astype(int)
         ES = EventSynchronization(eventmatrix, taumax)
         assert np.allclose(UndirectedESyncMat(eventmatrix, taumax),
-                           ES.directed())
+                           ES.directedES())

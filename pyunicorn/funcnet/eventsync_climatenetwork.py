@@ -1,0 +1,138 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+#
+# This file is part of pyunicorn.
+# Copyright (C) 2008--2015 Jonathan F. Donges and pyunicorn authors
+# URL: <http://www.pik-potsdam.de/members/donges/software>
+# License: BSD (3-clause)
+
+"""
+Provides class for the analysis of dynamical systems and time series based
+on event synchronization
+"""
+
+# array object and fast numerics
+import numpy as np
+
+from .event_synchronization import EventSynchronization
+from ..climate import ClimateNetwork
+from ..climate import ClimateData
+from .. import Data
+
+
+#
+#  Class definitions
+#
+
+class EventSyncClimateNetwork(EventSynchronization, ClimateNetwork):
+    """
+    Class EventSyncClimateNetwork for generating and quantitatively analyzing
+    event synchronization networks.
+
+    References: [Boers2014]_.
+    """
+
+    #
+    #  Internal methods
+    #
+
+    def __init__(self, data, quantile_threshold, taumax,
+                 eventsynctype="directedES", non_local=False,
+                 node_weight_type="surface", winter_only=True,
+                 silence_level=0):
+        """
+        Initialize an instance of EventSyncClimateNetwork.
+
+        For other applications of event synchronization networks please use
+        the event synchronization class directly.
+
+        :type data: :classL`..climate.ClimateData`
+        :arg data: The climate data used for network construction.
+        :type quantile_threshold: float between 0 and 1
+        :arg quantile_threshold: values above will be treated as events
+        :arg int taumax: Maximum dynamical delay
+        :type eventsynctype: str
+        :arg eventsynctype: one of "directedES", "symmetricES" or
+            "antisymmetricES" [default: "directed"]
+        :arg bool non_local: Determines, whether links between spatially close
+            nodes should be suppressed.
+        :arg str ode_weight_type: The type of geographical node weight to be
+            used.
+        :arg bool winter_only: Determines, whether only data points from the
+            winter months (December, January and February) should be used for
+            analysis. Possibly, this further suppresses the annual cycle in the
+            time series.
+        :arg int silence_level: The inverse level of verbosity of the object.
+        """
+        self.__eventsynctype = eventsynctype
+        self.directed = not self.__eventsynctype == "symmetricES"
+
+        eventmatrix = data.observable() > np.percentile(data.observable(),
+                                                        quantile_threshold*100,
+                                                        axis=0)
+        EventSynchronization.__init__(self, eventmatrix.astype(int), taumax)
+
+        eventsyncmatrix = getattr(self, self.__eventsynctype)()
+        ClimateNetwork.__init__(self, grid=data.grid,
+                                similarity_measure=eventsyncmatrix,
+                                threshold=0,
+                                non_local=non_local,
+                                directed=self.directed,
+                                node_weight_type=node_weight_type,
+                                silence_level=silence_level)
+
+    def __str__(self):
+        """
+        Return a string representation of TsonisClimateNetwork.
+
+        **Example:**
+
+        >>> data = EventSyncClimateNetwork.SmallTestData()
+        >>> print EventSyncClimateNetwork(data, 0.8, 16)
+        Extracting network adjacency matrix by thresholding...
+        Setting area weights according to type surface...
+        Setting area weights according to type surface...
+        EventSyncClimateNetwork:
+        EventSynchronization: 6 variables, 10 timesteps, taumax: 16
+        ClimateNetwork:
+        GeoNetwork:
+        Network: directed, 6 nodes, 0 links, link density 0.000.
+        Geographical boundaries:
+                 time     lat     lon
+           min    0.0    0.00    2.50
+           max    9.0   25.00   15.00
+        Threshold: 0
+        Local connections filtered out: False
+        Type of event synchronization to construct the network: directedES
+        """
+        text = ("EventSyncClimateNetwork: \n%s\n%s\n" +
+                "Type of event synchronization to construct the network: %s")
+        return text % (EventSynchronization.__str__(self),
+                       ClimateNetwork.__str__(self), self.__eventsynctype)
+
+    @staticmethod
+    def SmallTestData():
+        """
+        Return test data set of 6 time series with 10 sampling points each.
+
+        **Example:**
+
+        >>> r(Data.SmallTestData().observable())
+        array([[ 0.    ,  1.    ,  0.    , -1.    , -0.    ,  1.    ],
+               [ 0.309 ,  0.9511, -0.309 , -0.9511,  0.309 ,  0.9511],
+               [ 0.5878,  0.809 , -0.5878, -0.809 ,  0.5878,  0.809 ],
+               [ 0.809 ,  0.5878, -0.809 , -0.5878,  0.809 ,  0.5878],
+               [ 0.9511,  0.309 , -0.9511, -0.309 ,  0.9511,  0.309 ],
+               [ 1.    ,  0.    , -1.    , -0.    ,  1.    ,  0.    ],
+               [ 0.9511, -0.309 , -0.9511,  0.309 ,  0.9511, -0.309 ],
+               [ 0.809 , -0.5878, -0.809 ,  0.5878,  0.809 , -0.5878],
+               [ 0.5878, -0.809 , -0.5878,  0.809 ,  0.5878, -0.809 ],
+               [ 0.309 , -0.9511, -0.309 ,  0.9511,  0.309 , -0.9511]])
+
+        :rtype: ClimateData instance
+        :return: a ClimateData instance for testing purposes.
+        """
+        data = Data.SmallTestData()
+
+        return ClimateData(observable=data.observable(), grid=data.grid,
+                           time_cycle=5, silence_level=2)

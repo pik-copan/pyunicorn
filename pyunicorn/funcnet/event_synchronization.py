@@ -8,8 +8,6 @@
 
 """
 Provides class for event synchronization measures.
-
-Written by Wolfram Barfuss.
 """
 
 # array object and fast numerics
@@ -64,8 +62,7 @@ class EventSynchronization(object):
 
         :type eventmatrix: 2D Numpy array [time, variables]
         :arg evenmatrix: Event series array
-        :type taumax: int
-        :arg taumax: Maximum dynamical delay
+        :arg int taumax: Maximum dynamical delay
         """
 
         self.__T = eventmatrix.shape[0]
@@ -91,11 +88,6 @@ class EventSynchronization(object):
         """
         Return a string representation of the EventSynchronization object.
         """
-#        text = ("Event synchronization object of event series with " +
-#                str(self.__N) + " variables and " + str(self.__T) +
-#                " timesteps. Maximum delay 'taumax' is " + str(self.taumax) +
-#                ".")
-#        return text
         return ('EventSynchronization: %i variables, %i timesteps, taumax: %i'
                 % (self.__N, self.__T, self.taumax))
 
@@ -103,8 +95,8 @@ class EventSynchronization(object):
     #  Definitions of event synchronization measures
     #
 
-    @cached_const('base', 'directed')
-    def directed(self):
+    @cached_const('base', 'directedES')
+    def directedES(self):
         """
         Returns the NxN matrix of the directed event synchronization measure.
         The entry [i, j] denotes the directed event synchrnoization from
@@ -119,21 +111,21 @@ class EventSynchronization(object):
                                                        eventmatrix[:, j])
         return res
 
-    def symmetric(self):
+    def symmetricES(self):
         """
         Returns the NxN matrix of the undirected or symmetrix event
         synchronization measure. It is obtained by the sum of both directed
         versions.
         """
-        directed = self.directed()
+        directed = self.directedES()
         return directed + directed.T
 
-    def antisymmetric(self):
+    def antisymmetricES(self):
         """
         Returns the NxN matrix of the antisymmetric synchronization measure.
         It is obtained by the difference of both directed versions.
         """
-        directed = self.directed()
+        directed = self.directedES()
         return directed - directed.T
 
     def _EventSync(self, EventSeriesX, EventSeriesY):
