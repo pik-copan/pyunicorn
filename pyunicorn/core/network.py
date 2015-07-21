@@ -62,6 +62,9 @@ def cache_helper(self, cat, key, msg, func, *args, **kwargs):
     :arg str msg: message to be displayed during first calculation
     :arg func func: function to be cached
     """
+    # categories can be added on the fly?!?!
+    self.cache.setdefault(cat, {})
+
     if self.cache[cat].setdefault(key) is None:
         if msg is not None and self.silence_level <= 1:
             print 'Calculating ' + msg + '...'
@@ -367,8 +370,21 @@ class Network(object):
         new_w[N] = proportion * w[node]
         new_w[node] = (1.0 - proportion) * w[node]
 
-        return Network(adjacency=new_A, directed=self.directed,
-                       node_weights=new_w, silence_level=self.silence_level)
+        new_NW = Network(adjacency=new_A, directed=self.directed,
+                         node_weights=new_w, silence_level=self.silence_level)
+        # -- Copy link attributes
+        for a in self.graph.es.attributes():
+            W = self.link_attribute(a)
+            new_W = np.zeros((N+1, N+1))
+            new_W[:N, :N] = W
+            # add last row and column
+            new_W[:N, N] = W[:, node]
+            new_W[N, :N] = W[node, :]
+            # assign weight between new node and original and for self loop
+            new_W[node, N] = new_W[N, node] = new_W[N, N] = W[node, node]
+            new_NW.set_link_attribute(a, new_W)
+        # --
+        return new_NW
 
     @property
     def adjacency(self):
@@ -667,12 +683,20 @@ class Network(object):
 
         :rtype: Network instance
         """
-        return Network(adjacency=[[0, 0, 0, 1, 1, 1], [0, 0, 1, 1, 1, 0],
-                                  [0, 1, 0, 0, 1, 0], [1, 1, 0, 0, 0, 0],
-                                  [1, 1, 1, 0, 0, 0], [1, 0, 0, 0, 0, 0]],
-                       directed=False,
-                       node_weights=[1.5, 1.7, 1.9, 2.1, 2.3, 2.5],
-                       silence_level=1)
+        nw = Network(adjacency=[[0, 0, 0, 1, 1, 1], [0, 0, 1, 1, 1, 0],
+                                [0, 1, 0, 0, 1, 0], [1, 1, 0, 0, 0, 0],
+                                [1, 1, 1, 0, 0, 0], [1, 0, 0, 0, 0, 0]],
+                     directed=False,
+                     node_weights=[1.5, 1.7, 1.9, 2.1, 2.3, 2.5],
+                     silence_level=1)
+        link_weights = np.array([[0, 0, 0, 1.3, 2.5, 1.1],
+                                 [0, 0, 2.3, 2.9, 2.7, 0],
+                                 [0, 2.3, 0, 0, 1.5, 0],
+                                 [1.3, 2.9, 0, 0, 0, 0],
+                                 [2.5, 2.7, 1.5, 0, 0, 0],
+                                 [1.1, 0, 0, 0, 0, 0]])
+        nw.set_link_attribute("link_weights", link_weights)
+        return nw
 
     @staticmethod
     def SmallDirectedTestNetwork():
@@ -1567,57 +1591,77 @@ can only take values <<in>> or <<out>>."
     #  Degree related measures
     #
 
-    @cached_const('base', 'degree')
-    def degree(self):
+    # @cached_const('base', 'degree')
+    @cached_var('degree')
+    def degree(self, key=None):
         """
         Return list of degrees.
+
+        If a link attribute key is specified, return the associated strength
 
         **Example:**
 
         >>> Network.SmallTestNetwork().degree()
         array([3, 3, 2, 2, 3, 1])
 
+        :arg str key: link attribute key [optional]
         :rtype: array([int>=0])
         """
         if self.directed:
-            return self.indegree() + self.outdegree()
+            return self.indegree(key) + self.outdegree(key)
         else:
-            return self.outdegree()
+            return self.outdegree(key)
 
     # TODO: use directed example here and elsewhere
-    @cached_const('base', 'indegree')
-    def indegree(self):
+    @cached_var('indegree')
+    def indegree(self, key=None):
         """
         Return list of in-degrees.
+
+        If a link attribute key is specified, return the associated in strength
 
         **Example:**
 
         >>> Network.SmallDirectedTestNetwork().indegree()
         array([2, 2, 2, 1, 1, 0])
 
+        :arg str key: link attribute key [optional]
         :rtype: array([int>=0])
         """
-        return self.sp_A.sum(axis=0).A.squeeze().astype(int)
+        if key is None:
+            return self.sp_A.sum(axis=0).A.squeeze().astype(int)
+        else:
+            return self.link_attribute(key).sum(axis=0).T
 
-    @cached_const('base', 'outdegree')
-    def outdegree(self):
+    @cached_var('outdegree')
+    def outdegree(self, key=None):
         """
         Return list of out-degrees.
+
+        If a link attribute key is specified, return the associated out
+        strength
 
         **Example:**
 
         >>> Network.SmallDirectedTestNetwork().outdegree()
         array([2, 2, 0, 1, 2, 1])
 
+        :arg str key: link attribute key [optional]
         :rtype: array([int>=0])
         """
-        return self.sp_A.sum(axis=1).T.A.squeeze().astype(int)
+        if key is None:
+            return self.sp_A.sum(axis=1).T.A.squeeze().astype(int)
+        else:
+            return self.link_attribute(key).sum(axis=1).T
 
-    @cached_const('base', 'bildegree')
-    def bildegree(self):
+    @cached_var('bildegree')
+    def bildegree(self, key=None):
         """
-        Return list of bilateral degrees, i.e. the number of in- and out-going
-        edges.
+        Return list of bilateral degrees, i.e. the number of simultaneously in-
+        and out-going edges.
+
+        If a link attribute key is specified, return the associated bilateral
+        strength
 
         **Exmaple:**
 
@@ -1627,19 +1671,31 @@ can only take values <<in>> or <<out>>."
         >>> (net.bildegree() == net.degree()).all()
         True
         """
-        return (self.sp_A * self.sp_A).diagonal()
+        if key is None:
+            return (self.sp_A * self.sp_A).diagonal()
+        else:
+            w = np.matrix(self.link_attribute(key))
+            return (w * w).diagonal()
 
-    @cached_const('nsi', 'degree', 'n.s.i. degree')
-    def nsi_degree_uncorr(self):
+    @cached_var('nsi_degree', 'n.s.i. degree')
+    def nsi_degree_uncorr(self, key=None):
         """
         For each node, return its uncorrected n.s.i. degree.
 
+        If a link attribute key is specified, return the associated nsi
+        strength
+
+        :arg str key: link attribute key [optional]
         :rtype: array([float])
         """
         if self.directed:
-            return self.nsi_indegree() + self.nsi_outdegree()
+            return self.nsi_indegree(key) + self.nsi_outdegree(key)
         else:
-            return self.sp_Aplus() * self.node_weights
+            if key is None:
+                return self.sp_Aplus() * self.node_weights
+            else:
+                w = np.matrix(self.link_attribute(key))
+                return (self.node_weights * w).A.squeeze()
 
     def sp_nsi_diag_k(self):
         """Sparse diagonal matrix of n.s.i. degrees"""
@@ -1651,9 +1707,13 @@ can only take values <<in>> or <<out>>."
         return sp.diags([np.power(self.nsi_degree_uncorr(), -1)], [0],
                         shape=(self.N, self.N), format='csc')
 
-    def nsi_degree(self, typical_weight=None):
+    def nsi_degree(self, typical_weight=None, key=None):
         """
         For each node, return its uncorrected or corrected n.s.i. degree.
+
+        If a link attribute key is specified, return the associated nsi
+        strength
+
 
         **Examples:**
 
@@ -1682,18 +1742,21 @@ can only take values <<in>> or <<out>>."
         :arg  typical_weight: Optional typical node weight to be used for
                               correction. If None, the uncorrected measure is
                               returned. (Default: None)
-
+        :arg str key: link attribute key (optional)
         :rtype: array([float])
         """
         if typical_weight is None:
-            return self.nsi_degree_uncorr()
+            return self.nsi_degree_uncorr(key)
         else:
-            return self.nsi_degree_uncorr()/typical_weight - 1.0
+            return self.nsi_degree_uncorr(key)/typical_weight - 1.0
 
-    @cached_const('nsi', 'indegree')
-    def nsi_indegree(self):
+    @cached_var('nsi_indegree')
+    def nsi_indegree(self, key=None):
         """
         For each node, return its n.s.i. indegree
+
+        If a link attribute key is specified, return the associated nsi in
+        strength
 
         **Examples:**
 
@@ -1710,13 +1773,22 @@ can only take values <<in>> or <<out>>."
         array([2, 2, 2, 1, 1, 0])
         >>> net.splitted_copy().indegree()
         array([3, 2, 2, 1, 1, 1, 1])
-        """
-        return self.node_weights * self.sp_Aplus()
 
-    @cached_const('nsi', 'outdegree')
-    def nsi_outdegree(self):
+        :arg str key: link attribute key [optional]
+        """
+        if key is None:
+            return self.node_weights * self.sp_Aplus()
+        else:
+            w = np.matrix(self.link_attribute(key))
+            return (np.matrix(self.node_weights) * w).A.squeeze()
+
+    @cached_var('nsi_outdegree')
+    def nsi_outdegree(self, key=None):
         """
         For each node, return its n.s.i.outdegree
+
+        If a link attribute key is specified, return the associated nsi out
+        strength
 
         **Examples:**
 
@@ -1733,8 +1805,14 @@ can only take values <<in>> or <<out>>."
         array([2, 2, 0, 1, 2, 1])
         >>> net.splitted_copy().outdegree()
         array([2, 2, 0, 1, 2, 2, 2])
+
+        :arg str key: link attribute key [optional]
         """
-        return self.sp_Aplus() * self.node_weights
+        if key is None:
+            return self.sp_Aplus() * self.node_weights
+        else:
+            w = np.matrix(self.link_attribute(key))
+            return (w * np.matrix(self.node_weights).T).T.A.squeeze()
 
     @cached_const('base', 'degree df', 'the degree frequency distribution')
     def degree_distribution(self):
@@ -2031,7 +2109,7 @@ can only take values <<in>> or <<out>>."
         """
         return self.local_clustering().mean()
 
-    def _motif_clustering_helper(self, t_func, T, nsi=False):
+    def _motif_clustering_helper(self, t_func, T, key=None, nsi=False):
         """
         Helper function to compute the local motif clustering coefficients.
         For each node, returns a specific clustering coefficient, depending
@@ -2039,16 +2117,20 @@ can only take values <<in>> or <<out>>."
 
         :arg function t_func: multiplication of adjacency-type matrices
         :arg 1d numpy array [node]: denominator made out of (in/out/bil)degrees
+        :arg str key: link attribute key (optional)
+        :arg bool nsi: flag for nsi calculation (default: False)
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
         if nsi:
-            A = self.sp_Aplus() * sp.csc_matrix(np.eye(self.N) *
-                                                self.node_weights)
-            AT = self.sp_Aplus().T * sp.csc_matrix(np.eye(self.N) *
-                                                   self.node_weights)
+            nodew = sp.csc_matrix(np.eye(self.N) * self.node_weights)
+        if key is None:
+            A = self.sp_Aplus() * nodew if nsi else self.sp_A
+            AT = self.sp_Aplus().T * nodew if nsi else A.T
         else:
-            A = self.sp_A
-            AT = A.T
+            M = sp.csc_matrix(self.link_attribute(key)**(1/3.))
+            A = M * nodew if nsi else M
+            AT = M.T * nodew if nsi else M.T
+
         t = t_func(A, AT).diagonal()
         T = T.astype(float)
         T[T == 0] = np.nan
@@ -2056,12 +2138,14 @@ can only take values <<in>> or <<out>>."
         C[np.isnan(C)] = 0
         return C
 
-    @cached_const('base', 'local cyclemotif',
-                  'local cycle motif clustering coefficient')
-    def local_cyclemotif_clustering(self):
+    @cached_var('local cyclemotif', 'local cycle motif clustering coefficient')
+    def local_cyclemotif_clustering(self, key=None):
         """
         For each node, return the clustering coefficient with respect to the
         cycle motif.
+
+        If a link attribute key is specified, return the associated link
+        weighted version
 
         **Example:**
 
@@ -2069,19 +2153,22 @@ can only take values <<in>> or <<out>>."
         Calculating local cycle motif clustering coefficient...
         array([ 0.25,  0.25,  0.  ,  0.  ,  0.5 ,  0.  ])
 
+        :arg str key: link attribute key (optional)
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
         def t_func(x, xT):
             return x * x * x
         T = self.indegree() * self.outdegree() - self.bildegree()
-        return self._motif_clustering_helper(t_func, T)
+        return self._motif_clustering_helper(t_func, T, key=key)
 
-    @cached_const('base', 'local midmotif',
-                  'local mid. motif clustering coefficient')
-    def local_midmotif_clustering(self):
+    @cached_var('local midmotif', 'local mid. motif clustering coefficient')
+    def local_midmotif_clustering(self, key=None):
         """
         For each node, return the clustering coefficient with respect to the
         mid. motif.
+
+        If a link attribute key is specified, return the associated link
+        weighted version
 
         **Example:**
 
@@ -2089,19 +2176,22 @@ can only take values <<in>> or <<out>>."
         Calculating local mid. motif clustering coefficient...
         array([ 0. ,  0. ,  0. ,  1. ,  0.5,  0. ])
 
+        :arg str key: link attribute key (optional)
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
         def t_func(x, xT):
             return x * xT * x
         T = self.indegree() * self.outdegree() - self.bildegree()
-        return self._motif_clustering_helper(t_func, T)
+        return self._motif_clustering_helper(t_func, T, key=key)
 
-    @cached_const('base', 'local inmotif',
-                  'local in motif clustering coefficient')
-    def local_inmotif_clustering(self):
+    @cached_var('local inmotif', 'local in motif clustering coefficient')
+    def local_inmotif_clustering(self, key=None):
         """
         For each node, return the clustering coefficient with respect to the
         in motif.
+
+        If a link attribute key is specified, return the associated link
+        weighted version
 
         **Example:**
 
@@ -2109,19 +2199,22 @@ can only take values <<in>> or <<out>>."
         Calculating local in motif clustering coefficient...
         array([ 0. ,  0.5,  0.5,  0. ,  0. ,  0. ])
 
+        :arg str key: link attribute key (optional)
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
         def t_func(x, xT):
             return xT * x * x
         T = self.indegree() * (self.indegree() - 1)
-        return self._motif_clustering_helper(t_func, T)
+        return self._motif_clustering_helper(t_func, T, key=key)
 
-    @cached_const('base', 'local outmotif',
-                  'local out motif clustering coefficient')
-    def local_outmotif_clustering(self):
+    @cached_var('local outmotif', 'local out motif clustering coefficient')
+    def local_outmotif_clustering(self, key=None):
         """
         For each node, return the clustering coefficient with respect to the
         out motif.
+
+        If a link attribute key is specified, return the associated link
+        weighted version
 
         **Example:**
 
@@ -2129,19 +2222,25 @@ can only take values <<in>> or <<out>>."
         Calculating local out motif clustering coefficient...
         array([ 0.5,  0.5,  0. ,  0. ,  0. ,  0. ])
 
+        :arg str key: link attribute key (optional)
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
         def t_func(x, xT):
             return x * x * xT
         T = self.outdegree() * (self.outdegree() - 1)
-        return self._motif_clustering_helper(t_func, T)
+        return self._motif_clustering_helper(t_func, T, key=key)
 
-    @cached_const('nsi', 'local cyclemotif',
-                  'local nsi cycle motif clustering coefficient')
-    def nsi_local_cyclemotif_clustering(self):
+    @cached_var('nsi local cyclemotif',
+                'local nsi cycle motif clustering coefficient')
+    def nsi_local_cyclemotif_clustering(self, key=None):
         """
         For each node, return the nsi clustering coefficient with respect to
         the cycle motif.
+
+        If a link attribute key is specified, return the associated link
+        weighted version
+
+        Reference: [Zemp2014]_
 
         **Examples:**
 
@@ -2165,18 +2264,25 @@ can only take values <<in>> or <<out>>."
         Calculating local cycle motif clustering coefficient...
         array([ 0.33333333,  0.125     ,  0.        ,  0.        ,  0.5       ,
                 0.        ,  0.125     ])
+
+        :arg str key: link attribute key (optional)
         """
         def t_func(x, xT):
             return x * x * x
         T = self.nsi_indegree() * self.nsi_outdegree()
-        return self._motif_clustering_helper(t_func, T, nsi=True)
+        return self._motif_clustering_helper(t_func, T, key=key, nsi=True)
 
-    @cached_const('nsi', 'local midemotif',
-                  'local nsi mid. motif clustering coefficient')
-    def nsi_local_midmotif_clustering(self):
+    @cached_var('nsi local midemotif',
+                'local nsi mid. motif clustering coefficient')
+    def nsi_local_midmotif_clustering(self, key=None):
         """
         For each node, return the nsi clustering coefficient with respect to
         the mid motif.
+
+        If a link attribute key is specified, return the associated link
+        weighted version
+
+        Reference: [Zemp2014]_
 
         **Examples:**
 
@@ -2199,18 +2305,25 @@ can only take values <<in>> or <<out>>."
         >>> net.splitted_copy(node=4).local_midmotif_clustering()
         Calculating local mid. motif clustering coefficient...
         array([ 0. ,  0. ,  0. ,  1. ,  0.8,  0. ,  0.8])
+
+        :arg str key: link attribute key (optional)
         """
         def t_func(x, xT):
             return x * xT * x
         T = self.nsi_indegree() * self.nsi_outdegree()
-        return self._motif_clustering_helper(t_func, T, nsi=True)
+        return self._motif_clustering_helper(t_func, T, key=key, nsi=True)
 
-    @cached_const('nsi', 'local inemotif',
-                  'local nsi in motif clustering coefficient')
-    def nsi_local_inmotif_clustering(self):
+    @cached_var('nsi local inemotif',
+                'local nsi in motif clustering coefficient')
+    def nsi_local_inmotif_clustering(self, key=None):
         """
         For each node, return the nsi clustering coefficient with respect to
         the in motif.
+
+        If a link attribute key is specified, return the associated link
+        weighted version
+
+        Reference: [Zemp2014]_
 
         **Examples:**
 
@@ -2234,18 +2347,25 @@ can only take values <<in>> or <<out>>."
         Calculating local in motif clustering coefficient...
         array([ 0.        ,  0.5       ,  0.66666667,  0.        ,  1.        ,
                 0.        ,  0.5       ])
+
+        :arg str key: link attribute key (optional)
         """
         def t_func(x, xT):
             return xT * x * x
         T = self.nsi_indegree()**2
-        return self._motif_clustering_helper(t_func, T, nsi=True)
+        return self._motif_clustering_helper(t_func, T, key=key, nsi=True)
 
-    @cached_const('nsi', 'local outemotif',
-                  'local nsi out motif clustering coefficient')
-    def nsi_local_outmotif_clustering(self):
+    @cached_var('nsi local outemotif',
+                'local nsi out motif clustering coefficient')
+    def nsi_local_outmotif_clustering(self, key=None):
         """
         For each node, return the nsi clustering coefficient with respect to
         the out motif.
+
+        If a link attribute key is specified, return the associated link
+        weighted version
+
+        Reference: [Zemp2014]_
 
         **Examples:**
 
@@ -2269,11 +2389,13 @@ can only take values <<in>> or <<out>>."
         Calculating local out motif clustering coefficient...
         array([ 0.5       ,  0.5       ,  0.        ,  0.        ,  0.33333333,
                 1.        ,  0.5       ])
+
+        :arg str key: link attribute key (optional)
         """
         def t_func(x, xT):
             return x * x * xT
         T = self.nsi_outdegree()**2
-        return self._motif_clustering_helper(t_func, T, nsi=True)
+        return self._motif_clustering_helper(t_func, T, key=key, nsi=True)
 
     @cached_const('base', 'transitivity', 'transitivity coefficient (C_1)')
     def transitivity(self):

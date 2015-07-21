@@ -68,14 +68,19 @@ def comparePermutations(net, permutations, measures):
 def compareNSI(net, nsi_measures):
     net_copies = [net.splitted_copy(node=i) for i in range(net.N)]
     for nsi_measure in nsi_measures:
+        if isinstance(nsi_measure, tuple):
+            kwargs = nsi_measure[1]
+            nsi_measure = nsi_measure[0]
+        else:
+            kwargs = {}
         print nsi_measure
         for i, netc in enumerate(net_copies):
             # test for invariance of old nodes
-            assert np.allclose(getattr(netc, nsi_measure)()[0:net.N],
-                               getattr(net, nsi_measure)())
-            # test for invariance of origianl and copied node
-            assert np.allclose(getattr(netc, nsi_measure)()[i],
-                               getattr(netc, nsi_measure)()[-1])
+            assert np.allclose(getattr(netc, nsi_measure)(**kwargs)[0:net.N],
+                               getattr(net, nsi_measure)(**kwargs))
+            # test for invariance of origianl and new splitted node
+            assert np.allclose(getattr(netc, nsi_measure)(**kwargs)[i],
+                               getattr(netc, nsi_measure)(**kwargs)[-1])
 
 
 # -----------------------------------------------------------------------------
@@ -131,6 +136,7 @@ def testNSI():
     """
     dnw = Network.SmallDirectedTestNetwork()
     nw = Network.SmallTestNetwork()
+
     nsi_measures = ["nsi_degree", "nsi_indegree", "nsi_outdegree",
                     "nsi_closeness", "nsi_harmonic_closeness",
                     "nsi_exponential_closeness", "nsi_arenas_betweenness",
@@ -138,7 +144,19 @@ def testNSI():
                     "nsi_local_cyclemotif_clustering",
                     "nsi_local_midmotif_clustering",
                     "nsi_local_inmotif_clustering",
-                    "nsi_local_outmotif_clustering"]
+                    "nsi_local_outmotif_clustering",
+                    ("nsi_degree", {"key": "link_weights"}),
+                    ("nsi_indegree", {"key": "link_weights"}),
+                    ("nsi_outdegree", {"key": "link_weights"}),
+                    ("nsi_local_cyclemotif_clustering",
+                     {"key": "link_weights"}),
+                    ("nsi_local_midmotif_clustering",
+                     {"key": "link_weights"}),
+                    ("nsi_local_inmotif_clustering",
+                     {"key": "link_weights"}),
+                    ("nsi_local_outmotif_clustering",
+                     {"key": "link_weights"})]
+
     nsi_undirected_measures = ["nsi_local_clustering",
                                "nsi_average_neighbors_degree",
                                "nsi_max_neighbors_degree",
