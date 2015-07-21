@@ -94,15 +94,50 @@ class InteractingNetworks(Network):
         :rtype: InteractingNetworks instance
         :return: an InteractingNetworks instance for testing purposes.
         """
-        return InteractingNetworks(adjacency=[[0, 0, 0, 1, 1, 1],
-                                              [0, 0, 1, 1, 1, 0],
-                                              [0, 1, 0, 0, 1, 0],
-                                              [1, 1, 0, 0, 0, 0],
-                                              [1, 1, 1, 0, 0, 0],
-                                              [1, 0, 0, 0, 0, 0]],
-                                   directed=False,
-                                   node_weights=[0.6, 0.8, 1.0, 1.2, 1.4, 1.6],
-                                   silence_level=2)
+        nw = InteractingNetworks(adjacency=[[0, 0, 0, 1, 1, 1],
+                                            [0, 0, 1, 1, 1, 0],
+                                            [0, 1, 0, 0, 1, 0],
+                                            [1, 1, 0, 0, 0, 0],
+                                            [1, 1, 1, 0, 0, 0],
+                                            [1, 0, 0, 0, 0, 0]],
+                                 directed=False,
+                                 node_weights=[0.6, 0.8, 1.0, 1.2, 1.4, 1.6],
+                                 silence_level=2)
+        link_weights = np.array([[0, 0, 0, 1.3, 2.5, 1.1],
+                                 [0, 0, 2.3, 2.9, 2.7, 0],
+                                 [0, 2.3, 0, 0, 1.5, 0],
+                                 [1.3, 2.9, 0, 0, 0, 0],
+                                 [2.5, 2.7, 1.5, 0, 0, 0],
+                                 [1.1, 0, 0, 0, 0, 0]])
+        nw.set_link_attribute("link_weights", link_weights)
+        return nw
+
+    @staticmethod
+    def SmallDirectedTestNetwork():
+        """
+        Return a 6-node directed test network with node and edge weights.
+
+        The node weights are [1.5, 1.7, 1.9, 2.1, 2.3, 2.5],
+        a typical node weight for corrected n.s.i. measures would be 2.0.
+
+        :rtype: InteractingNetworks instance
+        """
+        nw = InteractingNetworks(adjacency=[[0, 1, 0, 1, 0, 0],
+                                            [0, 0, 1, 0, 1, 0],
+                                            [0, 0, 0, 0, 0, 0],
+                                            [0, 1, 0, 0, 0, 0],
+                                            [1, 0, 1, 0, 0, 0],
+                                            [1, 0, 0, 0, 0, 0]],
+                                 directed=True,
+                                 node_weights=[0.6, 0.8, 1.0, 1.2, 1.4, 1.6],
+                                 silence_level=1)
+        nw.set_link_attribute("link_weights", np.array([[0, 1.3, 0, 2.5, 0, 0],
+                                                        [0, 0, 1.9, 0, 1.0, 0],
+                                                        [0, 0, 0, 0, 0, 0],
+                                                        [0, 3.0, 0, 0, 0, 0],
+                                                        [2.1, 0, 2.7, 0, 0, 0],
+                                                        [1.5, 0, 0, 0, 0, 0]]))
+        return nw
 
     @staticmethod
     def RandomlySetCrossLinks(network, node_list1, node_list2,
@@ -1078,12 +1113,45 @@ chosen link density."
         :return: the cross degree sequence.
         """
         if self.directed:
-            print "Not implemented yet!"
+            return (self.cross_indegree(node_list1, node_list2) +
+                    self.cross_outdegree(node_list1, node_list2))
         else:
             cross_A = self.cross_adjacency(node_list1, node_list2)
             cross_degree = cross_A.sum(axis=1)
 
             return cross_degree
+
+    def cross_indegree(self, node_list1, node_list2):
+        """
+        Return the cross indegree sequence for the first given subnetwork with
+        respect to the second given subnetwork
+
+        Gives the number of links from nodes in subnetwork two to a specific
+        node from subnetwork 1
+
+        **Example:**
+
+        >>> net = InteractingNetworks.SmallDirectedTestNetwork()
+        >>> net.cross_indegree([1, 2], [0, 3, 4])
+        array([2, 1])
+        """
+        return np.sum(self.cross_adjacency(node_list2, node_list1), axis=0)
+
+    def cross_outdegree(self, node_list1, node_list2):
+        """
+        Return the cross outdegree sequence for the first given subnetwork with
+        respect to the second given subnetwork
+
+        Gives the number of links from a specific node in subnetwork one to
+        nodes in subnetwork two
+
+        **Example:**
+
+        >>> net = InteractingNetworks.SmallDirectedTestNetwork()
+        >>> net.cross_outdegree([1, 2], [0, 3, 4])
+        array([1, 0])
+        """
+        return np.sum(self.cross_adjacency(node_list1, node_list2), axis=1)
 
     def internal_degree(self, node_list):
         """
@@ -1104,11 +1172,42 @@ chosen link density."
         :return: the internal degree sequence.
         """
         if self.directed:
-            print "Not implemented yet!"
+            return (self.internal_indegree(node_list) +
+                    self.internal_outdegree(node_list))
         else:
             degree = self.internal_adjacency(node_list).sum(axis=0)
 
             return degree
+
+    def internal_indegree(self, node_list):
+        """
+        Return the internal indegree sequence of one induced subnetwork.
+
+        Gives the number of links from other nodes to a specific node within
+        the same induced subnetwork.
+
+        **Example:**
+
+        >>> net = InteractingNetworks.SmallDirectedTestNetwork()
+        >>> net.internal_indegree([0, 1, 3])
+        array([0, 2, 1])
+        """
+        return np.sum(self.internal_adjacency(node_list), axis=0)
+
+    def internal_outdegree(self, node_list):
+        """
+        Return the internal outdegree sequence of one induced subnetwork.
+
+        Gives the number of links from a specific node to other nodes within
+        the same induced subnetwork.
+
+        **Example:**
+
+        >>> net = InteractingNetworks.SmallDirectedTestNetwork()
+        >>> net.internal_outdegree([0, 1, 3])
+        array([2, 0, 1])
+        """
+        return np.sum(self.internal_adjacency(node_list), axis=1)
 
     def cross_local_clustering(self, node_list1, node_list2):
         """
