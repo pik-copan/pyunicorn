@@ -2149,7 +2149,7 @@ can only take values <<in>> or <<out>>."
 
         **Example:**
 
-        >>> Network.SmallDirectedTestNetwork().local_cyclemotif_clustering()
+        >>> r(Network.SmallDirectedTestNetwork().local_cyclemotif_clustering())
         Calculating local cycle motif clustering coefficient...
         array([ 0.25,  0.25,  0.  ,  0.  ,  0.5 ,  0.  ])
 
@@ -2172,7 +2172,7 @@ can only take values <<in>> or <<out>>."
 
         **Example:**
 
-        >>> Network.SmallDirectedTestNetwork().local_midmotif_clustering()
+        >>> r(Network.SmallDirectedTestNetwork().local_midmotif_clustering())
         Calculating local mid. motif clustering coefficient...
         array([ 0. ,  0. ,  0. ,  1. ,  0.5,  0. ])
 
@@ -2195,7 +2195,7 @@ can only take values <<in>> or <<out>>."
 
         **Example:**
 
-        >>> Network.SmallDirectedTestNetwork().local_inmotif_clustering()
+        >>> r(Network.SmallDirectedTestNetwork().local_inmotif_clustering())
         Calculating local in motif clustering coefficient...
         array([ 0. ,  0.5,  0.5,  0. ,  0. ,  0. ])
 
@@ -2218,7 +2218,7 @@ can only take values <<in>> or <<out>>."
 
         **Example:**
 
-        >>> Network.SmallDirectedTestNetwork().local_outmotif_clustering()
+        >>> r(Network.SmallDirectedTestNetwork().local_outmotif_clustering())
         Calculating local out motif clustering coefficient...
         array([ 0.5,  0.5,  0. ,  0. ,  0. ,  0. ])
 
@@ -2245,25 +2245,22 @@ can only take values <<in>> or <<out>>."
         **Examples:**
 
         >>> net = Network.SmallDirectedTestNetwork()
-        >>> net.nsi_local_cyclemotif_clustering()
+        >>> r(net.nsi_local_cyclemotif_clustering())
         Calculating local nsi cycle motif clustering coefficient...
-        array([ 0.18448637,  0.20275024,  0.3220339 ,  0.32236842,  0.34385965,
-                0.625     ])
-        >>> net.splitted_copy(node=1).nsi_local_cyclemotif_clustering()
+        array([ 0.1845,  0.2028,  0.322 ,  0.3224,  0.3439,  0.625 ])
+        >>> r(net.splitted_copy(node=1).nsi_local_cyclemotif_clustering())
         Calculating local nsi cycle motif clustering coefficient...
-        array([ 0.18448637,  0.20275024,  0.3220339 ,  0.32236842,  0.34385965,
-                0.625     ,  0.20275024])
+        array([ 0.1845,  0.2028,  0.322 ,  0.3224,  0.3439,  0.625 ,  0.2028])
 
         as compared to the unweighted version:
 
         >>> net = Network.SmallDirectedTestNetwork()
-        >>> net.local_cyclemotif_clustering()
+        >>> r(net.local_cyclemotif_clustering())
         Calculating local cycle motif clustering coefficient...
         array([ 0.25,  0.25,  0.  ,  0.  ,  0.5 ,  0.  ])
-        >>> net.splitted_copy(node=1).local_cyclemotif_clustering()
+        >>> r(net.splitted_copy(node=1).local_cyclemotif_clustering())
         Calculating local cycle motif clustering coefficient...
-        array([ 0.33333333,  0.125     ,  0.        ,  0.        ,  0.5       ,
-                0.        ,  0.125     ])
+        array([ 0.3333,  0.125 ,  0.    ,  0.    ,  0.5   ,  0.    ,  0.125 ])
 
         :arg str key: link attribute key (optional)
         """
@@ -2287,22 +2284,20 @@ can only take values <<in>> or <<out>>."
         **Examples:**
 
         >>> net = Network.SmallDirectedTestNetwork()
-        >>> net.nsi_local_midmotif_clustering()
+        >>> r(net.nsi_local_midmotif_clustering())
         Calculating local nsi mid. motif clustering coefficient...
-        array([ 0.45372866,  0.51646946,  1.        ,  1.        ,  0.88815789,
-                1.        ])
-        >>> net.splitted_copy(node=4).nsi_local_midmotif_clustering()
+        array([ 0.4537,  0.5165,  1.    ,  1.    ,  0.8882,  1.    ])
+        >>> r(net.splitted_copy(node=4).nsi_local_midmotif_clustering())
         Calculating local nsi mid. motif clustering coefficient...
-        array([ 0.45372866,  0.51646946,  1.        ,  1.        ,  0.88815789,
-                1.        ,  0.88815789])
+        array([ 0.4537,  0.5165,  1.    ,  1.    ,  0.8882,  1.    ,  0.8882])
 
         as compared to the unweighted version:
 
         >>> net = Network.SmallDirectedTestNetwork()
-        >>> net.local_midmotif_clustering()
+        >>> r(net.local_midmotif_clustering())
         Calculating local mid. motif clustering coefficient...
         array([ 0. ,  0. ,  0. ,  1. ,  0.5,  0. ])
-        >>> net.splitted_copy(node=4).local_midmotif_clustering()
+        >>> r(net.splitted_copy(node=4).local_midmotif_clustering())
         Calculating local mid. motif clustering coefficient...
         array([ 0. ,  0. ,  0. ,  1. ,  0.8,  0. ,  0.8])
 
@@ -2328,25 +2323,23 @@ can only take values <<in>> or <<out>>."
         **Examples:**
 
         >>> net = Network.SmallDirectedTestNetwork()
-        >>> net.nsi_local_inmotif_clustering()
+        >>> r(net.nsi_local_inmotif_clustering())
         Calculating local nsi in motif clustering coefficient...
-        array([ 0.52884858,  0.66998932,  0.66934789,  0.75694444,  0.755625  ,
-                1.        ])
-        >>> net.splitted_copy(node=1).nsi_local_inmotif_clustering()
+        array([ 0.5288,  0.67  ,  0.6693,  0.7569,  0.7556,  1.    ])
+        >>> r(net.splitted_copy(node=1).nsi_local_inmotif_clustering())
         Calculating local nsi in motif clustering coefficient...
-        array([ 0.52884858,  0.66998932,  0.66934789,  0.75694444,  0.755625  ,
-                1.        ,  0.66998932])
+        array([ 0.5288,  0.67  ,  0.6693,  0.7569,  0.7556,  1.    ,  0.67  ])
 
         as compared to the unweighted version:
 
         >>> net = Network.SmallDirectedTestNetwork()
-        >>> net.local_inmotif_clustering()
+        >>> r(net.local_inmotif_clustering())
         Calculating local in motif clustering coefficient...
         array([ 0. ,  0.5,  0.5,  0. ,  0. ,  0. ])
-        >>> net.splitted_copy(node=1).local_inmotif_clustering()
+        >>> r(net.splitted_copy(node=1).local_inmotif_clustering())
         Calculating local in motif clustering coefficient...
-        array([ 0.        ,  0.5       ,  0.66666667,  0.        ,  1.        ,
-                0.        ,  0.5       ])
+        array([ 0.    ,  0.5   ,  0.6667,  0.    ,  1.    ,  0.    ,  0.5   ])
+
 
         :arg str key: link attribute key (optional)
         """
@@ -2370,25 +2363,22 @@ can only take values <<in>> or <<out>>."
         **Examples:**
 
         >>> net = Network.SmallDirectedTestNetwork()
-        >>> net.nsi_local_outmotif_clustering()
+        >>> r(net.nsi_local_outmotif_clustering())
         Calculating local nsi out motif clustering coefficient...
-        array([ 0.66998932,  0.66934789,  1.        ,  0.75277008,  0.58387196,
-                0.765625  ])
-        >>> net.splitted_copy(node=0).nsi_local_outmotif_clustering()
+        array([ 0.67  ,  0.6693,  1.    ,  0.7528,  0.5839,  0.7656])
+        >>> r(net.splitted_copy(node=0).nsi_local_outmotif_clustering())
         Calculating local nsi out motif clustering coefficient...
-        array([ 0.66998932,  0.66934789,  1.        ,  0.75277008,  0.58387196,
-                0.765625  ,  0.66998932])
+        array([ 0.67  ,  0.6693,  1.    ,  0.7528,  0.5839,  0.7656,  0.67  ])
 
         as compared to the unweighted version:
 
         >>> net = Network.SmallDirectedTestNetwork()
-        >>> net.local_outmotif_clustering()
+        >>> r(net.local_outmotif_clustering())
         Calculating local out motif clustering coefficient...
         array([ 0.5,  0.5,  0. ,  0. ,  0. ,  0. ])
-        >>> net.splitted_copy(node=0).local_outmotif_clustering()
+        >>> r(net.splitted_copy(node=0).local_outmotif_clustering())
         Calculating local out motif clustering coefficient...
-        array([ 0.5       ,  0.5       ,  0.        ,  0.        ,  0.33333333,
-                1.        ,  0.5       ])
+        array([ 0.5   ,  0.5   ,  0.    ,  0.    ,  0.3333,  1.    ,  0.5   ])
 
         :arg str key: link attribute key (optional)
         """
