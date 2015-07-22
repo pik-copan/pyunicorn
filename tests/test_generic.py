@@ -30,6 +30,7 @@ def simple_instances():
     ts = ca[:, 0]
     t1, t2, t3 = [{'threshold': t} for t in [0.2, (0.2, 0.2), (0.2, 0.2, 0.2)]]
     es = 1-(np.random.rand(100, 10) > 0.4).astype(int)
+    ec = funcnet.EventSyncClimateNetwork.SmallTestData()
     return [
         core.Network.SmallTestNetwork(),
         core.Grid.SmallTestGrid(),
@@ -57,5 +58,7 @@ def simple_instances():
         timeseries.VisibilityGraph(ts),
         funcnet.CouplingAnalysis(ca),
         funcnet.CouplingAnalysisPurePython(ca),
-        funcnet.EventSynchronization(es, 16)
+        funcnet.EventSynchronization(es, 16),
+        funcnet.EventSyncClimateNetwork(ec, 0.8, 16,
+                                        eventsynctype="directedES")
     ]

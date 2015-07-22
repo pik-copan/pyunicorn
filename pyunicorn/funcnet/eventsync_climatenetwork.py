@@ -38,8 +38,7 @@ class EventSyncClimateNetwork(EventSynchronization, ClimateNetwork):
 
     def __init__(self, data, quantile_threshold, taumax,
                  eventsynctype="directedES", non_local=False,
-                 node_weight_type="surface", winter_only=True,
-                 silence_level=0):
+                 node_weight_type="surface", silence_level=0):
         """
         Initialize an instance of EventSyncClimateNetwork.
 
@@ -56,14 +55,16 @@ class EventSyncClimateNetwork(EventSynchronization, ClimateNetwork):
             "antisymmetricES" [default: "directed"]
         :arg bool non_local: Determines, whether links between spatially close
             nodes should be suppressed.
-        :arg str ode_weight_type: The type of geographical node weight to be
+        :arg str node_weight_type: The type of geographical node weight to be
             used.
-        :arg bool winter_only: Determines, whether only data points from the
-            winter months (December, January and February) should be used for
-            analysis. Possibly, this further suppresses the annual cycle in the
-            time series.
         :arg int silence_level: The inverse level of verbosity of the object.
         """
+        etypes = ["directedES", "symmetricES", "antisymmetricES"]
+        if eventsynctype not in etypes:
+            raise IOError("wrong eventsynctype...\n" +
+                          "Available options: '%s', '%s' or '%s'" %
+                          (etypes[0], etypes[1], etypes[2]))
+
         self.__eventsynctype = eventsynctype
         self.directed = not self.__eventsynctype == "symmetricES"
 
