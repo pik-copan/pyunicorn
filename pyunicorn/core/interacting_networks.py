@@ -572,6 +572,71 @@ chosen link density."
         """
         return self.sp_A[node_list1, :][:, node_list2].A
 
+    def internal_link_attribute(self, attribute_name, node_list):
+        """
+        Return a like attribute matrix of a subnetwork induced by a subset of
+        nodes.
+
+        **Example:**
+
+        >>> net = InteractingNetworks.SmallTestNetwork()
+        >>> r(net.internal_link_attribute("link_weights", [1,2,3]))
+        array([[ 0. ,  2.3,  2.9],
+               [ 2.3,  0. ,  0. ],
+               [ 2.9,  0. ,  0. ]])
+
+        :arg str attribute_name: _name of link attribute to be used
+        :arg [int] node_list: list of node indices describing the subnetwork
+        :rtype: square numpy array [node_index, node_index]
+        :return: link weights submatrix
+        """
+        weights = np.zeros((len(node_list), len(node_list)))
+        subgraph = self.graph.subgraph(node_list)
+
+        if self.directed:
+            for e in subgraph.es:
+                weights[e.tuple] = e[attribute_name]
+        #  Symmetrize if subgraph is undirected
+        else:
+            for e in subgraph.es:
+                weights[e.tuple] = e[attribute_name]
+                weights[e.tuple[1], e.tuple[0]] = e[attribute_name]
+
+        return weights
+
+    def cross_link_attribute(self, attribute_name, node_list1, node_list2):
+        """
+        Return a cross link weights matrix describing the interaction of two
+        subnetworks.
+
+        The cross link weights matrix entry :math:`CW_{ij} = w` describes that
+        node i in the first subnetwork is linked to node j in the second
+        subnetwork with weights :math:`w`.
+
+        .. note::
+
+           The cross link weights matrix is NEITHER square NOR symmetric in
+           general!
+
+        Example:
+
+        >>> net = InteractingNetworks.SmallTestNetwork()
+        >>> r(net.cross_link_attribute("link_weights", [1,2,3], [0,4]))
+        array([[ 0. ,  2.7],
+               [ 0. ,  1.5],
+               [ 1.3,  0. ]])
+
+        :arg str attribute_name: _name of link attribute to be used
+        :arg [int] node_list1: list of node indices describing the first
+            subnetwork
+        :arg [int] node_list2: list of node indices describing the second
+            subnetwork
+        :rtype: 2D array [node index_1, node index_2]
+        :return: the cross adjacency matrix.
+        """
+        W = self.link_attribute(attribute_name)
+        return W[node_list1, :][:, node_list2]
+
     def internal_path_lengths(self, node_list, link_attribute=None):
         """
         Return internal path length matrix of an induced subnetwork.
