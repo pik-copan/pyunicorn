@@ -2058,7 +2058,7 @@ can only take values <<in>> or <<out>>."
         else:
             raise ValueError("Order has to be a positive integer.")
 
-    def local_cliquishness(self, order, cythonize=False):
+    def local_cliquishness(self, order):
         """
         Return local cliquishness of a certain order.
 
@@ -2093,11 +2093,11 @@ can only take values <<in>> or <<out>>."
         elif order == 4:
             return _local_cliquishness_4thorder(self.N,
                                                 self.adjacency.astype(int),
-                                                self.degree(), order)
+                                                self.degree())
         elif order == 5:
             return _local_cliquishness_5thorder(self.N,
                                                 self.adjacency.astype(int),
-                                                self.degree(), order)
+                                                self.degree())
         elif order > 5:
             raise NotImplementedError("Local cliquishness is not yet " +
                                       "implemented for orders larger than 5.")

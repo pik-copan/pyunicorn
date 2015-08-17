@@ -205,16 +205,15 @@ def _nsi_cross_local_clustering(
                     if A[node_p, node_q] and A[node_q, node_v]:
                         nsi_cc[v] += 2 * weight_p * node_weights[node_q]
 
-# networks ====================================================================
+# network =====================================================================
 
 def _local_cliquishness_4thorder(
     int N, np.ndarray[INTTYPE_t, ndim=2] A,
-    np.ndarray[INTTYPE_t, ndim=1] degree, int order):
+    np.ndarray[INTTYPE_t, ndim=1] degree):
 
     cdef:
-        # int i, j, k, l, index, node1, node2, node3, degree_i
-        unsigned int i, k, l, index
-        INTTYPE_t j, node1, node2, node3, degree_i
+        unsigned int order = 4, index
+        INTTYPE_t node1, node2, node3, degree_i
         long counter
         np.ndarray[INTTYPE_t, ndim=1] neighbors = np.zeros(N, dtype=INTTYPE)
         np.ndarray[FLOATTYPE_t, ndim=1] local_cliquishness = \
@@ -237,11 +236,11 @@ def _local_cliquishness_4thorder(
                 node1 = neighbors[j]
                 for k in xrange(degree_i):
                     node2 = neighbors[k]
-                    for l in xrange(degree_i):
-                        node3 = neighbors[l]
-                        if A[node1, node2] == 1 and A[node2, node3] == 1\
-                            and A[node3, node1] == 1:
-                            counter += 1
+                    if A[node1, node2] == 1:
+                        for l in xrange(degree_i):
+                            node3 = neighbors[l]
+                            if A[node2, node3] == 1 and A[node3, node1] == 1:
+                                counter += 1
             local_cliquishness[i] = float(counter) / degree_i /\
                 (degree_i - 1) / (degree_i - 2)
     return local_cliquishness
@@ -249,10 +248,10 @@ def _local_cliquishness_4thorder(
 
 def _local_cliquishness_5thorder(
     int N, np.ndarray[INTTYPE_t, ndim=2] A,
-    np.ndarray[INTTYPE_t, ndim=1] degree, int order):
+    np.ndarray[INTTYPE_t, ndim=1] degree):
 
     cdef:
-        unsigned int i, k, l, m, index
+        unsigned int index, order = 5
         INTTYPE_t j, node1, node2, node3, node4, degree_i
         long counter
         np.ndarray[INTTYPE_t, ndim=1] neighbors = np.zeros(N, dtype=INTTYPE)
@@ -276,17 +275,16 @@ def _local_cliquishness_5thorder(
                 node1 = neighbors[j]
                 for k in xrange(degree_i):
                     node2 = neighbors[k]
-                    for l in xrange(degree_i):
-                        node3 = neighbors[l]
-                        for m in xrange(degree_i):
-                            node4 = neighbors[m]
-                            if (A[node1, node2] == 1 and
-                                A[node1, node3] == 1 and
-                                A[node1, node4] == 1 and
-                                A[node2, node3] == 1 and
-                                A[node2, node4] == 1 and
-                                A[node3, node4] == 1):
-                                counter += 1
+                    if A[node1, node2] == 1:
+                        for l in xrange(degree_i):
+                            node3 = neighbors[l]
+                            if A[node1, node3] == 1 and A[node2, node3] == 1:
+                                for m in xrange(degree_i):
+                                    node4 = neighbors[m]
+                                    if (A[node1, node4] == 1 and
+                                        A[node2, node4] == 1 and
+                                        A[node3, node4] == 1):
+                                        counter += 1
             local_cliquishness[i] = float(counter) / degree_i /\
                 (degree_i - 1) / (degree_i - 2) / (degree_i -3)
     return local_cliquishness
