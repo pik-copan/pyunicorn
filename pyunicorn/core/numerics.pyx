@@ -112,13 +112,14 @@ def _cross_transitivity(
         n1 = nodes1[i]
         # loop over unique pairs of nodes in subnetwork 2
         for j in xrange(n):
-            n2 = nodes2[j];
-            for k in xrange(j):
-                n3 = nodes2[k];
-                if A[n1, n2] and A[n1, n3]:
-                    triples += 1
-                if A[n1, n2] and A[n2, n3] and A[n3, n1]:
-                    triangles += 1
+            n2 = nodes2[j]
+            if A[n1, n2]:
+                for k in xrange(j):
+                    n3 = nodes2[k]
+                    if A[n1, n3]:
+                        triples += 1
+                    if A[n2, n3] and A[n3, n1]:
+                        triangles += 1
     if triples:
         return triangles / float(triples)
     else:
@@ -175,10 +176,11 @@ def _cross_local_clustering(
             # loop over unique pairs of nodes in subnetwork 2
             for j in xrange(n):
                 n2 = nodes2[j]
-                for k in xrange(j):
-                    n3 = nodes2[k]
-                    if A[n1, n2] and A[n2, n3] and A[n3, n1]:
-                        counter += 1
+                if A[n1, n2]:
+                    for k in xrange(j):
+                        n3 = nodes2[k]
+                        if A[n2, n3] and A[n3, n1]:
+                            counter += 1
             cross_clustering[i] = counter / norm[i]
 
 
