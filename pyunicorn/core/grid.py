@@ -28,13 +28,13 @@ except ImportError:
     print "An error occurred when importing matplotlib.path! \
 Some functionality in Grid class might not be available."
 
-#  C++ inline code
-from .network import weave_inline
-
+#  Cythonized functions
+from .numerics import _cy_calculate_angular_distance, _euclidiean_distance
 
 #
 #  Define class Grid
 #
+
 
 class Grid(object):
 
@@ -497,31 +497,12 @@ text files", filename
         cos_lon = self.cos_lon()
         sin_lon = self.sin_lon()
 
-        #  Initialize weave angular distance matrix
-        weave_angdist = np.zeros((N, N), dtype="float32")
+        #  Initialize cython cof of angular distance matrix
+        cosangdist = np.zeros((N, N), dtype="float32")
 
-        code = """
-        float expr;
-
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j <= i; j++) {
-                expr = sin_lat(i)*sin_lat(j) + cos_lat(i)*cos_lat(j)
-                       * (sin_lon(i)*sin_lon(j) + cos_lon(i)*cos_lon(j));
-
-                if (expr > 1) {
-                    expr = 1.;
-                }
-                else if (expr < -1) {
-                    expr = -1.;
-                }
-                weave_angdist(i,j) = weave_angdist(j,i) = acos(expr);
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['cos_lat', 'sin_lat', 'cos_lon', 'sin_lon',
-                      'weave_angdist', 'N'])
-        return weave_angdist
+        _cy_calculate_angular_distance(cos_lat, sin_lat, cos_lon, sin_lon,
+                                       cosangdist, N)
+        return np.arccos(cosangdist)
 
     def angular_distance(self):
         """
@@ -567,20 +548,9 @@ text files", filename
         x = self.lon_sequence()
         y = self.lat_sequence()
 
-        #  Initialize distance matrix
         distance = np.zeros((N, N), dtype="float32")
+        _euclidiean_distance(x, y, distance, N)
 
-        code = """
-        float expr;
-
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j <= i; j++) {
-                expr = pow(x(i) - x(j), 2) + pow(y(i) - y(j), 2);
-                distance(i,j) = distance(j,i) = sqrt(expr);
-            }
-        }
-        """
-        weave_inline(locals(), code, ['x', 'y', 'distance', 'N'])
         return distance
 
     def boundaries(self):
@@ -728,7 +698,7 @@ grid..."
         :rtype: 1D bool array [index]
         :return: bool array with True for nodes inside region
         """
-        # Reshape Google Earth array  into (n,2) array
+        # Reshape Google Earth array  into (n,2) array
         remapped_region = region.reshape(len(region)/2, 2)
         # Remap from East-West to 360 degree map if the longitudes are [0, 360]
         if self._grid["lon"].min() >= 0:
