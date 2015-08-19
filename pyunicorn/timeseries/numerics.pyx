@@ -53,7 +53,7 @@ def _manhatten_distance_matrix(
     np.ndarray[FLOAT32TYPE_t, ndim=2] distance):
 
     cdef:
-        int i, k, l
+        int j, k, l
         float sum
 
     # Calculate the manhatten distance matrix
@@ -72,7 +72,7 @@ def _euclidean_distance_matrix(
     np.ndarray[FLOAT32TYPE_t, ndim=2] distance):
 
     cdef:
-        int i, k, l
+        int j, k, l
         float sum, diff
 
     # Calculate the eucliadean distance matrix
@@ -85,3 +85,25 @@ def _euclidean_distance_matrix(
                 diff = abs(embedding[j, l] - embedding[k, l])
                 sum += diff * diff
             distance[j, k] = distance[k, j] = sum
+
+def _supremum_distance_matrix(
+    int n_time, int dim, np.ndarray[FLOAT32TYPE_t, ndim=2] embedding,
+    np.ndarray[FLOAT32TYPE_t, ndim=2] distance):
+
+    cdef:
+        int j, k, l
+        float temp_diff, diff
+
+
+    # Calculate the eucliadean distance matrix
+    for j in xrange(n_time):
+        # Ignore the main diagonal, since every sample is neighbor of itself
+        for k in xrange(j):
+            temp_diff = diff = 0
+            for l in xrange(dim):
+                # Use supremum norm
+                temp_diff = abs(embedding[j, l] - embedding[k, l])
+                if temp_diff > diff:
+                    diff = temp_diff
+
+            distance[j, k] = distance[k, j] = diff

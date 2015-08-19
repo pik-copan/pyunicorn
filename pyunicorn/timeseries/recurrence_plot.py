@@ -20,7 +20,8 @@ import numpy as np
 # C++ inline code
 from .. import weave_inline
 from .numerics import                                    \
-    _embed_time_series, _manhatten_distance_matrix, _euclidean_distance_matrix
+    _embed_time_series, _manhatten_distance_matrix, \
+    _euclidean_distance_matrix, _supremum_distance_matrix
 
 #
 #  Class definitions
@@ -476,30 +477,7 @@ Recurrence matrix is not stored in memory."
         (n_time, dim) = embedding.shape
         distance = np.zeros((n_time, n_time), dtype="float32")
 
-        code = r"""
-        int j, k, l;
-        float temp_diff, diff;
-
-        //  Calculate the supremum distance matrix
-
-        for (j = 0; j < n_time; j++) {
-            //  Ignore the main diagonal, since every sample is neighbor of
-            //  itself
-            for (k = 0; k < j; k++) {
-                temp_diff = diff = 0;
-                for (l = 0; l < dim; l++) {
-                    //  Use supremum norm
-                    temp_diff = fabs(embedding(j,l) - embedding(k,l));
-
-                    if (temp_diff > diff)
-                        diff = temp_diff;
-                }
-                distance(j,k) = distance(k,j) = diff;
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['n_time', 'dim', 'embedding', 'distance'])
+        _supremum_distance_matrix(n_time, dim, embedding, distance)
         return distance
 
     def set_fixed_threshold(self, threshold):
