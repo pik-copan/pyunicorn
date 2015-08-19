@@ -66,3 +66,22 @@ def _manhatten_distance_matrix(
                 sum += abs(embedding[j, l] - embedding[k, l])
 
             distance[j, k] = distance[k, j] = sum
+
+def _euclidean_distance_matrix(
+    int n_time, int dim, np.ndarray[FLOAT32TYPE_t, ndim=2] embedding,
+    np.ndarray[FLOAT32TYPE_t, ndim=2] distance):
+
+    cdef:
+        int i, k, l
+        float sum, diff
+
+    # Calculate the eucliadean distance matrix
+    for j in xrange(n_time):
+        # Ignore the main diagonal, since every sample is neighbor of itself
+        for k in xrange(j):
+            sum = 0
+            for l in xrange(dim):
+                # Use euclidean norm
+                diff = abs(embedding[j, l] - embedding[k, l])
+                sum += diff * diff
+            distance[j, k] = distance[k, j] = sum
