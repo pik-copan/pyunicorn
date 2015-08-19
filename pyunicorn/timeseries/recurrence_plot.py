@@ -19,11 +19,13 @@ import numpy as np
 
 # C++ inline code
 from .. import weave_inline
-
+from .numerics import                                    \
+    _embed_time_series
 
 #
 #  Class definitions
 #
+
 
 class RecurrencePlot(object):
 
@@ -411,24 +413,7 @@ Recurrence matrix is not stored in memory."
         n_time = time_series.shape[0]
         embedding = np.empty((n_time - (dim - 1) * tau, dim), dtype="float32")
 
-        code = r"""
-        int j, k, max_delay, len_embedded, index;
-
-        //  Calculate the maximum delay
-        max_delay = (dim - 1) * tau;
-        //  Calculate the length of the embedded time series
-        len_embedded = n_time - max_delay;
-
-        for (j = 0; j < dim; j++) {
-            index = j * tau;
-            for (k = 0; k < len_embedded; k++) {
-                embedding(k,j) = time_series(index);
-                index++;
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['n_time', 'dim', 'tau', 'time_series', 'embedding'])
+        _embed_time_series(n_time, dim, tau, time_series, embedding)
         return embedding
 
     #
