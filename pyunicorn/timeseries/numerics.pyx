@@ -24,9 +24,10 @@ ctypedef np.float32_t FLOAT32TYPE_t
 
 # recurrence plot==============================================================
 
-def _embed_time_series(int n_time, int dim, int tau,
-                       np.ndarray[FLOATTYPE_t, ndim=1] time_series,
-                       np.ndarray[FLOAT32TYPE_t, ndim=2] embedding):
+def _embed_time_series(
+    int n_time, int dim, int tau,
+    np.ndarray[FLOAT32TYPE_t, ndim=1] time_series,
+    np.ndarray[FLOAT32TYPE_t, ndim=2] embedding):
     """
     >>> 42 == 42
     True
@@ -45,3 +46,23 @@ def _embed_time_series(int n_time, int dim, int tau,
         for k in xrange(len_embedded):
             embedding[k, j] = time_series[index]
             index += 1
+
+
+def _manhatten_distance_matrix(
+    int n_time, int dim, np.ndarray[FLOAT32TYPE_t, ndim=2] embedding,
+    np.ndarray[FLOAT32TYPE_t, ndim=2] distance):
+
+    cdef:
+        int i, k, l
+        float sum
+
+    # Calculate the manhatten distance matrix
+    for j in xrange(n_time):
+        # Ignore the main diagonal, since every samle is neighbor of itself
+        for k in xrange(j):
+            sum = 0
+            for l in xrange(dim):
+                # use manhattan norm
+                sum += abs(embedding[j, l] - embedding[k, l])
+
+            distance[j, k] = distance[k, j] = sum
