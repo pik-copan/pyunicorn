@@ -21,7 +21,8 @@ import numpy as np
 from .. import weave_inline
 from .numerics import                                    \
     _embed_time_series, _manhatten_distance_matrix, \
-    _euclidean_distance_matrix, _supremum_distance_matrix
+    _euclidean_distance_matrix, _supremum_distance_matrix, \
+    _set_adaptive_neighborhood_size
 
 #
 #  Class definitions
@@ -645,29 +646,8 @@ adaptive neighborhood size algorithm..."
         if order is None:
             order = np.arange(n_time)
 
-        code = r"""
-        int i, j, k, l;
-
-        for (i = 0; i < adaptive_neighborhood_size; i++) {
-            for (j = 0; j < n_time; j++) {
-                //  Get the node index to be processed
-                l = order(j);
-
-                //  Start with k = i + 1, since state vectors closer than the
-                //  (i+1)th nearest neighbor are already connected to j at this
-                //  stage.
-                k = i + 1;
-                while (recurrence(l,sorted_neighbors(l,k)) == 1 && k < n_time)
-                    k++;
-                //  Add a "new" nearest neighbor of l to the recurrence plot
-                recurrence(l,sorted_neighbors(l,k)) =
-                    recurrence(sorted_neighbors(l,k),l) = 1;
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['n_time', 'adaptive_neighborhood_size',
-                      'sorted_neighbors', 'order', 'recurrence'])
+        _set_adaptive_neighborhood_size(n_time, adaptive_neighborhood_size,
+                                        sorted_neighbors, order, recurrence)
         self.R = recurrence
 
     @staticmethod

@@ -15,9 +15,13 @@ import numpy.random as rd
 randint = rd.randint
 
 INTTYPE = np.int
+INT32TYPE = np.int32
+INT8TYPE = np.int8
 FLOATTYPE = np.float
 FLOAT32TYPE = np.float32
 ctypedef np.int_t INTTYPE_t
+ctypedef np.int32_t INT32TYPE_t
+ctypedef np.int8_t INT8TYPE_t
 ctypedef np.float_t FLOATTYPE_t
 ctypedef np.float32_t FLOAT32TYPE_t
 
@@ -107,3 +111,27 @@ def _supremum_distance_matrix(
                     diff = temp_diff
 
             distance[j, k] = distance[k, j] = diff
+
+
+def _set_adaptive_neighborhood_size(
+    int n_time, int adaptive_neighborhood_size,
+    np.ndarray[INT32TYPE_t, ndim=2] sorted_neighbors,
+    np.ndarray[INTTYPE_t, ndim=1] order,
+    np.ndarray[INT8TYPE_t, ndim=2] recurrence):
+
+    cdef:
+        int i, j, k, l
+
+    for i in xrange(adaptive_neighborhood_size):
+        for j in xrange(n_time):
+            # Get the node index to be processed
+            l = order[j]
+
+            # Start with k = i + 1, since state vectors closer than the (i+1)th
+            # nearest neighbor are already connected to j at this stage
+            k = i + 1
+            while recurrence[l, sorted_neighbors[l, k]] == 1 and k < n_time:
+                k += 1
+            # add a "new" nearest neighbor of l to the recurrence plot
+            recurrence[l, sorted_neighbors[l, k]] = \
+                recurrence[sorted_neighbors[l, k], l] = 1
