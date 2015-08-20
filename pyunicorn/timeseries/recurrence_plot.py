@@ -22,7 +22,8 @@ from .. import weave_inline
 from .numerics import                                    \
     _embed_time_series, _manhatten_distance_matrix, \
     _euclidean_distance_matrix, _supremum_distance_matrix, \
-    _set_adaptive_neighborhood_size
+    _set_adaptive_neighborhood_size, _bootstrap_distance_matrix_manhatten, \
+    _bootstrap_distance_matrix_euclidean, _bootstrap_distance_matrix_supremum
 
 #
 #  Class definitions
@@ -728,75 +729,22 @@ adaptive neighborhood size algorithm..."
         :return: the bootstrap samples from distance matrix.
         """
         #  Prepare
-        distances = np.zeros(M)
+        M = int(M)
+        embedding = embedding.astype("float32")
+        distances = np.zeros(M, dtype="float32")
         (n_time, dim) = embedding.shape
 
         if metric == "manhattan":
-            code = r"""
-            int i, j, k, l;
-            float sum, diff;
-
-            for (i = 0; i < M; i++) {
-                // Randomly draw two state vectors from embedded time series
-                j = floor(drand48() * n_time);
-                k = floor(drand48() * n_time);
-
-                //  Compute their distance
-                sum = 0;
-                for (l = 0; l < dim; l++) {
-                    //  Use manhattan norm
-                    sum += fabs(embedding(j,l) - embedding(k,l));
-                }
-                distances(i) = sum;
-            }
-            """
+            _bootstrap_distance_matrix_manhatten(n_time, dim, embedding,
+                                                 distances, M)
 
         elif metric == "euclidean":
-            code = r"""
-            int i, j, k, l;
-            float sum, diff;
-
-            for (i = 0; i < M; i++) {
-                // Randomly draw two state vectors from embedded time series
-                j = floor(drand48() * n_time);
-                k = floor(drand48() * n_time);
-
-                //  Compute their distance
-                sum = 0;
-                for (l = 0; l < dim; l++) {
-                    //  Use euclidean norm
-                    diff = fabs(embedding(j,l) - embedding(k,l));
-                    sum += diff * diff;
-                }
-                distances(i) = sqrt(sum);
-            }
-            """
+            _bootstrap_distance_matrix_euclidean(n_time, dim, embedding,
+                                                 distances, M)
 
         elif metric == "supremum":
-            code = r"""
-            int i, j, k, l;
-            float temp_diff, diff;
-
-            for (i = 0; i < M; i++) {
-                // Randomly draw two state vectors from embedded time series
-                j = floor(drand48() * n_time);
-                k = floor(drand48() * n_time);
-
-                //  Compute their distance
-                temp_diff = diff = 0;
-                for (l = 0; l < dim; l++) {
-                    //  Use supremum norm
-                    temp_diff = fabs(embedding(j,l) - embedding(k,l));
-
-                    if (temp_diff > diff)
-                        diff = temp_diff;
-                }
-                distances(i) = diff;
-            }
-            """
-
-        weave_inline(locals(), code,
-                     ['n_time', 'dim', 'embedding', 'distances', 'M'])
+            _bootstrap_distance_matrix_supremum(n_time, dim, embedding,
+                                                distances, M)
         return distances
 
     #

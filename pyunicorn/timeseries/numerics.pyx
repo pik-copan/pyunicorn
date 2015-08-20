@@ -12,6 +12,8 @@ cimport numpy as np
 import numpy as np
 import numpy.random as rd
 
+from libc.math cimport sqrt
+
 randint = rd.randint
 
 INTTYPE = np.int
@@ -135,3 +137,64 @@ def _set_adaptive_neighborhood_size(
             # add a "new" nearest neighbor of l to the recurrence plot
             recurrence[l, sorted_neighbors[l, k]] = \
                 recurrence[sorted_neighbors[l, k], l] = 1
+
+
+def _bootstrap_distance_matrix_manhatten(
+    int n_time, int dim, np.ndarray[FLOAT32TYPE_t, ndim=2] embedding,
+    np.ndarray[FLOAT32TYPE_t, ndim=1] distances, int M):
+
+    cdef:
+        int i, l
+        np.ndarray[INTTYPE_t, ndim=2] jk = rd.randint(n_time, size=(2,M))
+        float sum, diff
+
+    for i in xrange(M):
+        #Compute their distance
+        sum = 0
+        for l in xrange(dim):
+            # Use manhatten norm
+            sum += abs(embedding[jk[0, i], l] - embedding[jk[1, i], l])
+
+        distances[i] = sum
+
+
+def _bootstrap_distance_matrix_euclidean(
+    int n_time, int dim, np.ndarray[FLOAT32TYPE_t, ndim=2] embedding,
+    np.ndarray[FLOAT32TYPE_t, ndim=1] distances, int M):
+
+    cdef:
+        int i, l
+        np.ndarray[INTTYPE_t, ndim=2] jk = rd.randint(n_time, size=(2,M))
+        float sum, diff
+
+    for i in xrange(M):
+        #Compute their distance
+        sum = 0
+        for l in xrange(dim):
+            # Use manhatten norm
+            diff = abs(embedding[jk[0, i], l] - embedding[jk[1, i], l])
+            sum += diff * diff
+
+        distances[i] = sqrt(sum)
+
+
+def _bootstrap_distance_matrix_supremum(
+    int n_time, int dim, np.ndarray[FLOAT32TYPE_t, ndim=2] embedding,
+    np.ndarray[FLOAT32TYPE_t, ndim=1] distances, int M):
+
+    cdef:
+        int i, l
+        np.ndarray[INTTYPE_t, ndim=2] jk = rd.randint(n_time, size=(2,M))
+        float temp_diff, diff
+
+    for i in xrange(M):
+        #Compute their distance
+        temp_diff = diff = 0
+        for l in xrange(dim):
+            # Use supremum norm
+            temp_diff = abs(embedding[jk[0, i], l] - embedding[jk[1, i], l])
+
+            if temp_diff > diff:
+                diff = temp_diff
+
+            distances[i] = diff
