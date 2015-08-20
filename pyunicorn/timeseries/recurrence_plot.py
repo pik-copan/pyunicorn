@@ -704,23 +704,10 @@ adaptive neighborhood size algorithm..."
         #  Get number of phase space points
         n_time = distance.shape[0]
 
-        #  Initialize array for distance samples
-        samples = np.empty(n_samples, dtype="float32")
-
-        #  Gather randomly selected distance entries
-        code = r"""
-        int i, j, k;
-
-        for (k = 0; k < n_samples; k++) {
-            //  Generate two random integers between 0 and n_time
-            i = floor(drand48() * n_time);
-            j = floor(drand48() * n_time);
-
-            samples(k) = distance(i,j);
-        }
-        """
-        weave_inline(locals(), code,
-                     ['distance', 'samples', 'n_time', 'n_samples'])
+        # vectorized version
+        i = np.random.randint(n_time, size=n_samples)
+        j = np.random.randint(n_time, size=n_samples)
+        samples = distance[i, j]
 
         #  Sort and get threshold
         samples.sort()
