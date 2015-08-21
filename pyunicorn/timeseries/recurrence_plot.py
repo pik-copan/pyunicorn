@@ -23,7 +23,9 @@ from .numerics import                                    \
     _embed_time_series, _manhatten_distance_matrix, \
     _euclidean_distance_matrix, _supremum_distance_matrix, \
     _set_adaptive_neighborhood_size, _bootstrap_distance_matrix_manhatten, \
-    _bootstrap_distance_matrix_euclidean, _bootstrap_distance_matrix_supremum
+    _bootstrap_distance_matrix_euclidean, _bootstrap_distance_matrix_supremum,\
+    _diagline_dist_norqa_missingvalues, _diagline_dist_norqa, \
+    _diagline_dist_rqa_missingvalues, _diagline_dist_rqa
 
 #
 #  Class definitions
@@ -839,77 +841,11 @@ adaptive neighborhood size algorithm..."
                 recmat = self.recurrence_matrix()
 
                 if self.missing_values:
-                    code = r"""
-                    int i, j, k;
-                    k = 0;
-
-                    bool missing_flag;
-                    missing_flag = false;
-
-                    for (i = 0; i < n_time; i++) {
-                        if (k != 0 && !missing_flag) {
-                            diagline(k)++;
-                            k = 0;
-                        }
-
-                        missing_flag = false;
-
-                        for (j = 0; j < i + 1; j++) {
-                            //  Check if current point in RP belongs
-                            //  to a missing value
-                            if (mv_indices(n_time - 1 - i + j) ||
-                                mv_indices(j)) {
-                                missing_flag = true;
-                                k = 0;
-                            }
-                            else if (recmat(n_time - 1 - i + j,j) == 0 &&
-                                     missing_flag)
-                                missing_flag = false;
-
-                            if (!missing_flag) {
-                                //  Only increase k if some previous point in
-                                //  diagonal was not a missing value!
-                                if (recmat(n_time - 1 - i + j, j) == 1) {
-                                    k++;
-                                }
-                                //  Only count diagonal lines that are not
-                                //  followed by a missing value point in the
-                                //  recurrence plot
-                                else if (k != 0) {
-                                    diagline(k)++;
-                                    k = 0;
-                                }
-                            }
-                        }
-                    }
-                    """
                     mv_indices = self.missing_value_indices
-                    args = ['n_time', 'diagline', 'recmat', 'mv_indices']
-
+                    _diagline_dist_norqa_missingvalues(n_time, diagline,
+                                                       recmat, mv_indices)
                 else:
-                    code = r"""
-                    int i, j, k;
-                    k = 0;
-
-                    for (i = 0; i < n_time; i++) {
-                        if (k != 0) {
-                            diagline(k)++;
-                            k = 0;
-                        }
-                        for (j = 0; j < i + 1; j++) {
-                            if (recmat(n_time - 1 - i + j, j) == 1) {
-                                k++;
-                            }
-                            else if (k != 0) {
-                                diagline(k)++;
-                                k = 0;
-                            }
-                        }
-                    }
-                    """
-                    args = ['n_time', 'diagline', 'recmat']
-
-                weave_inline(locals(), code, args)
+                    _diagline_dist_norqa(n_time, diagline, recmat)
 
             #  Calculations for sequential RQA
             elif self.sparse_rqa and self.metric == "supremum":
@@ -921,106 +857,17 @@ adaptive neighborhood size algorithm..."
                 eps = float(self.threshold)
 
                 if self.missing_values:
-                    code = r"""
-                    int i, j, k, l;
-                    float temp_diff, diff;
-
-                    k = 0;
-
-                    bool missing_flag;
-                    missing_flag = false;
-
-                    for (i = 0; i < n_time; i++) {
-                        if (k != 0 && !missing_flag) {
-                            diagline(k)++;
-                            k = 0;
-                        }
-
-                        missing_flag = false;
-
-                        for (j = 0; j < i + 1; j++) {
-                            //  Compute supremum distance between state vectors
-                            temp_diff = diff = 0;
-                            for (l = 0; l < dim; l++) {
-                                //  Use supremum norm
-                                temp_diff = fabs(embedding(j,l) -
-                                            embedding(n_time - 1 - i + j,l));
-
-                                if (temp_diff > diff) {
-                                    diff = temp_diff;
-                                }
-                            }
-
-                            //  Check if current point in RP belongs
-                            //  to a missing value
-                            if (mv_indices(n_time-1-i+j) || mv_indices(j)) {
-                                missing_flag = true;
-                                k = 0;
-                            }
-                            else if (diff > eps && missing_flag)
-                                missing_flag = false;
-
-                            if (!missing_flag) {
-                                //  Only increase k if some previous point in
-                                //  diagonal was not a missing value!
-                                if (diff < eps)
-                                    k++;
-
-                                //  Only count diagonal lines that are not
-                                //  followed by a missing value point in the
-                                //  recurrence plot
-                                else if (k != 0) {
-                                    diagline(k)++;
-                                    k = 0;
-                                }
-                            }
-                        }
-                    }
-                    """
                     mv_indices = self.missing_value_indices
-                    args = ['n_time', 'diagline', 'mv_indices', 'embedding',
-                            'eps', 'dim']
-
+                    _diagline_dist_rqa_missingvalues(n_time, diagline,
+                                                     mv_indices, embedding,
+                                                     eps, dim)
                 else:
-                    code = r"""
-                    int i, j, k, l;
-                    float temp_diff, diff;
-
-                    k = 0;
-
-                    for (i = 0; i < n_time; i++) {
-                        if (k != 0) {
-                            diagline(k)++;
-                            k = 0;
-                        }
-                        for (j = 0; j < i + 1; j++) {
-                            //  Compute supremum distance between state vectors
-                            temp_diff = diff = 0;
-                            for (l = 0; l < dim; l++) {
-                                //  Use supremum norm
-                                temp_diff = fabs(embedding(j,l) -
-                                            embedding(n_time - 1 - i + j,l));
-
-                                if (temp_diff > diff)
-                                    diff = temp_diff;
-                            }
-                            //  Check if R(j,n_time-1-i+j) == 1 -> recurrence
-                            if (diff < eps)
-                                k++;
-                            else if (k != 0) {
-                                diagline(k)++;
-                                k = 0;
-                            }
-                        }
-                    }
-                    """
-                    args = ['n_time', 'diagline', 'embedding', 'eps', 'dim']
-
-                weave_inline(locals(), code, args)
+                    _diagline_dist_rqa(n_time, diagline, embedding, eps,
+                                       dim)
 
             #  Function just runs over the upper triangular matrix
             self._diagline_dist = 2*diagline
-            self._diagline_dist_cached = True
+            # self._diagline_dist_cached = True  # disabled for testing
 
             return self._diagline_dist
 

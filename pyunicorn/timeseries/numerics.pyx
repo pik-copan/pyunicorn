@@ -7,20 +7,25 @@
 
 
 cimport cython
-cimport numpy as np
+from cpython cimport bool
+from libc.math cimport sqrt
+
 
 import numpy as np
+cimport numpy as np
 import numpy.random as rd
-
-from libc.math cimport sqrt
 
 randint = rd.randint
 
+
+
+BOOLTYPE = np.uint8
 INTTYPE = np.int
 INT32TYPE = np.int32
 INT8TYPE = np.int8
 FLOATTYPE = np.float
 FLOAT32TYPE = np.float32
+ctypedef np.uint8_t BOOLTYPE_t
 ctypedef np.int_t INTTYPE_t
 ctypedef np.int32_t INT32TYPE_t
 ctypedef np.int8_t INT8TYPE_t
@@ -198,3 +203,134 @@ def _bootstrap_distance_matrix_supremum(
                 diff = temp_diff
 
             distances[i] = diff
+
+
+def _diagline_dist_norqa_missingvalues(
+    int n_time, np.ndarray[INT32TYPE_t, ndim=1] diagline,
+    np.ndarray[INT8TYPE_t, ndim=2] recmat,
+    np.ndarray[BOOLTYPE_t, ndim=1, cast=True] mv_indices):
+
+    cdef:
+        int i, j, k = 0
+        BOOLTYPE_t missing_flag = False
+
+    for i in xrange(n_time):
+        if k != 0 and not missing_flag:
+            diagline[k] += 1
+            k = 0
+
+        missing_flag = False
+
+        for j in xrange(i+1):
+            # Check if curren tpoint in RP belongs to a mising value
+            if mv_indices[n_time-1-i+j] or mv_indices[j]:
+                missing_flag = True
+                k = 0
+            elif recmat[n_time-1-i+j, j] == 0 and missing_flag:
+                missing_flag = False
+
+            if not missing_flag:
+                # Only incease k if some previous point in diagonal was not a
+                # missing value!
+                if recmat[n_time-1-i+j, j] == 1:
+                    k += 1
+                # Only count diagonal lines that are not followed by a missing
+                # point in the recurrence plot
+                elif k != 0:
+                    diagline[k] += 1
+                    k = 0
+
+
+def _diagline_dist_norqa(
+    int n_time, np.ndarray[INT32TYPE_t, ndim=1] diagline,
+    np.ndarray[INT8TYPE_t, ndim=2] recmat):
+
+    cdef:
+        int i, j, k = 0
+
+    for i in xrange(n_time):
+        if k != 0:
+            diagline[k] += 1
+            k = 0
+        for j in xrange(i+1):
+            if recmat[n_time-1-i+j, j] == 1:
+                k += 1
+            elif k != 0:
+                diagline[k] += 1
+                k = 0
+
+
+def _diagline_dist_rqa_missingvalues(
+    int n_time, np.ndarray[INT32TYPE_t, ndim=1] diagline,
+    np.ndarray[BOOLTYPE_t, ndim=1, cast=True] mv_indices,
+    np.ndarray[FLOAT32TYPE_t, ndim=2] embedding, float eps, int dim):
+
+    cdef:
+        int i, j, k = 0, l
+        float temp_diff, diff
+        BOOLTYPE_t missing_flag = False
+
+    for i in xrange(n_time):
+        if k != 0 and not missing_flag:
+            diagline[k] += 1
+            k = 0
+
+        missing_flag = False
+
+        for j in xrange(i+1):
+            # Compute supreumum distance between state vectors
+            temp_diff = diff = 0
+            for l in xrange(dim):
+                # Use supremum norm
+                temp_diff = abs(embedding[j, l] - embedding[n_time-1-i+j, l])
+                if temp_diff > diff:
+                    diff = temp_diff
+
+            # Check if curren tpoint in RP belongs to a missing value
+            if mv_indices[n_time-1-i+j] or mv_indices[j]:
+                missing_flag = True
+                k = 0
+            elif diff > eps and missing_flag:
+                missing_flag = False
+
+            if not missing_flag:
+                # Only increase k if some previous point in diagonal was not a
+                # missig value!
+                if diff < eps:
+                    k += 1
+
+                # Only count diagonal lines that are not followed by a missing
+                # value point in the recurrenc plot
+                elif k != 0:
+                    diagline[k] += 1
+                    k = 0
+
+
+def _diagline_dist_rqa(
+    int n_time, np.ndarray[INT32TYPE_t, ndim=1] diagline,
+    np.ndarray[FLOAT32TYPE_t, ndim=2] embedding, float eps, int dim):
+
+    cdef:
+        int i, j, k = 0, l
+        float temp_diff, diff
+
+    for i in xrange(n_time):
+        if k != 0:
+            diagline[k] += 1
+            k = 0
+
+        for j in xrange(i+1):
+            # Compute supremum distance between state vectors
+            temp_diff = diff = 0
+            for l in xrange(dim):
+                # Use supremum norm
+                temp_diff = abs(embedding[j, l] - embedding[n_time-1-i+j, l])
+                if temp_diff > diff:
+                    diff = temp_diff
+
+            # check if R(j, n_time-q-i+j) == 1 -> recurrence
+            if diff < eps:
+                k += 1
+            elif k != 0:
+                diagline[k] += 1
+                k = 0
