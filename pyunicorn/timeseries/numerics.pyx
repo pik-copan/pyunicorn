@@ -352,3 +352,22 @@ def _rejection_sampling(
         if (drand48() < dist[x]):
             resampled_dist[x] += 1
             i += 1
+
+
+def _white_vertline_dist(
+    int n_time, np.ndarray[INT32TYPE_t, ndim=1] white_vertline,
+    np.ndarray[INT8TYPE_t, ndim=2] R):
+
+    cdef int i, j, k = 0
+
+    for i in xrange(n_time):
+        if k != 0:
+            white_vertline[k] += 1
+            k = 0
+
+        for j in xrange(n_time):
+            if R[i, j] == 0:
+                k += 1
+            elif k != 0:
+                white_vertline[k] += 1
+                k = 0

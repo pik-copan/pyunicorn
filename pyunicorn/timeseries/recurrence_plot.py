@@ -25,7 +25,8 @@ from .numerics import                                    \
     _set_adaptive_neighborhood_size, _bootstrap_distance_matrix_manhatten, \
     _bootstrap_distance_matrix_euclidean, _bootstrap_distance_matrix_supremum,\
     _diagline_dist_norqa_missingvalues, _diagline_dist_norqa, \
-    _diagline_dist_rqa_missingvalues, _diagline_dist_rqa, _rejection_sampling
+    _diagline_dist_rqa_missingvalues, _diagline_dist_rqa, _rejection_sampling,\
+    _white_vertline_dist
 
 #
 #  Class definitions
@@ -867,12 +868,12 @@ adaptive neighborhood size algorithm..."
 
             #  Function just runs over the upper triangular matrix
             self._diagline_dist = 2*diagline
-            # self._diagline_dist_cached = True  # disabled for testing
+            self._diagline_dist_cached = True
 
             return self._diagline_dist
 
     @staticmethod
-    def rejection_sampling(dist, M, cy=0):
+    def rejection_sampling(dist, M):
         """
         Rejection sampling of discrete frequency distribution.
 
@@ -1408,25 +1409,7 @@ adaptive neighborhood size algorithm..."
         n_time = self.N
         white_vertline = np.zeros(n_time, dtype="int32")
 
-        code = r"""
-        int i, j, k = 0;
-
-        for (i = 0; i < n_time; i++) {
-            if (k != 0) {
-                white_vertline(k)++;
-                k = 0;
-            }
-            for (j = 0; j < n_time; j++) {
-                if (R(i,j) == 0)
-                    k++;
-                else if (k != 0) {
-                    white_vertline(k)++;
-                    k = 0;
-                }
-            }
-        }
-        """
-        weave_inline(locals(), code, ['n_time', 'white_vertline', 'R'])
+        _white_vertline_dist(n_time, white_vertline, R)
 
         #  Function covers the whole recurrence matrix
         return white_vertline
