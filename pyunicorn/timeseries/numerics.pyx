@@ -8,12 +8,14 @@
 
 cimport cython
 from cpython cimport bool
-from libc.math cimport sqrt
+from libc.math cimport sqrt, floor
+from libc.stdlib cimport rand, RAND_MAX
 
 
 import numpy as np
 cimport numpy as np
 import numpy.random as rd
+import random
 
 randint = rd.randint
 
@@ -32,6 +34,8 @@ ctypedef np.int8_t INT8TYPE_t
 ctypedef np.float_t FLOATTYPE_t
 ctypedef np.float32_t FLOAT32TYPE_t
 
+cdef extern from "stdlib.h":
+    double drand48()
 
 # recurrence plot==============================================================
 
@@ -334,3 +338,17 @@ def _diagline_dist_rqa(
             elif k != 0:
                 diagline[k] += 1
                 k = 0
+
+def _rejection_sampling(
+    np.ndarray[FLOATTYPE_t, ndim=1] dist,
+    np.ndarray[FLOATTYPE_t, ndim=1] resampled_dist, int N, int M):
+
+    cdef:
+        int i = 0, x
+
+    while i < M:
+        x = int(floor(drand48() * N))
+
+        if (drand48() < dist[x]):
+            resampled_dist[x] += 1
+            i += 1

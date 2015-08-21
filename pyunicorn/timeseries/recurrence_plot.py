@@ -25,7 +25,7 @@ from .numerics import                                    \
     _set_adaptive_neighborhood_size, _bootstrap_distance_matrix_manhatten, \
     _bootstrap_distance_matrix_euclidean, _bootstrap_distance_matrix_supremum,\
     _diagline_dist_norqa_missingvalues, _diagline_dist_norqa, \
-    _diagline_dist_rqa_missingvalues, _diagline_dist_rqa
+    _diagline_dist_rqa_missingvalues, _diagline_dist_rqa, _rejection_sampling
 
 #
 #  Class definitions
@@ -872,7 +872,7 @@ adaptive neighborhood size algorithm..."
             return self._diagline_dist
 
     @staticmethod
-    def rejection_sampling(dist, M):
+    def rejection_sampling(dist, M, cy=0):
         """
         Rejection sampling of discrete frequency distribution.
 
@@ -896,20 +896,7 @@ adaptive neighborhood size algorithm..."
         #  Normalize distribution
         dist /= dist.sum()
 
-        code = r"""
-        int i = 0, x;
-
-        while (i < M) {
-            x = floor(drand48() * N);
-
-            if (drand48() < dist(x)) {
-                resampled_dist(x) += 1;
-                i++;
-            }
-
-        }
-        """
-        weave_inline(locals(), code, ['dist', 'resampled_dist', 'N', 'M'])
+        _rejection_sampling(dist, resampled_dist, N, M)
         return resampled_dist
 
     def resample_diagline_dist(self, M):
