@@ -346,6 +346,7 @@ def _diagline_dist_rqa(
                 diagline[k] += 1
                 k = 0
 
+
 def _rejection_sampling(
     np.ndarray[FLOATTYPE_t, ndim=1] dist,
     np.ndarray[FLOATTYPE_t, ndim=1] resampled_dist, int N, int M):
@@ -359,6 +360,129 @@ def _rejection_sampling(
         if (drand48() < dist[x]):
             resampled_dist[x] += 1
             i += 1
+
+
+def _vertline_dist_norqa_missingvalues(
+    int n_time, np.ndarray[INT32TYPE_t, ndim=1] vertline,
+    np.ndarray[INT8TYPE_t, ndim=2] recmat,
+    np.ndarray[BOOLTYPE_t, ndim=1, cast=True] mv_indices):
+
+    cdef:
+        int i, j, k = 0
+        BOOLTYPE_t missing_flag = False
+
+    for i in xrange(n_time):
+        if (k != 0 and not missing_flag):
+            vertline[k] += 1
+            k = 0
+
+        missing_flag = False
+
+        for j in xrange(n_time):
+            # check if current point in RP belongs to a missing value
+            if mv_indices[i] or mv_indices[j]:
+                missing_flag = True
+                k = 0
+            elif recmat[i, j] == 0 and missing_flag:
+                missing_flag = False
+
+            if not missing_flag:
+                if recmat[i, j] != 0:
+                    k += 1
+                elif k != 0:
+                    vertline[k] += 1
+                    k = 0
+
+def _vertline_dist_norqa(
+    int n_time, np.ndarray[INT32TYPE_t, ndim=1] vertline,
+    np.ndarray[INT8TYPE_t, ndim=2] recmat):
+
+    cdef int i, j, k = 0
+
+    for i in xrange(n_time):
+        if k != 0:
+            vertline[k] += 1
+            k = 0
+
+        for j in xrange(n_time):
+            if recmat[i, j] != 0:
+                k += 1
+            elif k != 0:
+                vertline[k] += 1
+                k = 0
+
+
+def _vertline_dist_rqa_missingvalues(
+    int n_time, np.ndarray[INT32TYPE_t, ndim=1] vertline,
+    np.ndarray[BOOLTYPE_t, ndim=1, cast=True] mv_indices,
+    np.ndarray[FLOAT32TYPE_t, ndim=2] embedding, float eps, int dim):
+
+    cdef:
+        int i, j, k = 0, l
+        float temp_diff, diff
+        BOOLTYPE_t missing_flag = False
+
+    for i in xrange(n_time):
+        if k != 0 and not missing_flag:
+            vertline[k] += 1
+            k = 0
+
+        missing_flag = False
+
+        for j in xrange(n_time):
+            # Compute supremum distance between state vectors
+            temp_diff = diff = 0
+            for l in xrange(dim):
+                # Use supremum norm
+                temp_diff = abs(embedding[i, l] - embedding[j, l])
+
+                if temp_diff > diff:
+                    diff = temp_diff
+
+            # Check if current point in RP belongs to a missing values
+            if mv_indices[i] or mv_indices[j]:
+                missing_flag = True
+                k = 0
+            elif diff > eps and missing_flag:
+                missing_flag = True
+
+            if not missing_flag:
+                # Check if recurrent point has been reached
+                if diff < eps:
+                    k += 1
+                elif k != 0:
+                    vertline[k] += 1
+                    k = 0
+
+def _vertline_dist_rqa(
+    int n_time, np.ndarray[INT32TYPE_t, ndim=1] vertline,
+    np.ndarray[FLOAT32TYPE_t, ndim=2] embedding, float eps, int dim):
+
+    cdef:
+        int i, j, k = 0, l
+        float temp_diff, diff
+
+    for i in xrange(n_time):
+        if k != 0:
+            vertline[k] += 1
+            k = 0
+
+        for j in xrange(n_time):
+            # Compute supremum distance between state vectors
+            temp_diff = diff = 0
+            for l in xrange(dim):
+                # Use supremum norm
+                temp_diff = abs(embedding[i, l] - embedding[j, l])
+
+                if temp_diff > diff:
+                    diff = temp_diff
+
+            # Check if recurrent point has been reached
+            if diff < eps:
+                k += 1
+            elif k != 0:
+                vertline[k] += 1
+                k = 0
 
 
 def _white_vertline_dist(

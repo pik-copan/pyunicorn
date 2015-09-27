@@ -18,14 +18,15 @@ from math import factorial
 import numpy as np
 
 # C++ inline code
-from .. import weave_inline
 from .numerics import                                    \
     _embed_time_series, _manhatten_distance_matrix, \
     _euclidean_distance_matrix, _supremum_distance_matrix, \
     _set_adaptive_neighborhood_size, _bootstrap_distance_matrix_manhatten, \
     _bootstrap_distance_matrix_euclidean, _bootstrap_distance_matrix_supremum,\
     _diagline_dist_norqa_missingvalues, _diagline_dist_norqa, \
-    _diagline_dist_rqa_missingvalues, _diagline_dist_rqa, _rejection_sampling,\
+    _diagline_dist_rqa_missingvalues, _diagline_dist_rqa, \
+    _vertline_dist_norqa_missingvalues, _vertline_dist_norqa, \
+    _vertline_dist_rqa_missingvalues, _vertline_dist_rqa, _rejection_sampling,\
     _white_vertline_dist, _twins, _twin_surrogates
 
 #
@@ -1070,67 +1071,12 @@ adaptive neighborhood size algorithm..."
                 recmat = self.recurrence_matrix()
 
                 if self.missing_values:
-                    code = r"""
-                    int i, j, k = 0;
-
-                    bool missing_flag;
-                    missing_flag = false;
-
-                    for (i = 0; i < n_time; i++) {
-                        if (k != 0 && !missing_flag) {
-                            vertline(k)++;
-                            k = 0;
-                        }
-
-                        missing_flag = false;
-
-                        for (j = 0; j < n_time; j++) {
-                            //  Check if current point in RP belongs
-                            //  to a missing value
-                            if (mv_indices(i) || mv_indices(j)) {
-                                missing_flag = true;
-                                k = 0;
-                            }
-                            else if (recmat(i,j) == 0 && missing_flag)
-                                missing_flag = false;
-
-                            if (!missing_flag) {
-                                if (recmat(i,j) != 0)
-                                    k++;
-                                else if (k != 0) {
-                                    vertline(k)++;
-                                    k = 0;
-                                }
-                            }
-
-                        }
-                    }
-                    """
                     mv_indices = self.missing_value_indices
-                    args = ['n_time', 'vertline', 'recmat', 'mv_indices']
+                    _vertline_dist_norqa_missingvalues(n_time, vertline,
+                                                       recmat, mv_indices)
 
                 else:
-                    code = r"""
-                    int i, j, k = 0;
-
-                    for (i = 0; i < n_time; i++) {
-                        if (k != 0) {
-                            vertline(k)++;
-                            k = 0;
-                        }
-                        for (j = 0; j < n_time; j++) {
-                            if (recmat(i,j) != 0)
-                                k++;
-                            else if (k != 0) {
-                                vertline(k)++;
-                                k = 0;
-                            }
-                        }
-                    }
-                    """
-                    args = ['n_time', 'vertline', 'recmat']
-
-                weave_inline(locals(), code, args)
+                    _vertline_dist_norqa(n_time, vertline, recmat)
 
             #  Calculations for sequential RQA
             elif self.sparse_rqa and self.metric == "supremum":
@@ -1142,94 +1088,13 @@ adaptive neighborhood size algorithm..."
                 eps = float(self.threshold)
 
                 if self.missing_values:
-                    code = r"""
-                    int i, j, k = 0, l;
-                    float temp_diff, diff;
-
-                    bool missing_flag;
-                    missing_flag = false;
-
-                    for (i = 0; i < n_time; i++) {
-                        if (k != 0 && !missing_flag) {
-                            vertline(k)++;
-                            k = 0;
-                        }
-
-                        missing_flag = false;
-
-                        for (j = 0; j < n_time; j++) {
-                            //  Compute supremum distance between state vectors
-                            temp_diff = diff = 0;
-                            for (l = 0; l < dim; l++) {
-                                //  Use supremum norm
-                                temp_diff =
-                                    fabs(embedding(i,l) - embedding(j,l));
-
-                                if (temp_diff > diff)
-                                    diff = temp_diff;
-                            }
-
-                            //  Check if current point in RP belongs
-                            //  to a missing value
-                            if (mv_indices(i) || mv_indices(j)) {
-                                missing_flag = true;
-                                k = 0;
-                            }
-                            else if (diff > eps && missing_flag)
-                                missing_flag = false;
-
-                            if (!missing_flag) {
-                                //  Check if recurrent point has been reached
-                                if (diff < eps)
-                                    k++;
-                                else if (k != 0) {
-                                    vertline(k)++;
-                                    k = 0;
-                                }
-                            }
-
-                        }
-                    }
-                    """
                     mv_indices = self.missing_value_indices
-                    args = ['n_time', 'vertline', 'mv_indices', 'embedding',
-                            'eps', 'dim']
+                    _vertline_dist_rqa_missingvalues(n_time, vertline,
+                                                     mv_indices, embedding,
+                                                     eps, dim)
 
                 else:
-                    code = r"""
-                    int i, j, k = 0, l;
-                    float temp_diff, diff;
-
-                    for (i = 0; i < n_time; i++) {
-                        if (k != 0) {
-                            vertline(k)++;
-                            k = 0;
-                        }
-                        for (j = 0; j < n_time; j++) {
-                            //  Compute supremum distance between state vectors
-                            temp_diff = diff = 0;
-                            for (l = 0; l < dim; l++) {
-                                //  Use supremum norm
-                                temp_diff =
-                                    fabs(embedding(i,l) - embedding(j,l));
-
-                                if (temp_diff > diff)
-                                    diff = temp_diff;
-                            }
-
-                            //  Check if recurrent point has been reached
-                            if (diff < eps)
-                                k++;
-                            else if (k != 0) {
-                                vertline(k)++;
-                                k = 0;
-                            }
-                        }
-                    }
-                    """
-                    args = ['n_time', 'vertline', 'embedding', 'eps', 'dim']
-
-                weave_inline(locals(), code, args)
+                    _vertline_dist_rqa(n_time, vertline, embedding, eps, dim)
 
             #  Function covers the whole recurrence matrix
             self._vertline_dist = vertline
