@@ -371,3 +371,38 @@ def _white_vertline_dist(
             elif k != 0:
                 white_vertline[k] += 1
                 k = 0
+
+def _twins(
+    int min_dist, int N, np.ndarray[INT8TYPE_t, ndim=2] R,
+    np.ndarray[INTTYPE_t, ndim=1] nR, twins):
+
+        cdef int j, k, l
+
+        twins.append([])
+
+        for j in xrange(N):
+            twins.append([])
+            twins_j = twins[j]
+
+            # Respect a minimal temporal spacing between twins to avoid false
+            # twins du to th higher sample density in phase space along the
+            # trajectory
+            for k in xrange(j - min_dist):
+                # Continue only if both samples have the same number of
+                # neighbors and more than just one neighbor (themselves)
+                if nR[j] == nR[k] and nR[j] != 1:
+                    l = 0
+
+                    while R[j, l] == R[k, l]:
+                        l = l + 1
+
+                        # If l is equal to the length of the time series at
+                        # this point, j and k are twins
+                        if l == N:
+                            # And the twins to the twin list
+                            twins_k = twins[k]
+
+                            twins_j.append(k)
+                            twins_k.append(j)
+
+                            break

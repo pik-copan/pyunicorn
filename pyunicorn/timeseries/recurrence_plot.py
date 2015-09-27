@@ -26,7 +26,7 @@ from .numerics import                                    \
     _bootstrap_distance_matrix_euclidean, _bootstrap_distance_matrix_supremum,\
     _diagline_dist_norqa_missingvalues, _diagline_dist_norqa, \
     _diagline_dist_rqa_missingvalues, _diagline_dist_rqa, _rejection_sampling,\
-    _white_vertline_dist
+    _white_vertline_dist, _twins
 
 #
 #  Class definitions
@@ -1521,56 +1521,7 @@ adaptive neighborhood size algorithm..."
         #  Get number of neighbors for each state vector
         nR = R.sum(axis=0)
 
-        code = r"""
-        int j, k, l;
-
-        //  Add list for twins in time series i
-        py::list empty(0);
-        PyList_Append(twins, empty);
-
-        //  Find all twins in the recurrence matrix
-
-        for (j = 0; j < N; j++) {
-            //  Create empty list
-            py::list empty(0);
-            //  Append empty list to global twin list
-            PyList_Append(twins, empty);
-            //  Get a reference to the twin list of state vector j
-            py::list twins_j = PyList_GetItem(twins,j);
-
-            //  Respect a minimal temporal spacing between twins to avoid false
-            //  twins due to the higher sample density in phase space along the
-            //  trajectory
-            for (k = 0; k + min_dist < j; k++) {
-                //  Continue only if both samples have the same number of
-                //  neighbors and more than just one neighbor (themselves)
-                if (nR(j) == nR(k) & nR(j) != 1) {
-                    l = 0;
-
-                    while (R(j,l) == R(k,l)) {
-                        l++;
-
-                        //  If l is equal to the length of the time series at
-                        //  this point, j and k are twins
-                        if (l == N) {
-                            //  Add the twins to the twin list
-                            py::list twins_k = PyList_GetItem(twins,k);
-
-                            py::object temp_k = PyInt_FromLong(k);
-                            py::object temp_j = PyInt_FromLong(j);
-
-                            PyList_Append(twins_j,temp_k);
-                            PyList_Append(twins_k,temp_j);
-
-                            //  Leave the while loop
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        """
-        weave_inline(locals(), code, ['min_dist', 'N', 'R', 'nR', 'twins'])
+        _twins(min_dist, N, R, nR, twins)
         return twins
 
     def twin_surrogates(self, n_surrogates=1, min_dist=7):
