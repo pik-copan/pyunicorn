@@ -26,7 +26,7 @@ from .numerics import                                    \
     _bootstrap_distance_matrix_euclidean, _bootstrap_distance_matrix_supremum,\
     _diagline_dist_norqa_missingvalues, _diagline_dist_norqa, \
     _diagline_dist_rqa_missingvalues, _diagline_dist_rqa, _rejection_sampling,\
-    _white_vertline_dist, _twins
+    _white_vertline_dist, _twins, _twin_surrogates
 
 #
 #  Class definitions
@@ -1562,64 +1562,6 @@ adaptive neighborhood size algorithm..."
         #  Initialize
         surrogates = np.empty((n_surrogates, N, dim))
 
-        code = r"""
-        int i, j, k, l, new_k, n_twins, rand;
-
-        //  Initialize random number generator
-        srand48(time(0));
-
-        for (i = 0; i < n_surrogates; i++) {
-            //  Randomly choose a starting point in the original trajectory
-            k = floor(drand48() * N);
-
-            j = 0;
-
-            while (j < N) {
-                //  Assign state vector of surrogate trajectory
-                for (l = 0; l < dim; l++) {
-                    surrogates(i,j,l) = embedding(k,l);
-                }
-
-                //  Get the list of twins of state vector k in the original
-                //  time series
-                py::list twins_k = PyList_GetItem(twins,k);
-
-                //  Get the number of twins of k
-                n_twins = PyList_Size(twins_k);
-
-                //  If k has no twins, go to the next sample k+1. If k has
-                //  twins at m, choose among m+1 and k+1 with equal probability
-                if (n_twins == 0)
-                    k++;
-                else {
-                    //  Generate a random integer between 0 and n_twins
-                    rand = floor(drand48() * (n_twins + 1));
-
-                    //  If rand = n_twins go to sample k+1, otherwise jump to
-                    //  the future of one of the twins
-                    if (rand == n_twins)
-                        k++;
-                    else {
-                        k = twins_k[rand];
-                        k++;
-                    }
-                }
-
-                //  If the new k >= n_time, choose a new random starting point
-                //  in the original time series
-                if (k >= N) {
-                    do {
-                        new_k = floor(drand48() * N);
-                    }
-                    while (k == new_k);
-
-                    k = new_k;
-                }
-                j++;
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['n_surrogates', 'N', 'dim', 'twins', 'embedding',
-                      'surrogates'])
+        _twin_surrogates(n_surrogates, N, dim, twins, embedding,
+                         surrogates)
         return surrogates

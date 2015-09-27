@@ -37,6 +37,13 @@ ctypedef np.float32_t FLOAT32TYPE_t
 cdef extern from "stdlib.h":
     double drand48()
 
+cdef extern from "stdlib.h":
+    double srand48()
+
+cdef extern from "time.h":
+    double time()
+
+
 # recurrence plot==============================================================
 
 def _embed_time_series(
@@ -376,33 +383,90 @@ def _twins(
     int min_dist, int N, np.ndarray[INT8TYPE_t, ndim=2] R,
     np.ndarray[INTTYPE_t, ndim=1] nR, twins):
 
-        cdef int j, k, l
+    cdef int j, k, l
 
+    twins.append([])
+
+    for j in xrange(N):
         twins.append([])
+        twins_j = twins[j]
 
-        for j in xrange(N):
-            twins.append([])
-            twins_j = twins[j]
+        # Respect a minimal temporal spacing between twins to avoid false
+        # twins du to th higher sample density in phase space along the
+        # trajectory
+        for k in xrange(j - min_dist):
+            # Continue only if both samples have the same number of
+            # neighbors and more than just one neighbor (themselves)
+            if nR[j] == nR[k] and nR[j] != 1:
+                l = 0
 
-            # Respect a minimal temporal spacing between twins to avoid false
-            # twins du to th higher sample density in phase space along the
-            # trajectory
-            for k in xrange(j - min_dist):
-                # Continue only if both samples have the same number of
-                # neighbors and more than just one neighbor (themselves)
-                if nR[j] == nR[k] and nR[j] != 1:
-                    l = 0
+                while R[j, l] == R[k, l]:
+                    l = l + 1
 
-                    while R[j, l] == R[k, l]:
-                        l = l + 1
+                    # If l is equal to the length of the time series at
+                    # this point, j and k are twins
+                    if l == N:
+                        # And the twins to the twin list
+                        twins_k = twins[k]
 
-                        # If l is equal to the length of the time series at
-                        # this point, j and k are twins
-                        if l == N:
-                            # And the twins to the twin list
-                            twins_k = twins[k]
+                        twins_j.append(k)
+                        twins_k.append(j)
 
-                            twins_j.append(k)
-                            twins_k.append(j)
+                        break
 
-                            break
+
+def _twin_surrogates(
+    int n_surrogates, int N, int dim, twins,
+    np.ndarray[FLOAT32TYPE_t, ndim=2] embedding,
+    np.ndarray[FLOATTYPE_t, ndim=3] surrogates):
+
+    cdef int i, j, k, l, new_k, n_twins, rand
+
+    # Initialize random number generator
+    # srand48(time(0)) -> does not work in cython somehow ?!?!?
+
+    for i in xrange(n_surrogates):
+        # Randomly choose a starting point in the original trajectory
+        k = int(floor(drand48() * N))
+
+        j = 0
+
+        while j < N:
+            # Assign state vector of surrogate trajectory
+            for l in xrange(dim):
+                surrogates[i, j, l] = embedding[k, l]
+
+            # Get the list of twins of state vector k in the original time
+            # series
+            twins_k = twins[k]
+
+            # Get the number of twins of k
+            n_twins = len(twins_k)
+
+            # If k has no twins, go to the next sample k+1, If k has twins at
+            # m, choose among m+1 and k+1 with equal probability
+            if n_twins == 0:
+                k += 1
+            else:
+                # Generate a random integer between 0 and n_twins
+                rand = int(floor(drand48() * (n_twins + 1)))
+
+                # If rand = n_twings go to smple k+1, otherwise jump to the
+                # future of one of the twins
+                if rand == n_twins:
+                    k += 1
+                else:
+                    k = twins_k[rand]
+                    k += 1
+
+            # If the new k >= n_time, choose a new random starting point in the
+            # original time series
+            if k >= N:
+                while True:
+                    new_k = int(floor(drand48() * N))
+                    if new_k != k:
+                        break
+
+                k = new_k
+
+            j += 1
