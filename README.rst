@@ -34,7 +34,7 @@ For extensive HTML documentation, jump right to the `pyunicorn homepage
 On a local development version, HTML and PDF documentation can be generated
 using ``Sphinx``::
 
-    $> python setup.py build_ext --inplace
+    $> pip install --user -e .
     $> cd docs; make clean html latexpdf
 
 Dependencies
@@ -69,16 +69,21 @@ Installing
         $> pip install pyunicorn
 
 **Development version**
-    Via the supplied ``setup.py`` script::
+    For a simple system-wide installation::
 
         $> pip install .
 
-    Depending on your system, you may need root priviledges. On UNIX-based
-    operating systems (Linux, MacOSX etc.) this is achieved with ``sudo``.
+    Depending on your system, you may need root privileges. On UNIX-based
+    operating systems (Linux, Mac OS X etc.) this is achieved with ``sudo``.
+
+    For development, especially if you want to test ``pyunicorn`` from within
+    the source directory::
+
+        $> pip install --user -e .
 
 Test suite
 ----------
-Before committing changes to the codebase, please make sure that all tests
+Before committing changes to the code base, please make sure that all tests
 pass. The test suite is managed by `tox <https://testrun.org/tox/>`_ and
 configured to use system-wide packages when available. Thus to avoid frequent
 waiting, we recommend you to install the current versions of the following
