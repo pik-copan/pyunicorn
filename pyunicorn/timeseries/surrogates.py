@@ -384,9 +384,9 @@ class Surrogates(object):
         >>> surrogates = Surrogates.\
                 SmallTestData().white_noise_surrogates(ts)
         >>> np.histogram(ts[0,:])[0]
-        array([21, 12,  9, 15, 34, 35, 18, 12, 16, 28])
+        array([21, 12,  9, 15, 33, 36, 18, 12, 16, 28])
         >>> np.histogram(surrogates[0,:])[0]
-        array([21, 12,  9, 15, 34, 35, 18, 12, 16, 28])
+        array([21, 12,  9, 15, 33, 36, 18, 12, 16, 28])
 
         :type original_data: 2D array [index, time]
         :arg original_data: The original time series.
