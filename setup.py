@@ -3,6 +3,8 @@
 from setuptools import setup
 from setuptools.extension import Extension
 
+import numpy as np
+
 try:
     from Cython.Build import cythonize
     CYTHON = True
@@ -10,7 +12,8 @@ except ImportError:
     CYTHON = False
 
 extensions = [
-    Extension('*', ['pyunicorn/%s/*.%s' % (pkg, 'pyx' if CYTHON else 'c')])
+    Extension('*', ['pyunicorn/%s/*.%s' % (pkg, 'pyx' if CYTHON else 'c')],
+              include_dirs=[np.get_include()])
     for pkg in ['core', 'timeseries']]
 
 if CYTHON:
