@@ -16,6 +16,9 @@ analysis (RQA) and recurrence network analysis.
 import numpy as np
 
 from .. import InteractingNetworks, weave_inline
+from .numerics import \
+    _visibility_relations_missingvalues,\
+    _visibility_relations_no_missingvalues
 
 
 #
@@ -116,63 +119,11 @@ class VisibilityGraph(InteractingNetworks):
 
         if self.missing_values:
             mv_indices = self.missing_value_indices
-
-            code = r"""
-            int i,j,k;
-            float test;
-
-            for (i = 0; i < N - 2; i++) {
-                for (j = i + 2; j < N; j++) {
-                    k = i + 1;
-
-                    test = (x(j) - x(i)) / (t(j) - t(i));
-
-                    while (!mv_indices(k)
-                           && (x(k) - x(i)) / (t(k) - t(i)) < test && k < j) {
-                        k++;
-                    }
-
-                    if (k == j)
-                        A(i,j) = A(j,i) = 1;
-                }
-            }
-
-            //  Add trivial connections of subsequent observations
-            //  in time series
-            for (i = 0; i < N - 1; i++) {
-                if (!mv_indices(i) && !mv_indices(i+1))
-                    A(i,i+1) = A(i+1,i) = 1;
-            }
-            """
-            args = ['x', 't', 'N', 'A', 'mv_indices']
+            _visibility_relations_missingvalues(x, t, N, A, mv_indices)
 
         else:
-            code = r"""
-            int i,j,k;
-            float test;
+            _visibility_relations_no_missingvalues(x, t, N, A)
 
-            for (i = 0; i < N - 2; i++) {
-                for (j = i + 2; j < N; j++) {
-                    k = i + 1;
-
-                    test = (x(j) - x(i)) / (t(j) - t(i));
-
-                    while ((x(k) - x(i)) / (t(k) - t(i)) < test && k < j)
-                        k++;
-
-                    if (k == j)
-                        A(i,j) = A(j,i) = 1;
-                }
-            }
-
-            //  Add trivial connections of subsequent observations
-            //  in time series
-            for (i = 0; i < N - 1; i++)
-                A(i,i+1) = A(i+1,i) = 1;
-            """
-            args = ['x', 't', 'N', 'A']
-
-        weave_inline(locals(), code, args)
         return A
 
     def visibility_relations_horizontal(self):
