@@ -97,3 +97,27 @@ def _visibility_relations_no_missingvalues(
     # Add trivial connections of subsequent observations in time series
     for i in xrange(N-1):
         A[i, i+1] = A[i+1, i] = 1
+
+
+def _visibility_realtions_horizontal(
+    np.ndarray[FLOAT32TYPE_t, ndim=1] x, np.ndarray[FLOAT32TYPE_t, ndim=1] t,
+    int N, np.ndarray[INT8TYPE_t, ndim=2] A):
+
+    cdef:
+        int i, j, k
+        float minimum
+
+    for i in xrange(N-2):
+        for j in xrange(i+2, N):
+            k = i + 1
+            minimum = min(x[i], x[j])
+
+            while x[k] < minimum and k < j:
+                k += 1
+
+            if k == j:
+                A[i, j] = A[j, i] = 1
+
+    # Add trivial connections of subsequent observations in time series
+    for i in xrange(N-1):
+        A[i, i+1] = A[i+1, i] = 1

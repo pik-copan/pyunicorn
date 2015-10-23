@@ -18,7 +18,7 @@ import numpy as np
 from .. import InteractingNetworks, weave_inline
 from .numerics import \
     _visibility_relations_missingvalues,\
-    _visibility_relations_no_missingvalues
+    _visibility_relations_no_missingvalues, _visibility_realtions_horizontal
 
 
 #
@@ -126,6 +126,8 @@ class VisibilityGraph(InteractingNetworks):
 
         return A
 
+    # FIXME: There is no option for missing values
+    # Cython gives different outputs than waeve in this case
     def visibility_relations_horizontal(self):
         """
         TODO
@@ -139,29 +141,7 @@ class VisibilityGraph(InteractingNetworks):
         N = len(self.time_series)
         A = np.zeros((N, N), dtype="int8")
 
-        code = r"""
-            int i,j,k;
-            float minimum;
-
-            for (i = 0; i < N - 2; i++) {
-                for (j = i + 2; j < N; j++) {
-                    k = i + 1;
-                    minimum = fmin(x(i), x(j));
-
-                    while (x(k) < minimum && k < j)
-                        k++;
-
-                    if (k == j)
-                        A(i,j) = A(j,i) = 1;
-                }
-            }
-
-            //  Add trivial connections of subsequent observations
-            //  in time series
-            for (i = 0; i < N - 1; i++)
-                A(i,i+1) = A(i+1,i) = 1;
-        """
-        weave_inline(locals(), code, ['x', 't', 'N', 'A'])
+        _visibility_realtions_horizontal(x, t, N, A)
         return A
 
     #
