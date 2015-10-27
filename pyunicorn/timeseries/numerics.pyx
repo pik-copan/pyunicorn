@@ -73,3 +73,29 @@ def _embed_time_series_array(
             for k in xrange(len_embedded):
                 embedding[i, k, j] = time_series_array[i, index]
                 index += 1
+
+
+def _recurrence_plot(
+    int n_time, int dimension, float threshold,
+    np.ndarray[FLOATTYPE_t, ndim=2] embedding,
+    np.ndarray[INT8TYPE_t, ndim=2] R):
+
+    cdef:
+        int j, k, l
+        double diff
+
+    for j in xrange(n_time):
+        # Ignore the main diagonal, since every sample is neighbor of itself
+        for k in xrange(j):
+            for l in xrange(dimension):
+                # Use supremum norm
+                diff = embedding[j, l] - embedding[k, l]
+
+                if abs(diff) > threshold:
+                    # j and k are not neighbors
+                    R[j, k] = R[k, j] = 0
+
+                    # Leave the loop
+                    break
+
+

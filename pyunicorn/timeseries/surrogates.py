@@ -20,7 +20,7 @@ from .. import weave_inline
 # easy progress bar handling
 from ..utils import progressbar
 
-from .numerics import _embed_time_series_array
+from .numerics import _embed_time_series_array, _recurrence_plot
 
 
 #
@@ -183,6 +183,9 @@ class Surrogates(object):
                                  time_series_array, embedding)
         return embedding
 
+    # FIXME: I(wb) included the line
+    # dimension = embedding.shape[1]
+    # whose missing caused an error. I can't guarantee if it is correct.
     def recurrence_plot(self, embedding, threshold):
         """
         Return the :index:`recurrence plot <pair: recurrence plot; time
@@ -200,33 +203,10 @@ class Surrogates(object):
             print "Calculating the recurrence plot..."
 
         n_time = embedding.shape[0]
+        dimension = embedding.shape[1]
         R = np.ones((n_time, n_time), dtype="int8")
 
-        code = r"""
-        int j, k, l;
-        double diff;
-
-        for (j = 0; j < n_time; j++) {
-            //  Ignore the main diagonal, since every sample is neighbor
-            //  of itself.
-            for (k = 0; k < j; k++) {
-                for (l = 0; l < dimension; l++) {
-                    //  Use supremum norm
-                    diff = embedding(j,l) - embedding(k,l);
-
-                    if(fabs(diff) > threshold) {
-                        //  j and k are not neighbors
-                        R(j,k) = R(k,j) = 0;
-
-                        //  Leave the for loop
-                        break;
-                    }
-                }
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['n_time', 'dimension', 'threshold', 'embedding', 'R'])
+        _recurrence_plot(n_time, dimension, threshold, embedding, R)
         return R
 
     def twins(self, embedding_array, threshold, min_dist=7):
