@@ -23,14 +23,16 @@ randint = rd.randint
 
 BOOLTYPE = np.uint8
 INTTYPE = np.int
-INT32TYPE = np.int32
 INT8TYPE = np.int8
+INT16TYPE = np.int16
+INT32TYPE = np.int32
 FLOATTYPE = np.float
 FLOAT32TYPE = np.float32
 ctypedef np.uint8_t BOOLTYPE_t
 ctypedef np.int_t INTTYPE_t
-ctypedef np.int32_t INT32TYPE_t
 ctypedef np.int8_t INT8TYPE_t
+ctypedef np.int16_t INT16TYPE_t
+ctypedef np.int32_t INT32TYPE_t
 ctypedef np.float_t FLOATTYPE_t
 ctypedef np.float32_t FLOAT32TYPE_t
 
@@ -121,3 +123,28 @@ def _visibility_realtions_horizontal(
     # Add trivial connections of subsequent observations in time series
     for i in xrange(N-1):
         A[i, i+1] = A[i+1, i] = 1
+
+def _retarded_local_clustering(
+    int N, np.ndarray[INT16TYPE_t, ndim=2] A,
+    np.ndarray[FLOATTYPE_t, ndim=1] norm,
+    np.ndarray[FLOATTYPE_t, ndim=1] retarded_clustering):
+
+    cdef:
+        int i, j, k
+        long counter
+
+    # Loop over all nodes
+    for i in xrange(N):
+        # Check if i has right degree larger than 1
+        if norm[i] != 0:
+            # Reset counter
+            counter = 0
+
+            # Loop over unique pairs of nodes in the past of i
+            for j in xrange(i):
+                for k in xrange(j):
+                    if A[i, j] == 1 and A[j, k] == 1 and A[k, i] == 1:
+                        counter += 1
+
+            retarded_clustering[i] = counter / norm[i]
+
