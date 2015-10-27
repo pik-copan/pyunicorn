@@ -15,11 +15,11 @@ analysis (RQA) and recurrence network analysis.
 # array object and fast numerics
 import numpy as np
 
-from .. import InteractingNetworks, weave_inline
+from .. import InteractingNetworks
 from .numerics import \
     _visibility_relations_missingvalues,\
     _visibility_relations_no_missingvalues, _visibility_realtions_horizontal,\
-    _retarded_local_clustering
+    _retarded_local_clustering, _advanced_local_clustering
 
 
 #
@@ -210,30 +210,7 @@ class VisibilityGraph(InteractingNetworks):
         #  Prepare normalization factor
         norm = advanced_degree * (advanced_degree - 1) / 2.
 
-        code = """
-        long counter;
-
-        //  Loop over all nodes
-        for (int i = 0; i < N - 2; i++) {
-            //  Check if i has right degree larger than 1
-            if (norm(i) != 0) {
-                //  Reset counter
-                counter = 0;
-
-                //  Loop over unique pairs of nodes in the future of i
-                for (int j = i + 1; j < N; j++) {
-                    for (int k = i + 1; k < j; k++) {
-                        if (A(i,j) == 1 && A(j,k) == 1
-                            && A(k,i) == 1) {
-                            counter++;
-                        }
-                    }
-                }
-                advanced_clustering(i) = counter / norm(i);
-            }
-        }
-        """
-        weave_inline(locals(), code, ['N', 'A', 'norm', 'advanced_clustering'])
+        _advanced_local_clustering(N, A, norm, advanced_clustering)
         return advanced_clustering
 
     def retarded_closeness(self):

@@ -52,6 +52,10 @@ def _visibility_relations_missingvalues(
     np.ndarray[FLOAT32TYPE_t, ndim=1] x, np.ndarray[FLOAT32TYPE_t, ndim=1] t,
     int N, np.ndarray[INT8TYPE_t, ndim=2] A,
     np.ndarray[BOOLTYPE_t, ndim=1, cast=True] mv_indices):
+    """
+    >>> 42 == 42
+    True
+    """
 
     cdef:
         int i, j, k
@@ -147,4 +151,28 @@ def _retarded_local_clustering(
                         counter += 1
 
             retarded_clustering[i] = counter / norm[i]
+
+def _advanced_local_clustering(
+    int N, np.ndarray[INT16TYPE_t, ndim=2] A,
+    np.ndarray[FLOATTYPE_t, ndim=1] norm,
+    np.ndarray[FLOATTYPE_t, ndim=1] advanced_clustering):
+
+    cdef:
+        int i, j, k
+        long counter
+
+    # Loop over all nodes
+    for i in xrange(N-2):
+        # Check if i has right degree larger than 1
+        if norm[i] != 0:
+            # Reset counter
+            counter = 0
+
+            # Loop over unique pairs of nodes in the future of i
+            for j in xrange(i+1, N):
+                for k in xrange(i+1, j):
+                    if A[i, j] == 1 and A[j, k] == 1 and A[k, i] == 1:
+                        counter += 1
+
+            advanced_clustering[i] = counter / norm[i]
 
