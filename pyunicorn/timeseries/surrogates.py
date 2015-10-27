@@ -20,6 +20,8 @@ from .. import weave_inline
 # easy progress bar handling
 from ..utils import progressbar
 
+from .numerics import _embed_time_series_array
+
 
 #
 #  Define class Surrogates
@@ -177,27 +179,8 @@ class Surrogates(object):
 
         embedding = np.empty((N, n_time - (dimension - 1)*delay, dimension))
 
-        code = r"""
-        int i, j, k, max_delay, len_embedded, index;
-
-        //  Calculate the maximum delay
-        max_delay = (dimension - 1)*delay;
-        //  Calculate the length of the embedded time series
-        len_embedded = n_time - max_delay;
-
-        for (i = 0; i < N; i++) {
-            for (j = 0; j < dimension; j++) {
-                index = j*delay;
-                for (k = 0; k < len_embedded; k++) {
-                    embedding(i,k,j) = time_series_array(i,index);
-                    index++;
-                }
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['N', 'n_time', 'dimension', 'delay', 'time_series_array',
-                      'embedding'])
+        _embed_time_series_array(N, n_time, dimension, delay,
+                                 time_series_array, embedding)
         return embedding
 
     def recurrence_plot(self, embedding, threshold):
