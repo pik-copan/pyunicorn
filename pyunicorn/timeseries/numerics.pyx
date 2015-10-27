@@ -99,3 +99,74 @@ def _recurrence_plot(
                     break
 
 
+def _twins(
+    int N, int n_time, int dimension, float threshold, int min_dist,
+    np.ndarray[FLOATTYPE_t, ndim=3] embedding_array,
+    np.ndarray[FLOATTYPE_t, ndim=2] R, np.ndarray[FLOATTYPE_t, ndim=1] nR,
+    twins):
+
+    cdef:
+        int i, j, k, l
+        double diff
+
+    for i in xrange(N):
+        # Initialize the recurrence matrix R and nR
+
+        for j in xrange(n_time):
+            for k in xrange(j+1):
+                R[j, k] = R[k, j] = 1
+            nR[j] = n_time
+
+        # Calculate the recurrence matrix for time series i
+
+        for j in xrange(n_time):
+            # Ignore main diagonal, since every sample is neighbor of itself
+            for k in xrange(j):
+                for l in xrange(dimension):
+                    # Use maximum norm
+                    diff = embedding_array[i, j, l] - embedding_array[i, k, l]
+
+                    if abs(diff) > threshold:
+                        # j and k are not neighbors
+                        R[j, k] = R[k, j] = 0
+
+                        # Reduce neighbor count of j and k by one
+                        nR[j] -= 1
+                        nR[k] -= 1
+
+                        # Leave the for loop
+                        break
+
+        # Add list for twins in time series i
+        twins.append([])
+
+        # Find all twins in the recurrence matrix
+
+        for j in xrange(n_time):
+            twins_i = twins[i]
+            twins_i.append([])
+            twins_ij = twins_i[j]
+
+            # Respect a minimal temporal spacing between twins to avoid false
+            # twins due to the higher
+            # sample density in phase space along the trajectory
+            for k in xrange(j-min_dist):
+                # Continue only if both samples have the same number of
+                # neighbors and more than jsut one neighbor (themselves)
+                if nR[j] == nR[k] and nR[j] != 1:
+                    l = 0
+
+                    while R[j, l] == R[k, l]:
+                        l += 1
+
+                        # If l is equal to the length of the time series at
+                        # this point, j and k are twins
+                        if l == n_time:
+                            # Add the twins to the twin list
+                            twins_ik = twins_i[k]
+
+                            twins_ij.append(k)
+                            twins_ik.append(j)
+
+                            # Leave the while loop
+                            break
