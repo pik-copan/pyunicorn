@@ -14,7 +14,7 @@ except ImportError:
 extensions = [
     Extension('*', ['pyunicorn/%s/*.%s' % (pkg, 'pyx' if CYTHON else 'c')],
               include_dirs=[np.get_include()])
-    for pkg in ['core']]
+    for pkg in ['core', 'timeseries']]
 
 if CYTHON:
     extensions = cythonize(extensions, compiler_directives={
