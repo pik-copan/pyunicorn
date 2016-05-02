@@ -42,6 +42,10 @@ import igraph                       # high performance graph theory tools
 from ..utils import progressbar     # easy progress bar handling
 from .. import mpi                  # parallelized computations
 
+from .numerics import _local_cliquishness_4thorder,\
+    _local_cliquishness_5thorder, _cy_mpi_nsi_newman_betweenness,\
+    _cy_mpi_newman_betweenness, _nsi_betweenness
+
 
 def nz_coords(matrix):
     """
@@ -2515,6 +2519,9 @@ can only take values <<in>> or <<out>>."
 
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
+        if self.directed:
+            raise NetworkError("Not implemented yet...")
+
         if self.silence_level <= 1:
             print "Calculating local cliquishness of order", order, "..."
 
@@ -2526,135 +2533,13 @@ can only take values <<in>> or <<out>>."
             return self.local_clustering()
 
         elif order == 4:
-            #  Gathering
-            N = self.N
-            A = self.adjacency
-            degree = self.degree()
-
-            #  Initialize
-            local_cliquishness = np.zeros(N)
-            neighbors = np.zeros(N)
-
-            code = """
-            long counter;
-            int index, node1, node2, node3, degree_i;
-
-            //  Iterate over all nodes
-            for (int i = 0; i < N; i++) {
-                //  If degree is smaller than order - 1,
-                //  set local cliquishness to zero.
-                degree_i = degree(i);
-
-                if (degree_i >= order - 1) {
-                    //  Get neighbors of node i
-                    index = 0;
-
-                    for (int j = 0; j < N; j++) {
-                        if (A(i,j) == 1) {
-                            neighbors(index) = j;
-                            index++;
-                        }
-                    }
-
-                    counter = 0;
-
-                    //  Iterate over possibly existing edges between
-                    //  3 neighbors of i.
-                    for (int j = 0; j < degree_i; j++) {
-                        node1 = neighbors(j);
-
-                        for (int k = 0; k < degree_i; k++) {
-                            node2 = neighbors(k);
-
-                            for (int l = 0; l < degree_i; l++) {
-                                node3 = neighbors(l);
-
-                                if (A(node1,node2) == 1 &&
-                                        A(node2,node3) == 1 &&
-                                            A(node3,node1) == 1)
-                                    counter++;
-                            }
-                        }
-                    }
-                    local_cliquishness(i) = double(counter) / degree_i /
-                        (degree_i-1) / (degree_i-2);
-                }
-            }
-            """
-            weave_inline(locals(), code,
-                         ['local_cliquishness', 'neighbors', 'N', 'A',
-                          'degree', 'order'])
-            return local_cliquishness
-
+            return _local_cliquishness_4thorder(self.N,
+                                                self.adjacency.astype(int),
+                                                self.degree())
         elif order == 5:
-            #  Gathering
-            N = self.N
-            A = self.adjacency
-            degree = self.degree()
-
-            #  Initialize
-            local_cliquishness = np.zeros(N)
-            neighbors = np.zeros(N)
-
-            code = """
-            long counter;
-            int index, node1, node2, node3, node4, degree_i;
-
-            //  Iterate over all nodes
-            for (int i = 0; i < N; i++) {
-                //  If degree is smaller than order - 1, set local cliquishness
-                //  to zero.
-                degree_i = degree(i);
-
-                if (degree_i >= order - 1) {
-                    //  Get neighbors of node i
-                    index = 0;
-
-                    for (int j = 0; j < N; j++) {
-                        if (A(i,j) == 1) {
-                            neighbors(index) = j;
-                            index++;
-                        }
-                    }
-
-                    counter = 0;
-
-                    //  Iterate over possibly existing edges between
-                    //  3 neighbors of i
-                    for (int j = 0; j < degree_i; j++) {
-                        node1 = neighbors(j);
-
-                        for (int k = 0; k < degree_i; k++) {
-                            node2 = neighbors(k);
-
-                            for (int l = 0; l < degree_i; l++) {
-                                node3 = neighbors(l);
-
-                                for (int m = 0; m < degree_i; m++) {
-                                    node4 = neighbors(m);
-
-                                    if (A(node1,node2) == 1 &&
-                                        A(node1,node3) == 1 &&
-                                        A(node1,node4) == 1 &&
-                                        A(node2,node3) == 1 &&
-                                        A(node2,node4) == 1 &&
-                                        A(node3,node4) == 1) {
-                                        counter++;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    local_cliquishness(i) = double(counter) / degree_i /
-                        (degree_i-1) / (degree_i-2) / (degree_i-3);
-                }
-            }
-            """
-            weave_inline(locals(), code,
-                         ['local_cliquishness', 'neighbors', 'N', 'A',
-                          'degree', 'order'])
-            return local_cliquishness
-
+            return _local_cliquishness_5thorder(self.N,
+                                                self.adjacency.astype(int),
+                                                self.degree())
         elif order > 5:
             raise NotImplementedError("Local cliquishness is not yet " +
                                       "implemented for orders larger than 5.")
@@ -3278,7 +3163,7 @@ can only take values <<in>> or <<out>>."
         """
         return self.nsi_betweenness(sources=sources, targets=targets, silent=1)
 
-    def nsi_betweenness(self, **kwargs):
+    def nsi_betweenness(self, cy=False, **kwargs):
         """
         For each node, return its n.s.i. betweenness.
 
@@ -3382,6 +3267,7 @@ can only take values <<in>> or <<out>>."
             }
             next_d = distances_to_j[i] + 1;
 
+
             // iterate through all neighbours l of i:
             for (l_index=(oi=offsets[i]); l_index<oi+k[i]; l_index++) {
 
@@ -3420,6 +3306,7 @@ can only take values <<in>> or <<out>>."
             } else {
                 // otherwise, iterate through all predecessors i of l:
                 double base_factor = w[l] / multiplicity_to_j[l];
+
                 for (fi=(ol=offsets[l]); fi<ol+n_predecessors[l]; fi++) {
                     // add betweenness to predecessor:
 //                  betweenness_to_j[i=flat_predecessors[fi]] +=
@@ -3460,10 +3347,16 @@ can only take values <<in>> or <<out>>."
             flat_predecessors = list(np.zeros(E, dtype=int))
             # Note: this cannot be transferred as numpy array since if too
             # large we get an glibc error...
-            weave_inline(locals(), code,
-                         ['N', 'E', 'w', 'k', 'j', 'betweenness_to_j',
-                          'excess_to_j', 'offsets', 'flat_neighbors',
-                          'is_source', 'flat_predecessors'], blitz=False)
+            if not cy:
+                weave_inline(locals(), code,
+                             ['N', 'E', 'w', 'k', 'j', 'betweenness_to_j',
+                              'excess_to_j', 'offsets', 'flat_neighbors',
+                              'is_source', 'flat_predecessors'], blitz=False)
+            else:
+                _nsi_betweenness(N, E, w, k, j, betweenness_to_j,
+                                 excess_to_j, offsets.astype(int),
+                                 flat_neighbors,
+                                 is_source, np.array(flat_predecessors))
             del flat_predecessors
             betweenness_times_w += w[j] * (betweenness_to_j - excess_to_j)
 
@@ -4264,49 +4157,6 @@ can only take values <<in>> or <<out>>."
 
         return randomWalkBetweenness
 
-    # This function does the outer loop for a certain range start_i-end_i of
-    # c's.  it gets the full V matrix but only the needed rows of the A matrix.
-    # Each parallel job will consist of a call to this function:
-    @staticmethod
-    def _mpi_newman_betweenness(this_A, V, N, start_i, end_i):
-        error_message = ''
-        result = None, None, None
-        try:
-            this_N = int(end_i - start_i)
-            start_i = int(start_i)
-            this_betweenness = np.zeros(this_N)
-            # Optimized version of the nested loops, takes O(N^2*sp_M) time.
-            # Loops reordered so that test for A(c,j) is as early as possible:
-            code = r"""
-            int i_rel, j, s, t, i_abs;
-            double sum_s, sum_j, Vis_minus_Vjs;
-            for (i_rel=0; i_rel<this_N; i_rel++) {
-                // correct i index for V matrix:
-                i_abs = i_rel + start_i;
-                for (j=0; j<N; j++) if (this_A(i_rel,j)) {
-                    sum_j = 0.0;
-                    for (s = 0; s<N; s++) if (i_abs != s) {
-                        Vis_minus_Vjs = V(i_abs,s) - V(j,s);
-                        sum_s = 0.0;
-                        for (t=0; t<s; t++) if (i_abs != t)
-                            sum_s += fabs(Vis_minus_Vjs
-                                        - V(i_abs,t) + V(j,t));
-                        sum_j += sum_s;
-                    }
-                    this_betweenness(i_rel) += sum_j;
-                }
-            }
-            """
-            weave_inline(locals(), code,
-                         ['this_A', 'V', 'this_betweenness', 'N', 'this_N',
-                          'start_i'])
-            result = this_betweenness, start_i, end_i
-        except (RuntimeError, weave.build_tools.CompileError):
-            error_message = (str(sys.exc_info()[0]) + '\n' +
-                             str(sys.exc_info()[1]))  # grab exception text
-
-        return error_message, result
-
     # much faster (and corrected) version of the preceding:
     @cached_const('base', 'newman btw', "Newman's random walk betweenness")
     def newman_betweenness(self):
@@ -4395,8 +4245,9 @@ can only take values <<in>> or <<out>>."
                         # that later the results can be retrieved:
                         if self.silence_level <= 0:
                             print "submitting part from", start_i, "to", end_i
-                        mpi.submit_call("Network._mpi_newman_betweenness",
-                                        (this_A, V, N, start_i, end_i),
+                        mpi.submit_call("_cy_mpi_newman_betweenness",
+                                        (this_A.astype(int), V.astype(float),
+                                         N, start_i, end_i),
                                         module="pyunicorn", id=index,
                                         time_est=this_A.sum())
 
@@ -4407,22 +4258,13 @@ can only take values <<in>> or <<out>>."
                         # waits until it finishes, and retrieves the result:
                         if self.silence_level <= 0:
                             print "retrieving results from ", index
-                        error_message, result = mpi.get_result(index)
-                        if error_message != '':
-                            print error_message
-                            sys.exit()
-                        this_betweenness, start_i, end_i = result
-                        # copy the result into the component_betweenness
-                        # vector:
+                        this_betweenness, start_i, end_i = \
+                            mpi.get_result(index)
                         component_betweenness[start_i:end_i] = this_betweenness
                 else:
-                    # unparallelized version:
-                    error_message, result = \
-                        Network._mpi_newman_betweenness(A, V, N, 0, N)
-                    if error_message != '':
-                        print error_message
-                        sys.exit()
-                    component_betweenness, start_i, end_i = result
+                    component_betweenness, start_i, end_i =\
+                        _cy_mpi_newman_betweenness(A.astype(int),
+                                                   V.astype(float), N, 0, N)
 
                 component_betweenness += 2 * (N - 1)
                 component_betweenness /= (N - 1.0)  # TODO: why is this?
@@ -4436,41 +4278,6 @@ can only take values <<in>> or <<out>>."
             print "...took", time.time()-t0, "seconds"
 
         return newman_betweenness
-
-    #  Calculate the random walk betweenness in C++ using Weave, Parallelized
-    #  version (see above):
-    @staticmethod
-    def _mpi_nsi_newman_betweenness(this_A, V, N, w, this_not_adj_or_equal,
-                                    start_i, end_i):
-        this_N = int(end_i - start_i)
-        start_i = int(start_i)
-        this_betweenness = np.zeros(this_N)
-        code = r"""
-        int i_rel, j, s, t, i_abs;
-        double sum_s, sum_j, Vis_minus_Vjs;
-        for (i_rel = 0; i_rel < this_N; i_rel++) {
-            i_abs = i_rel + start_i;
-            for (j = 0; j < N; j++) if (this_A(i_rel,j)) {
-                sum_j = 0.0;
-                for (s = 0; s < N; s++)
-                    if (this_not_adj_or_equal(i_rel,s)) {
-                        Vis_minus_Vjs = V(i_abs,s)-V(j,s);
-                        sum_s = 0.0;
-                        for (t = 0; t < s; t++)
-                            if (this_not_adj_or_equal(i_rel,t))
-                                sum_s += w(t)
-                                    * fabs(Vis_minus_Vjs
-                                           - V(i_abs,t) + V(j,t));
-                        sum_j += w(s) * sum_s;
-                }
-                this_betweenness(i_rel) += w(j)*sum_j;
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['this_A', 'V', 'this_betweenness', 'N', 'w',
-                      'this_not_adj_or_equal', 'this_N', 'start_i'])
-        return this_betweenness, start_i, end_i
 
     def nsi_newman_betweenness(self, add_local_ends=False):
         """
@@ -4614,10 +4421,13 @@ can only take values <<in>> or <<out>>."
                         this_A = A[start_i:end_i, :]
                         this_not_adjacent_or_equal = \
                             not_adjacent_or_equal[start_i:end_i, :]
+
                         mpi.submit_call(
-                            "Network._mpi_nsi_newman_betweenness",
-                            (this_A, V, N, w, this_not_adjacent_or_equal,
-                             start_i, end_i),
+                            "_cy_mpi_nsi_newman_betweenness",
+                            (this_A.astype(int), V.astype(float), N,
+                             w.astype(float),
+                             this_not_adjacent_or_equal.astype(int), start_i,
+                             end_i),
                             module="pyunicorn", id=idx)
 
                     # Retrieve results of all submited jobs
@@ -4628,8 +4438,9 @@ can only take values <<in>> or <<out>>."
 
                 else:
                     component_betweenness, start_i, end_i = \
-                        Network._mpi_nsi_newman_betweenness(
-                            A, V, N, w, not_adjacent_or_equal, 0, N)
+                        _cy_mpi_nsi_newman_betweenness(
+                            A.astype(int), V.astype(float), N, w.astype(float),
+                            not_adjacent_or_equal.astype(int), 0, N)
 
                 #  Correction for the fact that we used only s,t not
                 #  neighboured to i
