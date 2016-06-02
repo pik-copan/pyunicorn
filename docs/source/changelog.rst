@@ -4,6 +4,10 @@ Changelog
 
 A summary of major changes made in each release of ``pyunicorn``:
 
+**0.5.1**
+ - Added reference to pyunicorn description paper published in the
+   journal Chaos.
+
 **0.5.0**
  - Substantial update of ``CouplingAnalysis``.
  - New methods in ``RecurrenceNetwork``: ``transitivity_dim_single_scale``,

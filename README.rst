@@ -34,6 +34,7 @@ For extensive HTML documentation, jump right to the `pyunicorn homepage
 On a local development version, HTML and PDF documentation can be generated
 using ``Sphinx``::
 
+    $> pip install --user -e .
     $> cd docs; make clean html latexpdf
 
 Dependencies
@@ -44,7 +45,6 @@ which have to be installed on your machine.
 Required:
   - `Numpy <http://numpy.scipy.org/>`_ 1.8+
   - `Scipy <http://www.scipy.org/>`_ 0.14+
-  - `Cython <http://cython.org/>`_ 0.21+
   - `Weave <https://github.com/scipy/weave>`_ 0.15+
   - `igraph, python-igraph <http://igraph.sourceforge.net/>`_ 0.7+
 
@@ -58,6 +58,8 @@ Optional *(used only in certain classes and methods)*:
   - `mpi4py <http://code.google.com/p/mpi4py/>`_ (for parallelizing costly
     computations)
   - `Sphinx <http://sphinx-doc.org/>`_ (for generating documentation)
+  - `Cython <http://cython.org/>`_ 0.21+ (for compiling code during
+    development)
 
 Installing
 ----------
@@ -67,16 +69,21 @@ Installing
         $> pip install pyunicorn
 
 **Development version**
-    Via the supplied ``setup.py`` script::
+    For a simple system-wide installation::
 
         $> pip install .
 
-    Depending on your system, you may need root priviledges. On UNIX-based
-    operating systems (Linux, MacOSX etc.) this is achieved with ``sudo``.
+    Depending on your system, you may need root privileges. On UNIX-based
+    operating systems (Linux, Mac OS X etc.) this is achieved with ``sudo``.
+
+    For development, especially if you want to test ``pyunicorn`` from within
+    the source directory::
+
+        $> pip install --user -e .
 
 Test suite
 ----------
-Before committing changes to the codebase, please make sure that all tests
+Before committing changes to the code base, please make sure that all tests
 pass. The test suite is managed by `tox <https://testrun.org/tox/>`_ and
 configured to use system-wide packages when available. Thus to avoid frequent
 waiting, we recommend you to install the current versions of the following
@@ -113,6 +120,8 @@ following reference:
 
     J.F. Donges, J. Heitzig, B. Beronov, M. Wiedermann, J. Runge, Q.-Y. Feng, L. Tupikina, V. Stolbova, R.V. Donner, N. Marwan, H.A. Dijkstra, and J. Kurths,
     Unified functional network and nonlinear time series analysis for complex systems science: The pyunicorn package,
+    `Chaos 25, 113101 (2015), doi:10.1063/1.4934554,
+    <http://dx.doi.org/10.1063/1.4934554>`_
     `Preprint: arxiv.org:1507.01571 [physics.data-an].
     <http://arxiv.org/abs/1507.01571>`_
 

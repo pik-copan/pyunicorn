@@ -155,6 +155,13 @@ Node-weighted network measures / node-splitting invariance
     `doi:10.1209/0295-5075/102/28007
     <http://dx.doi.org/10.1209/0295-5075/102/28007>`__
 
+.. [Zemp2014] D.C. Zemp,  M. Wiedermann, J. Kurths, A. Rammig, J.F. Donges.
+    "Node-weighted measures for complex networks with directed and weighted
+    edges for studying continental moisture recycling".
+    In *Europhysics Letters*, vol. 107.5, p58005 (2014)
+    `doi:10.1209/0295-5075/107/58005
+    <http://dx.doi.org/10.1209/0295-5075/107/58005>`__
+
 Climate data analysis (general)
 ===============================
 [Bretherton1992]_.

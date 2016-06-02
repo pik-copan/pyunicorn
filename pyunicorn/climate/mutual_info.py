@@ -541,7 +541,7 @@ anomaly values..."
         """
         return self._weave_calculate_mutual_information(anomaly)
 
-    def mutual_information(self, anomaly=None):
+    def mutual_information(self, anomaly=None, dump=True):
         """
         Return mutual information matrix at zero lag.
 
@@ -551,38 +551,38 @@ anomaly values..."
 
         :type anomaly: 2D Numpy array (time, index)
         :arg anomaly: The anomaly time series.
+        :arg bool dump: Store MI in data file.
 
         :rtype: 2D Numpy array (index, index)
         :return: the mutual information matrix at zero lag.
         """
-
         try:
             #  Try to load MI from file
             if self.silence_level <= 1:
-                print "Loading mutual information matrix from", \
-                      self.mi_file, "..."
+                print "Loading mutual information matrix from %s..." % \
+                    self.mi_file
 
-            f = file(self.mi_file)
-            mi = np.load(f)
-
-            #  Check if the dimensions of mutual_information correspond to the
-            #  grid.
-            if mi.shape != (self.N, self.N):
-                print self.mi_file, "in current directory has incorrect \
-dimensions!"
-                raise ValueError
+            with open(self.mi_file, 'r') as f:
+                mi = np.load(f)
+                #  Check if the dimensions of mutual_information correspond to
+                #  the grid.
+                if mi.shape != (self.N, self.N):
+                    print (self.mi_file +
+                           " in current directory has incorrect dimensions!")
+                    raise RuntimeError
 
         except (IOError, RuntimeError):
             if self.silence_level <= 1:
-                print "An error occured while loading data from", \
-                      self.mi_file, "."
-                print "Recalculating mutual information and storing in", \
-                      self.mi_file
+                print "An error occured while loading data from %s." % \
+                    self.mi_file
+                print "Recalculating mutual information."
 
-            f = file(self.mi_file, "w")
             mi = self._weave_calculate_mutual_information(anomaly)
-            mi.dump(f)
-            f.close()
+            if dump:
+                with open(self.mi_file, 'w') as f:
+                    if self.silence_level <= 1:
+                        print "Storing in", self.mi_file
+                    mi.dump(f)
 
         return mi
 
@@ -595,22 +595,23 @@ dimensions!"
         """
         return self._winter_only
 
-    def _set_winter_only(self, winter_only):
+    def _set_winter_only(self, winter_only, dump=False):
         """
         Toggle use of exclusively winter data points for network generation.
 
         :arg bool winter_only: Indicates whether only winter months were used
             for network generation.
+        :arg bool dump: Store MI in data file.
         """
         self._winter_only = winter_only
         if winter_only:
             winter_anomaly = self.data.anomaly_selected_months([0, 1, 11])
-            mi = self.mutual_information(winter_anomaly)
+            mi = self.mutual_information(winter_anomaly, dump=dump)
         else:
-            mi = self.mutual_information(self.data.anomaly())
+            mi = self.mutual_information(self.data.anomaly(), dump=dump)
         self._similarity_measure = mi
 
-    def set_winter_only(self, winter_only):
+    def set_winter_only(self, winter_only, dump=True):
         """
         Toggle use of exclusively winter data points for network generation.
 
@@ -618,8 +619,9 @@ dimensions!"
 
         :arg bool winter_only: Indicates whether only winter months were used
             for network generation.
+        :arg bool dump: Store MI in data file.
         """
-        self._set_winter_only(winter_only)
+        self._set_winter_only(winter_only, dump=dump)
         self._regenerate_network()
 
     #

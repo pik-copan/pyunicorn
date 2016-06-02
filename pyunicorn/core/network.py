@@ -42,6 +42,10 @@ import igraph                       # high performance graph theory tools
 from ..utils import progressbar     # easy progress bar handling
 from .. import mpi                  # parallelized computations
 
+from .numerics import _local_cliquishness_4thorder,\
+    _local_cliquishness_5thorder, _cy_mpi_nsi_newman_betweenness,\
+    _cy_mpi_newman_betweenness, _nsi_betweenness
+
 
 def nz_coords(matrix):
     """
@@ -62,6 +66,9 @@ def cache_helper(self, cat, key, msg, func, *args, **kwargs):
     :arg str msg: message to be displayed during first calculation
     :arg func func: function to be cached
     """
+    # categories can be added on the fly?!?!
+    self.cache.setdefault(cat, {})
+
     if self.cache[cat].setdefault(key) is None:
         if msg is not None and self.silence_level <= 1:
             print 'Calculating ' + msg + '...'
@@ -367,8 +374,21 @@ class Network(object):
         new_w[N] = proportion * w[node]
         new_w[node] = (1.0 - proportion) * w[node]
 
-        return Network(adjacency=new_A, directed=False, node_weights=new_w,
-                       silence_level=self.silence_level)
+        new_NW = Network(adjacency=new_A, directed=self.directed,
+                         node_weights=new_w, silence_level=self.silence_level)
+        # -- Copy link attributes
+        for a in self.graph.es.attributes():
+            W = self.link_attribute(a)
+            new_W = np.zeros((N+1, N+1))
+            new_W[:N, :N] = W
+            # add last row and column
+            new_W[:N, N] = W[:, node]
+            new_W[N, :N] = W[node, :]
+            # assign weight between new node and original and for self loop
+            new_W[node, N] = new_W[N, node] = new_W[N, N] = W[node, node]
+            new_NW.set_link_attribute(a, new_W)
+        # --
+        return new_NW
 
     @property
     def adjacency(self):
@@ -667,12 +687,44 @@ class Network(object):
 
         :rtype: Network instance
         """
-        return Network(adjacency=[[0, 0, 0, 1, 1, 1], [0, 0, 1, 1, 1, 0],
-                                  [0, 1, 0, 0, 1, 0], [1, 1, 0, 0, 0, 0],
-                                  [1, 1, 1, 0, 0, 0], [1, 0, 0, 0, 0, 0]],
-                       directed=False,
-                       node_weights=[1.5, 1.7, 1.9, 2.1, 2.3, 2.5],
-                       silence_level=1)
+        nw = Network(adjacency=[[0, 0, 0, 1, 1, 1], [0, 0, 1, 1, 1, 0],
+                                [0, 1, 0, 0, 1, 0], [1, 1, 0, 0, 0, 0],
+                                [1, 1, 1, 0, 0, 0], [1, 0, 0, 0, 0, 0]],
+                     directed=False,
+                     node_weights=[1.5, 1.7, 1.9, 2.1, 2.3, 2.5],
+                     silence_level=1)
+        link_weights = np.array([[0, 0, 0, 1.3, 2.5, 1.1],
+                                 [0, 0, 2.3, 2.9, 2.7, 0],
+                                 [0, 2.3, 0, 0, 1.5, 0],
+                                 [1.3, 2.9, 0, 0, 0, 0],
+                                 [2.5, 2.7, 1.5, 0, 0, 0],
+                                 [1.1, 0, 0, 0, 0, 0]])
+        nw.set_link_attribute("link_weights", link_weights)
+        return nw
+
+    @staticmethod
+    def SmallDirectedTestNetwork():
+        """
+        Return a 6-node directed test network with node and edge weights.
+
+        The node weights are [1.5, 1.7, 1.9, 2.1, 2.3, 2.5],
+        a typical node weight for corrected n.s.i. measures would be 2.0.
+
+        :rtype: Network instance
+        """
+        nw = Network(adjacency=[[0, 1, 0, 1, 0, 0], [0, 0, 1, 0, 1, 0],
+                                [0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0],
+                                [1, 0, 1, 0, 0, 0], [1, 0, 0, 0, 0, 0]],
+                     directed=True,
+                     node_weights=[1.5, 1.7, 1.9, 2.1, 2.3, 2.5],
+                     silence_level=1)
+        nw.set_link_attribute("link_weights", np.array([[0, 1.3, 0, 2.5, 0, 0],
+                                                        [0, 0, 1.9, 0, 1.0, 0],
+                                                        [0, 0, 0, 0, 0, 0],
+                                                        [0, 3.0, 0, 0, 0, 0],
+                                                        [2.1, 0, 2.7, 0, 0, 0],
+                                                        [1.5, 0, 0, 0, 0, 0]]))
+        return nw
 
     @staticmethod
     def ErdosRenyi(n_nodes=100, link_probability=None, n_links=None,
@@ -1543,63 +1595,111 @@ can only take values <<in>> or <<out>>."
     #  Degree related measures
     #
 
-    @cached_const('base', 'degree')
-    def degree(self):
+    # @cached_const('base', 'degree')
+    @cached_var('degree')
+    def degree(self, key=None):
         """
         Return list of degrees.
+
+        If a link attribute key is specified, return the associated strength
 
         **Example:**
 
         >>> Network.SmallTestNetwork().degree()
         array([3, 3, 2, 2, 3, 1])
 
+        :arg str key: link attribute key [optional]
         :rtype: array([int>=0])
         """
         if self.directed:
-            return self.indegree() + self.outdegree()
+            return self.indegree(key) + self.outdegree(key)
         else:
-            return self.outdegree()
+            return self.outdegree(key)
 
     # TODO: use directed example here and elsewhere
-    @cached_const('base', 'indegree')
-    def indegree(self):
+    @cached_var('indegree')
+    def indegree(self, key=None):
         """
         Return list of in-degrees.
 
+        If a link attribute key is specified, return the associated in strength
+
         **Example:**
 
-        >>> Network.SmallTestNetwork().indegree()
-        array([3, 3, 2, 2, 3, 1])
+        >>> Network.SmallDirectedTestNetwork().indegree()
+        array([2, 2, 2, 1, 1, 0])
 
+        :arg str key: link attribute key [optional]
         :rtype: array([int>=0])
         """
-        return self.sp_A.sum(axis=0).A.squeeze().astype(int)
+        if key is None:
+            return self.sp_A.sum(axis=0).A.squeeze().astype(int)
+        else:
+            return self.link_attribute(key).sum(axis=0).T
 
-    @cached_const('base', 'outdegree')
-    def outdegree(self):
+    @cached_var('outdegree')
+    def outdegree(self, key=None):
         """
         Return list of out-degrees.
 
+        If a link attribute key is specified, return the associated out
+        strength
+
         **Example:**
 
-        >>> Network.SmallTestNetwork().outdegree()
-        array([3, 3, 2, 2, 3, 1])
+        >>> Network.SmallDirectedTestNetwork().outdegree()
+        array([2, 2, 0, 1, 2, 1])
 
+        :arg str key: link attribute key [optional]
         :rtype: array([int>=0])
         """
-        return self.sp_A.sum(axis=1).T.A.squeeze().astype(int)
+        if key is None:
+            return self.sp_A.sum(axis=1).T.A.squeeze().astype(int)
+        else:
+            return self.link_attribute(key).sum(axis=1).T
 
-    @cached_const('nsi', 'degree', 'n.s.i. degree')
-    def nsi_degree_uncorr(self):
+    @cached_var('bildegree')
+    def bildegree(self, key=None):
+        """
+        Return list of bilateral degrees, i.e. the number of simultaneously in-
+        and out-going edges.
+
+        If a link attribute key is specified, return the associated bilateral
+        strength
+
+        **Exmaple:**
+
+        >>> Network.SmallDirectedTestNetwork().bildegree()
+        array([0, 0, 0, 0, 0, 0], dtype=int16)
+        >>> net = Network.SmallTestNetwork()
+        >>> (net.bildegree() == net.degree()).all()
+        True
+        """
+        if key is None:
+            return (self.sp_A * self.sp_A).diagonal()
+        else:
+            w = np.matrix(self.link_attribute(key))
+            return (w * w).diagonal()
+
+    @cached_var('nsi_degree', 'n.s.i. degree')
+    def nsi_degree_uncorr(self, key=None):
         """
         For each node, return its uncorrected n.s.i. degree.
 
+        If a link attribute key is specified, return the associated nsi
+        strength
+
+        :arg str key: link attribute key [optional]
         :rtype: array([float])
         """
         if self.directed:
-            return None  # TODO: generate error message
+            return self.nsi_indegree(key) + self.nsi_outdegree(key)
         else:
-            return self.sp_Aplus() * self.node_weights
+            if key is None:
+                return self.sp_Aplus() * self.node_weights
+            else:
+                w = np.matrix(self.link_attribute(key))
+                return (self.node_weights * w).A.squeeze()
 
     def sp_nsi_diag_k(self):
         """Sparse diagonal matrix of n.s.i. degrees"""
@@ -1611,9 +1711,13 @@ can only take values <<in>> or <<out>>."
         return sp.diags([np.power(self.nsi_degree_uncorr(), -1)], [0],
                         shape=(self.N, self.N), format='csc')
 
-    def nsi_degree(self, typical_weight=None):
+    def nsi_degree(self, typical_weight=None, key=None):
         """
         For each node, return its uncorrected or corrected n.s.i. degree.
+
+        If a link attribute key is specified, return the associated nsi
+        strength
+
 
         **Examples:**
 
@@ -1642,13 +1746,77 @@ can only take values <<in>> or <<out>>."
         :arg  typical_weight: Optional typical node weight to be used for
                               correction. If None, the uncorrected measure is
                               returned. (Default: None)
-
+        :arg str key: link attribute key (optional)
         :rtype: array([float])
         """
         if typical_weight is None:
-            return self.nsi_degree_uncorr()
+            return self.nsi_degree_uncorr(key)
         else:
-            return self.nsi_degree_uncorr()/typical_weight - 1.0
+            return self.nsi_degree_uncorr(key)/typical_weight - 1.0
+
+    @cached_var('nsi_indegree')
+    def nsi_indegree(self, key=None):
+        """
+        For each node, return its n.s.i. indegree
+
+        If a link attribute key is specified, return the associated nsi in
+        strength
+
+        **Examples:**
+
+        >>> net = Network.SmallDirectedTestNetwork()
+        >>> net.nsi_indegree()
+        array([ 6.3,  5.3,  5.9,  3.6,  4. ,  2.5])
+        >>> net.splitted_copy().nsi_indegree()
+        array([ 6.3,  5.3,  5.9,  3.6,  4. ,  2.5,  2.5])
+
+        as compared to the unweighted version:
+
+        >>> net = Network.SmallDirectedTestNetwork()
+        >>> net.indegree()
+        array([2, 2, 2, 1, 1, 0])
+        >>> net.splitted_copy().indegree()
+        array([3, 2, 2, 1, 1, 1, 1])
+
+        :arg str key: link attribute key [optional]
+        """
+        if key is None:
+            return self.node_weights * self.sp_Aplus()
+        else:
+            w = np.matrix(self.link_attribute(key))
+            return (np.matrix(self.node_weights) * w).A.squeeze()
+
+    @cached_var('nsi_outdegree')
+    def nsi_outdegree(self, key=None):
+        """
+        For each node, return its n.s.i.outdegree
+
+        If a link attribute key is specified, return the associated nsi out
+        strength
+
+        **Examples:**
+
+        >>> net = Network.SmallDirectedTestNetwork()
+        >>> net.nsi_outdegree()
+        array([ 5.3,  5.9,  1.9,  3.8,  5.7,  4. ])
+        >>> net.splitted_copy().nsi_outdegree()
+        array([ 5.3,  5.9,  1.9,  3.8,  5.7,  4. ,  4. ])
+
+        as compared to the unweighted version:
+
+        >>> net = Network.SmallDirectedTestNetwork()
+        >>> net.outdegree()
+        array([2, 2, 0, 1, 2, 1])
+        >>> net.splitted_copy().outdegree()
+        array([2, 2, 0, 1, 2, 2, 2])
+
+        :arg str key: link attribute key [optional]
+        """
+        if key is None:
+            return self.sp_Aplus() * self.node_weights
+        else:
+            w = np.matrix(self.link_attribute(key))
+            return (w * np.matrix(self.node_weights).T).T.A.squeeze()
 
     @cached_const('base', 'degree df', 'the degree frequency distribution')
     def degree_distribution(self):
@@ -1945,6 +2113,284 @@ can only take values <<in>> or <<out>>."
         """
         return self.local_clustering().mean()
 
+    def _motif_clustering_helper(self, t_func, T, key=None, nsi=False):
+        """
+        Helper function to compute the local motif clustering coefficients.
+        For each node, returns a specific clustering coefficient, depending
+        on the input arguments.
+
+        :arg function t_func: multiplication of adjacency-type matrices
+        :arg 1d numpy array [node]: denominator made out of (in/out/bil)degrees
+        :arg str key: link attribute key (optional)
+        :arg bool nsi: flag for nsi calculation (default: False)
+        :rtype: 1d numpy array [node] of floats between 0 and 1
+        """
+        if nsi:
+            nodew = sp.csc_matrix(np.eye(self.N) * self.node_weights)
+        if key is None:
+            A = self.sp_Aplus() * nodew if nsi else self.sp_A
+            AT = self.sp_Aplus().T * nodew if nsi else A.T
+        else:
+            M = sp.csc_matrix(self.link_attribute(key)**(1/3.))
+            A = M * nodew if nsi else M
+            AT = M.T * nodew if nsi else M.T
+
+        t = t_func(A, AT).diagonal()
+        T = T.astype(float)
+        T[T == 0] = np.nan
+        C = t / (self.node_weights * T) if nsi else t / T
+        C[np.isnan(C)] = 0
+        return C
+
+    @cached_var('local cyclemotif', 'local cycle motif clustering coefficient')
+    def local_cyclemotif_clustering(self, key=None):
+        """
+        For each node, return the clustering coefficient with respect to the
+        cycle motif.
+
+        If a link attribute key is specified, return the associated link
+        weighted version
+
+        **Example:**
+
+        >>> r(Network.SmallDirectedTestNetwork().local_cyclemotif_clustering())
+        Calculating local cycle motif clustering coefficient...
+        array([ 0.25,  0.25,  0.  ,  0.  ,  0.5 ,  0.  ])
+
+        :arg str key: link attribute key (optional)
+        :rtype: 1d numpy array [node] of floats between 0 and 1
+        """
+        def t_func(x, xT):
+            return x * x * x
+        T = self.indegree() * self.outdegree() - self.bildegree()
+        return self._motif_clustering_helper(t_func, T, key=key)
+
+    @cached_var('local midmotif', 'local mid. motif clustering coefficient')
+    def local_midmotif_clustering(self, key=None):
+        """
+        For each node, return the clustering coefficient with respect to the
+        mid. motif.
+
+        If a link attribute key is specified, return the associated link
+        weighted version
+
+        **Example:**
+
+        >>> r(Network.SmallDirectedTestNetwork().local_midmotif_clustering())
+        Calculating local mid. motif clustering coefficient...
+        array([ 0. ,  0. ,  0. ,  1. ,  0.5,  0. ])
+
+        :arg str key: link attribute key (optional)
+        :rtype: 1d numpy array [node] of floats between 0 and 1
+        """
+        def t_func(x, xT):
+            return x * xT * x
+        T = self.indegree() * self.outdegree() - self.bildegree()
+        return self._motif_clustering_helper(t_func, T, key=key)
+
+    @cached_var('local inmotif', 'local in motif clustering coefficient')
+    def local_inmotif_clustering(self, key=None):
+        """
+        For each node, return the clustering coefficient with respect to the
+        in motif.
+
+        If a link attribute key is specified, return the associated link
+        weighted version
+
+        **Example:**
+
+        >>> r(Network.SmallDirectedTestNetwork().local_inmotif_clustering())
+        Calculating local in motif clustering coefficient...
+        array([ 0. ,  0.5,  0.5,  0. ,  0. ,  0. ])
+
+        :arg str key: link attribute key (optional)
+        :rtype: 1d numpy array [node] of floats between 0 and 1
+        """
+        def t_func(x, xT):
+            return xT * x * x
+        T = self.indegree() * (self.indegree() - 1)
+        return self._motif_clustering_helper(t_func, T, key=key)
+
+    @cached_var('local outmotif', 'local out motif clustering coefficient')
+    def local_outmotif_clustering(self, key=None):
+        """
+        For each node, return the clustering coefficient with respect to the
+        out motif.
+
+        If a link attribute key is specified, return the associated link
+        weighted version
+
+        **Example:**
+
+        >>> r(Network.SmallDirectedTestNetwork().local_outmotif_clustering())
+        Calculating local out motif clustering coefficient...
+        array([ 0.5,  0.5,  0. ,  0. ,  0. ,  0. ])
+
+        :arg str key: link attribute key (optional)
+        :rtype: 1d numpy array [node] of floats between 0 and 1
+        """
+        def t_func(x, xT):
+            return x * x * xT
+        T = self.outdegree() * (self.outdegree() - 1)
+        return self._motif_clustering_helper(t_func, T, key=key)
+
+    @cached_var('nsi local cyclemotif',
+                'local nsi cycle motif clustering coefficient')
+    def nsi_local_cyclemotif_clustering(self, key=None):
+        """
+        For each node, return the nsi clustering coefficient with respect to
+        the cycle motif.
+
+        If a link attribute key is specified, return the associated link
+        weighted version
+
+        Reference: [Zemp2014]_
+
+        **Examples:**
+
+        >>> net = Network.SmallDirectedTestNetwork()
+        >>> r(net.nsi_local_cyclemotif_clustering())
+        Calculating local nsi cycle motif clustering coefficient...
+        array([ 0.1845,  0.2028,  0.322 ,  0.3224,  0.3439,  0.625 ])
+        >>> r(net.splitted_copy(node=1).nsi_local_cyclemotif_clustering())
+        Calculating local nsi cycle motif clustering coefficient...
+        array([ 0.1845,  0.2028,  0.322 ,  0.3224,  0.3439,  0.625 ,  0.2028])
+
+        as compared to the unweighted version:
+
+        >>> net = Network.SmallDirectedTestNetwork()
+        >>> r(net.local_cyclemotif_clustering())
+        Calculating local cycle motif clustering coefficient...
+        array([ 0.25,  0.25,  0.  ,  0.  ,  0.5 ,  0.  ])
+        >>> r(net.splitted_copy(node=1).local_cyclemotif_clustering())
+        Calculating local cycle motif clustering coefficient...
+        array([ 0.3333,  0.125 ,  0.    ,  0.    ,  0.5   ,  0.    ,  0.125 ])
+
+        :arg str key: link attribute key (optional)
+        """
+        def t_func(x, xT):
+            return x * x * x
+        T = self.nsi_indegree() * self.nsi_outdegree()
+        return self._motif_clustering_helper(t_func, T, key=key, nsi=True)
+
+    @cached_var('nsi local midemotif',
+                'local nsi mid. motif clustering coefficient')
+    def nsi_local_midmotif_clustering(self, key=None):
+        """
+        For each node, return the nsi clustering coefficient with respect to
+        the mid motif.
+
+        If a link attribute key is specified, return the associated link
+        weighted version
+
+        Reference: [Zemp2014]_
+
+        **Examples:**
+
+        >>> net = Network.SmallDirectedTestNetwork()
+        >>> r(net.nsi_local_midmotif_clustering())
+        Calculating local nsi mid. motif clustering coefficient...
+        array([ 0.4537,  0.5165,  1.    ,  1.    ,  0.8882,  1.    ])
+        >>> r(net.splitted_copy(node=4).nsi_local_midmotif_clustering())
+        Calculating local nsi mid. motif clustering coefficient...
+        array([ 0.4537,  0.5165,  1.    ,  1.    ,  0.8882,  1.    ,  0.8882])
+
+        as compared to the unweighted version:
+
+        >>> net = Network.SmallDirectedTestNetwork()
+        >>> r(net.local_midmotif_clustering())
+        Calculating local mid. motif clustering coefficient...
+        array([ 0. ,  0. ,  0. ,  1. ,  0.5,  0. ])
+        >>> r(net.splitted_copy(node=4).local_midmotif_clustering())
+        Calculating local mid. motif clustering coefficient...
+        array([ 0. ,  0. ,  0. ,  1. ,  0.8,  0. ,  0.8])
+
+        :arg str key: link attribute key (optional)
+        """
+        def t_func(x, xT):
+            return x * xT * x
+        T = self.nsi_indegree() * self.nsi_outdegree()
+        return self._motif_clustering_helper(t_func, T, key=key, nsi=True)
+
+    @cached_var('nsi local inemotif',
+                'local nsi in motif clustering coefficient')
+    def nsi_local_inmotif_clustering(self, key=None):
+        """
+        For each node, return the nsi clustering coefficient with respect to
+        the in motif.
+
+        If a link attribute key is specified, return the associated link
+        weighted version
+
+        Reference: [Zemp2014]_
+
+        **Examples:**
+
+        >>> net = Network.SmallDirectedTestNetwork()
+        >>> r(net.nsi_local_inmotif_clustering())
+        Calculating local nsi in motif clustering coefficient...
+        array([ 0.5288,  0.67  ,  0.6693,  0.7569,  0.7556,  1.    ])
+        >>> r(net.splitted_copy(node=1).nsi_local_inmotif_clustering())
+        Calculating local nsi in motif clustering coefficient...
+        array([ 0.5288,  0.67  ,  0.6693,  0.7569,  0.7556,  1.    ,  0.67  ])
+
+        as compared to the unweighted version:
+
+        >>> net = Network.SmallDirectedTestNetwork()
+        >>> r(net.local_inmotif_clustering())
+        Calculating local in motif clustering coefficient...
+        array([ 0. ,  0.5,  0.5,  0. ,  0. ,  0. ])
+        >>> r(net.splitted_copy(node=1).local_inmotif_clustering())
+        Calculating local in motif clustering coefficient...
+        array([ 0.    ,  0.5   ,  0.6667,  0.    ,  1.    ,  0.    ,  0.5   ])
+
+
+        :arg str key: link attribute key (optional)
+        """
+        def t_func(x, xT):
+            return xT * x * x
+        T = self.nsi_indegree()**2
+        return self._motif_clustering_helper(t_func, T, key=key, nsi=True)
+
+    @cached_var('nsi local outemotif',
+                'local nsi out motif clustering coefficient')
+    def nsi_local_outmotif_clustering(self, key=None):
+        """
+        For each node, return the nsi clustering coefficient with respect to
+        the out motif.
+
+        If a link attribute key is specified, return the associated link
+        weighted version
+
+        Reference: [Zemp2014]_
+
+        **Examples:**
+
+        >>> net = Network.SmallDirectedTestNetwork()
+        >>> r(net.nsi_local_outmotif_clustering())
+        Calculating local nsi out motif clustering coefficient...
+        array([ 0.67  ,  0.6693,  1.    ,  0.7528,  0.5839,  0.7656])
+        >>> r(net.splitted_copy(node=0).nsi_local_outmotif_clustering())
+        Calculating local nsi out motif clustering coefficient...
+        array([ 0.67  ,  0.6693,  1.    ,  0.7528,  0.5839,  0.7656,  0.67  ])
+
+        as compared to the unweighted version:
+
+        >>> net = Network.SmallDirectedTestNetwork()
+        >>> r(net.local_outmotif_clustering())
+        Calculating local out motif clustering coefficient...
+        array([ 0.5,  0.5,  0. ,  0. ,  0. ,  0. ])
+        >>> r(net.splitted_copy(node=0).local_outmotif_clustering())
+        Calculating local out motif clustering coefficient...
+        array([ 0.5   ,  0.5   ,  0.    ,  0.    ,  0.3333,  1.    ,  0.5   ])
+
+        :arg str key: link attribute key (optional)
+        """
+        def t_func(x, xT):
+            return x * x * xT
+        T = self.nsi_outdegree()**2
+        return self._motif_clustering_helper(t_func, T, key=key, nsi=True)
+
     @cached_const('base', 'transitivity', 'transitivity coefficient (C_1)')
     def transitivity(self):
         """
@@ -2073,6 +2519,9 @@ can only take values <<in>> or <<out>>."
 
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
+        if self.directed:
+            raise NetworkError("Not implemented yet...")
+
         if self.silence_level <= 1:
             print "Calculating local cliquishness of order", order, "..."
 
@@ -2084,135 +2533,13 @@ can only take values <<in>> or <<out>>."
             return self.local_clustering()
 
         elif order == 4:
-            #  Gathering
-            N = self.N
-            A = self.adjacency
-            degree = self.degree()
-
-            #  Initialize
-            local_cliquishness = np.zeros(N)
-            neighbors = np.zeros(N)
-
-            code = """
-            long counter;
-            int index, node1, node2, node3, degree_i;
-
-            //  Iterate over all nodes
-            for (int i = 0; i < N; i++) {
-                //  If degree is smaller than order - 1,
-                //  set local cliquishness to zero.
-                degree_i = degree(i);
-
-                if (degree_i >= order - 1) {
-                    //  Get neighbors of node i
-                    index = 0;
-
-                    for (int j = 0; j < N; j++) {
-                        if (A(i,j) == 1) {
-                            neighbors(index) = j;
-                            index++;
-                        }
-                    }
-
-                    counter = 0;
-
-                    //  Iterate over possibly existing edges between
-                    //  3 neighbors of i.
-                    for (int j = 0; j < degree_i; j++) {
-                        node1 = neighbors(j);
-
-                        for (int k = 0; k < degree_i; k++) {
-                            node2 = neighbors(k);
-
-                            for (int l = 0; l < degree_i; l++) {
-                                node3 = neighbors(l);
-
-                                if (A(node1,node2) == 1 &&
-                                        A(node2,node3) == 1 &&
-                                            A(node3,node1) == 1)
-                                    counter++;
-                            }
-                        }
-                    }
-                    local_cliquishness(i) = double(counter) / degree_i /
-                        (degree_i-1) / (degree_i-2);
-                }
-            }
-            """
-            weave_inline(locals(), code,
-                         ['local_cliquishness', 'neighbors', 'N', 'A',
-                          'degree', 'order'])
-            return local_cliquishness
-
+            return _local_cliquishness_4thorder(self.N,
+                                                self.adjacency.astype(int),
+                                                self.degree())
         elif order == 5:
-            #  Gathering
-            N = self.N
-            A = self.adjacency
-            degree = self.degree()
-
-            #  Initialize
-            local_cliquishness = np.zeros(N)
-            neighbors = np.zeros(N)
-
-            code = """
-            long counter;
-            int index, node1, node2, node3, node4, degree_i;
-
-            //  Iterate over all nodes
-            for (int i = 0; i < N; i++) {
-                //  If degree is smaller than order - 1, set local cliquishness
-                //  to zero.
-                degree_i = degree(i);
-
-                if (degree_i >= order - 1) {
-                    //  Get neighbors of node i
-                    index = 0;
-
-                    for (int j = 0; j < N; j++) {
-                        if (A(i,j) == 1) {
-                            neighbors(index) = j;
-                            index++;
-                        }
-                    }
-
-                    counter = 0;
-
-                    //  Iterate over possibly existing edges between
-                    //  3 neighbors of i
-                    for (int j = 0; j < degree_i; j++) {
-                        node1 = neighbors(j);
-
-                        for (int k = 0; k < degree_i; k++) {
-                            node2 = neighbors(k);
-
-                            for (int l = 0; l < degree_i; l++) {
-                                node3 = neighbors(l);
-
-                                for (int m = 0; m < degree_i; m++) {
-                                    node4 = neighbors(m);
-
-                                    if (A(node1,node2) == 1 &&
-                                        A(node1,node3) == 1 &&
-                                        A(node1,node4) == 1 &&
-                                        A(node2,node3) == 1 &&
-                                        A(node2,node4) == 1 &&
-                                        A(node3,node4) == 1) {
-                                        counter++;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    local_cliquishness(i) = double(counter) / degree_i /
-                        (degree_i-1) / (degree_i-2) / (degree_i-3);
-                }
-            }
-            """
-            weave_inline(locals(), code,
-                         ['local_cliquishness', 'neighbors', 'N', 'A',
-                          'degree', 'order'])
-            return local_cliquishness
-
+            return _local_cliquishness_5thorder(self.N,
+                                                self.adjacency.astype(int),
+                                                self.degree())
         elif order > 5:
             raise NotImplementedError("Local cliquishness is not yet " +
                                       "implemented for orders larger than 5.")
@@ -2341,7 +2668,7 @@ can only take values <<in>> or <<out>>."
         if self.directed:
             raise NotImplementedError("Not implemented for directed networks.")
 
-        N, w, k = self.N, self.node_weights, self.nsi_degree()
+        w, k = self.node_weights, self.nsi_degree()
         A_Dw = self.sp_A * self.sp_diag_w()
         numerator = (A_Dw * self.sp_Aplus() * A_Dw.T).diagonal()
         return (numerator + 2*k*w - w**2) / k**2
@@ -2836,7 +3163,7 @@ can only take values <<in>> or <<out>>."
         """
         return self.nsi_betweenness(sources=sources, targets=targets, silent=1)
 
-    def nsi_betweenness(self, **kwargs):
+    def nsi_betweenness(self, cy=False, **kwargs):
         """
         For each node, return its n.s.i. betweenness.
 
@@ -2940,6 +3267,7 @@ can only take values <<in>> or <<out>>."
             }
             next_d = distances_to_j[i] + 1;
 
+
             // iterate through all neighbours l of i:
             for (l_index=(oi=offsets[i]); l_index<oi+k[i]; l_index++) {
 
@@ -2978,6 +3306,7 @@ can only take values <<in>> or <<out>>."
             } else {
                 // otherwise, iterate through all predecessors i of l:
                 double base_factor = w[l] / multiplicity_to_j[l];
+
                 for (fi=(ol=offsets[l]); fi<ol+n_predecessors[l]; fi++) {
                     // add betweenness to predecessor:
 //                  betweenness_to_j[i=flat_predecessors[fi]] +=
@@ -3018,10 +3347,16 @@ can only take values <<in>> or <<out>>."
             flat_predecessors = list(np.zeros(E, dtype=int))
             # Note: this cannot be transferred as numpy array since if too
             # large we get an glibc error...
-            weave_inline(locals(), code,
-                         ['N', 'E', 'w', 'k', 'j', 'betweenness_to_j',
-                          'excess_to_j', 'offsets', 'flat_neighbors',
-                          'is_source', 'flat_predecessors'], blitz=False)
+            if not cy:
+                weave_inline(locals(), code,
+                             ['N', 'E', 'w', 'k', 'j', 'betweenness_to_j',
+                              'excess_to_j', 'offsets', 'flat_neighbors',
+                              'is_source', 'flat_predecessors'], blitz=False)
+            else:
+                _nsi_betweenness(N, E, w, k, j, betweenness_to_j,
+                                 excess_to_j, offsets.astype(int),
+                                 flat_neighbors,
+                                 is_source, np.array(flat_predecessors))
             del flat_predecessors
             betweenness_times_w += w[j] * (betweenness_to_j - excess_to_j)
 
@@ -3822,49 +4157,6 @@ can only take values <<in>> or <<out>>."
 
         return randomWalkBetweenness
 
-    # This function does the outer loop for a certain range start_i-end_i of
-    # c's.  it gets the full V matrix but only the needed rows of the A matrix.
-    # Each parallel job will consist of a call to this function:
-    @staticmethod
-    def _mpi_newman_betweenness(this_A, V, N, start_i, end_i):
-        error_message = ''
-        result = None, None, None
-        try:
-            this_N = int(end_i - start_i)
-            start_i = int(start_i)
-            this_betweenness = np.zeros(this_N)
-            # Optimized version of the nested loops, takes O(N^2*sp_M) time.
-            # Loops reordered so that test for A(c,j) is as early as possible:
-            code = r"""
-            int i_rel, j, s, t, i_abs;
-            double sum_s, sum_j, Vis_minus_Vjs;
-            for (i_rel=0; i_rel<this_N; i_rel++) {
-                // correct i index for V matrix:
-                i_abs = i_rel + start_i;
-                for (j=0; j<N; j++) if (this_A(i_rel,j)) {
-                    sum_j = 0.0;
-                    for (s = 0; s<N; s++) if (i_abs != s) {
-                        Vis_minus_Vjs = V(i_abs,s) - V(j,s);
-                        sum_s = 0.0;
-                        for (t=0; t<s; t++) if (i_abs != t)
-                            sum_s += fabs(Vis_minus_Vjs
-                                        - V(i_abs,t) + V(j,t));
-                        sum_j += sum_s;
-                    }
-                    this_betweenness(i_rel) += sum_j;
-                }
-            }
-            """
-            weave_inline(locals(), code,
-                         ['this_A', 'V', 'this_betweenness', 'N', 'this_N',
-                          'start_i'])
-            result = this_betweenness, start_i, end_i
-        except (RuntimeError, weave.build_tools.CompileError):
-            error_message = (str(sys.exc_info()[0]) + '\n' +
-                             str(sys.exc_info()[1]))  # grab exception text
-
-        return error_message, result
-
     # much faster (and corrected) version of the preceding:
     @cached_const('base', 'newman btw', "Newman's random walk betweenness")
     def newman_betweenness(self):
@@ -3953,8 +4245,9 @@ can only take values <<in>> or <<out>>."
                         # that later the results can be retrieved:
                         if self.silence_level <= 0:
                             print "submitting part from", start_i, "to", end_i
-                        mpi.submit_call("Network._mpi_newman_betweenness",
-                                        (this_A, V, N, start_i, end_i),
+                        mpi.submit_call("_cy_mpi_newman_betweenness",
+                                        (this_A.astype(int), V.astype(float),
+                                         N, start_i, end_i),
                                         module="pyunicorn", id=index,
                                         time_est=this_A.sum())
 
@@ -3965,22 +4258,13 @@ can only take values <<in>> or <<out>>."
                         # waits until it finishes, and retrieves the result:
                         if self.silence_level <= 0:
                             print "retrieving results from ", index
-                        error_message, result = mpi.get_result(index)
-                        if error_message != '':
-                            print error_message
-                            sys.exit()
-                        this_betweenness, start_i, end_i = result
-                        # copy the result into the component_betweenness
-                        # vector:
+                        this_betweenness, start_i, end_i = \
+                            mpi.get_result(index)
                         component_betweenness[start_i:end_i] = this_betweenness
                 else:
-                    # unparallelized version:
-                    error_message, result = \
-                        Network._mpi_newman_betweenness(A, V, N, 0, N)
-                    if error_message != '':
-                        print error_message
-                        sys.exit()
-                    component_betweenness, start_i, end_i = result
+                    component_betweenness, start_i, end_i =\
+                        _cy_mpi_newman_betweenness(A.astype(int),
+                                                   V.astype(float), N, 0, N)
 
                 component_betweenness += 2 * (N - 1)
                 component_betweenness /= (N - 1.0)  # TODO: why is this?
@@ -3994,41 +4278,6 @@ can only take values <<in>> or <<out>>."
             print "...took", time.time()-t0, "seconds"
 
         return newman_betweenness
-
-    #  Calculate the random walk betweenness in C++ using Weave, Parallelized
-    #  version (see above):
-    @staticmethod
-    def _mpi_nsi_newman_betweenness(this_A, V, N, w, this_not_adj_or_equal,
-                                    start_i, end_i):
-        this_N = int(end_i - start_i)
-        start_i = int(start_i)
-        this_betweenness = np.zeros(this_N)
-        code = r"""
-        int i_rel, j, s, t, i_abs;
-        double sum_s, sum_j, Vis_minus_Vjs;
-        for (i_rel = 0; i_rel < this_N; i_rel++) {
-            i_abs = i_rel + start_i;
-            for (j = 0; j < N; j++) if (this_A(i_rel,j)) {
-                sum_j = 0.0;
-                for (s = 0; s < N; s++)
-                    if (this_not_adj_or_equal(i_rel,s)) {
-                        Vis_minus_Vjs = V(i_abs,s)-V(j,s);
-                        sum_s = 0.0;
-                        for (t = 0; t < s; t++)
-                            if (this_not_adj_or_equal(i_rel,t))
-                                sum_s += w(t)
-                                    * fabs(Vis_minus_Vjs
-                                           - V(i_abs,t) + V(j,t));
-                        sum_j += w(s) * sum_s;
-                }
-                this_betweenness(i_rel) += w(j)*sum_j;
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['this_A', 'V', 'this_betweenness', 'N', 'w',
-                      'this_not_adj_or_equal', 'this_N', 'start_i'])
-        return this_betweenness, start_i, end_i
 
     def nsi_newman_betweenness(self, add_local_ends=False):
         """
@@ -4172,10 +4421,13 @@ can only take values <<in>> or <<out>>."
                         this_A = A[start_i:end_i, :]
                         this_not_adjacent_or_equal = \
                             not_adjacent_or_equal[start_i:end_i, :]
+
                         mpi.submit_call(
-                            "Network._mpi_nsi_newman_betweenness",
-                            (this_A, V, N, w, this_not_adjacent_or_equal,
-                             start_i, end_i),
+                            "_cy_mpi_nsi_newman_betweenness",
+                            (this_A.astype(int), V.astype(float), N,
+                             w.astype(float),
+                             this_not_adjacent_or_equal.astype(int), start_i,
+                             end_i),
                             module="pyunicorn", id=idx)
 
                     # Retrieve results of all submited jobs
@@ -4186,8 +4438,9 @@ can only take values <<in>> or <<out>>."
 
                 else:
                     component_betweenness, start_i, end_i = \
-                        Network._mpi_nsi_newman_betweenness(
-                            A, V, N, w, not_adjacent_or_equal, 0, N)
+                        _cy_mpi_nsi_newman_betweenness(
+                            A.astype(int), V.astype(float), N, w.astype(float),
+                            not_adjacent_or_equal.astype(int), 0, N)
 
                 #  Correction for the fact that we used only s,t not
                 #  neighboured to i

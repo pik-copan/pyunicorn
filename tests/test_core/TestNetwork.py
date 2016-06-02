@@ -65,6 +65,24 @@ def comparePermutations(net, permutations, measures):
         pool.join()
 
 
+def compareNSI(net, nsi_measures):
+    net_copies = [net.splitted_copy(node=i) for i in range(net.N)]
+    for nsi_measure in nsi_measures:
+        if isinstance(nsi_measure, tuple):
+            kwargs = nsi_measure[1]
+            nsi_measure = nsi_measure[0]
+        else:
+            kwargs = {}
+        print nsi_measure
+        for i, netc in enumerate(net_copies):
+            # test for invariance of old nodes
+            assert np.allclose(getattr(netc, nsi_measure)(**kwargs)[0:net.N],
+                               getattr(net, nsi_measure)(**kwargs))
+            # test for invariance of origianl and new splitted node
+            assert np.allclose(getattr(netc, nsi_measure)(**kwargs)[i],
+                               getattr(netc, nsi_measure)(**kwargs)[-1])
+
+
 # -----------------------------------------------------------------------------
 # stability
 # -----------------------------------------------------------------------------
@@ -90,14 +108,15 @@ def testPermutations():
     """
     comparePermutations(
         Network.SmallTestNetwork(), 3, [
-            "degree", "indegree", "outdegree", "nsi_degree",
-            "nsi_average_neighbors_degree", "nsi_max_neighbors_degree",
-            "undirected_adjacency", "laplacian", "nsi_laplacian",
-            "local_clustering", "global_clustering", "transitivity",
-            ("higher_order_transitivity", [4]), ("local_cliquishness", [4]),
-            ("local_cliquishness", [5]), "nsi_twinness", "assortativity",
-            "nsi_local_clustering", "nsi_global_clustering",
-            "nsi_transitivity", "nsi_local_soffer_clustering", "path_lengths",
+            "degree", "indegree", "outdegree", "nsi_degree", "nsi_indegree",
+            "nsi_outdegree", "nsi_average_neighbors_degree",
+            "nsi_max_neighbors_degree", "undirected_adjacency", "laplacian",
+            "nsi_laplacian", "local_clustering", "global_clustering",
+            "transitivity", ("higher_order_transitivity", [4]),
+            ("local_cliquishness", [4]), ("local_cliquishness", [5]),
+            "nsi_twinness", "assortativity", "nsi_local_clustering",
+            "nsi_global_clustering", "nsi_transitivity",
+            "nsi_local_soffer_clustering", "path_lengths",
             "average_path_length", "nsi_average_path_length", "diameter",
             "matching_index", "link_betweenness", "betweenness",
             "eigenvector_centrality", "nsi_eigenvector_centrality", "pagerank",
@@ -109,3 +128,42 @@ def testPermutations():
             "local_vulnerability", "coreness", "msf_synchronizability",
             "spreading", "nsi_spreading"
         ])
+
+
+def testNSI():
+    """
+    Consistency of nsi measures with splitted network copies
+    """
+    dnw = Network.SmallDirectedTestNetwork()
+    nw = Network.SmallTestNetwork()
+
+    nsi_measures = ["nsi_degree", "nsi_indegree", "nsi_outdegree",
+                    "nsi_closeness", "nsi_harmonic_closeness",
+                    "nsi_exponential_closeness", "nsi_arenas_betweenness",
+                    "nsi_spreading",
+                    "nsi_local_cyclemotif_clustering",
+                    "nsi_local_midmotif_clustering",
+                    "nsi_local_inmotif_clustering",
+                    "nsi_local_outmotif_clustering",
+                    ("nsi_degree", {"key": "link_weights"}),
+                    ("nsi_indegree", {"key": "link_weights"}),
+                    ("nsi_outdegree", {"key": "link_weights"}),
+                    ("nsi_local_cyclemotif_clustering",
+                     {"key": "link_weights"}),
+                    ("nsi_local_midmotif_clustering",
+                     {"key": "link_weights"}),
+                    ("nsi_local_inmotif_clustering",
+                     {"key": "link_weights"}),
+                    ("nsi_local_outmotif_clustering",
+                     {"key": "link_weights"})]
+
+    nsi_undirected_measures = ["nsi_local_clustering",
+                               "nsi_average_neighbors_degree",
+                               "nsi_max_neighbors_degree",
+                               "nsi_eigenvector_centrality",
+                               "nsi_local_clustering",
+                               "nsi_local_soffer_clustering",
+                               "nsi_newman_betweenness"]
+
+    compareNSI(dnw, nsi_measures)
+    compareNSI(nw, nsi_measures + nsi_undirected_measures)
