@@ -43,6 +43,9 @@ from .partial_correlation import PartialCorrelationClimateNetwork
 from .rainfall import RainfallClimateNetwork
 from .spearman import SpearmanClimateNetwork
 from .tsonis import TsonisClimateNetwork
+from .eventsynchronization_climatenetwork import\
+    EventSynchronizationClimateNetwork
+
 
 #
 #  Set global constants
