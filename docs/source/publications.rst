@@ -353,16 +353,16 @@ Time series analysis and synchronization
 [Quiroga2002]_, [Boers2014]_.
 
 .. [Quiroga2002] R.Q. Quiroga, T. Kreuz, P. Grassberger.
-    "Quantifying causal coupling strength: A lag-specific measure for
-    multivariate time series related to transfer entropy".
+    "Event synchronization: a simple and fast method to measure synchronicity
+    and time delay patterns."
     In *Physical Review E*, vol. 66(4), 041904 (2002)
     `doi:10.1103/PhysRevE.66.041904
     <http://dx.doi.org/10.1103/PhysRevE.66.041904>`__
 
 .. [Boers2014] N. Boers, B. Bookhagen, H.M.J. Barbosa, N. Marwan, J. Kurths.
     J.A. Marengo.
-    "Event synchronization: a simple and fast method to measure synchronicity
-    and time delay patterns".
+    "Prediction of extreme floods in the eastern Central Andes based on a
+    complex networks approach".
     In *Nature communications*, vol. 5, 1--7 (2014)
     `doi:10.1038/ncomms6199
     <http://dx.doi.org/10.1038/ncomms6199>`__
