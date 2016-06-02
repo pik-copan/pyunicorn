@@ -570,7 +570,7 @@ anomaly values..."
             if mi.shape != (self.N, self.N):
                 print self.mi_file, "in current directory has incorrect \
 dimensions!"
-                raise
+                raise ValueError
 
         except (IOError, RuntimeError):
             if self.silence_level <= 1:

@@ -27,4 +27,3 @@ Known Bugs
 from .coupling_analysis import CouplingAnalysis
 from .coupling_analysis_pure_python import CouplingAnalysisPurePython
 from .event_synchronization import EventSynchronization
-from .eventsync_climatenetwork import EventSyncClimateNetwork

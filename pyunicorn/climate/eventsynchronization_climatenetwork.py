@@ -14,9 +14,9 @@ on event synchronization
 # array object and fast numerics
 import numpy as np
 
-from .event_synchronization import EventSynchronization
-from ..climate import ClimateNetwork
-from ..climate import ClimateData
+from ..funcnet import EventSynchronization
+from .climate_network import ClimateNetwork
+from .climate_data import ClimateData
 from .. import Data
 
 
@@ -24,10 +24,10 @@ from .. import Data
 #  Class definitions
 #
 
-class EventSyncClimateNetwork(EventSynchronization, ClimateNetwork):
+class EventSynchronizationClimateNetwork(EventSynchronization, ClimateNetwork):
     """
-    Class EventSyncClimateNetwork for generating and quantitatively analyzing
-    event synchronization networks.
+    Class EventSynchronizationClimateNetwork for generating and quantitatively
+    analyzing event synchronization networks.
 
     References: [Boers2014]_.
     """
@@ -40,7 +40,7 @@ class EventSyncClimateNetwork(EventSynchronization, ClimateNetwork):
                  eventsynctype="directedES", non_local=False,
                  node_weight_type="surface", silence_level=0):
         """
-        Initialize an instance of EventSyncClimateNetwork.
+        Initialize an instance of EventSynchronizationClimateNetwork.
 
         For other applications of event synchronization networks please use
         the event synchronization class directly.
@@ -66,7 +66,7 @@ class EventSyncClimateNetwork(EventSynchronization, ClimateNetwork):
                           (etypes[0], etypes[1], etypes[2]))
 
         self.__eventsynctype = eventsynctype
-        self.directed = not self.__eventsynctype == "symmetricES"
+        self.directed = self.__eventsynctype != "symmetricES"
 
         eventmatrix = data.observable() > np.percentile(data.observable(),
                                                         quantile_threshold*100,
@@ -88,12 +88,12 @@ class EventSyncClimateNetwork(EventSynchronization, ClimateNetwork):
 
         **Example:**
 
-        >>> data = EventSyncClimateNetwork.SmallTestData()
-        >>> print EventSyncClimateNetwork(data, 0.8, 16)
+        >>> data = EventSynchronizationClimateNetwork.SmallTestData()
+        >>> print EventSynchronizationClimateNetwork(data, 0.8, 16)
         Extracting network adjacency matrix by thresholding...
         Setting area weights according to type surface...
         Setting area weights according to type surface...
-        EventSyncClimateNetwork:
+        EventSynchronizationClimateNetwork:
         EventSynchronization: 6 variables, 10 timesteps, taumax: 16
         ClimateNetwork:
         GeoNetwork:
@@ -106,7 +106,7 @@ class EventSyncClimateNetwork(EventSynchronization, ClimateNetwork):
         Local connections filtered out: False
         Type of event synchronization to construct the network: directedES
         """
-        text = ("EventSyncClimateNetwork: \n%s\n%s\n" +
+        text = ("EventSynchronizationClimateNetwork: \n%s\n%s\n" +
                 "Type of event synchronization to construct the network: %s")
         return text % (EventSynchronization.__str__(self),
                        ClimateNetwork.__str__(self), self.__eventsynctype)

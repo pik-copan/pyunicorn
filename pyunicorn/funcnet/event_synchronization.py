@@ -9,12 +9,11 @@
 """
 Provides class for event synchronization measures.
 """
+# warnings
+import warnings
 
 # array object and fast numerics
 import numpy as np
-
-# warnings
-import warnings
 
 from .. import cached_const
 
