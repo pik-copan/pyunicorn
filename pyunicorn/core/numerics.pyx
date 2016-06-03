@@ -16,8 +16,10 @@ randint = rd.randint
 
 INTTYPE = np.int
 FLOATTYPE = np.float
+FLOAT32TYPE = np.float32
 ctypedef np.int_t INTTYPE_t
 ctypedef np.float_t FLOATTYPE_t
+ctypedef np.float32_t FLOAT32TYPE_t
 
 
 # interacting_networks ========================================================
@@ -446,3 +448,43 @@ def _cy_mpi_nsi_newman_betweenness(
                 this_betweenness[i_rel] += w[j] * sum_j
 
     return this_betweenness, start_i, end_i
+
+
+# grid ========================================================================
+
+def _cy_calculate_angular_distance(
+    np.ndarray[FLOAT32TYPE_t, ndim=1] cos_lat,
+    np.ndarray[FLOAT32TYPE_t, ndim=1] sin_lat,
+    np.ndarray[FLOAT32TYPE_t, ndim=1] cos_lon,
+    np.ndarray[FLOAT32TYPE_t, ndim=1] sin_lon,
+    np.ndarray[FLOAT32TYPE_t, ndim=2] cosangdist, int N):
+
+    cdef:
+        FLOAT32TYPE_t expr
+        unsigned int i,j
+
+    for i in xrange(N):
+        for j in xrange(i+1):
+            expr = sin_lat[i]*sin_lat[j] + cos_lat[i]*cos_lat[j] * \
+                (sin_lon[i]*sin_lon[j] + cos_lon[i]*cos_lon[j])
+
+            if expr > 1:
+                expr = 1
+            elif expr < -1:
+                expr = -1
+
+            cosangdist[i, j] = cosangdist[j, i] = expr
+
+
+def _euclidiean_distance(
+    np.ndarray[FLOAT32TYPE_t, ndim=1] x, np.ndarray[FLOAT32TYPE_t, ndim=1] y,
+    np.ndarray[FLOAT32TYPE_t, ndim=2] distance, int N):
+
+    cdef:
+        unsigned int i,j
+        FLOAT32TYPE_t expr
+
+    for i in xrange(N):
+        for j in xrange(i+1):
+            expr = (x[i]-x[j])**2 + (y[i]-y[j])**2
+            distance[i, j] = distance[j, i] = expr**(0.5)
