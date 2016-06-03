@@ -18,12 +18,21 @@ from math import factorial
 import numpy as np
 
 # C++ inline code
-from .. import weave_inline
-
+from .numerics import                                    \
+    _embed_time_series, _manhatten_distance_matrix, \
+    _euclidean_distance_matrix, _supremum_distance_matrix, \
+    _set_adaptive_neighborhood_size, _bootstrap_distance_matrix_manhatten, \
+    _bootstrap_distance_matrix_euclidean, _bootstrap_distance_matrix_supremum,\
+    _diagline_dist_norqa_missingvalues, _diagline_dist_norqa, \
+    _diagline_dist_rqa_missingvalues, _diagline_dist_rqa, \
+    _vertline_dist_norqa_missingvalues, _vertline_dist_norqa, \
+    _vertline_dist_rqa_missingvalues, _vertline_dist_rqa, _rejection_sampling,\
+    _white_vertline_dist, _twins, _twin_surrogates
 
 #
 #  Class definitions
 #
+
 
 class RecurrencePlot(object):
 
@@ -407,28 +416,12 @@ Recurrence matrix is not stored in memory."
         #  Make sure that dim and tau are Python integers
         dim = int(dim)
         tau = int(tau)
+        time_series = time_series.astype("float32")
 
         n_time = time_series.shape[0]
         embedding = np.empty((n_time - (dim - 1) * tau, dim), dtype="float32")
 
-        code = r"""
-        int j, k, max_delay, len_embedded, index;
-
-        //  Calculate the maximum delay
-        max_delay = (dim - 1) * tau;
-        //  Calculate the length of the embedded time series
-        len_embedded = n_time - max_delay;
-
-        for (j = 0; j < dim; j++) {
-            index = j * tau;
-            for (k = 0; k < len_embedded; k++) {
-                embedding(k,j) = time_series(index);
-                index++;
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['n_time', 'dim', 'tau', 'time_series', 'embedding'])
+        _embed_time_series(n_time, dim, tau, time_series, embedding)
         return embedding
 
     #
@@ -451,27 +444,7 @@ Recurrence matrix is not stored in memory."
         (n_time, dim) = embedding.shape
         distance = np.zeros((n_time, n_time), dtype="float32")
 
-        code = r"""
-        int j, k, l;
-        float sum;
-
-        //  Calculate the manhattan distance matrix
-
-        for (j = 0; j < n_time; j++) {
-            //  Ignore the main diagonal, since every sample is neighbor of
-            //  itself
-            for (k = 0; k < j; k++) {
-                sum = 0;
-                for (l = 0; l < dim; l++) {
-                    //  Use manhattan norm
-                    sum += fabs(embedding(j,l) - embedding(k,l));
-                }
-                distance(j,k) = distance(k,j) = sum;
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['n_time', 'dim', 'embedding', 'distance'])
+        _manhatten_distance_matrix(n_time, dim, embedding, distance)
         return distance
 
     def euclidean_distance_matrix(self, embedding):
@@ -490,28 +463,8 @@ Recurrence matrix is not stored in memory."
         (n_time, dim) = embedding.shape
         distance = np.zeros((n_time, n_time), dtype="float32")
 
-        code = r"""
-        int j, k, l;
-        float sum, diff;
-
-        //  Calculate the euclidean distance matrix
-
-        for (j = 0; j < n_time; j++) {
-            //  Ignore the main diagonal, since every sample is neighbor of
-            //  itself
-            for (k = 0; k < j; k++) {
-                sum = 0;
-                for (l = 0; l < dim; l++) {
-                    //  Use euclidean norm
-                    diff = fabs(embedding(j,l) - embedding(k,l));
-                    sum += diff * diff;
-                }
-                distance(j,k) = distance(k,j) = sqrt(sum);
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['n_time', 'dim', 'embedding', 'distance'])
+        _euclidean_distance_matrix(n_time, dim, embedding, distance)
+        distance = np.sqrt(distance)
         return distance
 
     def supremum_distance_matrix(self, embedding):
@@ -530,30 +483,7 @@ Recurrence matrix is not stored in memory."
         (n_time, dim) = embedding.shape
         distance = np.zeros((n_time, n_time), dtype="float32")
 
-        code = r"""
-        int j, k, l;
-        float temp_diff, diff;
-
-        //  Calculate the supremum distance matrix
-
-        for (j = 0; j < n_time; j++) {
-            //  Ignore the main diagonal, since every sample is neighbor of
-            //  itself
-            for (k = 0; k < j; k++) {
-                temp_diff = diff = 0;
-                for (l = 0; l < dim; l++) {
-                    //  Use supremum norm
-                    temp_diff = fabs(embedding(j,l) - embedding(k,l));
-
-                    if (temp_diff > diff)
-                        diff = temp_diff;
-                }
-                distance(j,k) = distance(k,j) = diff;
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['n_time', 'dim', 'embedding', 'distance'])
+        _supremum_distance_matrix(n_time, dim, embedding, distance)
         return distance
 
     def set_fixed_threshold(self, threshold):
@@ -721,29 +651,8 @@ adaptive neighborhood size algorithm..."
         if order is None:
             order = np.arange(n_time)
 
-        code = r"""
-        int i, j, k, l;
-
-        for (i = 0; i < adaptive_neighborhood_size; i++) {
-            for (j = 0; j < n_time; j++) {
-                //  Get the node index to be processed
-                l = order(j);
-
-                //  Start with k = i + 1, since state vectors closer than the
-                //  (i+1)th nearest neighbor are already connected to j at this
-                //  stage.
-                k = i + 1;
-                while (recurrence(l,sorted_neighbors(l,k)) == 1 && k < n_time)
-                    k++;
-                //  Add a "new" nearest neighbor of l to the recurrence plot
-                recurrence(l,sorted_neighbors(l,k)) =
-                    recurrence(sorted_neighbors(l,k),l) = 1;
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['n_time', 'adaptive_neighborhood_size',
-                      'sorted_neighbors', 'order', 'recurrence'])
+        _set_adaptive_neighborhood_size(n_time, adaptive_neighborhood_size,
+                                        sorted_neighbors, order, recurrence)
         self.R = recurrence
 
     @staticmethod
@@ -800,23 +709,10 @@ adaptive neighborhood size algorithm..."
         #  Get number of phase space points
         n_time = distance.shape[0]
 
-        #  Initialize array for distance samples
-        samples = np.empty(n_samples, dtype="float32")
-
-        #  Gather randomly selected distance entries
-        code = r"""
-        int i, j, k;
-
-        for (k = 0; k < n_samples; k++) {
-            //  Generate two random integers between 0 and n_time
-            i = floor(drand48() * n_time);
-            j = floor(drand48() * n_time);
-
-            samples(k) = distance(i,j);
-        }
-        """
-        weave_inline(locals(), code,
-                     ['distance', 'samples', 'n_time', 'n_samples'])
+        # vectorized version
+        i = np.random.randint(n_time, size=n_samples)
+        j = np.random.randint(n_time, size=n_samples)
+        samples = distance[i, j]
 
         #  Sort and get threshold
         samples.sort()
@@ -837,75 +733,22 @@ adaptive neighborhood size algorithm..."
         :return: the bootstrap samples from distance matrix.
         """
         #  Prepare
-        distances = np.zeros(M)
+        M = int(M)
+        embedding = embedding.astype("float32")
+        distances = np.zeros(M, dtype="float32")
         (n_time, dim) = embedding.shape
 
         if metric == "manhattan":
-            code = r"""
-            int i, j, k, l;
-            float sum, diff;
-
-            for (i = 0; i < M; i++) {
-                // Randomly draw two state vectors from embedded time series
-                j = floor(drand48() * n_time);
-                k = floor(drand48() * n_time);
-
-                //  Compute their distance
-                sum = 0;
-                for (l = 0; l < dim; l++) {
-                    //  Use manhattan norm
-                    sum += fabs(embedding(j,l) - embedding(k,l));
-                }
-                distances(i) = sum;
-            }
-            """
+            _bootstrap_distance_matrix_manhatten(n_time, dim, embedding,
+                                                 distances, M)
 
         elif metric == "euclidean":
-            code = r"""
-            int i, j, k, l;
-            float sum, diff;
-
-            for (i = 0; i < M; i++) {
-                // Randomly draw two state vectors from embedded time series
-                j = floor(drand48() * n_time);
-                k = floor(drand48() * n_time);
-
-                //  Compute their distance
-                sum = 0;
-                for (l = 0; l < dim; l++) {
-                    //  Use euclidean norm
-                    diff = fabs(embedding(j,l) - embedding(k,l));
-                    sum += diff * diff;
-                }
-                distances(i) = sqrt(sum);
-            }
-            """
+            _bootstrap_distance_matrix_euclidean(n_time, dim, embedding,
+                                                 distances, M)
 
         elif metric == "supremum":
-            code = r"""
-            int i, j, k, l;
-            float temp_diff, diff;
-
-            for (i = 0; i < M; i++) {
-                // Randomly draw two state vectors from embedded time series
-                j = floor(drand48() * n_time);
-                k = floor(drand48() * n_time);
-
-                //  Compute their distance
-                temp_diff = diff = 0;
-                for (l = 0; l < dim; l++) {
-                    //  Use supremum norm
-                    temp_diff = fabs(embedding(j,l) - embedding(k,l));
-
-                    if (temp_diff > diff)
-                        diff = temp_diff;
-                }
-                distances(i) = diff;
-            }
-            """
-
-        weave_inline(locals(), code,
-                     ['n_time', 'dim', 'embedding', 'distances', 'M'])
+            _bootstrap_distance_matrix_supremum(n_time, dim, embedding,
+                                                distances, M)
         return distances
 
     #
@@ -1000,77 +843,11 @@ adaptive neighborhood size algorithm..."
                 recmat = self.recurrence_matrix()
 
                 if self.missing_values:
-                    code = r"""
-                    int i, j, k;
-                    k = 0;
-
-                    bool missing_flag;
-                    missing_flag = false;
-
-                    for (i = 0; i < n_time; i++) {
-                        if (k != 0 && !missing_flag) {
-                            diagline(k)++;
-                            k = 0;
-                        }
-
-                        missing_flag = false;
-
-                        for (j = 0; j < i + 1; j++) {
-                            //  Check if current point in RP belongs
-                            //  to a missing value
-                            if (mv_indices(n_time - 1 - i + j) ||
-                                mv_indices(j)) {
-                                missing_flag = true;
-                                k = 0;
-                            }
-                            else if (recmat(n_time - 1 - i + j,j) == 0 &&
-                                     missing_flag)
-                                missing_flag = false;
-
-                            if (!missing_flag) {
-                                //  Only increase k if some previous point in
-                                //  diagonal was not a missing value!
-                                if (recmat(n_time - 1 - i + j, j) == 1) {
-                                    k++;
-                                }
-                                //  Only count diagonal lines that are not
-                                //  followed by a missing value point in the
-                                //  recurrence plot
-                                else if (k != 0) {
-                                    diagline(k)++;
-                                    k = 0;
-                                }
-                            }
-                        }
-                    }
-                    """
                     mv_indices = self.missing_value_indices
-                    args = ['n_time', 'diagline', 'recmat', 'mv_indices']
-
+                    _diagline_dist_norqa_missingvalues(n_time, diagline,
+                                                       recmat, mv_indices)
                 else:
-                    code = r"""
-                    int i, j, k;
-                    k = 0;
-
-                    for (i = 0; i < n_time; i++) {
-                        if (k != 0) {
-                            diagline(k)++;
-                            k = 0;
-                        }
-                        for (j = 0; j < i + 1; j++) {
-                            if (recmat(n_time - 1 - i + j, j) == 1) {
-                                k++;
-                            }
-                            else if (k != 0) {
-                                diagline(k)++;
-                                k = 0;
-                            }
-                        }
-                    }
-                    """
-                    args = ['n_time', 'diagline', 'recmat']
-
-                weave_inline(locals(), code, args)
+                    _diagline_dist_norqa(n_time, diagline, recmat)
 
             #  Calculations for sequential RQA
             elif self.sparse_rqa and self.metric == "supremum":
@@ -1082,102 +859,13 @@ adaptive neighborhood size algorithm..."
                 eps = float(self.threshold)
 
                 if self.missing_values:
-                    code = r"""
-                    int i, j, k, l;
-                    float temp_diff, diff;
-
-                    k = 0;
-
-                    bool missing_flag;
-                    missing_flag = false;
-
-                    for (i = 0; i < n_time; i++) {
-                        if (k != 0 && !missing_flag) {
-                            diagline(k)++;
-                            k = 0;
-                        }
-
-                        missing_flag = false;
-
-                        for (j = 0; j < i + 1; j++) {
-                            //  Compute supremum distance between state vectors
-                            temp_diff = diff = 0;
-                            for (l = 0; l < dim; l++) {
-                                //  Use supremum norm
-                                temp_diff = fabs(embedding(j,l) -
-                                            embedding(n_time - 1 - i + j,l));
-
-                                if (temp_diff > diff) {
-                                    diff = temp_diff;
-                                }
-                            }
-
-                            //  Check if current point in RP belongs
-                            //  to a missing value
-                            if (mv_indices(n_time-1-i+j) || mv_indices(j)) {
-                                missing_flag = true;
-                                k = 0;
-                            }
-                            else if (diff > eps && missing_flag)
-                                missing_flag = false;
-
-                            if (!missing_flag) {
-                                //  Only increase k if some previous point in
-                                //  diagonal was not a missing value!
-                                if (diff < eps)
-                                    k++;
-
-                                //  Only count diagonal lines that are not
-                                //  followed by a missing value point in the
-                                //  recurrence plot
-                                else if (k != 0) {
-                                    diagline(k)++;
-                                    k = 0;
-                                }
-                            }
-                        }
-                    }
-                    """
                     mv_indices = self.missing_value_indices
-                    args = ['n_time', 'diagline', 'mv_indices', 'embedding',
-                            'eps', 'dim']
-
+                    _diagline_dist_rqa_missingvalues(n_time, diagline,
+                                                     mv_indices, embedding,
+                                                     eps, dim)
                 else:
-                    code = r"""
-                    int i, j, k, l;
-                    float temp_diff, diff;
-
-                    k = 0;
-
-                    for (i = 0; i < n_time; i++) {
-                        if (k != 0) {
-                            diagline(k)++;
-                            k = 0;
-                        }
-                        for (j = 0; j < i + 1; j++) {
-                            //  Compute supremum distance between state vectors
-                            temp_diff = diff = 0;
-                            for (l = 0; l < dim; l++) {
-                                //  Use supremum norm
-                                temp_diff = fabs(embedding(j,l) -
-                                            embedding(n_time - 1 - i + j,l));
-
-                                if (temp_diff > diff)
-                                    diff = temp_diff;
-                            }
-                            //  Check if R(j,n_time-1-i+j) == 1 -> recurrence
-                            if (diff < eps)
-                                k++;
-                            else if (k != 0) {
-                                diagline(k)++;
-                                k = 0;
-                            }
-                        }
-                    }
-                    """
-                    args = ['n_time', 'diagline', 'embedding', 'eps', 'dim']
-
-                weave_inline(locals(), code, args)
+                    _diagline_dist_rqa(n_time, diagline, embedding, eps,
+                                       dim)
 
             #  Function just runs over the upper triangular matrix
             self._diagline_dist = 2*diagline
@@ -1210,20 +898,7 @@ adaptive neighborhood size algorithm..."
         #  Normalize distribution
         dist /= dist.sum()
 
-        code = r"""
-        int i = 0, x;
-
-        while (i < M) {
-            x = floor(drand48() * N);
-
-            if (drand48() < dist(x)) {
-                resampled_dist(x) += 1;
-                i++;
-            }
-
-        }
-        """
-        weave_inline(locals(), code, ['dist', 'resampled_dist', 'N', 'M'])
+        _rejection_sampling(dist, resampled_dist, N, M)
         return resampled_dist
 
     def resample_diagline_dist(self, M):
@@ -1396,67 +1071,12 @@ adaptive neighborhood size algorithm..."
                 recmat = self.recurrence_matrix()
 
                 if self.missing_values:
-                    code = r"""
-                    int i, j, k = 0;
-
-                    bool missing_flag;
-                    missing_flag = false;
-
-                    for (i = 0; i < n_time; i++) {
-                        if (k != 0 && !missing_flag) {
-                            vertline(k)++;
-                            k = 0;
-                        }
-
-                        missing_flag = false;
-
-                        for (j = 0; j < n_time; j++) {
-                            //  Check if current point in RP belongs
-                            //  to a missing value
-                            if (mv_indices(i) || mv_indices(j)) {
-                                missing_flag = true;
-                                k = 0;
-                            }
-                            else if (recmat(i,j) == 0 && missing_flag)
-                                missing_flag = false;
-
-                            if (!missing_flag) {
-                                if (recmat(i,j) != 0)
-                                    k++;
-                                else if (k != 0) {
-                                    vertline(k)++;
-                                    k = 0;
-                                }
-                            }
-
-                        }
-                    }
-                    """
                     mv_indices = self.missing_value_indices
-                    args = ['n_time', 'vertline', 'recmat', 'mv_indices']
+                    _vertline_dist_norqa_missingvalues(n_time, vertline,
+                                                       recmat, mv_indices)
 
                 else:
-                    code = r"""
-                    int i, j, k = 0;
-
-                    for (i = 0; i < n_time; i++) {
-                        if (k != 0) {
-                            vertline(k)++;
-                            k = 0;
-                        }
-                        for (j = 0; j < n_time; j++) {
-                            if (recmat(i,j) != 0)
-                                k++;
-                            else if (k != 0) {
-                                vertline(k)++;
-                                k = 0;
-                            }
-                        }
-                    }
-                    """
-                    args = ['n_time', 'vertline', 'recmat']
-
-                weave_inline(locals(), code, args)
+                    _vertline_dist_norqa(n_time, vertline, recmat)
 
             #  Calculations for sequential RQA
             elif self.sparse_rqa and self.metric == "supremum":
@@ -1468,94 +1088,13 @@ adaptive neighborhood size algorithm..."
                 eps = float(self.threshold)
 
                 if self.missing_values:
-                    code = r"""
-                    int i, j, k = 0, l;
-                    float temp_diff, diff;
-
-                    bool missing_flag;
-                    missing_flag = false;
-
-                    for (i = 0; i < n_time; i++) {
-                        if (k != 0 && !missing_flag) {
-                            vertline(k)++;
-                            k = 0;
-                        }
-
-                        missing_flag = false;
-
-                        for (j = 0; j < n_time; j++) {
-                            //  Compute supremum distance between state vectors
-                            temp_diff = diff = 0;
-                            for (l = 0; l < dim; l++) {
-                                //  Use supremum norm
-                                temp_diff =
-                                    fabs(embedding(i,l) - embedding(j,l));
-
-                                if (temp_diff > diff)
-                                    diff = temp_diff;
-                            }
-
-                            //  Check if current point in RP belongs
-                            //  to a missing value
-                            if (mv_indices(i) || mv_indices(j)) {
-                                missing_flag = true;
-                                k = 0;
-                            }
-                            else if (diff > eps && missing_flag)
-                                missing_flag = false;
-
-                            if (!missing_flag) {
-                                //  Check if recurrent point has been reached
-                                if (diff < eps)
-                                    k++;
-                                else if (k != 0) {
-                                    vertline(k)++;
-                                    k = 0;
-                                }
-                            }
-
-                        }
-                    }
-                    """
                     mv_indices = self.missing_value_indices
-                    args = ['n_time', 'vertline', 'mv_indices', 'embedding',
-                            'eps', 'dim']
+                    _vertline_dist_rqa_missingvalues(n_time, vertline,
+                                                     mv_indices, embedding,
+                                                     eps, dim)
 
                 else:
-                    code = r"""
-                    int i, j, k = 0, l;
-                    float temp_diff, diff;
-
-                    for (i = 0; i < n_time; i++) {
-                        if (k != 0) {
-                            vertline(k)++;
-                            k = 0;
-                        }
-                        for (j = 0; j < n_time; j++) {
-                            //  Compute supremum distance between state vectors
-                            temp_diff = diff = 0;
-                            for (l = 0; l < dim; l++) {
-                                //  Use supremum norm
-                                temp_diff =
-                                    fabs(embedding(i,l) - embedding(j,l));
-
-                                if (temp_diff > diff)
-                                    diff = temp_diff;
-                            }
-
-                            //  Check if recurrent point has been reached
-                            if (diff < eps)
-                                k++;
-                            else if (k != 0) {
-                                vertline(k)++;
-                                k = 0;
-                            }
-                        }
-                    }
-                    """
-                    args = ['n_time', 'vertline', 'embedding', 'eps', 'dim']
-
-                weave_inline(locals(), code, args)
+                    _vertline_dist_rqa(n_time, vertline, embedding, eps, dim)
 
             #  Function covers the whole recurrence matrix
             self._vertline_dist = vertline
@@ -1735,25 +1274,7 @@ adaptive neighborhood size algorithm..."
         n_time = self.N
         white_vertline = np.zeros(n_time, dtype="int32")
 
-        code = r"""
-        int i, j, k = 0;
-
-        for (i = 0; i < n_time; i++) {
-            if (k != 0) {
-                white_vertline(k)++;
-                k = 0;
-            }
-            for (j = 0; j < n_time; j++) {
-                if (R(i,j) == 0)
-                    k++;
-                else if (k != 0) {
-                    white_vertline(k)++;
-                    k = 0;
-                }
-            }
-        }
-        """
-        weave_inline(locals(), code, ['n_time', 'white_vertline', 'R'])
+        _white_vertline_dist(n_time, white_vertline, R)
 
         #  Function covers the whole recurrence matrix
         return white_vertline
@@ -1865,56 +1386,7 @@ adaptive neighborhood size algorithm..."
         #  Get number of neighbors for each state vector
         nR = R.sum(axis=0)
 
-        code = r"""
-        int j, k, l;
-
-        //  Add list for twins in time series i
-        py::list empty(0);
-        PyList_Append(twins, empty);
-
-        //  Find all twins in the recurrence matrix
-
-        for (j = 0; j < N; j++) {
-            //  Create empty list
-            py::list empty(0);
-            //  Append empty list to global twin list
-            PyList_Append(twins, empty);
-            //  Get a reference to the twin list of state vector j
-            py::list twins_j = PyList_GetItem(twins,j);
-
-            //  Respect a minimal temporal spacing between twins to avoid false
-            //  twins due to the higher sample density in phase space along the
-            //  trajectory
-            for (k = 0; k + min_dist < j; k++) {
-                //  Continue only if both samples have the same number of
-                //  neighbors and more than just one neighbor (themselves)
-                if (nR(j) == nR(k) & nR(j) != 1) {
-                    l = 0;
-
-                    while (R(j,l) == R(k,l)) {
-                        l++;
-
-                        //  If l is equal to the length of the time series at
-                        //  this point, j and k are twins
-                        if (l == N) {
-                            //  Add the twins to the twin list
-                            py::list twins_k = PyList_GetItem(twins,k);
-
-                            py::object temp_k = PyInt_FromLong(k);
-                            py::object temp_j = PyInt_FromLong(j);
-
-                            PyList_Append(twins_j,temp_k);
-                            PyList_Append(twins_k,temp_j);
-
-                            //  Leave the while loop
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        """
-        weave_inline(locals(), code, ['min_dist', 'N', 'R', 'nR', 'twins'])
+        _twins(min_dist, N, R, nR, twins)
         return twins
 
     def twin_surrogates(self, n_surrogates=1, min_dist=7):
@@ -1955,64 +1427,6 @@ adaptive neighborhood size algorithm..."
         #  Initialize
         surrogates = np.empty((n_surrogates, N, dim))
 
-        code = r"""
-        int i, j, k, l, new_k, n_twins, rand;
-
-        //  Initialize random number generator
-        srand48(time(0));
-
-        for (i = 0; i < n_surrogates; i++) {
-            //  Randomly choose a starting point in the original trajectory
-            k = floor(drand48() * N);
-
-            j = 0;
-
-            while (j < N) {
-                //  Assign state vector of surrogate trajectory
-                for (l = 0; l < dim; l++) {
-                    surrogates(i,j,l) = embedding(k,l);
-                }
-
-                //  Get the list of twins of state vector k in the original
-                //  time series
-                py::list twins_k = PyList_GetItem(twins,k);
-
-                //  Get the number of twins of k
-                n_twins = PyList_Size(twins_k);
-
-                //  If k has no twins, go to the next sample k+1. If k has
-                //  twins at m, choose among m+1 and k+1 with equal probability
-                if (n_twins == 0)
-                    k++;
-                else {
-                    //  Generate a random integer between 0 and n_twins
-                    rand = floor(drand48() * (n_twins + 1));
-
-                    //  If rand = n_twins go to sample k+1, otherwise jump to
-                    //  the future of one of the twins
-                    if (rand == n_twins)
-                        k++;
-                    else {
-                        k = twins_k[rand];
-                        k++;
-                    }
-                }
-
-                //  If the new k >= n_time, choose a new random starting point
-                //  in the original time series
-                if (k >= N) {
-                    do {
-                        new_k = floor(drand48() * N);
-                    }
-                    while (k == new_k);
-
-                    k = new_k;
-                }
-                j++;
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['n_surrogates', 'N', 'dim', 'twins', 'embedding',
-                      'surrogates'])
+        _twin_surrogates(n_surrogates, N, dim, twins, embedding,
+                         surrogates)
         return surrogates

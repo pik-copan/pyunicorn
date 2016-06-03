@@ -155,6 +155,13 @@ Node-weighted network measures / node-splitting invariance
     `doi:10.1209/0295-5075/102/28007
     <http://dx.doi.org/10.1209/0295-5075/102/28007>`__
 
+.. [Zemp2014] D.C. Zemp,  M. Wiedermann, J. Kurths, A. Rammig, J.F. Donges.
+    "Node-weighted measures for complex networks with directed and weighted
+    edges for studying continental moisture recycling".
+    In *Europhysics Letters*, vol. 107.5, p58005 (2014)
+    `doi:10.1209/0295-5075/107/58005
+    <http://dx.doi.org/10.1209/0295-5075/107/58005>`__
+
 Climate data analysis (general)
 ===============================
 [Bretherton1992]_.
@@ -292,9 +299,10 @@ Power Grids/Power Networks
     Spatially Embedded Infrastructure Networks".
     In *Eur. Phys. J. Special Topics: Resilient Power Grids and Extreme Events* (2014)
 
-Time series analysis and synchronization (general)
-==================================================
-
+Time series analysis and synchronization
+========================================
+*General*
+~~~~~~~~~
 [Pecora1998]_, [Schreiber2000]_, [Kraskov2004]_, [Kantz2006]_, [Thiel2006]_,
 [Bergner2008]_, [Pompe2011]_, [Runge2012b]_.
 
@@ -346,6 +354,25 @@ Time series analysis and synchronization (general)
     In *Physical Review E*, vol. 86(6), 1-15 (2012)
     `doi:10.1103/PhysRevE.86.061121
     <http://dx.doi.org/10.1103/PhysRevE.86.061121>`__
+
+*Event synchronization*
+~~~~~~~~~~~~~~~~~~~~~~~
+[Quiroga2002]_, [Boers2014]_.
+
+.. [Quiroga2002] R.Q. Quiroga, T. Kreuz, P. Grassberger.
+    "Event synchronization: a simple and fast method to measure synchronicity
+    and time delay patterns."
+    In *Physical Review E*, vol. 66(4), 041904 (2002)
+    `doi:10.1103/PhysRevE.66.041904
+    <http://dx.doi.org/10.1103/PhysRevE.66.041904>`__
+
+.. [Boers2014] N. Boers, B. Bookhagen, H.M.J. Barbosa, N. Marwan, J. Kurths.
+    J.A. Marengo.
+    "Prediction of extreme floods in the eastern Central Andes based on a
+    complex networks approach".
+    In *Nature communications*, vol. 5, 1--7 (2014)
+    `doi:10.1038/ncomms6199
+    <http://dx.doi.org/10.1038/ncomms6199>`__
 
 Recurrence networks / quantification analysis / plots
 =====================================================

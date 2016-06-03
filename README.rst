@@ -120,6 +120,8 @@ following reference:
 
     J.F. Donges, J. Heitzig, B. Beronov, M. Wiedermann, J. Runge, Q.-Y. Feng, L. Tupikina, V. Stolbova, R.V. Donner, N. Marwan, H.A. Dijkstra, and J. Kurths,
     Unified functional network and nonlinear time series analysis for complex systems science: The pyunicorn package,
+    `Chaos 25, 113101 (2015), doi:10.1063/1.4934554,
+    <http://dx.doi.org/10.1063/1.4934554>`_
     `Preprint: arxiv.org:1507.01571 [physics.data-an].
     <http://arxiv.org/abs/1507.01571>`_
 

@@ -33,5 +33,5 @@ An easy way to go may be a Python distribution like `Anaconda
 <http://www.enthought.com>`_ that already include many libraries.
 
 .. include:: ../../README.rst
-    :start-after: documentation)
+    :start-after: development)
     :end-before: Test suite

@@ -20,6 +20,8 @@ from .. import weave_inline
 # easy progress bar handling
 from ..utils import progressbar
 
+from .numerics import _embed_time_series_array, _recurrence_plot, _twins
+
 
 #
 #  Define class Surrogates
@@ -177,29 +179,13 @@ class Surrogates(object):
 
         embedding = np.empty((N, n_time - (dimension - 1)*delay, dimension))
 
-        code = r"""
-        int i, j, k, max_delay, len_embedded, index;
-
-        //  Calculate the maximum delay
-        max_delay = (dimension - 1)*delay;
-        //  Calculate the length of the embedded time series
-        len_embedded = n_time - max_delay;
-
-        for (i = 0; i < N; i++) {
-            for (j = 0; j < dimension; j++) {
-                index = j*delay;
-                for (k = 0; k < len_embedded; k++) {
-                    embedding(i,k,j) = time_series_array(i,index);
-                    index++;
-                }
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['N', 'n_time', 'dimension', 'delay', 'time_series_array',
-                      'embedding'])
+        _embed_time_series_array(N, n_time, dimension, delay,
+                                 time_series_array, embedding)
         return embedding
 
+    # FIXME: I(wb) included the line
+    # dimension = embedding.shape[1]
+    # whose missing caused an error. I can't guarantee if it is correct.
     def recurrence_plot(self, embedding, threshold):
         """
         Return the :index:`recurrence plot <pair: recurrence plot; time
@@ -217,35 +203,15 @@ class Surrogates(object):
             print "Calculating the recurrence plot..."
 
         n_time = embedding.shape[0]
+        dimension = embedding.shape[1]
         R = np.ones((n_time, n_time), dtype="int8")
 
-        code = r"""
-        int j, k, l;
-        double diff;
-
-        for (j = 0; j < n_time; j++) {
-            //  Ignore the main diagonal, since every sample is neighbor
-            //  of itself.
-            for (k = 0; k < j; k++) {
-                for (l = 0; l < dimension; l++) {
-                    //  Use supremum norm
-                    diff = embedding(j,l) - embedding(k,l);
-
-                    if(fabs(diff) > threshold) {
-                        //  j and k are not neighbors
-                        R(j,k) = R(k,j) = 0;
-
-                        //  Leave the for loop
-                        break;
-                    }
-                }
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['n_time', 'dimension', 'threshold', 'embedding', 'R'])
+        _recurrence_plot(n_time, dimension, threshold, embedding, R)
         return R
 
+    # FIXME: I(wb) included the line
+    # dimension = embedding_array.shape[2]
+    # whose missing caused an error. I can't guarantee if it is correct.
     def twins(self, embedding_array, threshold, min_dist=7):
         """
         Return list of the :index:`twins <pair: twins; surrogates>` of each
@@ -269,6 +235,7 @@ class Surrogates(object):
 
         N = embedding_array.shape[0]
         n_time = embedding_array.shape[1]
+        dimension = embedding_array.shape[2]
         twins = []
 
         #  Initialize the R matrix with ones
@@ -276,93 +243,8 @@ class Surrogates(object):
         #  Initialize array to store the number of neighbors for each sample
         nR = np.empty(n_time)
 
-        code = r"""
-        int i, j, k, l;
-        double diff;
-
-        for (i = 0; i < N; i++) {
-            //  Initialize the recurrence matrix R and nR
-
-            for (j = 0; j < n_time; j++) {
-                for (k = 0; k <= j; k++)
-                    R(j,k) = R(k,j) = 1;
-                nR(j) = n_time;
-            }
-
-            //  Calculate the recurrence matrix for time series i
-
-            for (j = 0; j < n_time; j++) {
-                //  Ignore the main diagonal, since every sample is neighbor
-                //  of itself.
-                for (k = 0; k < j; k++) {
-                    for (l = 0; l < dimension; l++) {
-                        //  Use maximum norm
-                        diff = embedding_array(i,j,l) - embedding_array(i,k,l);
-
-                        if(fabs(diff) > threshold) {
-                            //  j and k are not neighbors
-                            R(j,k) = R(k,j) = 0;
-
-                            //  Reduce neighbor count of j and k by one
-                            nR(j) -= 1;
-                            nR(k) -= 1;
-
-                            //  Leave the for loop
-                            break;
-                        }
-                    }
-                }
-            }
-
-            //  Add list for twins in time series i
-            py::list empty(0);
-            PyList_Append(twins, empty);
-
-            //  Find all twins in the recurrence matrix
-
-            for (j = 0; j < n_time; j++) {
-                py::list empty(0);
-
-                py::list twins_i = PyList_GetItem(twins, i);
-                PyList_Append(twins_i, empty);
-                py::list twins_ij = PyList_GetItem(twins_i,j);
-
-                //  Respect a minimal temporal spacing between twins to avoid
-                //  false twins due to the higher.
-                //  sample density in phase space along the trajectory
-                for (k = 0; k + min_dist < j; k++) {
-                    //  Continue only if both samples have the same number of
-                    //  neighbors and more than just one neighbor (themselves).
-                    if (nR(j) == nR(k) & nR(j) != 1) {
-                        l = 0;
-
-                        while (R(j,l) == R(k,l)) {
-                            l++;
-
-                            //  If l is equal to the length of the time series
-                            //  at this point, j and k are twins.
-                            if (l == n_time) {
-                                //  Add the twins to the twin list
-                                py::list twins_ik = PyList_GetItem(twins_i,k);
-
-                                py::object temp_k = PyInt_FromLong(k);
-                                py::object temp_j = PyInt_FromLong(j);
-
-                                PyList_Append(twins_ij,temp_k);
-                                PyList_Append(twins_ik,temp_j);
-
-                                //  Leave the while loop
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['N', 'n_time', 'dimension', 'threshold', 'min_dist',
-                      'embedding_array', 'R', 'nR', 'twins'])
+        _twins(N, n_time, dimension, threshold, min_dist, embedding_array, R,
+               nR, twins)
         return twins
 
     #
