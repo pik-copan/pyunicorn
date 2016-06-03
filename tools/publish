@@ -1,39 +1,53 @@
 #! /usr/bin/env bash
+# -*- coding: utf-8 -*-
+#
+# This file is part of pyunicorn.
+# Copyright (C) 2008--2015 Jonathan F. Donges and pyunicorn authors
+# URL: <http://www.pik-potsdam.de/members/donges/software>
+# License: BSD (3-clause)
 
+
+# configure
 delete_git=1
-generate_html=1
+generate_doc=1
+python="$(which python2)"
 
 # evaluate destination argument
 (( $# > 1 )) && echo "Expected only 1 argument (destination file)." && exit 1
-dest=""; if (( $# == 1 )); then
-    dir="$(dirname $1)"; tar=$(echo $1 | sed -n "/\.tar\.gz$/p")
+dest=""; if (( $# == 1 )); then dir="$(dirname $1)"
     [[ ! -d $dir ]] && echo "Could not find directory: "$dir && exit 1
-    [[ -z $tar ]] && echo "Suffix should be '.tar.gz'." && exit 1
-    dest="$(cd $dir && pwd)"/"$(basename $1)"
+    [[ ${1: -7} != ".tar.gz" ]] && echo "Suffix should be '.tar.gz'." && exit 1
+    dir="$(cd $dir && pwd)"; dest=$dir/"$(basename $1)"
 fi
 
 # determine absolute path of repository
-repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd $repo
+repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd $repo
+[[ -n $dest && $dir != ${dir#$repo} ]] && \
+    echo "Destination should be outside of repository." && exit 1
 
 # construct versioned archive name
-version="$(sed -n "s/^\(.*\)version='\(.*\)',$/\2/p" setup.py)"
+version="$(sed -n "s/^.*version='\(.*\)',$/\1/p" setup.py)"
 [[ -z $version ]] && echo "Could not determine package version." && exit 2
 package="pyunicorn-"$version; archive=$package".tar.gz"
 [[ -z $dest ]] && dest="$(cd .. && pwd)"/$archive
 
-# prepare archive
-tmp=$dest"-tmp"
-rm -rf $dest $tmp; mkdir -p $tmp; cp -a $repo $tmp/$package
-cd $tmp/$package/docs
-(( $generate_html )) && make clean html || make clean > /dev/null
-cd ..; rm -rf build dist tools .cache .tox .travis.yml MANIFEST
-find . -regex ".*\(\.pyc\|__\.data\)" -type f -print | xargs rm -f
-find . -regex ".*\(pycache\|egg-info\|ipynb\|ropeproject\).*" -type d -print \
-    | xargs rm -rf
+# copy source
+tmp=$dest"-tmp"; rm -rf $dest $tmp; mkdir -p $tmp
+cp -a $repo $tmp/$package; cd $tmp/$package
 
-# delete git logs
+# build extensions & docs
+if (( $generate_doc ))
+then  $python setup.py build_ext --inplace
+      cd docs; make clean html latex; make latexpdf > /dev/null
+else  cd docs; make clean > /dev/null
+fi;   cd ..
+
+# clean up
 (( $delete_git )) && rm -rf .git*
+rm -rf build dist tools .cache .tox .travis.yml MANIFEST
+find . -type f -regex ".*\.\(py[cod]\|c\|so\|data\)" -print | xargs rm -f
+find . -type d -regex ".*\(pycache\|egg-info\|ipynb\|ropeproject\).*" -print \
+    | xargs rm -rf
 
 # compress
 echo; echo "---------------------------------------------------------------"

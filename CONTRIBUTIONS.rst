@@ -29,11 +29,12 @@
     - `Jan Feldhoff <feldhoff@pik-potsdam.de>`_ (extended ``timeseries``)
     - Aljoscha Rheinwalt
     - Hannes Kutza
-    - `Boyan Beronov <boyan.beronov@pik-potsdam.de>`_
-      (consolidated and updated codebase during an internship at PIK)
+    - `Boyan Beronov <beronov@pik-potsdam.de>`_ (restructured,
+      consolidated and updated codebase during an internship at PIK)
     - `Paul Schultz <pschultz@pik-potsdam.de>`_, `Stefan Schinkel
       <mail@dreeg.org>`_ (supplied ``resistive_network`` and corresponding
       tests)
+    - `Wolfram Barfuss <barfuss@pik-potsdam.de>`_
 
 **Related publications**
     See `Publications <docs/source/publications.rst>`_.
@@ -45,7 +46,6 @@
     - Python 2.7
     - `Numpy <http://numpy.scipy.org/>`_ 1.8+
     - `Scipy <http://www.scipy.org/>`_ 0.14+
-    - `Cython <http://cython.org/>`_ 0.21+
     - `Weave <https://github.com/scipy/weave>`_ 0.15+
     - `Matplotlib <http://matplotlib.sourceforge.net>`_ 1.3+
     - `igraph, python-igraph <http://igraph.sourceforge.net/>`_ 0.7+
