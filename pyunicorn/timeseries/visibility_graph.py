@@ -15,7 +15,11 @@ analysis (RQA) and recurrence network analysis.
 # array object and fast numerics
 import numpy as np
 
-from .. import InteractingNetworks, weave_inline
+from .. import InteractingNetworks
+from .numerics import \
+    _visibility_relations_missingvalues,\
+    _visibility_relations_no_missingvalues, _visibility_relations_horizontal,\
+    _retarded_local_clustering, _advanced_local_clustering
 
 
 #
@@ -116,65 +120,15 @@ class VisibilityGraph(InteractingNetworks):
 
         if self.missing_values:
             mv_indices = self.missing_value_indices
-
-            code = r"""
-            int i,j,k;
-            float test;
-
-            for (i = 0; i < N - 2; i++) {
-                for (j = i + 2; j < N; j++) {
-                    k = i + 1;
-
-                    test = (x(j) - x(i)) / (t(j) - t(i));
-
-                    while (!mv_indices(k)
-                           && (x(k) - x(i)) / (t(k) - t(i)) < test && k < j) {
-                        k++;
-                    }
-
-                    if (k == j)
-                        A(i,j) = A(j,i) = 1;
-                }
-            }
-
-            //  Add trivial connections of subsequent observations
-            //  in time series
-            for (i = 0; i < N - 1; i++) {
-                if (!mv_indices(i) && !mv_indices(i+1))
-                    A(i,i+1) = A(i+1,i) = 1;
-            }
-            """
-            args = ['x', 't', 'N', 'A', 'mv_indices']
+            _visibility_relations_missingvalues(x, t, N, A, mv_indices)
 
         else:
-            code = r"""
-            int i,j,k;
-            float test;
+            _visibility_relations_no_missingvalues(x, t, N, A)
 
-            for (i = 0; i < N - 2; i++) {
-                for (j = i + 2; j < N; j++) {
-                    k = i + 1;
-
-                    test = (x(j) - x(i)) / (t(j) - t(i));
-
-                    while ((x(k) - x(i)) / (t(k) - t(i)) < test && k < j)
-                        k++;
-
-                    if (k == j)
-                        A(i,j) = A(j,i) = 1;
-                }
-            }
-
-            //  Add trivial connections of subsequent observations
-            //  in time series
-            for (i = 0; i < N - 1; i++)
-                A(i,i+1) = A(i+1,i) = 1;
-            """
-            args = ['x', 't', 'N', 'A']
-
-        weave_inline(locals(), code, args)
         return A
 
+    # FIXME: There is no option for missing values
+    # Cython gives different outputs than waeve in this case
     def visibility_relations_horizontal(self):
         """
         TODO
@@ -188,29 +142,7 @@ class VisibilityGraph(InteractingNetworks):
         N = len(self.time_series)
         A = np.zeros((N, N), dtype="int8")
 
-        code = r"""
-            int i,j,k;
-            float minimum;
-
-            for (i = 0; i < N - 2; i++) {
-                for (j = i + 2; j < N; j++) {
-                    k = i + 1;
-                    minimum = fmin(x(i), x(j));
-
-                    while (x(k) < minimum && k < j)
-                        k++;
-
-                    if (k == j)
-                        A(i,j) = A(j,i) = 1;
-                }
-            }
-
-            //  Add trivial connections of subsequent observations
-            //  in time series
-            for (i = 0; i < N - 1; i++)
-                A(i,i+1) = A(i+1,i) = 1;
-        """
-        weave_inline(locals(), code, ['x', 't', 'N', 'A'])
+        _visibility_relations_horizontal(x, t, N, A)
         return A
 
     #
@@ -257,30 +189,7 @@ class VisibilityGraph(InteractingNetworks):
         #  Prepare normalization factor
         norm = retarded_degree * (retarded_degree - 1) / 2.
 
-        code = """
-        long counter;
-
-        //  Loop over all nodes
-        for (int i = 2; i < N; i++) {
-            //  Check if i has right degree larger than 1
-            if (norm(i) != 0) {
-                //  Reset counter
-                counter = 0;
-
-                //  Loop over unique pairs of nodes in the past of i
-                for (int j = 0; j < i; j++) {
-                    for (int k = 0; k < j; k++) {
-                        if (A(i,j) == 1 && A(j,k) == 1
-                            && A(k,i) == 1) {
-                            counter++;
-                        }
-                    }
-                }
-                retarded_clustering(i) = counter / norm(i);
-            }
-        }
-        """
-        weave_inline(locals(), code, ['N', 'A', 'norm', 'retarded_clustering'])
+        _retarded_local_clustering(N, A, norm, retarded_clustering)
         return retarded_clustering
 
     def advanced_local_clustering(self):
@@ -301,30 +210,7 @@ class VisibilityGraph(InteractingNetworks):
         #  Prepare normalization factor
         norm = advanced_degree * (advanced_degree - 1) / 2.
 
-        code = """
-        long counter;
-
-        //  Loop over all nodes
-        for (int i = 0; i < N - 2; i++) {
-            //  Check if i has right degree larger than 1
-            if (norm(i) != 0) {
-                //  Reset counter
-                counter = 0;
-
-                //  Loop over unique pairs of nodes in the future of i
-                for (int j = i + 1; j < N; j++) {
-                    for (int k = i + 1; k < j; k++) {
-                        if (A(i,j) == 1 && A(j,k) == 1
-                            && A(k,i) == 1) {
-                            counter++;
-                        }
-                    }
-                }
-                advanced_clustering(i) = counter / norm(i);
-            }
-        }
-        """
-        weave_inline(locals(), code, ['N', 'A', 'norm', 'advanced_clustering'])
+        _advanced_local_clustering(N, A, norm, advanced_clustering)
         return advanced_clustering
 
     def retarded_closeness(self):
