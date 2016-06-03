@@ -210,7 +210,7 @@ no-space-check=trailing-comma,dict-separator
 
 # Maximum number of lines in a module
 # max-module-lines=1000
-max-module-lines=5600
+max-module-lines=6000
 
 # String used as indentation unit. This is usually " " (4 spaces) or "\t" (1
 # tab).
@@ -373,7 +373,7 @@ min-public-methods=2
 
 # Maximum number of public methods for a class (see R0904).
 # max-public-methods=20
-max-public-methods=110
+max-public-methods=120
 
 
 [CLASSES]

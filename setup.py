@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
-from distutils.extension import Extension
+from setuptools import setup
+from setuptools.extension import Extension
+
+import numpy as np
 
 try:
     from Cython.Build import cythonize
@@ -10,7 +12,8 @@ except ImportError:
     CYTHON = False
 
 extensions = [
-    Extension('*', ['pyunicorn/%s/*.%s' % (pkg, 'pyx' if CYTHON else 'c')])
+    Extension('*', ['pyunicorn/%s/*.%s' % (pkg, 'pyx' if CYTHON else 'c')],
+              include_dirs=[np.get_include()])
     for pkg in ['core', 'timeseries']]
 
 if CYTHON:
@@ -21,7 +24,7 @@ if CYTHON:
 
 setup(
     name='pyunicorn',
-    version='0.5.0',
+    version='0.5.1',
     description="Unified complex network and recurrence analysis toolbox",
     long_description="Advanced statistical analysis and modeling of \
 general and spatially embedded complex networks with applications to \
