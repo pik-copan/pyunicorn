@@ -105,7 +105,7 @@ def _visibility_relations_no_missingvalues(
         A[i, i+1] = A[i+1, i] = 1
 
 
-def _visibility_realtions_horizontal(
+def _visibility_relations_horizontal(
     np.ndarray[FLOAT32TYPE_t, ndim=1] x, np.ndarray[FLOAT32TYPE_t, ndim=1] t,
     int N, np.ndarray[INT8TYPE_t, ndim=2] A):
 
@@ -175,4 +175,3 @@ def _advanced_local_clustering(
                         counter += 1
 
             advanced_clustering[i] = counter / norm[i]
-
