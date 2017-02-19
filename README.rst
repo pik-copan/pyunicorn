@@ -89,8 +89,8 @@ configured to use system-wide packages when available. Thus to avoid frequent
 waiting, we recommend you to install the current versions of the following
 packages::
 
-    $> pip install tox nose networkx Sphinx
-    $> pip install pylint pytest pytest-xdist pytest-flakes pytest-pep8
+    $> pip install networkx Sphinx
+    $> pip install tox pylint pytest pytest-xdist pytest-flake8
 
 The test suite can be run from anywhere in the project tree by issuing::
 
@@ -99,14 +99,14 @@ The test suite can be run from anywhere in the project tree by issuing::
 To expose the defined test environments and target them independently::
 
     $> tox -l
-    $> tox -e py27-units,py27-pylint
+    $> tox -e py27-units,py27-style
 
-To test single files::
+To test individual files::
 
-    $> tests/test_doctests.py core.network      # doctests
-    $> nosetests -vs tests/core/TestNetwork.py  # unit tests
-    $> pylint pyunicorn/core/network.py         # code analysis
-    $> py.test pyunicorn/core/network.py        # style
+    $> py.test                   tests/test_core/TestNetwork.py  # unit tests
+    $> py.test --doctest-modules pyunicorn/core/network.py       # doctests
+    $> py.test --flake8          pyunicorn/core/network.py       # style
+    $> pylint                    pyunicorn/core/network.py       # code analysis
 
 Mailing list
 ------------

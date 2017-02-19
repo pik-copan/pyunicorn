@@ -306,10 +306,7 @@ class ResNetwork(GeoNetwork):
             resistances = np.array(resistances)
 
         # check complex/real
-        if np.iscomplexobj(resistances):
-            self.flagComplex = True
-        else:
-            self.flagComplex = False
+        self.flagComplex = np.iscomplexobj(resistances)
 
         # set property
         self.resistances = resistances

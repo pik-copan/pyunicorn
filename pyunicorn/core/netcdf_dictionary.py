@@ -179,7 +179,7 @@ array %s." % var
         """
         #  Check dictionary for empty entries
         for val in self.dict.keys():
-            if len(self.dict[val]) == 0:
+            if not self.dict[val]:
                 print "MODULE: Entry %s is empty." % val
 
         print "MODULE: If %s already existed, old file will be \
@@ -203,8 +203,7 @@ overwritten." % file_name
         for var in self.dict["variables"]:
             #  Check variable dictionary for empty entries
             for key in self.dict["variables"][var].keys():
-                if len(self.dict["variables"][var][key]) == 0 \
-                        and key is not "type":
+                if not self.dict["variables"][var][key] and key != "type":
                     print "MODULE: Entry %s in variable %s is empty." \
                           % (key, var)
 

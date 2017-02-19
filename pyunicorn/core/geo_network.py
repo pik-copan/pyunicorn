@@ -913,7 +913,7 @@ average link distance sequence..."
 
         #  Determine link probabilities
         p_by_dist = {}
-        for d in n_pairs_by_dist.keys():
+        for d in n_pairs_by_dist:
             try:
                 p_by_dist[d] = n_links_by_dist[d] * 1.0 / n_pairs_by_dist[d]
             except KeyError:
@@ -1996,7 +1996,7 @@ average link distance sequence..."
         # find a node on the boundary and an outer neighbour:
         lam = 0.5 + gap/2
         lam1 = 1-lam
-        while len(remaining) > 0:
+        while remaining:
             i = list(remaining)[0]
             this_remove = [i]
             cont = False
@@ -2057,7 +2057,7 @@ average link distance sequence..."
                     rep = self.cartesian2latlon((pos1+pos2)/2)
                     mind2 = d2
             latlon_shape.append(self.cartesian2latlon(partial_shape[-1]))
-            for it in range(len(partial_fullshape)):
+            for it, _ in enumerate(partial_fullshape):
                 pos1 = partial_fullshape[it]
                 latlon_fullshape.append(self.cartesian2latlon(pos1))
 

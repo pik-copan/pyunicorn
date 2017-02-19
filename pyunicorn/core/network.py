@@ -271,7 +271,7 @@ class Network(object):
         """
         Clear cache of path legths for link attributes.
         """
-        for attr in self.cache['paths'].keys():
+        for attr in self.cache['paths']:
             self.clear_link_attribute(attr)
         self.cache['paths'] = {}
 
