@@ -2,7 +2,7 @@ language: python
 python:
     - 2.7
 
-sudo: true
+sudo: false
 matrix:
     fast_finish: true
 env:
@@ -15,11 +15,22 @@ env:
         - NUMPY=1.10 SCIPY=0.16 CYTHON=0.23
         - NUMPY=1.11 SCIPY=0.17 CYTHON=0.24
         - NUMPY=1.12 SCIPY=0.18 CYTHON=0.25
+addons:
+    apt:
+        packages:
+            - libatlas-dev
+            - libatlas-base-dev
+            - liblapack-dev
+            - gfortran
+cache:
+    directories:
+        - $HOME/igraph
 
 before_install:
-    # update system, prepare numeric libraries
-    - travis_retry sudo apt-get update -qq
-    - travis_retry sudo apt-get install -qq libatlas-dev libatlas-base-dev liblapack-dev gfortran
+    # no igraph (>=0.7) package available for Ubuntu 12.04 LTS
+    - bash tools/install-igraph.sh
+    - export PATH=$PATH:$HOME/igraph
+    - ls -R $HOME/igraph
 
     # current python packages via miniconda
     - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then export MINICONDA=""; else export MINICONDA="3"; fi
@@ -30,17 +41,13 @@ before_install:
     - travis_retry conda update -q conda
     - conda info -a
 
-    # no igraph (>=0.7) package available for Ubuntu 12.04 LTS
-    - travis_retry wget http://igraph.org/nightly/get/c/igraph-$IGRAPH.tar.gz
-    - tar -xzf igraph-$IGRAPH.tar.gz
-    - cd igraph-$IGRAPH && ./configure && make && sudo make install && cd ..
-
 install:
     # test environment
-    # https://github.com/conda/conda/issues/1367
     - export CONDA_PY=$TRAVIS_PYTHON_VERSION
     - travis_retry conda create -q -n test-env python=$CONDA_PY
     - source activate test-env
+    # https://github.com/conda/conda/issues/1367
+    - travis_retry conda install virtualenv
 
     # runtime dependencies
     - travis_retry conda install numpy=$NUMPY scipy=$SCIPY cython=$CYTHON
