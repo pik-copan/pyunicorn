@@ -71,7 +71,7 @@ Installing
 **Development version**
     For a simple system-wide installation::
 
-        $> pip install .
+        $> pip install -r requirements.txt .
 
     Depending on your system, you may need root privileges. On UNIX-based
     operating systems (Linux, Mac OS X etc.) this is achieved with ``sudo``.
@@ -79,7 +79,7 @@ Installing
     For development, especially if you want to test ``pyunicorn`` from within
     the source directory::
 
-        $> pip install --user -e .
+        $> pip install -r requirements.txt --user -e .
 
 Test suite
 ----------
@@ -89,7 +89,7 @@ configured to use system-wide packages when available. Thus to avoid frequent
 waiting, we recommend you to install the current versions of the following
 packages::
 
-    $> pip install networkx matplotlib Sphinx
+    $> pip install networkx matplotlib basemap Sphinx
     $> pip install tox pylint pytest pytest-xdist pytest-flake8
 
 The test suite can be run from anywhere in the project tree by issuing::

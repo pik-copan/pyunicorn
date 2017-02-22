@@ -48,16 +48,16 @@ install:
     - travis_retry conda install virtualenv
 
     # runtime dependencies
-    - travis_retry conda install numpy=$NUMPY scipy=$SCIPY cython=$CYTHON
-    - travis_retry pip install -q -r requirements.txt
+    - travis_retry conda install  six numpy=$NUMPY scipy=$SCIPY cython=$CYTHON
 
     # testing dependencies
-    - travis_retry pip install -q networkx matplotlib Sphinx
-    - travis_retry pip install -q tox pylint pytest pytest-xdist pytest-flake8
+    - travis_retry conda install  networkx matplotlib basemap sphinx
+    - travis_retry conda install  pylint pytest
+    - travis_retry pip install -q tox pytest-xdist pytest-flake8
 
 script:
     # check distribution
-    - pip install .
+    - pip install -r requirements.txt .
 
     # test suite
     - tox
