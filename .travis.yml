@@ -45,15 +45,14 @@ install:
     - travis_retry conda create -q -n test-env python=$CONDA_PY
     - source activate test-env
     # https://github.com/conda/conda/issues/1367
-    - travis_retry conda install virtualenv
+    - travis_retry conda install -q virtualenv
 
     # runtime dependencies
-    - travis_retry conda install  six numpy=$NUMPY scipy=$SCIPY cython=$CYTHON
+    - travis_retry conda install six numpy=$NUMPY scipy=$SCIPY cython=$CYTHON
 
     # testing dependencies
-    - travis_retry conda install  networkx matplotlib basemap sphinx
-    - travis_retry conda install  pylint pytest
-    - travis_retry pip install -q tox pytest-xdist pytest-flake8
+    - travis_retry conda install -q networkx matplotlib basemap sphinx pytest
+    - travis_retry pip   install -q tox pytest-xdist pytest-flake8 pylint
 
 script:
     # check distribution

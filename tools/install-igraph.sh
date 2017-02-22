@@ -5,7 +5,7 @@ set -e
 if [ ! -d "$HOME/igraph/lib" ]; then
     wget http://igraph.org/nightly/get/c/igraph-$IGRAPH.tar.gz
     tar -xzf igraph-$IGRAPH.tar.gz
-    cd igraph-$IGRAPH && ./configure --prefix=$HOME/igraph && make && make install && cd ..
+    cd igraph-$IGRAPH && ./configure --prefix=$HOME/igraph && make && make install
 else
     echo "Using cached directory."
 fi
