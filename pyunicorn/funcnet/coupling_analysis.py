@@ -491,6 +491,35 @@ class CouplingAnalysis(object):
         elif lag_mode == 'all':
             return lagfuncs
 
+    def partcorr(array, Z):
+
+        r"""
+        Return partial correlation between all pairs of nodes (axis=1) using
+        linear regression and Pearson correlation with the impact of the 
+        controlling variable Z removed.
+
+        :type array: 2D-array (float, shape=(T, N))
+        :arg  array: data array.
+
+        :type Z: 1D-array (float, shape=(T))
+        :arg  Z: set of controlling variables
+
+        :rtype: 2D-array (float, shape=(N, N))
+        :returns: partial correlations for every pair of nodes without the
+        impact of Z.
+        """
+        T, N = array.shape
+        c = np.empty((N, N))
+        for i in range(N):
+            for j in range(N):
+              mat = np.vstack([Z, np.ones(T)]).T
+              beta_i = linalg.lstsq(mat, array[:,i])[0][0]
+              beta_j = linalg.lstsq(mat, array[:,j])[0][0]
+              res_j = array[:,j] - Z.dot(beta_i)
+              res_i = array[:,i] - Z.dot(beta_j)
+              c[i,j] = stats.pearsonr(res_i, res_j)[0]
+        return c
+
     def information_transfer(self, tau_max=0, estimator='knn',
                              knn=10, past=1, cond_mode='ity', lag_mode='max'):
 
