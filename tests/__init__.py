@@ -6,4 +6,4 @@
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
-__all__ = ['test_doctests']
+__all__ = ['test_generic']

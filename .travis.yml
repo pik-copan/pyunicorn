@@ -10,8 +10,6 @@ env:
         # possibly different versions in the future
         - IGRAPH=0.7.1
     matrix:
-        - NUMPY=1.8  SCIPY=0.14 CYTHON=0.21
-        - NUMPY=1.9  SCIPY=0.15 CYTHON=0.22
         - NUMPY=1.10 SCIPY=0.16 CYTHON=0.23
         - NUMPY=1.11 SCIPY=0.17 CYTHON=0.24
         - NUMPY=1.12 SCIPY=0.18 CYTHON=0.25
@@ -54,7 +52,7 @@ install:
     - travis_retry pip install -q -r requirements.txt
 
     # testing dependencies
-    - travis_retry pip install -q networkx Sphinx
+    - travis_retry pip install -q networkx matplotlib Sphinx
     - travis_retry pip install -q tox pylint pytest pytest-xdist pytest-flake8
 
 script:

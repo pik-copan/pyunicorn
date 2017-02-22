@@ -1208,7 +1208,7 @@ class Network(object):
         >>> net = Network.ConfigurationModel([3 for _ in xrange(0,1000)])
         Generating configuration model random graph
         from given degree sequence...
-        >>> print net.degree()[0]
+        >>> print int(round(net.degree().mean()))
         3
 
         :type degrees: 1d numpy array or list [node]

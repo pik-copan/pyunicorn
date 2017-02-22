@@ -89,7 +89,7 @@ configured to use system-wide packages when available. Thus to avoid frequent
 waiting, we recommend you to install the current versions of the following
 packages::
 
-    $> pip install networkx Sphinx
+    $> pip install networkx matplotlib Sphinx
     $> pip install tox pylint pytest pytest-xdist pytest-flake8
 
 The test suite can be run from anywhere in the project tree by issuing::

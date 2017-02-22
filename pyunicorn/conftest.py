@@ -13,14 +13,14 @@ import numpy as np
 import pytest
 
 
-def r(obj):
+def r(obj, decimals=4):
     """
     Round numbers, arrays or iterables thereof for doctests.
     """
     if isinstance(obj, (np.ndarray, np.matrix)):
         if obj.dtype.kind == 'f':
             rounded = np.around(obj.astype(np.float128),
-                                decimals=4).astype(np.float)
+                                decimals=decimals).astype(np.float)
         elif obj.dtype.kind == 'i':
             rounded = obj.astype(np.int)
     elif isinstance(obj, list):
@@ -28,7 +28,7 @@ def r(obj):
     elif isinstance(obj, tuple):
         rounded = tuple(map(r, obj))
     elif isinstance(obj, (float, np.float32, np.float64, np.float128)):
-        rounded = np.float(np.around(np.float128(obj), decimals=4))
+        rounded = np.float(np.around(np.float128(obj), decimals=decimals))
     elif isinstance(obj, (int, np.int8, np.int16)):
         rounded = int(obj)
     else:
@@ -36,11 +36,11 @@ def r(obj):
     return rounded
 
 
-def rr(obj):
+def rr(obj, decimals=4):
     """
     Force arrays in stubborn scientific notation into a few digits.
     """
-    print np.vectorize('%.4g'.__mod__)(r(obj))
+    print np.vectorize('%.4g'.__mod__)(r(obj, decimals=decimals))
 
 
 @pytest.fixture(autouse=True)
