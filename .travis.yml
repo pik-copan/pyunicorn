@@ -28,6 +28,7 @@ before_install:
     # no igraph (>=0.7) package available for Ubuntu 12.04 LTS
     - bash tools/install-igraph.sh
     - export PATH=$PATH:$HOME/igraph
+    - export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$HOME/igraph/lib/pkgconfig
     - ls -R $HOME/igraph
 
     # current python packages via miniconda
