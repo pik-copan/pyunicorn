@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2015 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -486,10 +486,10 @@ sequence..."
 
         >>> _i()
         >>> net = GeoNetwork.SmallTestNetwork()
-        #
         >>> net.randomly_rewire_geomodel_I(
         ...     distance_matrix=net.grid.angular_distance(),
         ...     iterations=100, inaccuracy=1.0)
+        #
         >>> net.degree()
         array([3, 3, 2, 2, 3, 1])
 

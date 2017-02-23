@@ -47,19 +47,19 @@ Dependencies
 which have to be installed on your machine.
 
 Required:
-  - `Numpy <http://numpy.scipy.org/>`_ 1.8+
+  - `Numpy <http://www.numpy.org/>`_ 1.8+
   - `Scipy <http://www.scipy.org/>`_ 0.14+
   - `Weave <https://github.com/scipy/weave>`_ 0.15+
-  - `igraph, python-igraph <http://igraph.sourceforge.net/>`_ 0.7+
+  - `igraph, python-igraph <http://igraph.org/>`_ 0.7+
 
 Optional *(used only in certain classes and methods)*:
   - `PyNGL <http://www.pyngl.ucar.edu/Download/>`_ (for class NetCDFDictionary)
-  - `netcdf4-python <http://code.google.com/p/netcdf4-python/>`_ (for classes
+  - `netcdf4-python <http://unidata.github.io/netcdf4-python/>`_ (for classes
     Data and NetCDFDictionary)
-  - `Matplotlib <http://matplotlib.sourceforge.net>`_ 1.3+
+  - `Matplotlib <http://matplotlib.org/>`_ 1.3+
   - `Matplotlib Basemap Toolkit <http://matplotlib.org/basemap/>`_ (for drawing
     maps)
-  - `mpi4py <http://code.google.com/p/mpi4py/>`_ (for parallelizing costly
+  - `mpi4py <https://bitbucket.org/mpi4py/mpi4py>`_ (for parallelizing costly
     computations)
   - `Sphinx <http://sphinx-doc.org/>`_ (for generating documentation)
   - `Cython <http://cython.org/>`_ 0.21+ (for compiling code during
@@ -88,7 +88,7 @@ Installing
 Test suite
 ----------
 Before committing changes to the code base, please make sure that all tests
-pass. The test suite is managed by `tox <https://testrun.org/tox/>`_ and
+pass. The test suite is managed by `tox <http://tox.readthedocs.io/>`_ and
 configured to use system-wide packages when available. Thus to avoid frequent
 waiting, we recommend you to install the current versions of the following
 packages::

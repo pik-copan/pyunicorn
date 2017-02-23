@@ -1,6 +1,6 @@
 
 **Copyright**
-    |copy| 2008-2015 Jonathan F. Donges and pyunicorn authors.
+    |copy| 2008-2017 Jonathan F. Donges and pyunicorn authors.
 
 **License**
     BSD (3-clause)
@@ -40,15 +40,15 @@
     See `Publications <docs/source/publications.rst>`_.
 
 **Version**
-    0.5.0
+    0.5.2
 
 **Dependencies**
     - Python 2.7
-    - `Numpy <http://numpy.scipy.org/>`_ 1.8+
+    - `Numpy <http://www.numpy.org/>`_ 1.8+
     - `Scipy <http://www.scipy.org/>`_ 0.14+
     - `Weave <https://github.com/scipy/weave>`_ 0.15+
-    - `Matplotlib <http://matplotlib.sourceforge.net>`_ 1.3+
-    - `igraph, python-igraph <http://igraph.sourceforge.net/>`_ 0.7+
+    - `Matplotlib <http://matplotlib.org/>`_ 1.3+
+    - `igraph, python-igraph <http://igraph.org/>`_ 0.7+
 
 **Included**
     - `progressbar <http://pypi.python.org/pypi/progressbar/>`_ 2.3
