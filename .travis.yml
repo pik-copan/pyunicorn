@@ -54,6 +54,10 @@ install:
     - travis_retry conda install -q networkx matplotlib basemap sphinx pytest
     - travis_retry pip   install -q tox pytest-xdist pytest-flake8 pylint
 
+before_script:
+    # limit py.test processes within container environment
+    - sed 's/auto/2/' pytest.ini > temp && mv temp pytest.ini
+
 script:
     # check distribution
     - pip install -r requirements.txt .
