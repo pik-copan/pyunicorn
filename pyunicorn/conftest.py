@@ -13,6 +13,16 @@ import numpy as np
 import pytest
 
 
+def _i():
+    """
+    Match preceding stdout (e.g. from `weave`) on '#'.
+    Otherwise default doctest.ELLIPSIS = '...' is indistinguishable from line
+    continuation in doctest.
+    """
+    import doctest
+    doctest.ELLIPSIS_MARKER = '#'
+
+
 def r(obj, decimals=4):
     """
     Round numbers, arrays or iterables thereof for doctests.
@@ -48,5 +58,6 @@ def add_round(doctest_namespace):
     """
     Inject rounding helpers into doctest namespace.
     """
+    doctest_namespace['_i'] = _i
     doctest_namespace['r'] = r
     doctest_namespace['rr'] = rr

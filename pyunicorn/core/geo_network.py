@@ -484,7 +484,9 @@ sequence..."
 
         **Example** (The degree sequence should be the same after rewiring):
 
+        >>> _i()
         >>> net = GeoNetwork.SmallTestNetwork()
+        #
         >>> net.randomly_rewire_geomodel_I(
         ...     distance_matrix=net.grid.angular_distance(),
         ...     iterations=100, inaccuracy=1.0)
@@ -616,9 +618,6 @@ sequence and link distance distribution..."
         }
         printf("Trials %d, Rewirings %d", count, iterations);
         """
-        #  Heitzig: added -w since numerous warnings of type "Warnung:
-        #  Veraltete Konvertierung von Zeichenkettenkonstante in »char*«"
-        #  occurred:
         weave_inline(locals(), code,
                      ['iterations', 'eps', 'A', 'D', 'E', 'edges'])
 
@@ -717,9 +716,6 @@ sequence, link distance distribution and average link distance sequence..."
             }
         }
         """
-        #  Heitzig: added -w since numerous warnings of type "Warnung:
-        #  Veraltete Konvertierung von Zeichenkettenkonstante in »char*«"
-        #  occurred:
         weave_inline(locals(), code,
                      ['iterations', 'eps', 'A', 'D', 'E', 'edges'])
 
@@ -826,9 +822,6 @@ average link distance sequence..."
             }
         }
         """
-        #  Heitzig: added -w since numerous warnings of type "Warnung:
-        #  Veraltete Konvertierung von Zeichenkettenkonstante in »char*«"
-        #  occurred:
         weave_inline(locals(), code,
                      ['iterations', 'eps', 'A', 'D', 'E', 'edges', 'degree'])
 
