@@ -48,7 +48,7 @@ install:
     - travis_retry conda install -q virtualenv
 
     # runtime dependencies
-    - travis_retry conda install six numpy=$NUMPY scipy=$SCIPY cython=$CYTHON
+    - travis_retry conda install numpy=$NUMPY scipy=$SCIPY cython=$CYTHON
 
     # testing dependencies
     - travis_retry conda install -q networkx matplotlib basemap sphinx pytest

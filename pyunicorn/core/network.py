@@ -35,7 +35,10 @@ from scipy import linalg            # solvers
 from scipy.linalg import matfuncs
 from scipy import sparse as sp      # fast sparse matrices
 from scipy.sparse.linalg import eigsh, inv, splu
-import weave                        # C++ inline code
+try:
+    import weave                    # C++ inline code
+except ImportError:
+    import scipy.weave as weave
 
 import igraph                       # high performance graph theory tools
 
