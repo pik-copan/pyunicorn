@@ -29,6 +29,7 @@ before_install:
     - bash tools/install-igraph.sh
     - export PATH=$PATH:$HOME/igraph
     - export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$HOME/igraph/lib/pkgconfig
+    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/igraph/lib
     - ls -R $HOME/igraph
 
     # current python packages via miniconda
