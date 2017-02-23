@@ -2,6 +2,10 @@
 pyunicorn
 =========
 
+.. image:: https://travis-ci.org/pik-copan/pyunicorn.svg?branch=master
+    :target: https://travis-ci.org/pik-copan/pyunicorn
+
+
 ``pyunicorn`` (**Uni**\ fied **Co**\ mplex Network and **R**\ ecurre\ **N**\ ce
 analysis toolbox) is a fully object-oriented Python package for the advanced
 analysis and modeling of complex networks. Above the standard measures of

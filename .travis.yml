@@ -3,6 +3,12 @@ python:
     - 2.7
 
 sudo: false
+# dist: trusty
+# ----------------------------------------------------------------
+#    Switch when all deps available in https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-trusty
+#    Still missing:
+#        - libatlas-dev
+#        - libatlas-base-dev
 matrix:
     fast_finish: true
 env:
@@ -25,11 +31,11 @@ cache:
         - $HOME/igraph
 
 before_install:
-    # no igraph (>=0.7) package available for Ubuntu 12.04 LTS
+    # no igraph (>=0.7) package available for Ubuntu 14.04 LTS
     - bash tools/install-igraph.sh
-    - export PATH=$PATH:$HOME/igraph
-    - export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$HOME/igraph/lib/pkgconfig
-    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/igraph/lib
+    - export PATH="$HOME/igraph:$PATH"
+    - export PKG_CONFIG_PATH="$HOME/igraph/lib/pkgconfig:$PKG_CONFIG_PATH"
+    - export LD_LIBRARY_PATH="$HOME/igraph/lib:$LD_LIBRARY_PATH"
     - ls -R $HOME/igraph
 
     # current python packages via miniconda
