@@ -2,7 +2,13 @@ language: python
 python:
     - 2.7
 
-sudo: true
+sudo: false
+# dist: trusty
+# ----------------------------------------------------------------
+#    Switch when all deps available in https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-trusty
+#    Still missing:
+#        - libatlas-dev
+#        - libatlas-base-dev
 matrix:
     fast_finish: true
 env:
@@ -10,13 +16,27 @@ env:
         # possibly different versions in the future
         - IGRAPH=0.7.1
     matrix:
-        - NUMPY=1.8 SCIPY=0.14 CYTHON=0.21
-        - NUMPY=1.9 SCIPY=0.15 CYTHON=0.22
+        - NUMPY=1.10 SCIPY=0.16 CYTHON=0.23
+        - NUMPY=1.11 SCIPY=0.17 CYTHON=0.24
+        - NUMPY=1.12 SCIPY=0.18 CYTHON=0.25
+addons:
+    apt:
+        packages:
+            - libatlas-dev
+            - libatlas-base-dev
+            - liblapack-dev
+            - gfortran
+cache:
+    directories:
+        - $HOME/igraph
 
 before_install:
-    # update system, prepare numeric libraries
-    - travis_retry sudo apt-get update -qq
-    - travis_retry sudo apt-get install -qq libatlas-dev libatlas-base-dev liblapack-dev gfortran
+    # no igraph (>=0.7) package available for Ubuntu 14.04 LTS
+    - bash tools/install-igraph.sh
+    - export PATH="$HOME/igraph:$PATH"
+    - export PKG_CONFIG_PATH="$HOME/igraph/lib/pkgconfig:$PKG_CONFIG_PATH"
+    - export LD_LIBRARY_PATH="$HOME/igraph/lib:$LD_LIBRARY_PATH"
+    - ls -R $HOME/igraph
 
     # current python packages via miniconda
     - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then export MINICONDA=""; else export MINICONDA="3"; fi
@@ -27,28 +47,28 @@ before_install:
     - travis_retry conda update -q conda
     - conda info -a
 
-    # no igraph (>=0.7) package available for Ubuntu 12.04 LTS
-    - travis_retry wget http://igraph.org/nightly/get/c/igraph-$IGRAPH.tar.gz
-    - tar -xzf igraph-$IGRAPH.tar.gz
-    - cd igraph-$IGRAPH && ./configure && make && sudo make install && cd ..
-
 install:
     # test environment
-    # https://github.com/conda/conda/issues/1367
     - export CONDA_PY=$TRAVIS_PYTHON_VERSION
     - travis_retry conda create -q -n test-env python=$CONDA_PY
     - source activate test-env
+    # https://github.com/conda/conda/issues/1367
+    - travis_retry conda install -q virtualenv
 
     # runtime dependencies
     - travis_retry conda install numpy=$NUMPY scipy=$SCIPY cython=$CYTHON
-    - travis_retry pip install -q -r requirements.txt
 
     # testing dependencies
-    - travis_retry pip install -q networkx Sphinx tox nose pylint pytest pytest-xdist pytest-flakes pytest-pep8
+    - travis_retry conda install -q networkx matplotlib basemap sphinx pytest
+    - travis_retry pip   install -q tox pytest-xdist pytest-flake8 pylint
+
+before_script:
+    # limit py.test processes within container environment
+    - sed 's/auto/2/' pytest.ini > temp && mv temp pytest.ini
 
 script:
     # check distribution
-    - pip install .
+    - pip install -r requirements.txt .
 
     # test suite
     - tox
