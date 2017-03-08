@@ -141,29 +141,29 @@ class EventSynchronization(object):
 
         """
 
-        # Change format: (list of timesteps of events)
-        ex = np.arange(len(EventSeriesX))[EventSeriesX == 1]
-        ey = np.arange(len(EventSeriesY))[EventSeriesY == 1]
+        # Get time indices (type boolean or simple '0's and '1's)
+        ex = np.where(EventSeriesX)[0]
+        ey = np.where(EventSeriesY)[0]
         # Number of events
         lx = len(ex)
         ly = len(ey)
-
-        # Vectorized calculation
-        EX = np.reshape(np.repeat(ex, ly), (lx, ly), 'C')
-        EY = np.reshape(np.repeat(ey, lx), (lx, ly), 'F')
-        DSTxy = EX[1:-1, 1:-1] - EY[1:-1, 1:-1]
-
+        if lx == 0 or ly == 0:  # Division by zero in output
+            return np.nan, np.nan
+        if lx in [1,2] or ly in [1,2]: # Too few events to calculate
+            return 0., 0.
+        # Array of distances
+        dstxy = (np.array([ex[1:-1]]*(ly-2), dtype="int32").T 
+               - np.array([ey[1:-1]]*(lx-2), dtype="int32"))
         # Dynamical delay
-        tauX = EX[1:, 1:-1] - EX[:-1, 1:-1]
-        tauY = EY[1:-1, 1:] - EY[1:-1, :-1]
-        TAU = np.min((tauX[1:, :], tauX[:-1, :],
-                      tauY[:, 1:], tauY[:, :-1]), axis=0) / 2
-
-        EffTau = np.minimum(TAU, self.taumax)  # effective Tau
-        EquTimeEv = 0.5*np.sum(DSTxy == 0)  # Contribution of equal time events
-        # count number of sync events
-        countXY = np.sum((DSTxy > 0) * (DSTxy <= EffTau)) + EquTimeEv
-        countYX = np.sum((DSTxy < 0) * (-DSTxy <= EffTau)) + EquTimeEv
-
-        Norm = np.sqrt(lx * ly)  # Normalization
-        return countXY / Norm, countYX / Norm
+        diffx = np.diff(ex)
+        diffy = np.diff(ey)
+        diffxmin = np.minimum(diffx[1:], diffx[:-1])
+        diffymin = np.minimum(diffy[1:], diffy[:-1])
+        tau = 0.5 * np.minimum(np.array([diffxmin]*(ly-2)).T,
+                               np.array([diffymin]*(lx-2)))
+        # Count equal time events and synchronised events
+        eqtime = 0.5 * np.sum(dstxy == 0)
+        countxy = np.sum((dstxy > 0) * (dstxy <= tau)) + eqtime
+        countyx = np.sum((dstxy < 0) * (-dstxy <= tau)) + eqtime
+        norm = np.sqrt((lx-2) * (ly-2))
+        return countxy / norm, countyx / norm
