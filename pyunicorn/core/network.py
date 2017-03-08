@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2015 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -35,7 +35,10 @@ from scipy import linalg            # solvers
 from scipy.linalg import matfuncs
 from scipy import sparse as sp      # fast sparse matrices
 from scipy.sparse.linalg import eigsh, inv, splu
-import weave                        # C++ inline code
+try:
+    import weave                    # C++ inline code
+except ImportError:
+    import scipy.weave as weave
 
 import igraph                       # high performance graph theory tools
 
@@ -271,7 +274,7 @@ class Network(object):
         """
         Clear cache of path legths for link attributes.
         """
-        for attr in self.cache['paths'].keys():
+        for attr in self.cache['paths']:
             self.clear_link_attribute(attr)
         self.cache['paths'] = {}
 
@@ -1208,7 +1211,7 @@ class Network(object):
         >>> net = Network.ConfigurationModel([3 for _ in xrange(0,1000)])
         Generating configuration model random graph
         from given degree sequence...
-        >>> print net.degree()[0]
+        >>> print int(round(net.degree().mean()))
         3
 
         :type degrees: 1d numpy array or list [node]

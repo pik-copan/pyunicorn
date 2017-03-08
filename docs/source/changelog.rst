@@ -4,6 +4,9 @@ Changelog
 
 A summary of major changes made in each release of ``pyunicorn``:
 
+**0.5.2**
+ - Update test suite and ``Travis CI``.
+
 **0.5.1**
  - Added reference to pyunicorn description paper published in the
    journal Chaos.

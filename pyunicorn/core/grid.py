@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2015 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -513,13 +513,13 @@ text files", filename
 
         **Example:**
 
-        >>> rr(Grid.SmallTestGrid().angular_distance())
-        [['0'      '0.0975' '0.1949' '0.292'  '0.3887' '0.4847']
-         ['0.0975' '0'      '0.0974' '0.1945' '0.2911' '0.3872']
-         ['0.1949' '0.0974' '0.0003' '0.0971' '0.1938' '0.2898']
-         ['0.292'  '0.1945' '0.0971' '0.0005' '0.0967' '0.1928']
-         ['0.3887' '0.2911' '0.1938' '0.0967' '0'      '0.0961']
-         ['0.4847' '0.3872' '0.2898' '0.1928' '0.0961' '0.0005']]
+        >>> rr(Grid.SmallTestGrid().angular_distance(), 2)
+        [['0'    '0.1'  '0.19' '0.29' '0.39' '0.48']
+         ['0.1'  '0'    '0.1'  '0.19' '0.29' '0.39']
+         ['0.19' '0.1'  '0'    '0.1'  '0.19' '0.29']
+         ['0.29' '0.19' '0.1'  '0'    '0.1'  '0.19']
+         ['0.39' '0.29' '0.19' '0.1'  '0'    '0.1']
+         ['0.48' '0.39' '0.29' '0.19' '0.1'  '0']]
 
         :rtype: 2D Numpy array [index, index]
         :return: the angular great circle distance matrix.

@@ -1,9 +1,9 @@
 # This file is part of pyunicorn
 # (Unified Complex Network and Recurrence Analysis Toolbox).
 #
-# Copyright (C) 2008--2015 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
 #
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
-__all__ = ['test_doctests']
+__all__ = ['test_generic']

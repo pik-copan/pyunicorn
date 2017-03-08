@@ -24,7 +24,7 @@ if CYTHON:
 
 setup(
     name='pyunicorn',
-    version='0.5.1',
+    version='0.5.2',
     description="Unified complex network and recurrence analysis toolbox",
     long_description="Advanced statistical analysis and modeling of \
 general and spatially embedded complex networks with applications to \
@@ -39,8 +39,7 @@ nonlinear climate recurrence plot surrogates spatial model',
               'pyunicorn.timeseries', 'pyunicorn.funcnet',
               'pyunicorn.utils', 'pyunicorn.utils.progressbar'],
     ext_modules=extensions,
-    requires=['numpy (>=1.8)', 'scipy (>=0.14)', 'weave (>=0.15)',
-              'pythonigraph (>=0.7)'],
+    install_requires=open('requirements.txt', 'r').read().split('\n'),
     provides=['pyunicorn'],
     scripts=[],
     license='BSD',

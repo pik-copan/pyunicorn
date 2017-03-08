@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2015 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -484,10 +484,12 @@ sequence..."
 
         **Example** (The degree sequence should be the same after rewiring):
 
+        >>> _i()
         >>> net = GeoNetwork.SmallTestNetwork()
         >>> net.randomly_rewire_geomodel_I(
         ...     distance_matrix=net.grid.angular_distance(),
         ...     iterations=100, inaccuracy=1.0)
+        #
         >>> net.degree()
         array([3, 3, 2, 2, 3, 1])
 
@@ -616,9 +618,6 @@ sequence and link distance distribution..."
         }
         printf("Trials %d, Rewirings %d", count, iterations);
         """
-        #  Heitzig: added -w since numerous warnings of type "Warnung:
-        #  Veraltete Konvertierung von Zeichenkettenkonstante in »char*«"
-        #  occurred:
         weave_inline(locals(), code,
                      ['iterations', 'eps', 'A', 'D', 'E', 'edges'])
 
@@ -717,9 +716,6 @@ sequence, link distance distribution and average link distance sequence..."
             }
         }
         """
-        #  Heitzig: added -w since numerous warnings of type "Warnung:
-        #  Veraltete Konvertierung von Zeichenkettenkonstante in »char*«"
-        #  occurred:
         weave_inline(locals(), code,
                      ['iterations', 'eps', 'A', 'D', 'E', 'edges'])
 
@@ -826,9 +822,6 @@ average link distance sequence..."
             }
         }
         """
-        #  Heitzig: added -w since numerous warnings of type "Warnung:
-        #  Veraltete Konvertierung von Zeichenkettenkonstante in »char*«"
-        #  occurred:
         weave_inline(locals(), code,
                      ['iterations', 'eps', 'A', 'D', 'E', 'edges', 'degree'])
 
@@ -913,7 +906,7 @@ average link distance sequence..."
 
         #  Determine link probabilities
         p_by_dist = {}
-        for d in n_pairs_by_dist.keys():
+        for d in n_pairs_by_dist:
             try:
                 p_by_dist[d] = n_links_by_dist[d] * 1.0 / n_pairs_by_dist[d]
             except KeyError:
@@ -1475,8 +1468,8 @@ average link distance sequence..."
                 average_link_distance(geometry_corrected=False))
         array([ 0.3885, 0.1943, 0.1456, 0.2433, 0.2912, 0.4847])
         >>> r(GeoNetwork.SmallTestNetwork().\
-                average_link_distance(geometry_corrected=True))
-        array([ 1.5988, 1.0921, 1.0001, 1.6708, 1.6384, 2.0041])
+                average_link_distance(geometry_corrected=True))[:-1]
+        array([ 1.5988, 1.0921, 1.0001, 1.6708, 1.6384])
 
         :arg bool geometry_corrected: Toggles geometry correction.
         :rtype: 1D array [index]
@@ -1996,7 +1989,7 @@ average link distance sequence..."
         # find a node on the boundary and an outer neighbour:
         lam = 0.5 + gap/2
         lam1 = 1-lam
-        while len(remaining) > 0:
+        while remaining:
             i = list(remaining)[0]
             this_remove = [i]
             cont = False
@@ -2057,7 +2050,7 @@ average link distance sequence..."
                     rep = self.cartesian2latlon((pos1+pos2)/2)
                     mind2 = d2
             latlon_shape.append(self.cartesian2latlon(partial_shape[-1]))
-            for it in range(len(partial_fullshape)):
+            for it, _ in enumerate(partial_fullshape):
                 pos1 = partial_fullshape[it]
                 latlon_fullshape.append(self.cartesian2latlon(pos1))
 
