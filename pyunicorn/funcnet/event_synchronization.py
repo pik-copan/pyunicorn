@@ -142,28 +142,29 @@ class EventSynchronization(object):
         """
 
         # Get time indices (type boolean or simple '0's and '1's)
-        ex = np.where(EventSeriesX)[0]
-        ey = np.where(EventSeriesY)[0]
+        ex = np.array(np.where(EventSeriesX), dtype=np.int8)
+        ey = np.array(np.where(EventSeriesY), dtype=np.int8)
         # Number of events
-        lx = len(ex)
-        ly = len(ey)
-        if lx == 0 or ly == 0:  # Division by zero in output
+        lx = ex.shape[1]
+        ly = ey.shape[1]
+        if lx == 0 or ly == 0:              # Division by zero in output
             return np.nan, np.nan
-        if lx in [1,2] or ly in [1,2]: # Too few events to calculate
+        if lx in [1, 2] or ly in [1, 2]:    # Too few events to calculate
             return 0., 0.
         # Array of distances
-        dstxy = (np.array([ex[1:-1]]*(ly-2), dtype="int32").T 
-               - np.array([ey[1:-1]]*(lx-2), dtype="int32"))
+        dstxy2 = 2 * (np.repeat(ex[:, 1:-1].T, ly-2, axis=1) -
+                      np.repeat(ey[:, 1:-1], lx-2, axis=0))
         # Dynamical delay
         diffx = np.diff(ex)
         diffy = np.diff(ey)
-        diffxmin = np.minimum(diffx[1:], diffx[:-1])
-        diffymin = np.minimum(diffy[1:], diffy[:-1])
-        tau = 0.5 * np.minimum(np.array([diffxmin]*(ly-2)).T,
-                               np.array([diffymin]*(lx-2)))
+        diffxmin = np.minimum(diffx[:, 1:], diffx[:, :-1])
+        diffymin = np.minimum(diffy[:, 1:], diffy[:, :-1])
+        tau2 = np.minimum(np.repeat(diffxmin.T, ly-2, axis=1),
+                          np.repeat(diffymin, lx-2, axis=0))
+        tau2 = np.minimum(tau2, 2 * self.taumax)
         # Count equal time events and synchronised events
-        eqtime = 0.5 * np.sum(dstxy == 0)
-        countxy = np.sum((dstxy > 0) * (dstxy <= tau)) + eqtime
-        countyx = np.sum((dstxy < 0) * (-dstxy <= tau)) + eqtime
+        eqtime = 0.5 * (dstxy2.size - np.count_nonzero(dstxy2))
+        countxy = np.sum((dstxy2 > 0) * (dstxy2 <= tau2)) + eqtime
+        countyx = np.sum((dstxy2 < 0) * (dstxy2 >= -tau2)) + eqtime
         norm = np.sqrt((lx-2) * (ly-2))
         return countxy / norm, countyx / norm
