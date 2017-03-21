@@ -678,7 +678,7 @@ class Surrogates(object):
             weave_inline(locals(), fastCode, args, blitz=False)
         else:
             correlation = _test_pearson_correlation(original_data, surrogates, 
-                    N, n_time)
+                                                    N, n_time)
 
         return correlation
 
