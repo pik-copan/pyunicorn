@@ -20,7 +20,8 @@ from .. import weave_inline
 # easy progress bar handling
 from ..utils import progressbar
 
-from .numerics import _embed_time_series_array, _recurrence_plot, _twins
+from .numerics import _embed_time_series_array, _recurrence_plot, _twins, \
+        _test_pearson_correlation
 
 
 #
@@ -638,22 +639,6 @@ class Surrogates(object):
         #  Initialize Pearson correlation matrix
         correlation = np.zeros((N, N), dtype="float32")
 
-        #  correlation[i,j] gives the Pearson correlation coefficient between
-        #  the ith original_data time series and the jth surrogate time series
-        code = r"""
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                if (i != j) {
-                    for (int k = 0; k < n_time; k++) {
-                        correlation(i,j) += original_data(i,k) *
-                                            surrogates(j,k);
-                    }
-                    correlation(i,j) *= norm;
-                }
-            }
-        }
-        """
-
         #  Some faster weave inline code accessing Numpy arrays directly in C
         #  using pointer arithmetic.
         #  If the arrays are of C type, the last index varies the fastest!
@@ -692,7 +677,8 @@ class Surrogates(object):
         if fast:
             weave_inline(locals(), fastCode, args, blitz=False)
         else:
-            weave_inline(locals(), code, args)
+            correlation = _test_pearson_correlation(original_data, surrogates, 
+                    N, n_time)
 
         return correlation
 

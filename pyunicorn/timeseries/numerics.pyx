@@ -722,6 +722,31 @@ def _twin_surrogates(
 
             j += 1
 
+
+def _test_pearson_correlation(
+    np.ndarray[FLOAT64TYPE_t, ndim=2] original_data not None,
+    np.ndarray[FLOAT64TYPE_t, ndim=2] surrogates not None,
+    INTTYPE_t N, INTTYPE_t n_time):
+
+    cdef double norm = 1.0 / float(n_time)
+    
+    cdef np.ndarray[FLOAT32TYPE_t, ndim=2, mode='c'] correlation = \
+            np.zeros((N, N), dtype=FLOAT32TYPE)
+
+    #  correlation[i,j] gives the Pearson correlation coefficient between
+    #  the ith original_data time series and the jth surrogate time series
+    cdef int i, j, k
+    for i in xrange(N):
+        for j in xrange(N):
+            if (i != j):
+                for k in xrange(n_time):
+                    correlation[i,j] += original_data[i,k] * surrogates[j,k]
+                correlation[i,j] *= norm
+   
+    return correlation
+
+
+
 # visibitly graph =============================================================
 
 def _visibility_relations_missingvalues(
