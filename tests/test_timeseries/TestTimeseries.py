@@ -37,7 +37,7 @@ def test_TestPearsonCorrelation():
 
     norm = 1.0 / float(n_times)
 
-    c = Surrogates.test_pearson_correlation(tdata, tdata, fast=True)
+    c = Surrogates.test_pearson_correlation(tdata, tdata, fast=False)
     corrcoef = np.corrcoef(tdata, tdata)[n_index:,:n_index]*norm
     for i in xrange(n_index):
         corrcoef[i,i]=0.0

@@ -689,16 +689,17 @@ class Surrogates(object):
         """
         args = ['original_data', 'surrogates', 'correlation', 'n_time', 'N',
                 'norm']
+        from ..timeseries._ext import fast_surrogate as fs
         if fast:
-            from ..timeseries._ext import fast_surrogate as fs
-            correlation = fs.test_pearson_correlation_fast(
+            return fs.test_pearson_correlation_fast(
                     original_data.copy(order='c'), \
                     surrogates.copy(order='c'), \
                     N, n_time)
         else:
-            weave_inline(locals(), code, args)
-
-        return correlation
+            return fs.test_pearson_correlation_slow(
+                    original_data.copy(order='c'), \
+                    surrogates.copy(order='c'), \
+                    N, n_time)
 
     @staticmethod
     def test_mutual_information(original_data, surrogates, n_bins=32,
