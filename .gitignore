@@ -4,6 +4,7 @@ __pycache__/
 
 # C extensions / Cython / Weave
 *.c
+!pyunicorn/timeseries/_ext/src_fast_surrogate.c
 *.so
 
 # Distribution / packaging
