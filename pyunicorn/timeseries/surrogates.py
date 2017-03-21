@@ -636,7 +636,8 @@ class Surrogates(object):
         (N, n_time) = original_data.shape
         norm = 1. / float(n_time)
         return _test_pearson_correlation(original_data.copy(order='c'),
-                surrogates.copy(order='c'), N, n_time, fast)
+                                         surrogates.copy(order='c'),
+                                         N, n_time, fast)
 
     @staticmethod
     def test_mutual_information(original_data, surrogates, n_bins=32,
