@@ -15,6 +15,11 @@ extensions = [
     Extension('*', ['pyunicorn/%s/*.%s' % (pkg, 'pyx' if CYTHON else 'c')],
               include_dirs=[np.get_include()])
     for pkg in ['core', 'timeseries']]
+extensions += [
+    Extension('pyunicorn.timeseries._ext.fast_surrogate',
+    sources=['pyunicorn/timeseries/_ext/fast_surrogate.pyx',
+            'pyunicorn/timeseries/_ext/src_fast_surrogate.c'],
+    include_dirs=[np.get_include()], extra_compile_args=['-O3', '-std=c99'])]
 
 if CYTHON:
     extensions = cythonize(extensions, compiler_directives={
@@ -36,7 +41,7 @@ nonlinear climate recurrence plot surrogates spatial model',
     url='http://www.pik-potsdam.de/~donges/pyunicorn/',
     platforms=['all'],
     packages=['pyunicorn', 'pyunicorn.core', 'pyunicorn.climate',
-              'pyunicorn.timeseries', 'pyunicorn.funcnet',
+              'pyunicorn.timeseries', 'pyunicorn.timeseries._ext', 'pyunicorn.funcnet',
               'pyunicorn.utils', 'pyunicorn.utils.progressbar'],
     ext_modules=extensions,
     install_requires=open('requirements.txt', 'r').read().split('\n'),

@@ -690,7 +690,11 @@ class Surrogates(object):
         args = ['original_data', 'surrogates', 'correlation', 'n_time', 'N',
                 'norm']
         if fast:
-            weave_inline(locals(), fastCode, args, blitz=False)
+            from ..timeseries._ext import fast_surrogate as fs
+            correlation = fs.test_pearson_correlation_fast(
+                    original_data.copy(order='c'), \
+                    surrogates.copy(order='c'), \
+                    N, n_time)
         else:
             weave_inline(locals(), code, args)
 
