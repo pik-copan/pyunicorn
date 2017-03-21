@@ -20,7 +20,7 @@ from .. import weave_inline
 # easy progress bar handling
 from ..utils import progressbar
 
-from .numerics import _embed_time_series_array, _recurrence_plot, _twins
+from .numerics import _embed_time_series_array, _recurrence_plot, _twins, _test_pearson_correlation
 
 
 #
@@ -634,72 +634,10 @@ class Surrogates(object):
         """
         (N, n_time) = original_data.shape
         norm = 1. / float(n_time)
-
-        #  Initialize Pearson correlation matrix
-        correlation = np.zeros((N, N), dtype="float32")
-
-        #  correlation[i,j] gives the Pearson correlation coefficient between
-        #  the ith original_data time series and the jth surrogate time series
-        code = r"""
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                if (i != j) {
-                    for (int k = 0; k < n_time; k++) {
-                        correlation(i,j) += original_data(i,k) *
-                                            surrogates(j,k);
-                    }
-                    correlation(i,j) *= norm;
-                }
-            }
-        }
-        """
-
-        #  Some faster weave inline code accessing Numpy arrays directly in C
-        #  using pointer arithmetic.
-        #  If the arrays are of C type, the last index varies the fastest!
-        #  For this code to work correctly, arrays have to contiguous and of
-        #  C type!!!
-        fastCode = """
-        float *p_correlation;
-        double *p_original, *p_surrogates;
-
-        for (int i = 0; i < N; i++) {
-            //  Set pointer to correlation(i,0)
-            p_correlation = correlation + i*N;
-
-            for (int j = 0; j < N; j++) {
-                if (i != j) {
-                    //  Set pointer to original_data(i,0)
-                    p_original = original_data + i*n_time;
-                    //  Set pointer to surrogates(j,0)
-                    p_surrogates = surrogates + j*n_time;
-
-                    for (int k = 0; k < n_time; k++) {
-                        *p_correlation += (*p_original) * (*p_surrogates);
-                        //  Set pointer to original_data(i,k+1)
-                        p_original++;
-                        //  Set pointer to surrogates(j,k+1)
-                        p_surrogates++;
-                    }
-                    *p_correlation *= norm;
-                }
-                p_correlation++;
-            }
-        }
-        """
-        args = ['original_data', 'surrogates', 'correlation', 'n_time', 'N',
-                'norm']
-        from ..timeseries._ext import fast_surrogate as fs
-        if fast:
-            return fs.test_pearson_correlation_fast(
+        return _test_pearson_correlation(
                     original_data.copy(order='c'), \
                     surrogates.copy(order='c'), \
-                    N, n_time)
-        else:
-            return fs.test_pearson_correlation_slow(
-                    original_data.copy(order='c'), \
-                    surrogates.copy(order='c'), \
-                    N, n_time)
+                    N, n_time, fast)
 
     @staticmethod
     def test_mutual_information(original_data, surrogates, n_bins=32,

@@ -48,6 +48,12 @@ cdef extern from "time.h":
     double time()
 
 
+cdef extern from "./_ext/src_fast_surrogate.h":
+  void _test_pearson_correlation_fast(double *original_data,
+    double *surrogates, float *correlation, int n_time, int N, double norm)
+  void _test_pearson_correlation_slow(double *original_data,
+    double *surrogates, float *correlation, int n_time, int N, double norm)
+
 # surrogates ==================================================================
 
 
@@ -721,6 +727,33 @@ def _twin_surrogates(
                 k = new_k
 
             j += 1
+
+
+def _test_pearson_correlation(
+    np.ndarray[double, ndim=2, mode='c'] original_data not None,
+    np.ndarray[double, ndim=2, mode='c'] surrogates not None, 
+    int N, int n_time, BOOLTYPE_t fast):
+
+    cdef double norm = 1.0 / float(n_time)
+
+    #  Initialize Pearson correlation matrix
+    cdef np.ndarray[float, ndim=2, mode='c'] correlation = np.zeros((N, N), dtype="float32")
+    
+    if (fast==True):
+        _test_pearson_correlation_fast(
+            <double*> np.PyArray_DATA(original_data),
+            <double*> np.PyArray_DATA(surrogates),
+            <float*> np.PyArray_DATA(correlation),
+            n_time, N, norm)
+    else:
+        _test_pearson_correlation_slow(
+            <double*> np.PyArray_DATA(original_data),
+            <double*> np.PyArray_DATA(surrogates),
+            <float*> np.PyArray_DATA(correlation),
+            n_time, N, norm)
+
+    return correlation
+
 
 # visibitly graph =============================================================
 

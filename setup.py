@@ -16,8 +16,8 @@ extensions = [
               include_dirs=[np.get_include()])
     for pkg in ['core', 'timeseries']]
 extensions += [
-    Extension('pyunicorn.timeseries._ext.fast_surrogate',
-    sources=['pyunicorn/timeseries/_ext/fast_surrogate.pyx',
+    Extension('pyunicorn.timeseries.numerics',
+    sources=['pyunicorn/timeseries/numerics.pyx',
             'pyunicorn/timeseries/_ext/src_fast_surrogate.c'],
     include_dirs=[np.get_include()], extra_compile_args=['-O3', '-std=c99'])]
 
