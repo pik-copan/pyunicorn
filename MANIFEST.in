@@ -7,5 +7,6 @@ recursive-include docs/source *
 include *.ini pylintrc
 recursive-include pyunicorn *.pyx
 recursive-include pyunicorn *.c
+recursive-include pyunicorn *.h
 recursive-include tests *.py
 recursive-include examples *.py

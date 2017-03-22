@@ -737,7 +737,8 @@ def _test_pearson_correlation(
     cdef double norm = 1.0 / float(n_time)
 
     #  Initialize Pearson correlation matrix
-    cdef np.ndarray[float, ndim=2, mode='c'] correlation = np.zeros((N, N), dtype="float32")
+    cdef np.ndarray[float, ndim=2, mode='c'] correlation = np.zeros((N, N), 
+            dtype="float32")
     
     if (fast==True):
         _test_pearson_correlation_fast(
