@@ -3,8 +3,8 @@ __pycache__/
 *.py[cod]
 
 # C extensions / Cython / Weave
-*.c
-!pyunicorn/timeseries/_ext/src_fast_surrogate.c
+*/_ext/*.c
+!pyunicorn/timeseries/_ext/src_fast_numerics.c
 *.so
 
 # Distribution / packaging
