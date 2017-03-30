@@ -71,14 +71,11 @@ script:
     - tox
 
     # run cleanup script
-    - ./tools/publish 1 0 0 1
-    - export DIST="$(basename `ls ../pyunicorn-*` .tar.gz)"
-    - cd ..; tar xzf $DIST.tar.gz; cd $DIST
+    - ./tools/publish 1 0 0 1; export DIST="$(basename `ls ../pyunicorn-*` .tar.gz)"; cd ..; tar xzf $DIST.tar.gz; cd $DIST
 
     # run test suite in source distribution (without Cython)
     - conda uninstall -q cython
-    - python setup.py sdist
-    - cd dist; tar xzf $DIST.tar.gz; cd $DIST
+    - python setup.py sdist; cd dist; tar xzf $DIST.tar.gz; cd $DIST
     - tox
 
 notifications:
