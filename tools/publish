@@ -7,17 +7,29 @@
 # License: BSD (3-clause)
 
 
-# configure
+# default configuration
+build_ext=1
+generate_html=1
+generate_pdf=1
 delete_git=1
-generate_doc=1
+dest=""
 python="$(which python2)"
 
-# evaluate destination argument
-(( $# > 1 )) && echo "Expected only 1 argument (destination file)." && exit 1
-dest=""; if (( $# == 1 )); then dir="$(dirname $1)"
+# evaluate arguments
+if !(( $# == 0 || $# == 4 || $# == 5 )); then
+    echo "Expecting 0, 4 or 5 arguments:"
+    echo "   [build_ext generate_html generate_pdf delete_git] [dest]"
+    echo "    (bool)    (bool)        (bool)       (bool)      (file)"
+    exit 1
+fi; if (( $# >= 4 )); then
+    build_ext=$((     $1 && $build_ext ))
+    generate_html=$(( $2 && $generate_html ))
+    generate_pdf=$((  $3 && $generate_pdf ))
+    delete_git=$((    $4 && $delete_git ))
+fi; if (( $# == 5 )); then dir="$(dirname $5)"
     [[ ! -d $dir ]] && echo "Could not find directory: "$dir && exit 1
-    [[ ${1: -7} != ".tar.gz" ]] && echo "Suffix should be '.tar.gz'." && exit 1
-    dir="$(cd $dir && pwd)"; dest=$dir/"$(basename $1)"
+    [[ ${5: -7} != ".tar.gz" ]] && echo "Suffix should be '.tar.gz'." && exit 1
+    dir="$(cd $dir && pwd)"; dest=$dir/"$(basename $5)"
 fi
 
 # determine absolute path of repository
@@ -36,16 +48,18 @@ tmp=$dest"-tmp"; rm -rf $dest $tmp; mkdir -p $tmp
 cp -a $repo $tmp/$package; cd $tmp/$package
 
 # build extensions & docs
-if (( $generate_doc ))
-then  $python setup.py build_ext --inplace
-      cd docs; make clean html latex; make latexpdf > /dev/null
-else  cd docs; make clean > /dev/null
-fi;   cd ..
+cd docs; make clean > /dev/null
+(( $generate_html + $generate_pdf )) && build_ext=1
+(( $build_ext ))     && $python setup.py build_ext --inplace
+(( $generate_html )) && make html
+(( $generate_pdf ))  && make latex && make latexpdf > /dev/null
+cd ..
 
 # clean up
 (( $delete_git )) && rm -rf .git*
+(( $build_ext ))  || find . -type f -regex ".*/numerics.c" -print | xargs rm -f
 rm -rf build dist tools .cache .tox .travis.yml MANIFEST
-find . -type f -regex ".*\.\(py[cod]\|c\|so\|data\)" -print | xargs rm -f
+find . -type f -regex ".*\.\(py[cod]\|o\|so\|data\)" -print | xargs rm -f
 find . -type d -regex ".*\(pycache\|egg-info\|ipynb\|ropeproject\).*" -print \
     | xargs rm -rf
 

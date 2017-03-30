@@ -49,8 +49,7 @@ before_install:
 
 install:
     # test environment
-    - export CONDA_PY=$TRAVIS_PYTHON_VERSION
-    - travis_retry conda create -q -n test-env python=$CONDA_PY
+    - travis_retry conda create -q -n test-env python=$TRAVIS_PYTHON_VERSION
     - source activate test-env
     # https://github.com/conda/conda/issues/1367
     - travis_retry conda install -q virtualenv
@@ -67,10 +66,19 @@ before_script:
     - sed 's/auto/2/' pytest.ini > temp && mv temp pytest.ini
 
 script:
-    # check distribution
-    - pip install -r requirements.txt .
+    # run test suite in dev env
+    - pip install -r requirements.txt -e .
+    - tox
 
-    # test suite
+    # run cleanup script
+    - ./tools/publish 1 0 0 1
+    - export DIST="$(basename `ls ../pyunicorn-*` .tar.gz)"
+    - cd ..; tar xzf $DIST.tar.gz; cd $DIST
+
+    # run test suite in source distribution (without Cython)
+    - conda uninstall -q cython
+    - python setup.py sdist
+    - cd dist; tar xzf $DIST.tar.gz; cd $DIST
     - tox
 
 notifications:
