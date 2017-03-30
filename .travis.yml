@@ -76,7 +76,7 @@ script:
     # run test suite in source distribution (without Cython)
     - conda uninstall -q cython
     - python setup.py sdist; cd dist; tar xzf $DIST.tar.gz; cd $DIST
-    - tox
+    - tox -e doctest,units
 
 notifications:
     email:
