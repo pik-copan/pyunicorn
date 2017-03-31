@@ -141,29 +141,30 @@ class EventSynchronization(object):
 
         """
 
-        # Change format: (list of timesteps of events)
-        ex = np.arange(len(EventSeriesX))[EventSeriesX == 1]
-        ey = np.arange(len(EventSeriesY))[EventSeriesY == 1]
+        # Get time indices (type boolean or simple '0's and '1's)
+        ex = np.array(np.where(EventSeriesX), dtype=np.int8)
+        ey = np.array(np.where(EventSeriesY), dtype=np.int8)
         # Number of events
-        lx = len(ex)
-        ly = len(ey)
-
-        # Vectorized calculation
-        EX = np.reshape(np.repeat(ex, ly), (lx, ly), 'C')
-        EY = np.reshape(np.repeat(ey, lx), (lx, ly), 'F')
-        DSTxy = EX[1:-1, 1:-1] - EY[1:-1, 1:-1]
-
+        lx = ex.shape[1]
+        ly = ey.shape[1]
+        if lx == 0 or ly == 0:              # Division by zero in output
+            return np.nan, np.nan
+        if lx in [1, 2] or ly in [1, 2]:    # Too few events to calculate
+            return 0., 0.
+        # Array of distances
+        dstxy2 = 2 * (np.repeat(ex[:, 1:-1].T, ly-2, axis=1) -
+                      np.repeat(ey[:, 1:-1], lx-2, axis=0))
         # Dynamical delay
-        tauX = EX[1:, 1:-1] - EX[:-1, 1:-1]
-        tauY = EY[1:-1, 1:] - EY[1:-1, :-1]
-        TAU = np.min((tauX[1:, :], tauX[:-1, :],
-                      tauY[:, 1:], tauY[:, :-1]), axis=0) / 2
-
-        EffTau = np.minimum(TAU, self.taumax)  # effective Tau
-        EquTimeEv = 0.5*np.sum(DSTxy == 0)  # Contribution of equal time events
-        # count number of sync events
-        countXY = np.sum((DSTxy > 0) * (DSTxy <= EffTau)) + EquTimeEv
-        countYX = np.sum((DSTxy < 0) * (-DSTxy <= EffTau)) + EquTimeEv
-
-        Norm = np.sqrt(lx * ly)  # Normalization
-        return countXY / Norm, countYX / Norm
+        diffx = np.diff(ex)
+        diffy = np.diff(ey)
+        diffxmin = np.minimum(diffx[:, 1:], diffx[:, :-1])
+        diffymin = np.minimum(diffy[:, 1:], diffy[:, :-1])
+        tau2 = np.minimum(np.repeat(diffxmin.T, ly-2, axis=1),
+                          np.repeat(diffymin, lx-2, axis=0))
+        tau2 = np.minimum(tau2, 2 * self.taumax)
+        # Count equal time events and synchronised events
+        eqtime = 0.5 * (dstxy2.size - np.count_nonzero(dstxy2))
+        countxy = np.sum((dstxy2 > 0) * (dstxy2 <= tau2)) + eqtime
+        countyx = np.sum((dstxy2 < 0) * (dstxy2 >= -tau2)) + eqtime
+        norm = np.sqrt((lx-2) * (ly-2))
+        return countxy / norm, countyx / norm

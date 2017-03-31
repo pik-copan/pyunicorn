@@ -103,7 +103,7 @@ The test suite can be run from anywhere in the project tree by issuing::
 To expose the defined test environments and target them independently::
 
     $> tox -l
-    $> tox -e py27-units,py27-style
+    $> tox -e units,style
 
 To test individual files::
 
