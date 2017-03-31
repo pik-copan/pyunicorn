@@ -52,9 +52,8 @@ def NonVecEventSync(es1, es2, taumax):
 
             if dst > 0 and dst <= tau:
                 count += 1
-#                print "dst, tau: %i, %i"%(dst, tau)
 
-    return count / np.sqrt(lx * ly)  # np.sqrt((lx-2)/2. * (ly-2)/2.)
+    return count / np.sqrt((lx-2) * (ly-2))
 
 
 def UndirectedESyncMat(eventmatrix, taumax):
