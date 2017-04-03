@@ -53,5 +53,5 @@ void _test_pearson_correlation_slow(double *original_data, double *surrogates,
                 correlation[i*N+j] *= norm;
             }
         }
-      }
+    }
 }
