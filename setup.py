@@ -26,8 +26,6 @@ except ImportError:
     CYTHON = False
 
 def extensions():
-    from numpy import get_include
-    from Cython.Build import cythonize
     exts = [
         Extension(
             '*', sources=['pyunicorn/%s/*.%s' % (pkg, 'pyx' if CYTHON else 'c'), 'pyunicorn/%s/_ext/src_fast_numerics.c' % ('timeseries')],
@@ -41,7 +39,7 @@ def extensions():
             'boundscheck': False, 'wraparound': False, 'initializedcheck': False,
             'nonecheck': False})
     else:
-        return cythonize(exts)
+        return exts
 
 
 setup(
