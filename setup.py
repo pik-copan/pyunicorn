@@ -5,30 +5,44 @@ from setuptools.extension import Extension
 
 import numpy as np
 
+class lazy_cythonize(list):
+    """evaluates extension list lazyly.
+    following pattern is taken from http://tinyurl.com/qb8478q"""
+    def __init__(self, callback):
+        self._list, self.callback = None, callback
+    def c_list(self):
+        if self._list is None: self._list = self.callback()
+        return self._list
+    def __iter__(self):
+        for e in self.c_list(): yield e
+    def __getitem__(self, ii): return self.c_list()[ii]
+    def __len__(self): return len(self.c_list())
+
+
 try:
     from Cython.Build import cythonize
     CYTHON = True
 except ImportError:
     CYTHON = False
 
-extensions = [
-    Extension(
-        'pyunicorn.%s.numerics' % (pkg),
-        sources=['pyunicorn/%s/numerics.%s' % (pkg, 'pyx' if CYTHON else 'c')],
-        include_dirs=[np.get_include()],
-        extra_compile_args=['-O3', '-std=c99'])
-    for pkg in ['core', 'timeseries']]
-extensions += [Extension('pyunicorn.timeseries.numerics',
-               sources=['pyunicorn/timeseries/numerics.pyx',
-                        'pyunicorn/timeseries/_ext/src_fast_numerics.c'],
-               include_dirs=[np.get_include()],
-               extra_compile_args=['-O3', '-std=c99'])]
+def extensions():
+    from numpy import get_include
+    from Cython.Build import cythonize
+    exts = [
+        Extension(
+            '*', sources=['pyunicorn/%s/*.%s' % (pkg, 'pyx' if CYTHON else 'c'), 'pyunicorn/%s/_ext/src_fast_numerics.c' % ('timeseries')],
+            include_dirs=[np.get_include()],
+            extra_compile_args=['-O3', '-std=c99'])
+        for pkg in ['core', 'timeseries']]
 
-if CYTHON:
-    extensions = cythonize(extensions, compiler_directives={
-        'language_level': 2, 'embedsignature': True,
-        'boundscheck': False, 'wraparound': False, 'initializedcheck': False,
-        'nonecheck': False})
+    if CYTHON:
+        return cythonize(exts, compiler_directives={
+            'language_level': 2, 'embedsignature': True,
+            'boundscheck': False, 'wraparound': False, 'initializedcheck': False,
+            'nonecheck': False})
+    else:
+        return cythonize(exts)
+
 
 setup(
     name='pyunicorn',
@@ -60,7 +74,7 @@ nonlinear climate recurrence plot surrogates spatial model',
               'pyunicorn.funcnet', 'pyunicorn.utils',
               'pyunicorn.utils.progressbar'],
     scripts=[],
-    ext_modules=extensions,
+    ext_modules=lazy_cythonize(extensions),
     install_requires=open('requirements.txt', 'r').read().split('\n'),
     platforms=['all']
 )

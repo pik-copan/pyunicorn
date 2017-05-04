@@ -21,11 +21,11 @@ import numpy as np
 from .numerics import _embed_time_series, _manhatten_distance_matrix, \
     _euclidean_distance_matrix, _supremum_distance_matrix, \
     _set_adaptive_neighborhood_size, _bootstrap_distance_matrix_manhatten, \
-    _bootstrap_distance_matrix_euclidean, _bootstrap_distance_matrix_supremum,\
+    _bootstrap_distance_matrix_euclidean, _bootstrap_distance_matrix_supremum, \
     _diagline_dist_norqa_missingvalues, _diagline_dist_norqa, \
     _diagline_dist_rqa_missingvalues, _diagline_dist_rqa, \
     _vertline_dist_norqa_missingvalues, _vertline_dist_norqa, \
-    _vertline_dist_rqa_missingvalues, _vertline_dist_rqa, _rejection_sampling,\
+    _vertline_dist_rqa_missingvalues, _vertline_dist_rqa, _rejection_sampling, \
     _white_vertline_dist, _twins, _twin_surrogates
 
 #
