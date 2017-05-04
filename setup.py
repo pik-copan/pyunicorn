@@ -28,8 +28,8 @@ except ImportError:
 def extensions():
     exts = [
         Extension(
-            '*', sources=['pyunicorn/%s/*.%s' % (pkg, 'pyx' if CYTHON else 'c'),
-                          'pyunicorn/%s/_ext/src_fast_numerics.c' % ('timeseries')],
+            '*',sources=['pyunicorn/%s/*.%s' % (pkg, 'pyx' if CYTHON else 'c'),
+                'pyunicorn/%s/_ext/src_fast_numerics.c' % ('timeseries')],
             include_dirs=[np.get_include()],
             extra_compile_args=['-O3', '-std=c99'])
         for pkg in ['core', 'timeseries']]
@@ -37,8 +37,8 @@ def extensions():
     if CYTHON:
         return cythonize(exts, compiler_directives={
             'language_level': 2, 'embedsignature': True,
-            'boundscheck': False, 'wraparound': False, 'initializedcheck': False,
-            'nonecheck': False})
+            'boundscheck': False, 'wraparound': False,
+            'initializedcheck': False, 'nonecheck': False})
     else:
         return exts
 
