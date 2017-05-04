@@ -28,7 +28,8 @@ except ImportError:
 def extensions():
     exts = [
         Extension(
-            '*', sources=['pyunicorn/%s/*.%s' % (pkg, 'pyx' if CYTHON else 'c'), 'pyunicorn/%s/_ext/src_fast_numerics.c' % ('timeseries')],
+            '*', sources=['pyunicorn/%s/*.%s' % (pkg, 'pyx' if CYTHON else 'c'),
+                          'pyunicorn/%s/_ext/src_fast_numerics.c' % ('timeseries')],
             include_dirs=[np.get_include()],
             extra_compile_args=['-O3', '-std=c99'])
         for pkg in ['core', 'timeseries']]
@@ -72,7 +73,7 @@ nonlinear climate recurrence plot surrogates spatial model',
               'pyunicorn.funcnet', 'pyunicorn.utils',
               'pyunicorn.utils.progressbar'],
     scripts=[],
-    ext_modules=lazy_cythonize(extensions),
+    ext_modules=lazy_cythonize(extensions) if CYTHON else extensions,
     install_requires=open('requirements.txt', 'r').read().split('\n'),
     platforms=['all']
 )
