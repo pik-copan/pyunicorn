@@ -38,19 +38,3 @@ void _test_pearson_correlation_fast(double *original_data, double *surrogates,
         }
     }
 }
-
-
-void _test_pearson_correlation_slow(double *originals, double *surrogates,
-    float *correlation, int n_time, int N, double norm)  {
-
-    for (int i = 0; i < N; i++) {
-        for (int j = 0; j < N; j++) {
-            if (i != j) {
-                for (int k = 0; k < n_time; k++) {
-                    correlation[i*N+j] += originals[i*N+k] * surrogates[j*N+k];
-                }
-                correlation[i*N+j] *= norm;
-            }
-        }
-    }
-}
