@@ -13,5 +13,7 @@
 
 void _test_pearson_correlation_fast(double *original_data, double *surrogates, 
     float *correlation, int n_time, int N, double norm);
+void _test_pearson_correlation_slow(double *original_data, double *surrogates, 
+    float *correlation, int n_time, int N, double norm);
 
 #endif
