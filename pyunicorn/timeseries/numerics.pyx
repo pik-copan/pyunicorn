@@ -5,7 +5,7 @@
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
-# distutils: sources = pyunicorn/timeseries/_ext/src_fast_numerics.c
+# distutils: sources = pyunicorn/timeseries/src_fast_numerics.c
 
 cimport cython
 from cpython cimport bool
@@ -49,7 +49,7 @@ cdef extern from "time.h":
     double time()
 
 
-cdef extern from "_ext/src_fast_numerics.h":
+cdef extern from "src_fast_numerics.h":
     void _test_pearson_correlation_fast(double *original_data,
         double *surrogates, float *correlation, int n_time, int N, double norm)
     void _test_pearson_correlation_slow(double *original_data,
