@@ -5,7 +5,7 @@
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
-# distutils: sources = _ext/src_fast_numerics.c
+# distutils: sources = pyunicorn/timeseries/_ext/src_fast_numerics.c
 
 cimport cython
 from cpython cimport bool
