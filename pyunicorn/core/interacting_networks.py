@@ -1,4 +1,5 @@
-#!/usr/bin/python
+\
+        #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
@@ -17,7 +18,7 @@ from numpy import random
 
 #  Import Network base class and Cython code
 from .network import Network, NetworkError
-from ._ext.numerics import                              \
+from pyunicorn.core._ext.numerics import                 \
     _randomlySetCrossLinks, _randomlyRewireCrossLinks,   \
     _cross_transitivity, _nsi_cross_transitivity,        \
     _cross_local_clustering, _nsi_cross_local_clustering

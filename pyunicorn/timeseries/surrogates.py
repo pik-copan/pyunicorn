@@ -20,7 +20,8 @@ from .. import weave_inline
 # easy progress bar handling
 from ..utils import progressbar
 
-from ._ext.numerics import _embed_time_series_array, _recurrence_plot, _twins, \
+from pyunicorn.timeseries._ext.numerics import \
+        _embed_time_series_array, _recurrence_plot, _twins, \
         _test_pearson_correlation
 
 
