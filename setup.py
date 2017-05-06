@@ -37,8 +37,9 @@ exts = [
     Extension(
         'pyunicorn.%s.numerics' % (pkg),
         sources=['pyunicorn/%s/numerics.%s' % (pkg, 'pyx' if CYTHON else 'c')],
-        include_dirs=[np.get_include()],
-        extra_compile_args=['-O3', '-std=c99', '-I pyunicorn/timeseries/_ext'])
+        include_dirs=[np.get_include(), 'pyunicorn/timeseries/_ext'],
+        extra_compile_args=['-O3', '-std=c99', '-I pyunicorn/timeseries/_ext',
+            '-L pyunicorn/timeseries/_ext'])
     for pkg in ['core', 'timeseries']]
 
 
