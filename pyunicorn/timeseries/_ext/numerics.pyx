@@ -15,6 +15,7 @@ import numpy as np
 cimport numpy as np
 import numpy.random as rd
 import random
+from datetime import datetime
 
 randint = rd.randint
 
