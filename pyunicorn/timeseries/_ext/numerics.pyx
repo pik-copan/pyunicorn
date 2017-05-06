@@ -48,13 +48,80 @@ cdef extern from "time.h":
 
 
 cdef extern from "src_numerics.c":
+    void _manhattan_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
+        double *x_embedded, double *y_embedded, float *distance)
+    void _euclidean_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
+        double *x_embedded, double *y_embedded, float *distance)
+    void _supremum_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
+        double *x_embedded, double *y_embedded, float *distance)
     void _test_pearson_correlation_fast(double *original_data,
         double *surrogates, float *correlation, int n_time, int N, double norm)
     void _test_pearson_correlation_slow(double *original_data,
         double *surrogates, float *correlation, int n_time, int N, double norm)
+    void _test_mutual_information_fast(int N, int n_time, int n_bins,
+        double scaling, double range_min, double *original_data,
+        double *surrogates, int *symbolic_original, int *symbolic_surrogates,
+        int *hist_original, int *hist_surrogates, int * hist2d, float *mi)
+    void _test_mutual_information_slow(int N, int n_time, int n_bins,
+        double scaling, double range_min, double *original_data,
+        double *surrogates, int *symbolic_original, int *symbolic_surrogates,
+        int *hist_original, int *hist_surrogates, int * hist2d, float *mi)
+
+
+# cross_recurrence_plot =======================================================
+
+def _manhattan_distance_matrix_crp(
+    int ntime_x, int ntime_y, int dim, 
+    np.ndarray[double, ndim=2, mode='c'] x_embedded not None,
+    np.ndarray[double, ndim=2, mode='c'] y_embedded not None):
+
+    cdef np.ndarray[float, ndim=2, mode='c'] distance = \
+        np.zeros((ntime_x, ntime_y), dtype="float32")
+
+    _manhattan_distance_matrix_fast(
+        ntime_x, ntime_y, dim,
+        <double*> np.PyArray_DATA(x_embedded),
+        <double*> np.PyArray_DATA(y_embedded),
+        <float*> np.PyArray_DATA(distance))
+
+    return distance
+
+
+def _euclidean_distance_matrix_crp(
+    int ntime_x, int ntime_y, int dim, 
+    np.ndarray[double, ndim=2, mode='c'] x_embedded not None,
+    np.ndarray[double, ndim=2, mode='c'] y_embedded not None):
+
+    cdef np.ndarray[float, ndim=2, mode='c'] distance = \
+        np.zeros((ntime_x, ntime_y), dtype="float32")
+
+    _euclidean_distance_matrix_fast(
+        ntime_x, ntime_y, dim,
+        <double*> np.PyArray_DATA(x_embedded),
+        <double*> np.PyArray_DATA(y_embedded),
+        <float*> np.PyArray_DATA(distance))
+
+    return distance
+
+
+def _supremum_distance_matrix_crp(
+    int ntime_x, int ntime_y, int dim, 
+    np.ndarray[double, ndim=2, mode='c'] x_embedded not None,
+    np.ndarray[double, ndim=2, mode='c'] y_embedded not None):
+
+    cdef np.ndarray[float, ndim=2, mode='c'] distance = \
+        np.zeros((ntime_x, ntime_y), dtype="float32")
+
+    _supremum_distance_matrix_fast(
+        ntime_x, ntime_y, dim,
+        <double*> np.PyArray_DATA(x_embedded),
+        <double*> np.PyArray_DATA(y_embedded),
+        <float*> np.PyArray_DATA(distance))
+
+    return distance
+
 
 # surrogates ==================================================================
-
 
 def _embed_time_series_array(
     int N, int n_time, int dimension, int delay,
@@ -104,7 +171,7 @@ def _recurrence_plot(
                     break
 
 
-def _twins(
+def _twins_s(
     int N, int n_time, int dimension, float threshold, int min_dist,
     np.ndarray[FLOATTYPE_t, ndim=3] embedding_array,
     np.ndarray[FLOATTYPE_t, ndim=2] R, np.ndarray[FLOATTYPE_t, ndim=1] nR,
@@ -176,6 +243,7 @@ def _twins(
                             # Leave the while loop
                             break
 
+
 # recurrence plot==============================================================
 
 def _embed_time_series(
@@ -201,8 +269,7 @@ def _embed_time_series(
             embedding[k, j] = time_series[index]
             index += 1
 
-
-def _manhatten_distance_matrix(
+def _manhattan_distance_matrix_rp(
     int n_time, int dim, np.ndarray[FLOAT32TYPE_t, ndim=2] embedding,
     np.ndarray[FLOAT32TYPE_t, ndim=2] distance):
 
@@ -210,7 +277,7 @@ def _manhatten_distance_matrix(
         int j, k, l
         float sum
 
-    # Calculate the manhatten distance matrix
+    # Calculate the manhattan distance matrix
     for j in xrange(n_time):
         # Ignore the main diagonal, since every samle is neighbor of itself
         for k in xrange(j):
@@ -221,7 +288,8 @@ def _manhatten_distance_matrix(
 
             distance[j, k] = distance[k, j] = sum
 
-def _euclidean_distance_matrix(
+
+def _euclidean_distance_matrix_rp(
     int n_time, int dim, np.ndarray[FLOAT32TYPE_t, ndim=2] embedding,
     np.ndarray[FLOAT32TYPE_t, ndim=2] distance):
 
@@ -240,7 +308,8 @@ def _euclidean_distance_matrix(
                 sum += diff * diff
             distance[j, k] = distance[k, j] = sum
 
-def _supremum_distance_matrix(
+
+def _supremum_distance_matrix_rp(
     int n_time, int dim, np.ndarray[FLOAT32TYPE_t, ndim=2] embedding,
     np.ndarray[FLOAT32TYPE_t, ndim=2] distance):
 
@@ -525,6 +594,7 @@ def _vertline_dist_norqa_missingvalues(
                     vertline[k] += 1
                     k = 0
 
+
 def _vertline_dist_norqa(
     int n_time, np.ndarray[INT32TYPE_t, ndim=1] vertline,
     np.ndarray[INT8TYPE_t, ndim=2] recmat):
@@ -586,6 +656,7 @@ def _vertline_dist_rqa_missingvalues(
                     vertline[k] += 1
                     k = 0
 
+
 def _vertline_dist_rqa(
     int n_time, np.ndarray[INT32TYPE_t, ndim=1] vertline,
     np.ndarray[FLOAT32TYPE_t, ndim=2] embedding, float eps, int dim):
@@ -635,7 +706,8 @@ def _white_vertline_dist(
                 white_vertline[k] += 1
                 k = 0
 
-def _twins(
+
+def _twins_r(
     int min_dist, int N, np.ndarray[INT8TYPE_t, ndim=2] R,
     np.ndarray[INTTYPE_t, ndim=1] nR, twins):
 
@@ -671,33 +743,33 @@ def _twins(
                         break
 
 
-def _twin_surrogates(
-    int n_surrogates, int N, int dim, twins,
-    np.ndarray[FLOAT32TYPE_t, ndim=2] embedding,
-    np.ndarray[FLOATTYPE_t, ndim=3] surrogates):
+def _twin_surrogates(int n_surrogates, int N, twins,
+                     np.ndarray[FLOATTYPE_t, ndim=2] original_data):
 
     cdef int i, j, k, l, new_k, n_twins, rand
+    cdef np.ndarray[FLOATTYPE_t, ndim=2] surrogates = np.empty((n_surrogates,N))
 
     # Initialize random number generator
-    # srand48(time(0)) -> does not work in cython somehow ?!?!?
-
+    random.seed(datetime.now())
     for i in xrange(n_surrogates):
+        # Get the twin list for time series i
+        twins_i = twins[i]
+
         # Randomly choose a starting point in the original trajectory
-        k = int(floor(drand48() * N))
+        k = int(floor(random.random() * N))
 
         j = 0
 
         while j < N:
             # Assign state vector of surrogate trajectory
-            for l in xrange(dim):
-                surrogates[i, j, l] = embedding[k, l]
+            surrogates[i,j] = original_data[i,k]
 
             # Get the list of twins of state vector k in the original time
             # series
-            twins_k = twins[k]
+            twins_ik = twins_i[k]
 
             # Get the number of twins of k
-            n_twins = len(twins_k)
+            n_twins = len(twins_ik)
 
             # If k has no twins, go to the next sample k+1, If k has twins at
             # m, choose among m+1 and k+1 with equal probability
@@ -705,27 +777,29 @@ def _twin_surrogates(
                 k += 1
             else:
                 # Generate a random integer between 0 and n_twins
-                rand = int(floor(drand48() * (n_twins + 1)))
+                rand = int(floor(random.random() * (n_twins + 1)))
 
                 # If rand = n_twings go to smple k+1, otherwise jump to the
                 # future of one of the twins
                 if rand == n_twins:
                     k += 1
                 else:
-                    k = twins_k[rand]
+                    k = twins_ik[rand]
                     k += 1
 
             # If the new k >= n_time, choose a new random starting point in the
             # original time series
             if k >= N:
                 while True:
-                    new_k = int(floor(drand48() * N))
+                    new_k = int(floor(random.random() * N))
                     if new_k != k:
                         break
 
                 k = new_k
 
             j += 1
+
+    return surrogates
 
 
 def _test_pearson_correlation(
@@ -753,6 +827,64 @@ def _test_pearson_correlation(
             n_time, N, norm)
 
     return correlation
+
+
+def _test_mutual_information(
+    np.ndarray[double, ndim=2, mode='c'] original_data not None,
+    np.ndarray[double, ndim=2, mode='c'] surrogates not None, 
+    int N, int n_time, int n_bins, fast):
+    
+    cdef:
+        #  Get common range for all histograms
+        double range_min = np.min((original_data.min(), surrogates.min()))
+        double range_max = np.max((original_data.max(), surrogates.max()))
+        #  Rescale all time series to the interval [0,1], using the maximum
+        #  range of the whole dataset
+        double scaling = 1. / (range_max - range_min)
+        #  Create arrays to hold symbolic trajectories
+        np.ndarray[int, ndim=2, mode='c'] symbolic_original = \
+            np.empty((N, n_time), dtype="int32")
+        np.ndarray[int, ndim=2, mode='c'] symbolic_surrogates = \
+            np.empty((N, n_time), dtype="int32")
+        #  Initialize array to hold 1d-histograms of individual time series
+        np.ndarray[int, ndim=2, mode='c'] hist_original = \
+            np.zeros((N, n_bins), dtype="int32")
+        np.ndarray[int, ndim=2, mode='c'] hist_surrogates = \
+            np.zeros((N, n_bins), dtype="int32")
+        #  Initialize array to hold 2d-histogram for one pair of time series
+        np.ndarray[int, ndim=2, mode='c'] hist2d = \
+            np.zeros((n_bins, n_bins), dtype="int32")
+        #  Initialize mutual information array
+        np.ndarray[float, ndim=2, mode='c'] mi = np.zeros((N, N),
+                dtype="float32")
+
+    if (fast==True):
+        #  original_data and surrogates must be contiguous Numpy arrays for
+        #  this code to work correctly!
+        #  All other arrays are generated from scratch in this method and
+        #  are guaranteed to be contiguous by np.
+        _test_mutual_information_fast(
+                N, n_time, n_bins, scaling, range_min,
+                <double*> np.PyArray_DATA(original_data),
+                <double*> np.PyArray_DATA(surrogates),
+                <int*> np.PyArray_DATA(symbolic_original),
+                <int*> np.PyArray_DATA(symbolic_surrogates),
+                <int*> np.PyArray_DATA(hist_original),
+                <int*> np.PyArray_DATA(hist_surrogates),
+                <int*> np.PyArray_DATA(hist2d),
+                <float*> np.PyArray_DATA(mi))
+    else:
+        _test_mutual_information_slow(
+                N, n_time, n_bins, scaling, range_min,
+                <double*> np.PyArray_DATA(original_data),
+                <double*> np.PyArray_DATA(surrogates),
+                <int*> np.PyArray_DATA(symbolic_original),
+                <int*> np.PyArray_DATA(symbolic_surrogates),
+                <int*> np.PyArray_DATA(hist_original),
+                <int*> np.PyArray_DATA(hist_surrogates),
+                <int*> np.PyArray_DATA(hist2d),
+                <float*> np.PyArray_DATA(mi))
+    return mi
 
 
 # visibitly graph =============================================================
@@ -837,6 +969,7 @@ def _visibility_relations_horizontal(
     for i in xrange(N-1):
         A[i, i+1] = A[i+1, i] = 1
 
+
 def _retarded_local_clustering(
     int N, np.ndarray[INT16TYPE_t, ndim=2] A,
     np.ndarray[FLOATTYPE_t, ndim=1] norm,
@@ -860,6 +993,7 @@ def _retarded_local_clustering(
                         counter += 1
 
             retarded_clustering[i] = counter / norm[i]
+
 
 def _advanced_local_clustering(
     int N, np.ndarray[INT16TYPE_t, ndim=2] A,

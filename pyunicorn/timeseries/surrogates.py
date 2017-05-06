@@ -16,11 +16,9 @@ import numpy as np
 from numpy import random
 
 from pyunicorn.timeseries._ext.numerics import \
-        _embed_time_series_array, _recurrence_plot, _twins, \
-        _test_pearson_correlation
+         _embed_time_series_array, _recurrence_plot, _twins_s, \
+         _twin_surrogates, _test_pearson_correlation, _test_mutual_information
 
-# C++ inline code
-from .. import weave_inline
 # easy progress bar handling
 from ..utils import progressbar
 
@@ -245,7 +243,7 @@ class Surrogates(object):
         #  Initialize array to store the number of neighbors for each sample
         nR = np.empty(n_time)
 
-        _twins(N, n_time, dimension, threshold, min_dist, embedding_array, R,
+        _twins_s(N, n_time, dimension, threshold, min_dist, embedding_array, R,
                nR, twins)
         return twins
 
@@ -514,71 +512,8 @@ class Surrogates(object):
             self._twins = twins
             self._twins_cached = True
 
-        surrogates = np.empty(original_data.shape)
 
-        code = r"""
-        int i, j, k, new_k, n_twins, rand;
-
-        //  Initialize random number generator
-        srand48(time(0));
-
-        for (i = 0; i < N; i++) {
-            //  Get the twin list for time series i
-            py::list twins_i = PyList_GetItem(twins, i);
-
-            //  Randomly choose a starting point in the original_data
-            //  trajectory.
-            k = floor(drand48() * n_time);
-
-            j = 0;
-
-            while (j < n_time) {
-                surrogates(i,j) = original_data(i,k);
-
-                //  Get the list of twins of sample k in the original_data
-                //  time series.
-                py::list twins_ik = PyList_GetItem(twins_i,k);
-
-                //  Get the number of twins of k
-                n_twins = PyList_Size(twins_ik);
-
-                //  If k has no twins, go to the next sample k+1. If k has
-                //  twins at m, choose among m+1 and k+1 with equal probability
-                if (n_twins == 0)
-                    k++;
-                else {
-                    //  Generate a random integer between 0 and n_twins
-                    rand = floor(drand48() * (n_twins + 1));
-
-                    //  If rand = n_twins go to sample k+1, otherwise jump
-                    //  to the future of one of the twins.
-                    if (rand == n_twins)
-                        k++;
-                    else {
-                        k = twins_ik[rand];
-                        k++;
-                    }
-
-                }
-
-                //  If the new k >= n_time, choose a new random starting point
-                //  in the original_data time series.
-                if (k >= n_time) {
-                    do {
-                        new_k = floor(drand48() * n_time);
-                    }
-                    while (k == new_k);
-
-                    k = new_k;
-                }
-
-                j++;
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['N', 'n_time', 'original_data', 'twins', 'surrogates'])
-        return surrogates
+        return _twin_surrogates(N, n_time, twins, original_data)
 
     #
     #  Defines methods to generate correlation measure matrices based on
@@ -664,299 +599,13 @@ class Surrogates(object):
         :return: the mutual information test matrix.
         """
         (N, n_time) = original_data.shape
-
-        #  Get common range for all histograms
-        range_min = float(np.min(original_data.min(), surrogates.min()))
-        range_max = float(np.max(original_data.max(), surrogates.max()))
-
-        #  Rescale all time series to the interval [0,1], using the maximum
-        #  range of the whole dataset
-        scaling = 1. / (range_max - range_min)
-
-        #  Create arrays to hold symbolic trajectories
-        symbolic_original = np.empty(original_data.shape, dtype="int32")
-        symbolic_surrogates = np.empty(original_data.shape, dtype="int32")
-
-        #  Initialize array to hold 1d-histograms of individual time series
-        hist_original = np.zeros((N, n_bins), dtype="int32")
-        hist_surrogates = np.zeros((N, n_bins), dtype="int32")
-
-        #  Initialize array to hold 2d-histogram for one pair of time series
-        hist2d = np.zeros((n_bins, n_bins), dtype="int32")
-
-        #  Initialize mutual information array
-        mi = np.zeros((N, N), dtype="float32")
-
         #  Calculate symbolic time series and histograms
         #  Calculate 2D histograms and mutual information
         #  mi[i,j] gives the mutual information between the ith original_data
         #  time series and the jth surrogate time series.
-        code = r"""
-        int i, j, k, l, m;
-        int symbol, symbol_i, symbol_j;
-        double rescaled, norm, hpl, hpm, plm;
-
-        //  Calculate histogram norm
-        norm = 1.0 / n_time;
-
-        for (i = 0; i < N; i++) {
-            for (k = 0; k < n_time; k++) {
-
-                //  Original time series
-                //  Calculate symbolic trajectories for each time series,
-                //  where the symbols are bins
-                rescaled = scaling * (original_data(i,k) - range_min);
-
-                if (rescaled< 1.0)
-                    symbolic_original(i,k) = rescaled * n_bins;
-                else
-                    symbolic_original(i,k) = n_bins - 1;
-
-                //  Calculate 1d-histograms for single time series
-                symbol = symbolic_original(i,k);
-                hist_original(i,symbol) += 1;
-
-                //  Surrogate time series
-                //  Calculate symbolic trajectories for each time series,
-                //  where the symbols are bins
-                rescaled = scaling * (surrogates(i,k) - range_min);
-
-                if (rescaled < 1.0)
-                    symbolic_surrogates(i,k) = rescaled * n_bins;
-                else
-                    symbolic_surrogates(i,k) = n_bins - 1;
-
-                //  Calculate 1d-histograms for single time series
-                symbol = symbolic_surrogates(i,k);
-                hist_surrogates(i,symbol) += 1;
-            }
-        }
-
-        for (i = 0; i < N; i++) {
-            for (j = 0; j < N; j++) {
-
-                //  The case i = j is not of interest here!
-                if (i != j) {
-                    //  Calculate 2d-histogram for one pair of time series
-                    //  (i,j).
-                    for (k = 0; k < n_time; k++) {
-                        symbol_i = symbolic_original(i,k);
-                        symbol_j = symbolic_surrogates(j,k);
-                        hist2d(symbol_i,symbol_j) += 1;
-                    }
-
-                    //  Calculate mutual information for one pair of time
-                    //  series (i,j).
-                    for (l = 0; l < n_bins; l++) {
-                        hpl = hist_original(i,l) * norm;
-                        if (hpl > 0.0) {
-                            for (m = 0; m < n_bins; m++) {
-                                hpm = hist_surrogates(j,m) * norm;
-                                if (hpm > 0.0) {
-                                    plm = hist2d(l,m) * norm;
-                                    if (plm > 0.0) {
-                                        mi(i,j) += plm * log(plm/hpm/hpl);
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    //  Reset hist2d to zero in all bins
-                    for (l = 0; l < n_bins; l++) {
-                        for (m = 0; m < n_bins; m++)
-                            hist2d(l,m) = 0;
-                    }
-                }
-            }
-        }
-        """
-
-        #  original_data and surrogates must be contiguous Numpy arrays for
-        #  this code to work correctly!
-        #  All other arrays are generated from scratch in this method and
-        #  are guaranteed to be contiguous by np.
-        fastCode = r"""
-        long i, j, k, l, m, in_bins, jn_bins, in_time, jn_time;
-        double norm, rescaled, hpl, hpm, plm;
-
-        double *p_original, *p_surrogates;
-        float *p_mi;
-        long *p_symbolic_original, *p_symbolic_surrogates, *p_hist_original,
-             *p_hist_surrogates, *p_hist2d;
-
-        //  Calculate histogram norm
-        norm = 1.0 / n_time;
-
-        //  Initialize in_bins, in_time
-        in_time = in_bins = 0;
-
-        for (i = 0; i < N; i++) {
-
-            //  Set pointer to original_data(i,0)
-            p_original = original_data + in_time;
-            //  Set pointer to surrogates(i,0)
-            p_surrogates = surrogates + in_time;
-            //  Set pointer to symbolic_original(i,0)
-            p_symbolic_original = symbolic_original + in_time;
-            //  Set pointer to symbolic_surrogates(i,0)
-            p_symbolic_surrogates = symbolic_surrogates + in_time;
-
-            for (k = 0; k < n_time; k++) {
-
-                //  Rescale sample into interval [0,1]
-                rescaled = scaling * (*p_original - range_min);
-
-                //  Calculate symbolic trajectories for each time series,
-                //  where the symbols are bin numbers.
-                if (rescaled < 1.0)
-                    *p_symbolic_original = rescaled * n_bins;
-                else
-                    *p_symbolic_original = n_bins - 1;
-
-                //  Calculate 1d-histograms for single time series
-                //  Set pointer to hist_original(i, *p_symbolic_original)
-                p_hist_original = hist_original + in_bins
-                                  + *p_symbolic_original;
-                (*p_hist_original)++;
-
-                //  Rescale sample into interval [0,1]
-                rescaled = scaling * (*p_surrogates - range_min);
-
-                //  Calculate symbolic trajectories for each time series,
-                //  where the symbols are bin numbers.
-                if (rescaled < 1.0)
-                    *p_symbolic_surrogates = rescaled * n_bins;
-                else
-                    *p_symbolic_surrogates = n_bins - 1;
-
-                //  Calculate 1d-histograms for single time series
-                //  Set pointer to hist_surrogates(i, *p_symbolic_surrogates)
-                p_hist_surrogates = hist_surrogates + in_bins
-                                    + *p_symbolic_surrogates;
-                (*p_hist_surrogates)++;
-
-                //  Set pointer to original_data(i,k+1)
-                p_original++;
-                //  Set pointer to surrogates(i,k+1)
-                p_surrogates++;
-                //  Set pointer to symbolic_original(i,k+1)
-                p_symbolic_original++;
-                //  Set pointer to symbolic_surrogates(i,k+1)
-                p_symbolic_surrogates++;
-            }
-            in_bins += n_bins;
-            in_time += n_time;
-        }
-
-        //  Initialize in_time, in_bins
-        in_time = in_bins = 0;
-
-        for (i = 0; i < N; i++) {
-
-            //  Set pointer to mi(i,0)
-            p_mi = mi + i*N;
-
-            //  Initialize jn_time = 0;
-            jn_time = jn_bins = 0;
-
-            for (j = 0; j < N; j++) {
-
-                //  Don't do anything if i = j, this case is not of
-                //  interest here!
-                if (i != j) {
-
-                    //  Set pointer to symbolic_original(i,0)
-                    p_symbolic_original = symbolic_original + in_time;
-                    //  Set pointer to symbolic_surrogates(j,0)
-                    p_symbolic_surrogates = symbolic_surrogates + jn_time;
-
-                    //  Calculate 2d-histogram for one pair of time series
-                    //  (i,j).
-                    for (k = 0; k < n_time; k++) {
-
-                        //  Set pointer to hist2d(*p_symbolic_original,
-                        //                        *p_symbolic_surrogates)
-                        p_hist2d = hist2d + (*p_symbolic_original)*n_bins
-                                   + *p_symbolic_surrogates;
-
-                        (*p_hist2d)++;
-
-                        //  Set pointer to symbolic_original(i,k+1)
-                        p_symbolic_original++;
-                        //  Set pointer to symbolic_surrogates(j,k+1)
-                        p_symbolic_surrogates++;
-                    }
-
-                    //  Calculate mutual information for one pair of time
-                    //  series (i,j)
-
-                    //  Set pointer to hist_original(i,0)
-                    p_hist_original = hist_original + in_bins;
-
-                    for (l = 0; l < n_bins; l++) {
-
-                        //  Set pointer to hist_surrogates(j,0)
-                        p_hist_surrogates = hist_surrogates + jn_bins;
-                        //  Set pointer to hist2d(l,0)
-                        p_hist2d = hist2d + l*n_bins;
-
-                        hpl = (*p_hist_original) * norm;
-
-                        if (hpl > 0.0) {
-                            for (m = 0; m < n_bins; m++) {
-
-                                hpm = (*p_hist_surrogates) * norm;
-
-                                if (hpm > 0.0) {
-                                    plm = (*p_hist2d) * norm;
-                                    if (plm > 0.0)
-                                        *p_mi += plm * log(plm/hpm/hpl);
-                                }
-
-                                //  Set pointer to hist_surrogates(j,m+1)
-                                p_hist_surrogates++;
-                                //  Set pointer to hist2d(l,m+1)
-                                p_hist2d++;
-                            }
-                        }
-                        //  Set pointer to hist_original(i,l+1)
-                        p_hist_original++;
-                    }
-
-                    //  Reset hist2d to zero in all bins
-                    for (l = 0; l < n_bins; l++) {
-
-                        //  Set pointer to hist2d(l,0)
-                        p_hist2d = hist2d + l*n_bins;
-
-                        for (m = 0; m < n_bins; m++) {
-                            *p_hist2d = 0;
-
-                            //  Set pointer to hist2d(l,m+1)
-                            p_hist2d++;
-                        }
-                    }
-                }
-                //  Set pointer to mi(i,j+1)
-                p_mi++;
-
-                jn_time += n_time;
-                jn_bins += n_bins;
-            }
-            in_time += n_time;
-            in_bins += n_bins;
-        }
-        """
-        args = ['n_time', 'N', 'n_bins', 'scaling', 'range_min',
-                'original_data', 'surrogates', 'symbolic_original',
-                'symbolic_surrogates', 'hist_original', 'hist_surrogates',
-                'hist2d', 'mi']
-        if fast:
-            weave_inline(locals(), fastCode, args, blitz=False)
-        else:
-            weave_inline(locals(), code, args)
-        return mi
+        return _test_mutual_information(original_data.copy(order='c'),
+                                        surrogates.copy(order='c'), N, n_time,
+                                        n_bins, fast)
 
     #
     #  Define methods to perform significance tests on correlation measures

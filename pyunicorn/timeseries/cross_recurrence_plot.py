@@ -15,10 +15,10 @@ analysis (RQA) and recurrence network analysis.
 # array object and fast numerics
 import numpy as np
 
-
 from .recurrence_plot import RecurrencePlot
-from .. import weave_inline   # C++ inline code
 
+from pyunicorn.timeseries._ext.numerics import _manhattan_distance_matrix_crp,\
+    _euclidean_distance_matrix_crp,  _supremum_distance_matrix_crp
 
 #
 #  Class definitions
@@ -111,9 +111,9 @@ class CrossRecurrencePlot(RecurrencePlot):
         """The length of the embedded time series y."""
 
         #  Store time series
-        self.x = x.copy().astype("float32")
+        self.x = x.copy()
         """The time series x."""
-        self.y = y.copy().astype("float32")
+        self.y = y.copy()
         """The time series y."""
 
         #  Reshape time series
@@ -218,30 +218,8 @@ class CrossRecurrencePlot(RecurrencePlot):
         ntime_x = x_embedded.shape[0]
         ntime_y = y_embedded.shape[0]
         dim = x_embedded.shape[1]
-
-        distance = np.zeros((ntime_x, ntime_y), dtype="float32")
-
-        code = r"""
-        int j, k, l;
-        float sum;
-
-        //  Calculate the manhattan distance matrix
-
-        for (j = 0; j < ntime_x; j++) {
-            for (k = 0; k < ntime_y; k++) {
-                sum = 0;
-                for (l = 0; l < dim; l++) {
-                    //  Use manhattan norm
-                    sum += fabs(x_embedded(j,l) - y_embedded(k,l));
-                }
-                distance(j,k) = sum;
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['ntime_x', 'ntime_y', 'dim', 'x_embedded', 'y_embedded',
-                      'distance'])
-        return distance
+        return _manhattan_distance_matrix_crp(ntime_x, ntime_y, dim, x_embedded,
+                                              y_embedded)
 
     def euclidean_distance_matrix(self, x_embedded, y_embedded):
         """
@@ -260,31 +238,8 @@ class CrossRecurrencePlot(RecurrencePlot):
         ntime_x = x_embedded.shape[0]
         ntime_y = y_embedded.shape[0]
         dim = x_embedded.shape[1]
-
-        distance = np.zeros((ntime_x, ntime_y), dtype="float32")
-
-        code = r"""
-        int j, k, l;
-        float sum, diff;
-
-        //  Calculate the euclidean distance matrix
-
-        for (j = 0; j < ntime_x; j++) {
-            for (k = 0; k < ntime_y; k++) {
-                sum = 0;
-                for (l = 0; l < dim; l++) {
-                    //  Use euclidean norm
-                    diff = fabs(x_embedded(j,l) - y_embedded(k,l));
-                    sum += diff * diff;
-                }
-                distance(j,k) = sqrt(sum);
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['ntime_x', 'ntime_y', 'dim', 'x_embedded', 'y_embedded',
-                      'distance'])
-        return distance
+        return _euclidean_distance_matrix_crp(ntime_x, ntime_y, dim, x_embedded, 
+                                              y_embedded)
 
     def supremum_distance_matrix(self, x_embedded, y_embedded):
         """
@@ -303,33 +258,8 @@ class CrossRecurrencePlot(RecurrencePlot):
         ntime_x = x_embedded.shape[0]
         ntime_y = y_embedded.shape[0]
         dim = x_embedded.shape[1]
-
-        distance = np.zeros((ntime_x, ntime_y), dtype="float32")
-
-        code = r"""
-        int j, k, l;
-        float temp_diff, diff;
-
-        //  Calculate the supremum distance matrix
-
-        for (j = 0; j < ntime_x; j++) {
-            for (k = 0; k < ntime_y; k++) {
-                temp_diff = diff = 0;
-                for (l = 0; l < dim; l++) {
-                    //  Use supremum norm
-                    temp_diff = fabs(x_embedded(j,l) - y_embedded(k,l));
-
-                    if (temp_diff > diff)
-                        diff = temp_diff;
-                }
-                distance(j,k) = diff;
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['ntime_x', 'ntime_y', 'dim', 'x_embedded', 'y_embedded',
-                      'distance'])
-        return distance
+        return _supremum_distance_matrix_crp(ntime_x, ntime_y, dim, x_embedded, 
+                                             y_embedded)
 
     def set_fixed_threshold(self, threshold):
         """

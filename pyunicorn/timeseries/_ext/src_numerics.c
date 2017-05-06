@@ -8,6 +8,70 @@
 * License: BSD (3-clause)
 */
 
+
+// cross_recurrence_plot ======================================================
+
+void _manhattan_distance_matrix_fast(int ntime_x, int ntime_y, int dim, 
+    double *x_embedded, double *y_embedded, float *distance)  {
+
+    //  Calculate the manhattan distance matrix
+    for (int j = 0; j < ntime_x; j++) {
+        for (int k = 0; k < ntime_y; k++) {
+            float sum = 0;
+            for (int l = 0; l < dim; l++) {
+                //  Use manhattan norm
+                sum += fabs(x_embedded[j*ntime_x+l] - y_embedded[k*ntime_y+l]);
+            }
+            distance[j*ntime_x+k] = sum;
+        }
+    }
+}
+
+
+void _euclidean_distance_matrix_fast(int ntime_x, int ntime_y, int dim, 
+    double *x_embedded, double *y_embedded, float *distance)  {
+
+    //  Calculate the euclidean distance matrix
+    for (int j = 0; j < ntime_x; j++) {
+        for (int k = 0; k < ntime_y; k++) {
+            float sum = 0;
+            for (int l = 0; l < dim; l++) {
+                //  Use euclidean norm
+                float diff = fabs(x_embedded[j*ntime_x+l] - 
+                    y_embedded[k*ntime_y+l]);
+                sum += diff * diff;
+            }
+            distance[j*ntime_x+k] = sqrt(sum);
+        }
+    }
+}
+
+
+void _supremum_distance_matrix_fast(int ntime_x, int ntime_y, int dim, 
+    double *x_embedded, double *y_embedded, float *distance)  {
+
+    float temp_diff, diff;
+
+    //  Calculate the supremum distance matrix
+
+    for (int j = 0; j < ntime_x; j++) {
+        for (int k = 0; k < ntime_y; k++) {
+            temp_diff = diff = 0;
+            for (int l = 0; l < dim; l++) {
+                //  Use supremum norm
+                temp_diff = fabs(x_embedded[j*ntime_x+l] - 
+                    y_embedded[k*ntime_y+l]);
+                if (temp_diff > diff)
+                    diff = temp_diff;
+            }
+            distance[j*ntime_x+k] = diff;
+        }
+    }
+}
+
+
+// surrogates =================================================================
+
 void _test_pearson_correlation_fast(double *original_data, double *surrogates, 
     float *correlation, int n_time, int N, double norm)  {
 
@@ -51,6 +115,270 @@ void _test_pearson_correlation_slow(double *original_data, double *surrogates,
                       surrogates[j*N+k];
                 }
                 correlation[i*N+j] *= norm;
+            }
+        }
+    }
+}
+
+
+void _test_mutual_information_fast(int N, int n_time, int n_bins,
+    double scaling, double range_min, double *original_data,
+    double *surrogates, int *symbolic_original, int *symbolic_surrogates,
+    int *hist_original, int *hist_surrogates, int * hist2d, float *mi)  {
+
+    long i, j, k, l, m, in_bins, jn_bins, in_time, jn_time;
+    double norm, rescaled, hpl, hpm, plm;
+
+    double *p_original, *p_surrogates;
+    float *p_mi;
+    long *p_symbolic_original, *p_symbolic_surrogates, *p_hist_original,
+         *p_hist_surrogates, *p_hist2d;
+
+    //  Calculate histogram norm
+    norm = 1.0 / n_time;
+
+    //  Initialize in_bins, in_time
+    in_time = in_bins = 0;
+
+    for (i = 0; i < N; i++) {
+
+        //  Set pointer to original_data(i,0)
+        p_original = original_data + in_time;
+        //  Set pointer to surrogates(i,0)
+        p_surrogates = surrogates + in_time;
+        //  Set pointer to symbolic_original(i,0)
+        p_symbolic_original = symbolic_original + in_time;
+        //  Set pointer to symbolic_surrogates(i,0)
+        p_symbolic_surrogates = symbolic_surrogates + in_time;
+
+        for (k = 0; k < n_time; k++) {
+
+            //  Rescale sample into interval [0,1]
+            rescaled = scaling * (*p_original - range_min);
+
+            //  Calculate symbolic trajectories for each time series,
+            //  where the symbols are bin numbers.
+            if (rescaled < 1.0)
+                *p_symbolic_original = rescaled * n_bins;
+            else
+                *p_symbolic_original = n_bins - 1;
+
+            //  Calculate 1d-histograms for single time series
+            //  Set pointer to hist_original(i, *p_symbolic_original)
+            p_hist_original = hist_original + in_bins
+                              + *p_symbolic_original;
+            (*p_hist_original)++;
+
+            //  Rescale sample into interval [0,1]
+            rescaled = scaling * (*p_surrogates - range_min);
+
+            //  Calculate symbolic trajectories for each time series,
+            //  where the symbols are bin numbers.
+            if (rescaled < 1.0)
+                *p_symbolic_surrogates = rescaled * n_bins;
+            else
+                *p_symbolic_surrogates = n_bins - 1;
+
+            //  Calculate 1d-histograms for single time series
+            //  Set pointer to hist_surrogates(i, *p_symbolic_surrogates)
+            p_hist_surrogates = hist_surrogates + in_bins
+                                + *p_symbolic_surrogates;
+            (*p_hist_surrogates)++;
+
+            //  Set pointer to original_data(i,k+1)
+            p_original++;
+            //  Set pointer to surrogates(i,k+1)
+            p_surrogates++;
+            //  Set pointer to symbolic_original(i,k+1)
+            p_symbolic_original++;
+            //  Set pointer to symbolic_surrogates(i,k+1)
+            p_symbolic_surrogates++;
+        }
+        in_bins += n_bins;
+        in_time += n_time;
+    }
+
+    //  Initialize in_time, in_bins
+    in_time = in_bins = 0;
+
+    for (i = 0; i < N; i++) {
+
+        //  Set pointer to mi(i,0)
+        p_mi = mi + i*N;
+
+        //  Initialize jn_time = 0;
+        jn_time = jn_bins = 0;
+
+        for (j = 0; j < N; j++) {
+
+            //  Don't do anything if i = j, this case is not of
+            //  interest here!
+            if (i != j) {
+
+                //  Set pointer to symbolic_original(i,0)
+                p_symbolic_original = symbolic_original + in_time;
+                //  Set pointer to symbolic_surrogates(j,0)
+                p_symbolic_surrogates = symbolic_surrogates + jn_time;
+
+                //  Calculate 2d-histogram for one pair of time series
+                //  (i,j).
+                for (k = 0; k < n_time; k++) {
+
+                    //  Set pointer to hist2d(*p_symbolic_original,
+                    //                        *p_symbolic_surrogates)
+                    p_hist2d = hist2d + (*p_symbolic_original)*n_bins
+                               + *p_symbolic_surrogates;
+
+                    (*p_hist2d)++;
+
+                    //  Set pointer to symbolic_original(i,k+1)
+                    p_symbolic_original++;
+                    //  Set pointer to symbolic_surrogates(j,k+1)
+                    p_symbolic_surrogates++;
+                }
+
+                //  Calculate mutual information for one pair of time
+                //  series (i,j)
+
+                //  Set pointer to hist_original(i,0)
+                p_hist_original = hist_original + in_bins;
+
+                for (l = 0; l < n_bins; l++) {
+
+                    //  Set pointer to hist_surrogates(j,0)
+                    p_hist_surrogates = hist_surrogates + jn_bins;
+                    //  Set pointer to hist2d(l,0)
+                    p_hist2d = hist2d + l*n_bins;
+
+                    hpl = (*p_hist_original) * norm;
+
+                    if (hpl > 0.0) {
+                        for (m = 0; m < n_bins; m++) {
+
+                            hpm = (*p_hist_surrogates) * norm;
+
+                            if (hpm > 0.0) {
+                                plm = (*p_hist2d) * norm;
+                                if (plm > 0.0)
+                                    *p_mi += plm * log(plm/hpm/hpl);
+                            }
+
+                            //  Set pointer to hist_surrogates(j,m+1)
+                            p_hist_surrogates++;
+                            //  Set pointer to hist2d(l,m+1)
+                            p_hist2d++;
+                        }
+                    }
+                    //  Set pointer to hist_original(i,l+1)
+                    p_hist_original++;
+                }
+
+                //  Reset hist2d to zero in all bins
+                for (l = 0; l < n_bins; l++) {
+
+                    //  Set pointer to hist2d(l,0)
+                    p_hist2d = hist2d + l*n_bins;
+
+                    for (m = 0; m < n_bins; m++) {
+                        *p_hist2d = 0;
+
+                        //  Set pointer to hist2d(l,m+1)
+                        p_hist2d++;
+                    }
+                }
+            }
+            //  Set pointer to mi(i,j+1)
+            p_mi++;
+
+            jn_time += n_time;
+            jn_bins += n_bins;
+        }
+        in_time += n_time;
+        in_bins += n_bins;
+    }
+}
+
+
+void _test_mutual_information_slow(int N, int n_time, int n_bins,
+    double scaling, double range_min, double *original_data,
+    double *surrogates, int *symbolic_original, int *symbolic_surrogates,
+    int *hist_original, int *hist_surrogates, int * hist2d, float *mi)  {
+
+    int i, j, k, l, m;
+    int symbol, symbol_i, symbol_j;
+    double rescaled, norm, hpl, hpm, plm;
+
+    //  Calculate histogram norm
+    norm = 1.0 / n_time;
+
+    for (i = 0; i < N; i++) {
+        for (k = 0; k < n_time; k++) {
+
+            //  Original time series
+            //  Calculate symbolic trajectories for each time series,
+            //  where the symbols are bins
+            rescaled = scaling * (original_data[i*N+k] - range_min);
+
+            if (rescaled< 1.0)
+                symbolic_original[i*N+k] = rescaled * n_bins;
+            else
+                symbolic_original[i*N+k] = n_bins - 1;
+
+            //  Calculate 1d-histograms for single time series
+            symbol = symbolic_original[i*N+k];
+            hist_original[i*N+symbol] += 1;
+
+            //  Surrogate time series
+            //  Calculate symbolic trajectories for each time series,
+            //  where the symbols are bins
+            rescaled = scaling * (surrogates[i*N+k] - range_min);
+
+            if (rescaled < 1.0)
+                symbolic_surrogates[i*N+k] = rescaled * n_bins;
+            else
+                symbolic_surrogates[i*N+k] = n_bins - 1;
+
+            //  Calculate 1d-histograms for single time series
+            symbol = symbolic_surrogates[i*N+k];
+            hist_surrogates[i*N+symbol] += 1;
+        }
+    }
+
+    for (i = 0; i < N; i++) {
+        for (j = 0; j < N; j++) {
+
+            //  The case i = j is not of interest here!
+            if (i != j) {
+                //  Calculate 2d-histogram for one pair of time series
+                //  (i,j).
+                for (k = 0; k < n_time; k++) {
+                    symbol_i = symbolic_original[i*N+k];
+                    symbol_j = symbolic_surrogates[j*N+k];
+                    hist2d[symbol_i*n_bins+symbol_j] += 1;
+                }
+
+                //  Calculate mutual information for one pair of time
+                //  series (i,j).
+                for (l = 0; l < n_bins; l++) {
+                    hpl = hist_original[i*N+l] * norm;
+                    if (hpl > 0.0) {
+                        for (m = 0; m < n_bins; m++) {
+                            hpm = hist_surrogates[j*N+m] * norm;
+                            if (hpm > 0.0) {
+                                plm = hist2d[l*n_bins+m] * norm;
+                                if (plm > 0.0) {
+                                    mi[i*N+j] += plm * log(plm/hpm/hpl);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //  Reset hist2d to zero in all bins
+                for (l = 0; l < n_bins; l++) {
+                    for (m = 0; m < n_bins; m++)
+                        hist2d[l*n_bins+m] = 0;
+                }
             }
         }
     }
