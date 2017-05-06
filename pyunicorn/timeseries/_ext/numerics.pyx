@@ -54,7 +54,7 @@ cdef extern from "src_numerics.c":
     void _euclidean_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
         double *x_embedded, double *y_embedded, float *distance)
     void _supremum_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
-        double *x_embedded, double *y_embedded, float *distance)
+        float *x_embedded, float *y_embedded, float *distance)
     void _test_pearson_correlation_fast(double *original_data,
         double *surrogates, float *correlation, int n_time, int N, double norm)
     void _test_pearson_correlation_slow(double *original_data,
@@ -115,8 +115,8 @@ def _supremum_distance_matrix_crp(
 
     _supremum_distance_matrix_fast(
         ntime_x, ntime_y, dim,
-        <double*> np.PyArray_DATA(x_embedded),
-        <double*> np.PyArray_DATA(y_embedded),
+        <float*> np.PyArray_DATA(x_embedded),
+        <float*> np.PyArray_DATA(y_embedded),
         <float*> np.PyArray_DATA(distance))
 
     return distance
