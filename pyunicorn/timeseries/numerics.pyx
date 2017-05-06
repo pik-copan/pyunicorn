@@ -6,6 +6,9 @@
 # License: BSD (3-clause)
 
 # distutils: sources = pyunicorn/timeseries/_ext/src_fast_numerics.c
+# distutils: library_dirs =  pyunicorn/timeseries/_ext
+# distutils: libraries = ./_ext/src_fast_numerics
+# distutils: include_dirs =  pyunicorn/timeseries/_ext
 
 cimport cython
 from cpython cimport bool
