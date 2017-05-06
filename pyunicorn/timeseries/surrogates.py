@@ -244,7 +244,7 @@ class Surrogates(object):
         nR = np.empty(n_time)
 
         _twins_s(N, n_time, dimension, threshold, min_dist, embedding_array, R,
-               nR, twins)
+                 nR, twins)
         return twins
 
     #
@@ -511,7 +511,6 @@ class Surrogates(object):
             twins = self.twins(embedding, threshold, min_dist)
             self._twins = twins
             self._twins_cached = True
-
 
         return _twin_surrogates(N, n_time, twins, original_data)
 

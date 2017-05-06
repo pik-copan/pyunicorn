@@ -24,6 +24,7 @@ from pyunicorn.timeseries._ext.numerics import _manhattan_distance_matrix_crp,\
 #  Class definitions
 #
 
+
 class CrossRecurrencePlot(RecurrencePlot):
 
     """
@@ -218,8 +219,8 @@ class CrossRecurrencePlot(RecurrencePlot):
         ntime_x = x_embedded.shape[0]
         ntime_y = y_embedded.shape[0]
         dim = x_embedded.shape[1]
-        return _manhattan_distance_matrix_crp(ntime_x, ntime_y, dim, x_embedded,
-                                              y_embedded)
+        return _manhattan_distance_matrix_crp(ntime_x, ntime_y, dim,
+                                              x_embedded, y_embedded)
 
     def euclidean_distance_matrix(self, x_embedded, y_embedded):
         """
@@ -238,8 +239,8 @@ class CrossRecurrencePlot(RecurrencePlot):
         ntime_x = x_embedded.shape[0]
         ntime_y = y_embedded.shape[0]
         dim = x_embedded.shape[1]
-        return _euclidean_distance_matrix_crp(ntime_x, ntime_y, dim, x_embedded, 
-                                              y_embedded)
+        return _euclidean_distance_matrix_crp(ntime_x, ntime_y, dim,
+                                              x_embedded, y_embedded)
 
     def supremum_distance_matrix(self, x_embedded, y_embedded):
         """
@@ -258,7 +259,7 @@ class CrossRecurrencePlot(RecurrencePlot):
         ntime_x = x_embedded.shape[0]
         ntime_y = y_embedded.shape[0]
         dim = x_embedded.shape[1]
-        return _supremum_distance_matrix_crp(ntime_x, ntime_y, dim, x_embedded, 
+        return _supremum_distance_matrix_crp(ntime_x, ntime_y, dim, x_embedded,
                                              y_embedded)
 
     def set_fixed_threshold(self, threshold):
