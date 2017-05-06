@@ -5,24 +5,56 @@ from setuptools.extension import Extension
 
 import numpy as np
 
+
+class lazy_cythonize(list):
+    """evaluates extension list lazyly.
+    following pattern is taken from http://tinyurl.com/qb8478q"""
+    def __init__(self, callback):
+        self._list, self.callback = None, callback
+
+    def c_list(self):
+        if self._list is None:
+            self._list = self.callback()
+        return self._list
+
+    def __iter__(self):
+        for e in self.c_list():
+            yield e
+
+    def __getitem__(self, ii): return self.c_list()[ii]
+
+    def __len__(self): return len(self.c_list())
+
+
 try:
     from Cython.Build import cythonize
+    from Cython.Distutils import build_ext
     CYTHON = True
 except ImportError:
     CYTHON = False
 
-extensions = [
+
+exts = [
     Extension(
-        '*', sources=['pyunicorn/%s/numerics.%s' % (pkg, 'pyx' if CYTHON else 'c')],
-        include_dirs=[np.get_include()],
+        '*', sources=['pyunicorn/%s/_ext/numerics.%s' % 
+                      (pkg, 'pyx' if CYTHON else 'c')],
+        include_dirs=['.', np.get_include()],
         extra_compile_args=['-O3', '-std=c99'])
     for pkg in ['core', 'timeseries']]
 
-if CYTHON:
-    extensions = cythonize(extensions, compiler_directives={
-        'language_level': 2, 'embedsignature': True,
-        'boundscheck': False, 'wraparound': False, 'initializedcheck': False,
-        'nonecheck': False})
+cmdclass = { }
+
+
+def extensions():
+    if CYTHON:
+        cmdclass.update({ 'build_ext': build_ext })
+        return cythonize(exts, compiler_directives={
+            'language_level': 2, 'embedsignature': True,
+            'boundscheck': False, 'wraparound': False,
+            'initializedcheck': False, 'nonecheck': False})
+    else:
+        return exts
+
 
 setup(
     name='pyunicorn',
@@ -49,12 +81,13 @@ nonlinear climate recurrence plot surrogates spatial model',
         'Topic :: Scientific/Engineering :: Physics',
         'Intended Audience :: Science/Research'],
     provides=['pyunicorn'],
-    packages=['pyunicorn', 'pyunicorn.core', 'pyunicorn.climate',
-              'pyunicorn.timeseries', 'pyunicorn.timeseries._ext',
-              'pyunicorn.funcnet', 'pyunicorn.utils',
-              'pyunicorn.utils.progressbar'],
+    packages=['pyunicorn', 'pyunicorn.core', 'pyunicorn.core._ext',
+              'pyunicorn.climate', 'pyunicorn.timeseries',
+              'pyunicorn.timeseries._ext', 'pyunicorn.funcnet',
+              'pyunicorn.utils', 'pyunicorn.utils.progressbar'],
     scripts=[],
-    ext_modules=extensions,
+    cmdclass=cmdclass,
+    ext_modules=lazy_cythonize(extensions) if CYTHON else exts,
     install_requires=open('requirements.txt', 'r').read().split('\n'),
     platforms=['all']
 )

@@ -18,7 +18,7 @@ from math import factorial
 import numpy as np
 
 # C++ inline code
-from .numerics import _embed_time_series, _manhatten_distance_matrix, \
+from ._ext.numerics import _embed_time_series, _manhatten_distance_matrix, \
     _euclidean_distance_matrix, _supremum_distance_matrix, \
     _set_adaptive_neighborhood_size, _bootstrap_distance_matrix_manhatten, \
     _bootstrap_distance_matrix_euclidean, _bootstrap_distance_matrix_supremum,\

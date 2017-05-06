@@ -29,7 +29,7 @@ except ImportError:
 Some functionality in Grid class might not be available."
 
 #  Cythonized functions
-from .numerics import _cy_calculate_angular_distance, _euclidiean_distance
+from ._ext.numerics import _cy_calculate_angular_distance, _euclidiean_distance
 
 #
 #  Define class Grid

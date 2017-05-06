@@ -17,7 +17,7 @@ from numpy import random
 
 #  Import Network base class and Cython code
 from .network import Network, NetworkError
-from .numerics import                                    \
+from ._ext.numerics import                              \
     _randomlySetCrossLinks, _randomlyRewireCrossLinks,   \
     _cross_transitivity, _nsi_cross_transitivity,        \
     _cross_local_clustering, _nsi_cross_local_clustering
