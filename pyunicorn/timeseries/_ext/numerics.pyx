@@ -47,7 +47,7 @@ cdef extern from "time.h":
     double time()
 
 
-cdef extern from "src_fast_numerics.c":
+cdef extern from "src_numerics.c":
     void _test_pearson_correlation_fast(double *original_data,
         double *surrogates, float *correlation, int n_time, int N, double norm)
     void _test_pearson_correlation_slow(double *original_data,
