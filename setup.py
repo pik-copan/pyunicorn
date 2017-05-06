@@ -36,7 +36,7 @@ except ImportError:
 exts = [
     Extension(
         'pyunicorn.%s._ext.numerics' % (pkg),
-        sources=['pyunicorn/%s/_ext/numerics.%s' % 
+        sources=['pyunicorn/%s/_ext/numerics.%s' %
                  (pkg, 'pyx' if CYTHON else 'c')],
         include_dirs=['.', np.get_include()],
         extra_compile_args=['-O3', '-std=c99'])

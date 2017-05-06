@@ -5,9 +5,6 @@
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
-# distutils: include_dirs =  pyunicorn/timeseries/_ext
-# distutils: extra_compile_args= -Ipyunicorn/timeseries/_ext
-
 cimport cython
 from cpython cimport bool
 from libc.math cimport sqrt, floor

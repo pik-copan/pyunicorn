@@ -1,5 +1,4 @@
-\
-        #!/usr/bin/python
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
