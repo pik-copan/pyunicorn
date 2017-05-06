@@ -5,7 +5,6 @@
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
-# distutils: sources = pyunicorn/timeseries/_ext/src_fast_numerics.c
 # distutils: include_dirs =  pyunicorn/timeseries/_ext
 # distutils: extra_compile_args= -Ipyunicorn/timeseries/_ext
 
@@ -51,7 +50,7 @@ cdef extern from "time.h":
     double time()
 
 
-cdef extern from "src_fast_numerics.h":
+cdef extern from "src_fast_numerics.c":
     void _test_pearson_correlation_fast(double *original_data,
         double *surrogates, float *correlation, int n_time, int N, double norm)
     void _test_pearson_correlation_slow(double *original_data,
