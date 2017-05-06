@@ -28,7 +28,6 @@ class lazy_cythonize(list):
 
 try:
     from Cython.Build import cythonize
-    from Cython.Distutils import build_ext
     CYTHON = True
 except ImportError:
     CYTHON = False
@@ -43,12 +42,9 @@ exts = [
         extra_compile_args=['-O3', '-std=c99'])
     for pkg in ['core', 'timeseries']]
 
-cmdclass = { }
-
 
 def extensions():
     if CYTHON:
-        cmdclass.update({ 'build_ext': build_ext })
         return cythonize(exts, compiler_directives={
             'language_level': 2, 'embedsignature': True,
             'boundscheck': False, 'wraparound': False,
@@ -87,7 +83,6 @@ nonlinear climate recurrence plot surrogates spatial model',
               'pyunicorn.timeseries._ext', 'pyunicorn.funcnet',
               'pyunicorn.utils', 'pyunicorn.utils.progressbar'],
     scripts=[],
-    cmdclass=cmdclass,
     ext_modules=lazy_cythonize(extensions) if CYTHON else exts,
     install_requires=open('requirements.txt', 'r').read().split('\n'),
     platforms=['all']
