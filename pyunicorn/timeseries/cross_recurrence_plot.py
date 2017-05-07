@@ -192,14 +192,14 @@ class CrossRecurrencePlot(RecurrencePlot):
         """
         #  Return distance matrix according to chosen metric:
         if metric == "manhattan":
-            return self.manhattan_distance_matrix(float(x_embedded),
-                                                  float(y_embedded))
+            return self.manhattan_distance_matrix(x_embedded.astype('float32'),
+                                                  y_embedded.astype('float32'))
         elif metric == "euclidean":
-            return self.euclidean_distance_matrix(float(x_embedded),
-                                                  float(y_embedded))
+            return self.euclidean_distance_matrix(x_embedded.astype('float32'),
+                                                  y_embedded.astype('float32'))
         elif metric == "supremum":
-            return self.supremum_distance_matrix(float(x_embedded),
-                                                 float(y_embedded))
+            return self.supremum_distance_matrix(x_embedded.astype('float32'),
+                                                 y_embedded.astype('float32'))
 
     #
     #  Calculate recurrence plot
