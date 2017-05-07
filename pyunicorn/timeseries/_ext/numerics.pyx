@@ -107,8 +107,8 @@ def _euclidean_distance_matrix_crp(
 
 def _supremum_distance_matrix_crp(
     int ntime_x, int ntime_y, int dim, 
-    np.ndarray[double, ndim=2, mode='c'] x_embedded not None,
-    np.ndarray[double, ndim=2, mode='c'] y_embedded not None):
+    np.ndarray[float, ndim=2, mode='c'] x_embedded not None,
+    np.ndarray[float, ndim=2, mode='c'] y_embedded not None):
 
     cdef np.ndarray[float, ndim=2, mode='c'] distance = \
         np.zeros((ntime_x, ntime_y), dtype="float32")

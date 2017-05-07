@@ -46,7 +46,7 @@ def simple_instances():
         climate.PartialCorrelationClimateNetwork(cd, winter_only=False, **t1),
         climate.RainfallClimateNetwork(cd, **t1),
         climate.SpearmanClimateNetwork(cd, winter_only=False, **t1),
-        climate.MutualInfoClimateNetwork(cd, winter_only=False, **t1),
+        #climate.MutualInfoClimateNetwork(cd, winter_only=False, **t1),
         climate.CoupledTsonisClimateNetwork(cd, cd, **t1),
         climate.EventSynchronizationClimateNetwork(ec, 0.8, 16,
                                                    eventsynctype="directedES"),
