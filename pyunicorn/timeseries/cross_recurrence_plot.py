@@ -192,11 +192,14 @@ class CrossRecurrencePlot(RecurrencePlot):
         """
         #  Return distance matrix according to chosen metric:
         if metric == "manhattan":
-            return self.manhattan_distance_matrix(x_embedded, y_embedded)
+            return self.manhattan_distance_matrix(float(x_embedded),
+                                                  float(y_embedded))
         elif metric == "euclidean":
-            return self.euclidean_distance_matrix(x_embedded, y_embedded)
+            return self.euclidean_distance_matrix(float(x_embedded),
+                                                  float(y_embedded))
         elif metric == "supremum":
-            return self.supremum_distance_matrix(x_embedded, y_embedded)
+            return self.supremum_distance_matrix(float(x_embedded),
+                                                 float(y_embedded))
 
     #
     #  Calculate recurrence plot
@@ -259,8 +262,8 @@ class CrossRecurrencePlot(RecurrencePlot):
         ntime_x = x_embedded.shape[0]
         ntime_y = y_embedded.shape[0]
         dim = x_embedded.shape[1]
-        return _supremum_distance_matrix_crp(ntime_x, ntime_y, dim, x_embedded,
-                                             y_embedded)
+        return _supremum_distance_matrix_crp(ntime_x, ntime_y, dim,
+                                             x_embedded, y_embedded)
 
     def set_fixed_threshold(self, threshold):
         """
