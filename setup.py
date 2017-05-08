@@ -40,7 +40,7 @@ exts = [
                  (pkg, 'pyx' if CYTHON else 'c')],
         include_dirs=['.', np.get_include()],
         extra_compile_args=['-O3', '-std=c99'])
-    for pkg in ['core', 'timeseries']]
+    for pkg in ['core', 'funcnet', 'timeseries']]
 
 
 def extensions():
@@ -81,7 +81,8 @@ nonlinear climate recurrence plot surrogates spatial model',
     packages=['pyunicorn', 'pyunicorn.core', 'pyunicorn.core._ext',
               'pyunicorn.climate', 'pyunicorn.timeseries',
               'pyunicorn.timeseries._ext', 'pyunicorn.funcnet',
-              'pyunicorn.utils', 'pyunicorn.utils.progressbar'],
+              'pyunicorn.funcnet._ext', 'pyunicorn.utils',
+              'pyunicorn.utils.progressbar'],
     scripts=[],
     ext_modules=lazy_cythonize(extensions) if CYTHON else exts,
     install_requires=open('requirements.txt', 'r').read().split('\n'),

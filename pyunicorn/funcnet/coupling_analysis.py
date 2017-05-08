@@ -17,7 +17,9 @@ from scipy import special, linalg   # special math functions
 
 # import mpi                          # parallelized computations
 
-from .. import weave_inline          # C++ inline code
+# C++ inline code
+from .. import weave_inline
+from pyunicorn.funcnet._ext.numerics import _symmetrize_by_absmax
 
 
 #
@@ -122,29 +124,7 @@ class CouplingAnalysis(object):
         """
 
         N = self.N
-
-        code = r"""
-        int i,j;
-        // loop over all node pairs
-        for (i = 0; i < N; i++) {
-            for (j = i+1; j < N; j++) {
-                // calculate max and argmax by comparing to
-                // previous value and storing max
-                if (fabs(similarity_matrix(i,j)) >
-                        fabs(similarity_matrix(j,i))) {
-                    similarity_matrix(j,i) = similarity_matrix(i,j);
-                    lag_matrix(j,i) = -lag_matrix(i,j);
-                }
-                else {
-                    similarity_matrix(i,j) = similarity_matrix(j,i);
-                    lag_matrix(i,j) = -lag_matrix(j,i);
-                }
-            }
-        }
-        """
-        weave_inline(locals(), code, ['similarity_matrix', 'lag_matrix', 'N'])
-
-        return similarity_matrix, lag_matrix
+        return _symmetrize_by_absmax(similarity_matrix, lag_matrix, N)
 
     #
     #  Define methods to estimate similarity measures
