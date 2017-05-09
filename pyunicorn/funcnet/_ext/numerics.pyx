@@ -32,18 +32,18 @@ ctypedef np.float64_t FLOAT64TYPE_t
 
 
 cdef extern from "src_numerics.c":
-    void _symmetrize_by_absmax_fast(double *similarity_matrix,
-            double *lag_matrix, int N)
+    void _symmetrize_by_absmax_fast(float *similarity_matrix,
+            float *lag_matrix, int N)
 
 
 # coupling_analysis ===========================================================
 
 def _symmetrize_by_absmax(
-    np.ndarray[double, ndim=2, mode='c'] similarity_matrix not None,
-    np.ndarray[double, ndim=2, mode='c'] lag_matrix not None, int N):
+    np.ndarray[float, ndim=2, mode='c'] similarity_matrix not None,
+    np.ndarray[float, ndim=2, mode='c'] lag_matrix not None, int N):
 
     _symmetrize_by_absmax_fast(
-        <double*> np.PyArray_DATA(similarity_matrix),
-        <double*> np.PyArray_DATA(lag_matrix), N)
+        <float*> np.PyArray_DATA(similarity_matrix),
+        <float*> np.PyArray_DATA(lag_matrix), N)
 
     return similarity_matrix, lag_matrix
