@@ -32,7 +32,8 @@ ctypedef np.float64_t FLOAT64TYPE_t
 
 
 cdef extern from "src_numerics.c":
-    void _symmetrize_by_absmax_fast(double *similarity_matrix, double *lag_matrix, int N)
+    void _symmetrize_by_absmax_fast(double *similarity_matrix,
+            double *lag_matrix, int N)
 
 
 # coupling_analysis ===========================================================
