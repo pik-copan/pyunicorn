@@ -11,7 +11,7 @@
 
 // coupling_analysis ==========================================================
 
-void _symmetrize_by_absmax_fast(float *similarity_matrix, float *lag_matrix,
+void _symmetrize_by_absmax_fast(float *similarity_matrix, int *lag_matrix,
     int N)  {
 
     int i,j;

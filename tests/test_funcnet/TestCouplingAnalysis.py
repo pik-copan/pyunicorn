@@ -32,11 +32,10 @@ def testSymmetrizeByAbsmax():
     ca = CouplingAnalysis(tdata)
     similarity_matrix = np.random.rand(n_index, n_times)
     lag_matrix = np.random.rand(n_index, n_times)
-    sm_new, lm_new = ca.symmetrize_by_absmax(similarity_matrix, lag_matrix)
+    sm_new = ca.symmetrize_by_absmax(similarity_matrix, lag_matrix)[0]
     for i in range(n_index):
         for j in range(n_times):
-            assert sm_new[i,j] >= similarity_matrix[i,j]
-            assert lm_new[i,j] >= lag_matrix[i,j]
+            assert sm_new[i,j] >= similarity_matrix[i,j].astype('float32')
 
 def testCrossCorrelation():
     tdata = create_test_data()
