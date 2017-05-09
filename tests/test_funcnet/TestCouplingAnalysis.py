@@ -35,7 +35,7 @@ def testSymmetrizeByAbsmax():
     sm_new = ca.symmetrize_by_absmax(similarity_matrix, lag_matrix)[0]
     for i in range(n_index):
         for j in range(n_times):
-            assert sm_new[i,j] >= similarity_matrix[i,j].astype('float32')
+            assert sm_new[i,j] >= similarity_matrix[i,j]
 
 def testCrossCorrelation():
     tdata = create_test_data()
