@@ -29,10 +29,10 @@ def create_test_data():
 def testSymmetrizeByAbsmax():
     tdata = create_test_data()
     n_index, n_times = tdata.shape
-    ca = CouplingAnalysis(tdata)
+    coup_ana = CouplingAnalysis(tdata)
     similarity_matrix = np.random.rand(n_index, n_times)
-    lag_matrix = np.random.rand(n_index, n_times)
-    sm_new = ca.symmetrize_by_absmax(similarity_matrix, lag_matrix)[0]
+    lag_matrix = np.random.rand(n_index, n_times).astype(np.int)
+    sm_new = coup_ana.symmetrize_by_absmax(similarity_matrix, lag_matrix)[0]
     for i in range(n_index):
         for j in range(n_times):
             assert sm_new[i,j] >= similarity_matrix[i,j]

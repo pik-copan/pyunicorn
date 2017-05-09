@@ -125,7 +125,7 @@ class CouplingAnalysis(object):
 
         N = self.N
         return _symmetrize_by_absmax(similarity_matrix,
-                                     lag_matrix.astype(numpy.int), N)
+                                     lag_matrix, N)
 
     #
     #  Define methods to estimate similarity measures
