@@ -40,10 +40,10 @@ cdef extern from "src_numerics.c":
 
 def _symmetrize_by_absmax(
     np.ndarray[float, ndim=2, mode='c'] similarity_matrix not None,
-    np.ndarray[float, ndim=2, mode='c'] lag_matrix not None, int N):
+    np.ndarray[int, ndim=2, mode='c'] lag_matrix not None, int N):
 
     _symmetrize_by_absmax_fast(
         <float*> np.PyArray_DATA(similarity_matrix),
-        <float*> np.PyArray_DATA(lag_matrix), N)
+        <int*> np.PyArray_DATA(lag_matrix), N)
 
     return similarity_matrix, lag_matrix
