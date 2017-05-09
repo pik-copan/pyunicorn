@@ -31,7 +31,7 @@ def testSymmetrizeByAbsmax():
     n_index, n_times = tdata.shape
     coup_ana = CouplingAnalysis(tdata)
     similarity_matrix = np.random.rand(n_index, n_times).astype('float32')
-    lag_matrix = np.random.rand(n_index, n_times).astype(np.int)
+    lag_matrix = np.random.rand(n_index, n_times).astype(np.int8)
     sm_new = coup_ana.symmetrize_by_absmax(similarity_matrix, lag_matrix)[0]
     for i in range(n_index):
         for j in range(n_times):

@@ -11,8 +11,8 @@
 
 // coupling_analysis ==========================================================
 
-void _symmetrize_by_absmax_fast(float *similarity_matrix, int *lag_matrix,
-    int N)  {
+void _symmetrize_by_absmax_fast(float *similarity_matrix,
+    signed char *lag_matrix, int N)  {
 
     int i,j;
     // loop over all node pairs
