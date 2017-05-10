@@ -34,6 +34,12 @@ ctypedef np.float64_t FLOAT64TYPE_t
 cdef extern from "src_numerics.c":
     void _symmetrize_by_absmax_fast(float *similarity_matrix,
             signed char *lag_matrix, int N)
+    void _cross_correlation_max_fast(float *array, float *similarity_matrix,
+            signed char *lag_matrix, int N, int tau_max, int corr_range)
+    void _cross_correlation_all_fast(float *array, float *lagfuncs, int N,
+            int tau_max, int corr_range) 
+    void __get_nearest_neighbors_fast(float *array, int T, int dim_x, int dim_y,
+            int k, int dim, int *k_xy, int *k_yz, int *k_z)
 
 
 # coupling_analysis ===========================================================
@@ -47,3 +53,88 @@ def _symmetrize_by_absmax(
         <signed char*> np.PyArray_DATA(lag_matrix), N)
 
     return similarity_matrix, lag_matrix
+
+
+def _cross_correlation_max(
+    np.ndarray[FLOAT32TYPE_t, ndim=3, mode='c'] array not None,
+    int N, int tau_max, int corr_range):
+
+    cdef np.ndarray[FLOAT32TYPE_t, ndim=2, mode='c'] similarity_matrix = \
+        np.ones((N, N), dtype="float32")
+    cdef np.ndarray[INT8TYPE_t, ndim=2, mode='c'] lag_matrix = \
+        np.zeros((N, N), dtype='int8')
+
+    cdef:
+        double crossij, max
+        int i,j,tau,k, argmax
+
+    # loop over all node pairs, NOT symmetric due to time shifts!
+    for i in xrange(N):
+        for j in xrange(N):
+            if i != j:
+                max = 0.0
+                argmax = 0
+                # loop over taus INCLUDING the last tau value
+                for tau in xrange(tau_max + 1):
+                    crossij = 0
+                    # here the actual cross correlation is calculated
+                    # assuming standardized arrays
+                    for k in xrange(corr_range):
+                        crossij += array[tau,i,k] * array[tau_max,j,k]
+                    # calculate max and argmax by comparing to
+                    # previous value and storing max
+                    if abs(crossij) > abs(max): 
+                        max = crossij
+                        argmax = tau
+                similarity_matrix[i,j] = max/(float)(corr_range)
+                lag_matrix[i,j] = tau_max - argmax
+
+    return similarity_matrix, lag_matrix
+
+def _cross_correlation_all(
+        np.ndarray[FLOAT32TYPE_t, ndim=3, mode='c'] array not None,
+        int N, int tau_max, int corr_range):
+
+    """
+    lagfuncs = np.zeros((N, N, tau_max+1), dtype="float32")
+    """
+    cdef np.ndarray[FLOAT32TYPE_t, ndim=3, mode='c'] lagfuncs = \
+        np.zeros((N, N, tau_max+1), dtype="float32")
+
+    cdef:
+        int i, j, tau, k
+        double crossij
+    # loop over all node pairs, NOT symmetric due to time shifts!
+    for i in xrange(N):
+        for j in xrange(N):
+            # loop over taus INCLUDING the last tau value
+            for tau in xrange(tau_max):
+                crossij = 0
+                # here the actual cross correlation is calculated
+                # assuming standardized arrays
+                for k in xrange(corr_range):
+                    crossij += array[tau,i,k] * array[tau_max,j,k]
+
+                lagfuncs[i,j,tau_max-tau] = crossij/(float)(corr_range)
+
+    return lagfuncs
+
+
+def __get_nearest_neighbors(
+        np.ndarray[FLOATTYPE_t, ndim=1, mode='c'] array not None,
+        int T, int dim_x, int dim_y, int k, int dim):
+    
+    # Initialize
+    cdef np.ndarray[INT32TYPE_t, ndim=1, mode='c'] k_xz = \
+            np.zeros((T), dtype='int32')
+    cdef np.ndarray[INT32TYPE_t, ndim=1, mode='c'] k_yz = \
+            np.zeros((T), dtype='int32')
+    cdef np.ndarray[INT32TYPE_t, ndim=1, mode='c'] k_z = \
+            np.zeros((T), dtype='int32')
+
+    __get_nearest_neighbors_fast(
+        <float*> np.PyArray_DATA(array), T, dim_x, dim_y, k, dim,
+        <int*> np.PyArray_DATA(k_xz), <int*> np.PyArray_DATA(k_yz),
+        <int*> np.PyArray_DATA(k_z))
+
+    return k_xz, k_yz, k_z

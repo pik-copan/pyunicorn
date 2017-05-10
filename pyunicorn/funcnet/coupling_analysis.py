@@ -17,9 +17,9 @@ from scipy import special, linalg   # special math functions
 
 # import mpi                          # parallelized computations
 
-# C++ inline code
-from .. import weave_inline
-from pyunicorn.funcnet._ext.numerics import _symmetrize_by_absmax
+from pyunicorn.funcnet._ext.numerics import _symmetrize_by_absmax, \
+        _cross_correlation_max, _cross_correlation_all, \
+        __get_nearest_neighbors
 
 
 #
@@ -212,75 +212,10 @@ class CouplingAnalysis(object):
             array[t][numpy.isnan(array[t])] = 0
 
         if lag_mode == 'max':
-            similarity_matrix = numpy.ones((self.N, self.N), dtype='float32')
-            lag_matrix = numpy.zeros((self.N, self.N), dtype='int8')
-
-            code = r"""
-            int i,j,tau,k, argmax;
-            double crossij, max;
-            // loop over all node pairs, NOT symmetric due to time shifts!
-            for (i = 0; i < N; i++) {
-                for (j = 0; j < N; j++) {
-                    if( i != j){
-                        max = 0.0;
-                        argmax = 0;
-                        // loop over taus INCLUDING the last tau value
-                        for( tau = 0; tau < tau_max + 1; tau++) {
-                            crossij = 0;
-                            // here the actual cross correlation is calculated
-                            // assuming standardized arrays
-                            for ( k = 0; k < corr_range; k++) {
-                                crossij += array(tau, i, k) *
-                                           array(tau_max, j, k);
-                            }
-                            // calculate max and argmax by comparing to
-                            // previous value and storing max
-                            if (fabs(crossij) > fabs(max)) {
-                                max = crossij;
-                                argmax = tau;
-                            }
-                        }
-                        similarity_matrix(i,j) = max/(float)(corr_range);
-                        lag_matrix(i,j) = tau_max - argmax;
-                    }
-                }
-            }
-            """
-            weave_inline(locals(), code,
-                         ['array', 'similarity_matrix', 'lag_matrix', 'N',
-                          'tau_max', 'corr_range'])
-
-            return similarity_matrix, lag_matrix
+            return _cross_correlation_max(array.copy(order='c'), N, tau_max, corr_range)
 
         elif lag_mode == 'all':
-
-            lagfuncs = numpy.zeros((self.N, self.N, tau_max+1),
-                                   dtype='float32')
-
-            code = r"""
-            int i,j,tau,k, argmax;
-            double crossij, max;
-            // loop over all node pairs, NOT symmetric due to time shifts!
-            for (i = 0; i < N; i++) {
-                for (j = 0; j < N; j++) {
-                    // loop over taus INCLUDING the last tau value
-                    for( tau = 0; tau < tau_max + 1; tau++) {
-                        crossij = 0;
-                        // here the actual cross correlation is calculated
-                        // assuming standardized arrays
-                        for ( k = 0; k < corr_range; k++) {
-                            crossij += array(tau, i, k) * array(tau_max, j, k);
-                        }
-                        lagfuncs(i,j,tau_max-tau) =
-                            crossij/(float)(corr_range);
-                    }
-                }
-            }
-            """
-            weave_inline(locals(), code,
-                         ['array', 'lagfuncs', 'N', 'tau_max', 'corr_range'])
-
-            return lagfuncs
+            return _cross_correlation_all(array.copy(order='c'), N, tau_max, corr_range)
 
     def mutual_information(self, tau_max=0, estimator='knn',
                            knn=10, bins=6, lag_mode='max'):
@@ -735,130 +670,16 @@ class CouplingAnalysis(object):
         dim_x = int(numpy.where(xyz == 0)[0][-1] + 1)
         dim_y = int(numpy.where(xyz == 1)[0][-1] + 1 - dim_x)
         # dim_z = maxdim - dim_x - dim_y
-
+        
+        """
         # Initialize
         k_xz = numpy.zeros(T, dtype='int32')
         k_yz = numpy.zeros(T, dtype='int32')
         k_z = numpy.zeros(T, dtype='int32')
-
-        code = """
-        int i, j, index=0, t, m, n, d, kxz, kyz, kz, indexfound[T];//
-        double  dz=0., dxyz=0., dx=0., dy=0., eps, epsmax;
-        double dist[T*dim], dxyzarray[k+1];
-
-        // Loop over time
-        for(i = 0; i < T; i++){
-
-            // Growing cube algorithm: Test if n = #(points in epsilon-
-            // environment of reference point i) > k
-            // Start with epsilon for which 95% of points are inside the cube
-            // for a multivariate Gaussian
-            // eps increased by 2 later, also the initial eps
-            eps = 1.*pow( float(k)/float(T), 1./dim);
-
-            // n counts the number of neighbors
-            n = 0;
-            while(n <= k){
-                // Increase cube size
-                eps *= 2.;
-                // Start with zero again
-                n = 0;
-                // Loop through all points
-                for(t = 0; t < T; t++){
-                    d = 0;
-                    while(fabs(array[d*T + i] - array[d*T + t] ) < eps
-                            && d < dim){
-                            d += 1;
-                    }
-                    // If all distances are within eps, the point t lies
-                    // within eps and n is incremented
-                    if(d == dim){
-                        indexfound[n] = t;
-                        n += 1;
-                    }
-                }
-            }
-
-            // Calculate distance to points only within epsilon environment
-            // according to maximum metric
-            for(j = 0; j < n; j++){
-                index = indexfound[j];
-
-                dxyz = 0.;
-                for(d = 0; d < dim; d++){
-                    dist[d*T + j] = fabs(array[d*T + i] - array[d*T + index]);
-                    dxyz = fmax( dist[d*T + j], dxyz);
-                }
-
-                // Use insertion sort
-                dxyzarray[j] = dxyz;
-                if ( j > 0 ){
-                    // only list of smallest k+1 distances need to be kept!
-                    m = fmin(k, j-1);
-                    while ( m >= 0 && dxyzarray[m] > dxyz ){
-                        dxyzarray[m+1] = dxyzarray[m];
-                        m -= 1;
-                    }
-                    dxyzarray[m+1] = dxyz;
-                }
-
-            }
-
-            // Epsilon of k-th nearest neighbor in joint space
-            epsmax = dxyzarray[k];
-
-            // Count neighbors within epsmax in subspaces, since the reference
-            // point is included, all neighbors are at least 1
-            kz = 0;
-            kxz = 0;
-            kyz = 0;
-            for(j = 0; j < T; j++){
-
-                // X-subspace
-                dx = fabs(array[0*T + i] - array[0*T + j]);
-                for(d = 1; d < dim_x; d++){
-                    dist[d*T + j] = fabs(array[d*T + i] - array[d*T + j]);
-                    dx = fmax( dist[d*T + j], dx);
-                }
-
-                // Y-subspace
-                dy = fabs(array[dim_x*T + i] - array[dim_x*T + j]);
-                for(d = dim_x; d < dim_x+dim_y; d++){
-                    dist[d*T + j] = fabs(array[d*T + i] - array[d*T + j]);
-                    dy = fmax( dist[d*T + j], dy);
-                }
-
-                // Z-subspace, if empty, dz stays 0
-                dz = 0.;
-                for(d = dim_x+dim_y; d < dim ; d++){
-                    dist[d*T + j] = fabs(array[d*T + i] - array[d*T + j]);
-                    dz = fmax( dist[d*T + j], dz);
-                }
-
-                // For no conditions, kz is counted up to T
-                if (dz < epsmax){
-                    kz += 1;
-                    if (dx < epsmax){
-                        kxz += 1;
-                    }
-                    if (dy < epsmax){
-                        kyz += 1;
-                    }
-                }
-            }
-            // Write to numpy arrays
-            k_xz[i] = kxz;
-            k_yz[i] = kyz;
-            k_z[i] = kz;
-
-        }
         """
-        weave_inline(locals(), code,
-                     ['array', 'T', 'dim_x', 'dim_y', 'k', 'dim',
-                      'k_xz', 'k_yz', 'k_z'],
-                     blitz=False, headers=["<math.h>"])
 
-        return k_xz, k_yz, k_z
+        return __get_nearest_neighbors(array, T, dim_x, dim_y, k, dim)
+
 
     @staticmethod
     def _quantile_bin_array(array, bins=6):
