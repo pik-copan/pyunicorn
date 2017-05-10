@@ -19,7 +19,7 @@ from scipy import special, linalg   # special math functions
 
 from pyunicorn.funcnet._ext.numerics import _symmetrize_by_absmax, \
         _cross_correlation_max, _cross_correlation_all, \
-        __get_nearest_neighbors
+        _get_nearest_neighbors_cython
 
 
 #
@@ -212,10 +212,12 @@ class CouplingAnalysis(object):
             array[t][numpy.isnan(array[t])] = 0
 
         if lag_mode == 'max':
-            return _cross_correlation_max(array.copy(order='c'), N, tau_max, corr_range)
+            return _cross_correlation_max(array.copy(order='c'), N, tau_max,
+                                          corr_range)
 
         elif lag_mode == 'all':
-            return _cross_correlation_all(array.copy(order='c'), N, tau_max, corr_range)
+            return _cross_correlation_all(array.copy(order='c'), N, tau_max,
+                                          corr_range)
 
     def mutual_information(self, tau_max=0, estimator='knn',
                            knn=10, bins=6, lag_mode='max'):
@@ -670,16 +672,8 @@ class CouplingAnalysis(object):
         dim_x = int(numpy.where(xyz == 0)[0][-1] + 1)
         dim_y = int(numpy.where(xyz == 1)[0][-1] + 1 - dim_x)
         # dim_z = maxdim - dim_x - dim_y
-        
-        """
-        # Initialize
-        k_xz = numpy.zeros(T, dtype='int32')
-        k_yz = numpy.zeros(T, dtype='int32')
-        k_z = numpy.zeros(T, dtype='int32')
-        """
 
-        return __get_nearest_neighbors(array, T, dim_x, dim_y, k, dim)
-
+        return _get_nearest_neighbors_cython(array, T, dim_x, dim_y, k, dim)
 
     @staticmethod
     def _quantile_bin_array(array, bins=6):

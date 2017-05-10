@@ -38,7 +38,7 @@ cdef extern from "src_numerics.c":
             signed char *lag_matrix, int N, int tau_max, int corr_range)
     void _cross_correlation_all_fast(float *array, float *lagfuncs, int N,
             int tau_max, int corr_range) 
-    void __get_nearest_neighbors_fast(float *array, int T, int dim_x, int dim_y,
+    void _get_nearest_neighbors_fast(float *array, int T, int dim_x, int dim_y,
             int k, int dim, int *k_xy, int *k_yz, int *k_z)
 
 
@@ -120,7 +120,7 @@ def _cross_correlation_all(
     return lagfuncs
 
 
-def __get_nearest_neighbors(
+def _get_nearest_neighbors_cython(
         np.ndarray[FLOATTYPE_t, ndim=1, mode='c'] array not None,
         int T, int dim_x, int dim_y, int k, int dim):
     
@@ -132,7 +132,7 @@ def __get_nearest_neighbors(
     cdef np.ndarray[INT32TYPE_t, ndim=1, mode='c'] k_z = \
             np.zeros((T), dtype='int32')
 
-    __get_nearest_neighbors_fast(
+    _get_nearest_neighbors_fast(
         <float*> np.PyArray_DATA(array), T, dim_x, dim_y, k, dim,
         <int*> np.PyArray_DATA(k_xz), <int*> np.PyArray_DATA(k_yz),
         <int*> np.PyArray_DATA(k_z))

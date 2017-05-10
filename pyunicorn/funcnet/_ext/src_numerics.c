@@ -95,7 +95,7 @@ void _cross_correlation_all_fast(float *array, float *lagfuncs, int N,
 }
 
 
-void __get_nearest_neighbors_fast(float *array, int T, int dim_x, int dim_y,
+void _get_nearest_neighbors_fast(float *array, int T, int dim_x, int dim_y,
         int k, int dim, int *k_xz, int *k_yz, int *k_z)  {
 
     int i, j, index=0, t, m, n, d, kxz, kyz, kz, indexfound[T];
