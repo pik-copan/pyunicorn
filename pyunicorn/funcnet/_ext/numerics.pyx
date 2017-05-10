@@ -121,7 +121,7 @@ def _cross_correlation_all(
 
 
 def _get_nearest_neighbors_cython(
-        np.ndarray[FLOATTYPE_t, ndim=1, mode='c'] array not None,
+        np.ndarray[float, ndim=1, mode='c'] array not None,
         int T, int dim_x, int dim_y, int k, int dim):
     
     # Initialize
