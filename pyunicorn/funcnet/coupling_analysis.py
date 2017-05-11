@@ -125,7 +125,7 @@ class CouplingAnalysis(object):
 
         N = self.N
         return _symmetrize_by_absmax(similarity_matrix.copy(order='c'),
-                lag_matrix.copy(order='c'), N)
+                                     lag_matrix.copy(order='c'), N)
 
     #
     #  Define methods to estimate similarity measures
@@ -675,7 +675,7 @@ class CouplingAnalysis(object):
         # dim_z = maxdim - dim_x - dim_y
 
         return _get_nearest_neighbors_cython(array.copy(order='c'), T, dim_x,
-                dim_y, k, dim)
+                                             dim_y, k, dim)
 
     @staticmethod
     def _quantile_bin_array(array, bins=6):

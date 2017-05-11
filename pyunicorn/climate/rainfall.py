@@ -26,6 +26,7 @@ from pyunicorn.climate._ext.numerics import _calculate_corr
 #  Define class RainfallClimateNetwork
 #
 
+
 class RainfallClimateNetwork(ClimateNetwork):
 
     """
@@ -274,4 +275,4 @@ class RainfallClimateNetwork(ClimateNetwork):
         m, tmax = anomaly.shape
 
         return _calculate_corr(m, tmax, final_mask.copy(order='c'),
-                time_series_ranked.copy(order='c'))
+                               time_series_ranked.copy(order='c'))

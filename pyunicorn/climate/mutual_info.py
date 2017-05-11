@@ -29,6 +29,7 @@ from pyunicorn.climate._ext.numerics import \
 #  Define class MutualInfoClimateNetwork
 #
 
+
 class MutualInfoClimateNetwork(ClimateNetwork):
 
     """
@@ -163,20 +164,21 @@ anomaly values using Weave..."
 
         #  Rescale all time series to the interval [0,1],
         #  using the maximum range of the whole dataset.
-        scaling = float(1. / (range_max - range_min))
+        scaling = float(1./(range_max - range_min))
 
         #  Create array to hold symbolic trajectories
-        symbolic = np.empty(N, n_samples), dtype=np.int64)
+        symbolic = np.empty(N, n_samples), dtype='int64')
         #  Initialize array to hold 1d-histograms of individual time series
-        hist = np.zeros((N, n_bins), dtype=np.int64)
+        hist = np.zeros((N, n_bins), dtype='int64')
         #  Initialize array to hold 2d-histogram for one pair of time series
-        hist2d = np.zeros((n_bins, n_bins), dtype=np.int64)
+        hist2d = np.zeros((n_bins, n_bins), dtype='int64')
         #  Initialize mutual information array
         mi = np.zeros((N, N), dtype='float32')
 
-        mi = _weave_calculate_mutual_information_cython(
-                anomaly.copy(order='c'), n_samples, N, n_bins, scaling,
-                range_min, fast)
+        anomaly = anomaly.copy(order='c')
+        mi = _weave_calculate_mutual_information_cython(anomaly, n_samples, N,
+                                                        n_bins, scaling,
+                                                        range_min, fast)
 
         if self.silence_level <= 1:
             print "Done!"

@@ -265,9 +265,10 @@ class CrossRecurrencePlot(RecurrencePlot):
         ntime_x = x_embedded.shape[0]
         ntime_y = y_embedded.shape[0]
         dim = x_embedded.shape[1]
-        return _supremum_distance_matrix_crp(ntime_x, ntime_y, dim,
-            x_embedded.astype('float32').copy(order='c'), 
-            y_embedded.astype('float32').copy(order='c'))
+        x_embedded = x_embedded.astype('float32').copy(order='c')
+        y_embedded = y_embedded.astype('float32').copy(order='c')
+        return _supremum_distance_matrix_crp(ntime_x, ntime_y, dim, x_embedded,
+                                             y_embedded)
 
     def set_fixed_threshold(self, threshold):
         """
