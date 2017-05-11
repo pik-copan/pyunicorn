@@ -20,7 +20,7 @@ from pyunicorn.core._ext.numerics import \
     _cross_transitivity, _nsi_cross_transitivity, \
     _cross_local_clustering, _nsi_cross_local_clustering
 
-#  Import Network base class and Cython code
+#  Import Network base class
 from .network import Network, NetworkError
 
 

@@ -487,7 +487,7 @@ text files", filename
         :return: the angular great circle distance matrix (unit radians).
         """
         if self.silence_level <= 1:
-            print "Calculating angular great circle distance using Weave..."
+            print "Calculating angular great circle distance using Cython..."
 
         #  Get number of nodes
         N = self.N

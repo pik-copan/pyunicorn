@@ -32,21 +32,37 @@ cdef extern from "time.h":
 cdef extern from "src_numerics.c":
     void _randomly_rewire_geomodel_I_fast(int iterations, float eps, int *A,
         float *D, int E, int N, int *edges) 
+    void _randomly_rewire_geomodel_II_fast(int iterations, float eps, int *A,
+        float *D, int E, int N, int *edges) 
+    void _randomly_rewire_geomodel_III_fast(int iterations, float eps, int *A,
+        float *D, int E, int N, int *edges, int *degree) 
 
 
 # geo_network =================================================================
 
-def _randomly_rewire_geomodel_I(
-    int iterations, float eps, 
-    np.ndarray[INTTYPE_t, ndim=2] A,
-    np.ndarray[float, ndim=2] D,
-    int E, int N,
+def _randomly_rewire_geomodel_I(int iterations, float eps, 
+    np.ndarray[INTTYPE_t, ndim=2] A, np.ndarray[float, ndim=2] D, int E, int N,
     np.ndarray[INTTYPE_t, ndim=2] edges):
 
     _randomly_rewire_geomodel_I_fast(iterations, eps,
             <int*> np.PyArray_DATA(A), <float*> np.PyArray_DATA(D), E, N,
             <int*> np.PyArray_DATA(edges))
 
+def _randomly_rewire_geomodel_II(int iterations, float eps, 
+    np.ndarray[INTTYPE_t, ndim=2] A, np.ndarray[float, ndim=2] D, int E, int N,
+    np.ndarray[INTTYPE_t, ndim=2] edges):
+
+    _randomly_rewire_geomodel_II_fast(iterations, eps,
+            <int*> np.PyArray_DATA(A), <float*> np.PyArray_DATA(D), E, N,
+            <int*> np.PyArray_DATA(edges))
+
+def _randomly_rewire_geomodel_III(int iterations, float eps,
+    np.ndarray[INTTYPE_t, ndim=2] A, np.ndarray[float, ndim=2] D, int E, int N,
+    np.ndarray[INTTYPE_t, ndim=2] edges, np.ndarray[INTTYPE_t, ndim=1] degree):
+
+    _randomly_rewire_geomodel_III_fast(iterations, eps,
+            <int*> np.PyArray_DATA(A), <float*> np.PyArray_DATA(D), E, N,
+            <int*> np.PyArray_DATA(edges), <int*> np.PyArray_DATA(degree))
 
 # interacting_networks ========================================================
 

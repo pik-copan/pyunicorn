@@ -17,13 +17,13 @@ Provides classes for generating and analyzing complex climate networks.
 # array object and fast numerics
 import numpy as np
 
+from pyunicorn.climate._ext.numerics import \
+    _weave_calculate_mutual_information_cython
+
 #  Import progress bar for easy progress bar handling
 from ..utils import progressbar
 #  Import cnNetwork for Network base class
 from .climate_network import ClimateNetwork
-
-from pyunicorn.climate._ext.numerics import \
-    _weave_calculate_mutual_information_cython
 
 #
 #  Define class MutualInfoClimateNetwork
