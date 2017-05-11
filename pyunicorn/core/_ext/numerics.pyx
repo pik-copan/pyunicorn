@@ -11,6 +11,7 @@ cimport numpy as np
 
 import numpy as np
 import numpy.random as rd
+from datetime import datetime
 
 randint = rd.randint
 
@@ -20,6 +21,31 @@ FLOAT32TYPE = np.float32
 ctypedef np.int_t INTTYPE_t
 ctypedef np.float_t FLOATTYPE_t
 ctypedef np.float32_t FLOAT32TYPE_t
+
+cdef extern from "stdlib.h":
+    double drand48()
+    double srand48()
+
+cdef extern from "time.h":
+    double time()
+
+cdef extern from "src_numerics.c":
+    void _randomly_rewire_geomodel_I_fast(int iterations, float eps, int *A,
+        float *D, int E, int N, int *edges) 
+
+
+# geo_network =================================================================
+
+def _randomly_rewire_geomodel_I(
+    int iterations, float eps, 
+    np.ndarray[INTTYPE_t, ndim=2] A,
+    np.ndarray[float, ndim=2] D,
+    int E, int N,
+    np.ndarray[INTTYPE_t, ndim=2] edges):
+
+    _randomly_rewire_geomodel_I_fast(iterations, eps,
+            <int*> np.PyArray_DATA(A), <float*> np.PyArray_DATA(D), E, N,
+            <int*> np.PyArray_DATA(edges))
 
 
 # interacting_networks ========================================================

@@ -167,7 +167,7 @@ anomaly values using Weave..."
         scaling = float(1./(range_max - range_min))
 
         #  Create array to hold symbolic trajectories
-        symbolic = np.empty(N, n_samples), dtype='int64')
+        symbolic = np.empty((N, n_samples), dtype='int64')
         #  Initialize array to hold 1d-histograms of individual time series
         hist = np.zeros((N, n_bins), dtype='int64')
         #  Initialize array to hold 2d-histogram for one pair of time series

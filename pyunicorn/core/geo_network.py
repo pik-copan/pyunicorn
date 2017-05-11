@@ -18,6 +18,9 @@ from numpy import random
 # high performance graph theory tools written in pure ANSI-C
 import igraph
 
+from pyunicorn.core._ext.numerics import 
+    _randomly_rewire_geomodel_I
+
 from .network import Network, cached_const, weave_inline
 from .grid import Grid
 
@@ -506,12 +509,12 @@ sequence..."
             print "Randomly rewiring given graph, preserving the degree \
 sequence and link distance distribution..."
         #  Get number of nodes
-        # N = int(self.N)
+        N = int(self.N)
         #  Get number of links
         E = int(self.n_links)
         #  Collect adjacency and distance matrices
-        A = self.adjacency
-        D = distance_matrix.astype("float32")
+        A = self.adjacency.copy(order='c')
+        D = distance_matrix.astype("float32").copy(order='c')
         #  Get degree sequence
         # degree = self.degree()
 
@@ -522,104 +525,12 @@ sequence and link distance distribution..."
         iterations = int(iterations)
 
         #  Get edge list
-        edges = np.array(self.graph.get_edgelist())
+        edges = np.array(self.graph.get_edgelist()).copy(order='c')
 
         #  Initialize list of neighbors
         # neighbors = np.zeros((N, degree.max()))
 
-        code = """
-        int i, j, s, t, k, l, edge1, edge2, count;
-        int neighbor_s_index, neighbor_t_index;
-        int neighbor_k_index, neighbor_l_index;
-
-        //  Create list of neighbors
-        //for (int i = 0; i < N; i++) {
-        //
-        //    count = 0;
-        //
-        //    for (int j = 0; j < N; j++) {
-        //        if (A(i,j) == 1) {
-        //            neighbors(i,count) = j;
-        //            count++;
-        //        }
-        //    }
-        //}
-
-        //  Initialize random number generator
-        srand48(time(0));
-
-        i = 0;
-        count = 0;
-        while (i < iterations) {
-            //  Randomly choose 2 edges
-            edge1 = floor(drand48() * E);
-            edge2 = floor(drand48() * E);
-
-            s = edges(edge1,0);
-            t = edges(edge1,1);
-
-            k = edges(edge2,0);
-            l = edges(edge2,1);
-
-            //  Randomly choose 2 nodes
-            //s = floor(drand48() * N);
-            //k = floor(drand48() * N);
-
-            //  Randomly choose 1 neighbor of each
-            //neighbor_s_index = floor(drand48() * degree(s));
-            //neighbor_k_index = floor(drand48() * degree(k));
-            //t = neighbors(s,neighbor_s_index);
-            //l = neighbors(k,neighbor_k_index);
-
-            count++;
-
-            //  Proceed only if s != k, s != l, t != k, t != l
-            if (s != k && s != l && t != k && t != l) {
-                // Proceed only if the new links {s,l} and {t,k}
-                // do NOT already exist
-                if (A(s,l) == 0 && A(t,k) == 0) {
-                    // Proceed only if the link lengths fulfill condition C1
-                    if ((fabs(D(s,t) - D(k,t)) < eps &&
-                            fabs(D(k,l) - D(s,l)) < eps ) ||
-                                (fabs(D(s,t) - D(s,l)) < eps &&
-                                    fabs(D(k,l) - D(k,t)) < eps )) {
-                        // Now rewire the links symmetrically
-                        // and increase i by 1
-                        A(s,t) = A(t,s) = 0;
-                        A(k,l) = A(l,k) = 0;
-                        A(s,l) = A(l,s) = 1;
-                        A(t,k) = A(k,t) = 1;
-
-                        edges(edge1,0) = s;
-                        edges(edge1,1) = l;
-                        edges(edge2,0) = k;
-                        edges(edge2,1) = t;
-
-                        //  Update neighbor lists of all 4 involved nodes
-                        //neighbors(s,neighbor_s_index) = l;
-                        //neighbors(k,neighbor_k_index) = t;
-
-                        //neighbor_t_index = 0;
-                        //while (neighbors(t,neighbor_t_index) != s) {
-                        //    neighbor_t_index++;
-                        //}
-                        //neighbors(t,neighbor_t_index) = k;
-
-                        //neighbor_l_index = 0;
-                        //while (neighbors(l,neighbor_l_index) != k) {
-                        //    neighbor_l_index++;
-                        //}
-                        //neighbors(l,neighbor_l_index) = s;
-
-                        i++;
-                    }
-                }
-            }
-        }
-        printf("Trials %d, Rewirings %d", count, iterations);
-        """
-        weave_inline(locals(), code,
-                     ['iterations', 'eps', 'A', 'D', 'E', 'edges'])
+        _randomly_rewire_geomodel_I(iterations, eps, A, D, E, N, edges)
 
         #  Update all other properties of GeoNetwork
         self.adjacency = A

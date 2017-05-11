@@ -40,8 +40,6 @@ ctypedef np.float64_t FLOAT64TYPE_t
 
 cdef extern from "stdlib.h":
     double drand48()
-
-cdef extern from "stdlib.h":
     double srand48()
 
 cdef extern from "time.h":
