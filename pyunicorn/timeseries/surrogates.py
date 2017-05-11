@@ -180,8 +180,7 @@ class Surrogates(object):
         embedding = np.empty((N, n_time - (dimension - 1)*delay, dimension))
 
         _embed_time_series_array(N, n_time, dimension, delay,
-                                 time_series_array.copy(order='c'),
-                                 embedding.copy(order='c'))
+                                 time_series_array, embedding)
         return embedding
 
     # FIXME: I(wb) included the line

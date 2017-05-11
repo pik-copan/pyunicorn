@@ -10,7 +10,7 @@
 
 // geo_network ================================================================
 
-void _randomly_rewire_geomodel_I_fast(int iterations, float eps, int *A,
+void _randomly_rewire_geomodel_I_fast(int iterations, float eps, short *A,
     float *D, int E, int N, int *edges)  {
 
     int i, j, s, t, k, l, edge1, edge2, count;
@@ -105,7 +105,7 @@ void _randomly_rewire_geomodel_I_fast(int iterations, float eps, int *A,
 }
 
 
-void _randomly_rewire_geomodel_II_fast(int iterations, float eps, int *A,
+void _randomly_rewire_geomodel_II_fast(int iterations, float eps, short *A,
     float *D, int E, int N, int *edges)  {
 
     int i, s, t, k, l, edge1, edge2;
@@ -155,7 +155,7 @@ void _randomly_rewire_geomodel_II_fast(int iterations, float eps, int *A,
     }
 }
   
-void _randomly_rewire_geomodel_III_fast(int iterations, float eps, int *A,
+void _randomly_rewire_geomodel_III_fast(int iterations, float eps, short *A,
     float *D, int E, int N, int *edges, int *degree)  {
 
     int i, s, t, k, l, edge1, edge2;

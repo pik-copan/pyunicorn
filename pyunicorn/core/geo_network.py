@@ -519,10 +519,9 @@ sequence and link distance distribution..."
         # degree = self.degree()
 
         #  Define for brevity
-        #eps = float(inaccuracy)
+        eps = float(inaccuracy)
 
-        #  Conversions
-        #iterations = int(iterations)
+        # iterations = int(iterations)
 
         #  Get edge list
         edges = np.array(self.graph.get_edgelist()).copy(order='c')
@@ -530,7 +529,7 @@ sequence and link distance distribution..."
         #  Initialize list of neighbors
         # neighbors = np.zeros((N, degree.max()))
 
-        _randomly_rewire_geomodel_I(iterations, inaccuracy, A, D, E, N, edges)
+        _randomly_rewire_geomodel_I(iterations, eps, A, D, E, N, edges)
 
         #  Update all other properties of GeoNetwork
         self.adjacency = A
