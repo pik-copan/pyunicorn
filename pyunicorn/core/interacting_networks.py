@@ -15,9 +15,9 @@ multivariate data and generating time series surrogates.
 import numpy as np
 from numpy import random
 
-from pyunicorn.core._ext.numerics import                 \
-    _randomlySetCrossLinks, _randomlyRewireCrossLinks,   \
-    _cross_transitivity, _nsi_cross_transitivity,        \
+from pyunicorn.core._ext.numerics import \
+    _randomlySetCrossLinks, _randomlyRewireCrossLinks, \
+    _cross_transitivity, _nsi_cross_transitivity, \
     _cross_local_clustering, _nsi_cross_local_clustering
 
 #  Import Network base class and Cython code

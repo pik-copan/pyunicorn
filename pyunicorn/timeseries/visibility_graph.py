@@ -15,7 +15,8 @@ analysis (RQA) and recurrence network analysis.
 # array object and fast numerics
 import numpy as np
 
-from ._ext.numerics import _visibility_relations_missingvalues, \
+from pyunicorn.timeseries._ext.numerics import \
+    _visibility_relations_missingvalues, \
     _visibility_relations_no_missingvalues, _visibility_relations_horizontal, \
     _retarded_local_clustering, _advanced_local_clustering
 

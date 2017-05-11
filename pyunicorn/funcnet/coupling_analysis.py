@@ -17,8 +17,9 @@ from scipy import special, linalg   # special math functions
 
 # import mpi                          # parallelized computations
 
-from ._ext.numerics import _symmetrize_by_absmax, _cross_correlation_max, \
-        _cross_correlation_all, _get_nearest_neighbors_cython
+from pyunicorn.funcnet._ext.numerics import \
+    _symmetrize_by_absmax, _cross_correlation_max, \
+    _cross_correlation_all, _get_nearest_neighbors_cython
 
 
 #

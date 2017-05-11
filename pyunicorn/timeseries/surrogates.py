@@ -15,9 +15,9 @@ multivariate data and generating time series surrogates.
 import numpy as np
 from numpy import random
 
-from ._ext.numerics import _embed_time_series_array, _recurrence_plot, \
-    _twins_s, _twin_surrogates, _test_pearson_correlation, \
-    _test_mutual_information
+from pyunicorn.timeseries._ext.numerics import \
+    _embed_time_series_array, _recurrence_plot, _twins_s, _twin_surrogates, \
+    _test_pearson_correlation, _test_mutual_information
 
 # easy progress bar handling
 from ..utils import progressbar

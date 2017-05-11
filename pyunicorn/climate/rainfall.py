@@ -20,7 +20,7 @@ import numpy as np
 #  Import cnTsonisClimateNetwork for TsonisClimateNetwork class
 from .climate_network import ClimateNetwork
 
-from ._ext.numerics import _calculate_corr
+from pyunicorn.climate._ext.numerics import _calculate_corr
 
 #
 #  Define class RainfallClimateNetwork

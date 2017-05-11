@@ -45,8 +45,8 @@ import igraph                       # high performance graph theory tools
 from ..utils import progressbar     # easy progress bar handling
 from .. import mpi                  # parallelized computations
 
-from pyunicorn.core._ext.numerics import _local_cliquishness_4thorder,\
-    _local_cliquishness_5thorder, _cy_mpi_nsi_newman_betweenness,\
+from pyunicorn.core._ext.numerics import _local_cliquishness_4thorder, \
+    _local_cliquishness_5thorder, _cy_mpi_nsi_newman_betweenness, \
     _cy_mpi_newman_betweenness, _nsi_betweenness
 
 

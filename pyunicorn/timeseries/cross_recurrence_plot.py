@@ -15,8 +15,9 @@ analysis (RQA) and recurrence network analysis.
 # array object and fast numerics
 import numpy as np
 
-from ._ext.numerics import _manhattan_distance_matrix_crp, \
-    _euclidean_distance_matrix_crp, _supremum_distance_matrix_crp
+from pyunicorn.timeseries._ext.numerics import \
+    _manhattan_distance_matrix_crp, _euclidean_distance_matrix_crp, \
+    _supremum_distance_matrix_crp
 
 from .recurrence_plot import RecurrencePlot
 

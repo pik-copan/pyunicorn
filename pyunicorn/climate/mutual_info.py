@@ -22,7 +22,8 @@ from ..utils import progressbar
 #  Import cnNetwork for Network base class
 from .climate_network import ClimateNetwork
 
-from ._ext.numerics import _weave_calculate_mutual_information_cython
+from pyunicorn.climate._ext.numerics import \
+    _weave_calculate_mutual_information_cython
 
 #
 #  Define class MutualInfoClimateNetwork
