@@ -17,9 +17,8 @@ from scipy import special, linalg   # special math functions
 
 # import mpi                          # parallelized computations
 
-from pyunicorn.funcnet._ext.numerics import _symmetrize_by_absmax, \
-        _cross_correlation_max, _cross_correlation_all, \
-        _get_nearest_neighbors_cython
+from ._ext.numerics import _symmetrize_by_absmax, _cross_correlation_max, \
+        _cross_correlation_all, _get_nearest_neighbors_cython
 
 
 #
@@ -124,7 +123,8 @@ class CouplingAnalysis(object):
         """
 
         N = self.N
-        return _symmetrize_by_absmax(similarity_matrix, lag_matrix, N)
+        return _symmetrize_by_absmax(similarity_matrix.copy(order='c'),
+                lag_matrix.copy(order='c'), N)
 
     #
     #  Define methods to estimate similarity measures
@@ -673,7 +673,8 @@ class CouplingAnalysis(object):
         dim_y = int(numpy.where(xyz == 1)[0][-1] + 1 - dim_x)
         # dim_z = maxdim - dim_x - dim_y
 
-        return _get_nearest_neighbors_cython(array, T, dim_x, dim_y, k, dim)
+        return _get_nearest_neighbors_cython(array.copy(order='c'), T, dim_x,
+                dim_y, k, dim)
 
     @staticmethod
     def _quantile_bin_array(array, bins=6):

@@ -15,9 +15,9 @@ multivariate data and generating time series surrogates.
 import numpy as np
 from numpy import random
 
-from pyunicorn.timeseries._ext.numerics import \
-         _embed_time_series_array, _recurrence_plot, _twins_s, \
-         _twin_surrogates, _test_pearson_correlation, _test_mutual_information
+from ._ext.numerics import _embed_time_series_array, _recurrence_plot, \
+    _twins_s, _twin_surrogates, _test_pearson_correlation, \
+    _test_mutual_information
 
 # easy progress bar handling
 from ..utils import progressbar
@@ -180,7 +180,8 @@ class Surrogates(object):
         embedding = np.empty((N, n_time - (dimension - 1)*delay, dimension))
 
         _embed_time_series_array(N, n_time, dimension, delay,
-                                 time_series_array, embedding)
+                                 time_series_array.order(copy='c'),
+                                 embedding.copy(order='c'))
         return embedding
 
     # FIXME: I(wb) included the line
@@ -206,7 +207,9 @@ class Surrogates(object):
         dimension = embedding.shape[1]
         R = np.ones((n_time, n_time), dtype="int8")
 
-        _recurrence_plot(n_time, dimension, threshold, embedding, R)
+        _recurrence_plot(n_time, dimension, threshold,
+                         embedding.copy(order='c'),
+                         R.copy(order='c'))
         return R
 
     # FIXME: I(wb) included the line
@@ -243,8 +246,10 @@ class Surrogates(object):
         #  Initialize array to store the number of neighbors for each sample
         nR = np.empty(n_time)
 
-        _twins_s(N, n_time, dimension, threshold, min_dist, embedding_array, R,
-                 nR, twins)
+        _twins_s(N, n_time, dimension, threshold, min_dist,
+                 embedding_array.copy(order='c'), R.copy(order='c'),
+                 nR.copy(order='c'), twins)
+
         return twins
 
     #
@@ -512,7 +517,8 @@ class Surrogates(object):
             self._twins = twins
             self._twins_cached = True
 
-        return _twin_surrogates(N, n_time, twins, original_data)
+        return _twin_surrogates(N, n_time, twins,
+                                original_data.copy(order='c'))
 
     #
     #  Defines methods to generate correlation measure matrices based on

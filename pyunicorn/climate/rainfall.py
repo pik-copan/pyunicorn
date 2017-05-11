@@ -17,11 +17,10 @@ Provides classes for generating and analyzing complex climate networks.
 #  array object and fast numerics
 import numpy as np
 
-#  C++ inline code
-from .. import weave_inline
 #  Import cnTsonisClimateNetwork for TsonisClimateNetwork class
 from .climate_network import ClimateNetwork
 
+from ._ext.numerics import _calculate_corr
 
 #
 #  Define class RainfallClimateNetwork
@@ -272,73 +271,7 @@ class RainfallClimateNetwork(ClimateNetwork):
         # Get rank time series
         time_series_ranked = self.rank_time_series(anomaly)
 
-        m = len(anomaly)
+        m, tmax = anomaly.shape
 
-        tmax = len(anomaly.T)
-
-        spearman_rho = np.zeros((m, m))
-
-        m = int(m)
-
-        tmax = int(tmax)
-
-        # Calculate the correlation matrix using Weave
-        code = """
-        double cov = 0;
-        double sigmai = 0;
-        double sigmaj = 0;
-        double meani = 0;
-        double meanj = 0;
-        int zerocount = 0;
-        double rankedi[tmax];
-        double rankedj[tmax];
-        double normalizedi[tmax];
-        double normalizedj[tmax];
-
-        for (int i=0; i<m; i++) {
-            for (int j=i; j<m; j++) {
-
-                for (int t=0; t<tmax; t++) {
-                    if ((final_mask(i,t) | final_mask(j,t)) == false)
-                        zerocount = zerocount+1;
-                }
-
-                for (int t=0; t<tmax; t++) {
-                    rankedi[t] = time_series_ranked(i,t) - zerocount;
-                    rankedj[t] = time_series_ranked(j,t) - zerocount;
-                }
-
-                for (int t=0; t<tmax; t++) {
-                    if (rankedi[t]>=0)
-                        meani = meani + rankedi[t];
-                    if (rankedj[t]>=0)
-                        meanj = meanj + rankedj[t];
-                }
-
-                meani = meani/(tmax-zerocount);
-                meanj = meanj/(tmax-zerocount);
-
-                for (int t=0; t<tmax; t++) {
-                    if ((final_mask(i,t) | final_mask(j,t)) == true) {
-                        normalizedi[t] = rankedi[t] - meani;
-                        normalizedj[t] = rankedj[t] - meanj;
-                        cov = cov + normalizedi[t]*normalizedj[t];
-                        sigmai = sigmai + normalizedi[t]*normalizedi[t];
-                        sigmaj = sigmaj + normalizedj[t]*normalizedj[t];
-                    }
-                }
-                spearman_rho(i,j)=spearman_rho(j,i) = cov/sqrt(sigmai*sigmaj);
-                meani = 0;
-                meanj = 0;
-                cov = 0;
-                sigmai = 0;
-                sigmaj = 0;
-                zerocount = 0;
-
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['m', 'tmax', 'spearman_rho', 'final_mask',
-                      'time_series_ranked'])
-        return spearman_rho
+        return _calculate_corr(m, tmax, final_mask.copy(order='c'),
+                time_series_ranked.copy(order='c'))

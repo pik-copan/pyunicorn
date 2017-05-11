@@ -15,7 +15,7 @@ analysis (RQA) and recurrence network analysis.
 # array object and fast numerics
 import numpy as np
 
-from pyunicorn.timeseries._ext.numerics import _manhattan_distance_matrix_crp,\
+from ._ext.numerics import _manhattan_distance_matrix_crp, \
     _euclidean_distance_matrix_crp, _supremum_distance_matrix_crp
 
 from .recurrence_plot import RecurrencePlot
@@ -223,7 +223,8 @@ class CrossRecurrencePlot(RecurrencePlot):
         ntime_y = y_embedded.shape[0]
         dim = x_embedded.shape[1]
         return _manhattan_distance_matrix_crp(ntime_x, ntime_y, dim,
-                                              x_embedded, y_embedded)
+                                              x_embedded.copy(order='c'),
+                                              y_embedded.copy(order='c'))
 
     def euclidean_distance_matrix(self, x_embedded, y_embedded):
         """
@@ -243,7 +244,8 @@ class CrossRecurrencePlot(RecurrencePlot):
         ntime_y = y_embedded.shape[0]
         dim = x_embedded.shape[1]
         return _euclidean_distance_matrix_crp(ntime_x, ntime_y, dim,
-                                              x_embedded, y_embedded)
+                                              x_embedded.copy(order='c'),
+                                              y_embedded.copy(order='c'))
 
     def supremum_distance_matrix(self, x_embedded, y_embedded):
         """
@@ -263,8 +265,8 @@ class CrossRecurrencePlot(RecurrencePlot):
         ntime_y = y_embedded.shape[0]
         dim = x_embedded.shape[1]
         return _supremum_distance_matrix_crp(ntime_x, ntime_y, dim,
-                                             x_embedded.astype('float32'),
-                                             y_embedded.astype('float32'))
+            x_embedded.astype('float32').copy(order='c'), 
+            y_embedded.astype('float32').copy(order='c'))
 
     def set_fixed_threshold(self, threshold):
         """
