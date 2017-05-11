@@ -271,5 +271,6 @@ class RainfallClimateNetwork(ClimateNetwork):
 
         m, tmax = anomaly.shape
 
-        return _calculate_corr(m, tmax, final_mask.copy(order='c'),
+        return _calculate_corr(m, tmax,
+                               final_mask.astype(int32).copy(order='c'),
                                time_series_ranked.copy(order='c'))

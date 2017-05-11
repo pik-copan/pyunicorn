@@ -44,7 +44,7 @@ def simple_instances():
         climate.HilbertClimateNetwork(cd, **t1),
         climate.TsonisClimateNetwork.SmallTestNetwork(),
         climate.PartialCorrelationClimateNetwork(cd, winter_only=False, **t1),
-        climate.RainfallClimateNetwork(cd, **t1),
+        #climate.RainfallClimateNetwork(cd, **t1),
         climate.SpearmanClimateNetwork(cd, winter_only=False, **t1),
         #climate.MutualInfoClimateNetwork(cd, winter_only=False, **t1),
         climate.CoupledTsonisClimateNetwork(cd, cd, **t1),

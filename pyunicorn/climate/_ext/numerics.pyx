@@ -42,7 +42,7 @@ cdef extern from "src_numerics.c":
             float *anomaly, int n_samples, int N, int n_bins, float scaling,
             float range_min, long *symbolic, long *hist, long *hist2d,
             float *mi)
-    void _calculate_corr_fast(int m, int tmax, bint *final_mask,
+    void _calculate_corr_fast(int m, int tmax, int *final_mask,
             float *time_series_ranked, float *spearman_rho)
 
 
@@ -75,14 +75,14 @@ def _weave_calculate_mutual_information_cython(
 # rainfall ====================================================================
 
 def _calculate_corr(int m, int tmax,
-    np.ndarray[bint, ndim=2, mode='c'] final_mask not None,
+    np.ndarray[int, ndim=2, mode='c'] final_mask not None,
     np.ndarray[float, ndim=2, mode='c'] time_series_ranked not None):
 
     cdef np.ndarray[float, ndim=2, mode='c'] spearman_rho = \
             np.zeros((m, m), dtype='float32')
 
     _calculate_corr_fast(m, tmax,
-            <bint*> np.PyArray_DATA(final_mask),
+            <int*> np.PyArray_DATA(final_mask),
             <float*> np.PyArray_DATA(time_series_ranked),
             <float*> np.PyArray_DATA(spearman_rho))
 
