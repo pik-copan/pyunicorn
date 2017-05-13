@@ -208,3 +208,30 @@ void _randomly_rewire_geomodel_III_fast(int iterations, float eps, short *A,
         }
     }
 }
+
+
+double _higher_order_transitivity4_fast(int N, short *A)  {
+    long cliques, stars;
+
+    //  Initialize
+    cliques = 0;
+    stars = 0;
+    //  Iterate over all nodes
+    for (int v = 0; v < N; v++) {
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                for (int k = 0; k < N; k++) {
+                    if (A[v*N+i] == 1 && A[v*N+j] == 1 &&
+                        A[v*N+k] == 1) {
+                        stars++;
+                        if (A[i*N+j] == 1 && A[i*N+k] == 1 &&
+                            A[j*N+k] == 1)
+                            cliques++;
+                    }
+                }
+            }
+        }
+    }
+    double T = ((double) cliques) / ((double) stars);
+    return T;
+}

@@ -47,8 +47,9 @@ from .. import mpi                  # parallelized computations
 
 from pyunicorn.core._ext.numerics import _local_cliquishness_4thorder, \
     _local_cliquishness_5thorder, _cy_mpi_nsi_newman_betweenness, \
-    _cy_mpi_newman_betweenness, _nsi_betweenness
-
+    _cy_mpi_newman_betweenness, _nsi_betweenness, _higher_order_transitivity4,\
+    _newman_betweenness_badly_cython
+ 
 
 def nz_coords(matrix):
     """
@@ -2439,42 +2440,11 @@ can only take values <<in>> or <<out>>."
             return self.transitivity()
 
         elif order == 4:
-            # #  Gathering
+            #  Gathering
             # N = self.N
             # A = self.adjacency
-
-            # #  Initialize
-            # T = np.zeros(1)
-
-            # code = """
-            # long cliques, stars;
-
-            # //  Initialize
-            # cliques = 0;
-            # stars = 0;
-
-            # //  Iterate over all nodes
-            # for (int v = 0; v < N; v++) {
-            #     for (int i = 0; i < N; i++) {
-            #         for (int j = 0; j < N; j++) {
-            #             for (int k = 0; k < N; k++) {
-            #                     if (A(v,i) == 1 && A(v,j) == 1 &&
-            #                            A(v,k) == 1) {
-            #                         stars++;
-            #                         if (A(i,j) == 1 && A(i,k) == 1 &&
-            #                                A(j,k) == 1)
-            #                             cliques++;
-            #                     }
-            #                 }
-            #         }
-            #     }
-            # }
-
-            # T(0) = double(cliques) / double(stars);
-            # """
-
-            # weave_inline(code, ['T', 'N', 'A'])
-            # return T[0]
+            # T = _higher_order_transitivity4(N, A)
+            # return T
 
             if estimate:
                 motif_counts = self.graph.motifs_randesu(
@@ -3166,7 +3136,7 @@ can only take values <<in>> or <<out>>."
         """
         return self.nsi_betweenness(sources=sources, targets=targets, silent=1)
 
-    def nsi_betweenness(self, cy=False, **kwargs):
+    def nsi_betweenness(self, **kwargs):
         """
         For each node, return its n.s.i. betweenness.
 
@@ -3235,112 +3205,6 @@ can only take values <<in>> or <<out>>."
         flat_neighbors = np.array(links)[:, 1].astype(int)
         E = len(flat_neighbors)
 
-        # this follows [Newman2001]_:
-        code = r"""
-        // performs Newman's algorithm for a specific target node j:
-
-        int l, distances_to_j[N], n_predecessors[N], queue[N], queue_len,
-            qi, i, next_d, l_index, oi, dl, ql, fi, ol, two_N = 2 * N;
-        double multiplicity_to_j[N], factor;
-
-        // init distances to j and queue of nodes by distance from j:
-
-        for (l=0; l<N; l++) {
-            distances_to_j[l] = two_N;
-            n_predecessors[l] = 0;
-            multiplicity_to_j[l] = 0.0;
-            // initialize contribution of paths ending in j to the
-            // betweenness of l:
-            excess_to_j[l] = betweenness_to_j[l] = is_source[l] * w[l];
-        }
-
-        distances_to_j[j] = 0;
-        queue[0] = j;
-        queue_len = 1;
-        multiplicity_to_j[j] = w[j];
-
-        // process the queue forward and grow it on the way:
-        // (this is the standard breadth-first search giving
-        // all the shortest paths to j)
-
-        for (qi=0; qi<queue_len; qi++) {
-            if ((i=queue[qi]) == -1) {
-                printf("Oops: %d,%d,%d\n",qi,queue_len,i);
-                break;
-            }
-            next_d = distances_to_j[i] + 1;
-
-
-            // iterate through all neighbours l of i:
-            for (l_index=(oi=offsets[i]); l_index<oi+k[i]; l_index++) {
-
-                // if on a shortest j-l-path,
-                // register i as predecessor of l:
-                if ((dl=distances_to_j[l=flat_neighbors[l_index]])
-                    >= next_d) {
-//                  flat_predecessors[fi =
-//                      offsets[l] + (n_predecessors[l]++)] = i;
-                    PyList_SetItem(flat_predecessors,
-                                   fi = offsets[l] + (n_predecessors[l]++),
-                                   PyInt_FromLong((long)i));
-                    multiplicity_to_j[l] += w[l] * multiplicity_to_j[i];
-                    if (dl > next_d) {
-                        distances_to_j[l] = next_d;
-                        queue[queue_len++] = l;
-                    }
-                }
-            }
-        }
-
-        // process the queue again backward: (this is Newman's 2nd part where
-        // the contribution of paths ending in j to the betweenness of all
-        // nodes is computed recursively by traversing the shortest paths
-        // backwards)
-
-        for (ql=queue_len-1; ql>-1; ql--) {
-            if ((l=queue[ql]) == -1) {
-                // this should never happen!
-                printf("Oops: %d,%d,%d\n",ql,queue_len,l);
-                break;
-            }
-            if (l == j) {
-                // set betweenness and excess to zero:
-                betweenness_to_j[l] = excess_to_j[l] = 0;
-            } else {
-                // otherwise, iterate through all predecessors i of l:
-                double base_factor = w[l] / multiplicity_to_j[l];
-
-                for (fi=(ol=offsets[l]); fi<ol+n_predecessors[l]; fi++) {
-                    // add betweenness to predecessor:
-//                  betweenness_to_j[i=flat_predecessors[fi]] +=
-//                      betweenness_to_j[l] * (
-//                      factor = base_factor * multiplicity_to_j[
-//                                                  flat_predecessors[fi]]);
-
-                    i = (int)PyInt_AsLong(
-                            PyList_GetItem(flat_predecessors,fi));
-                    betweenness_to_j[i] += betweenness_to_j[l]
-                            * (factor = base_factor * multiplicity_to_j[i]);
-                }
-            }
-        }
-
-// other possible versions:
-
-//          if (distances_to_j[l] <= 1) {
-//              // if l in j's nbrhd, set betweenness and excess to zero:
-//              betweenness_to_j[l] = excess_to_j[l] = 0;
-//          } else {
-//              // otherwise, iterate through all predecessors i of l:
-//
-//                  // FIXME: or was this the correct version?
-//                  betweenness_to_j[i=flat_predecessors[fi]] +=
-//                      betweenness_to_j[l] * (
-//                      factor = flat_predmults[fi]/multiplicity_to_j[l]);
-//                  // add excess betweenness to predecessor:
-//                  excess_to_j[i] += is_source[l] * w[l] * factor;
-        """
-
         # this main loop might be parallelized:
         for j0 in targets:
             j = int(j0)
@@ -3350,16 +3214,10 @@ can only take values <<in>> or <<out>>."
             flat_predecessors = list(np.zeros(E, dtype=int))
             # Note: this cannot be transferred as numpy array since if too
             # large we get an glibc error...
-            if not cy:
-                weave_inline(locals(), code,
-                             ['N', 'E', 'w', 'k', 'j', 'betweenness_to_j',
-                              'excess_to_j', 'offsets', 'flat_neighbors',
-                              'is_source', 'flat_predecessors'], blitz=False)
-            else:
-                _nsi_betweenness(N, E, w, k, j, betweenness_to_j,
-                                 excess_to_j, offsets.astype(int),
-                                 flat_neighbors,
-                                 is_source, np.array(flat_predecessors))
+            _nsi_betweenness(N, E, w, k, j, betweenness_to_j,
+                             excess_to_j, offsets.astype(int),
+                             flat_neighbors,
+                             is_source, np.array(flat_predecessors))
             del flat_predecessors
             betweenness_times_w += w[j] * (betweenness_to_j - excess_to_j)
 
@@ -4111,41 +3969,12 @@ can only take values <<in>> or <<out>>."
 
                 #  Calculate the random walk betweenness in C++ using Weave
                 code = r"""
-                int i, j, s, t;
-                double norm, sum, Tis, Tit, Tjs, Tjt;
-
-                norm = 2 / (N * (N - 1));
-
-                for (i = 0; i < N; i++) {
-                    for (s = 0; s < N; s++) {
-                        for (t = 0; t < s; t++) {
-                            if (i == s || i == t)
-                                rwb(i) += 1;
-                            else {
-                                sum = 0;
-
-                                Tis = T(i,s);
-                                Tit = T(i,t);
-
-                                for (j = 0; j < N; j++) {
-                                    if (adjacency(i,j) == 1) {
-                                        Tjs = T(j,s);
-                                        Tjt = T(j,t);
-
-                                        sum += fabs(Tis - Tit - Tjs + Tjt);
-                                    }
-                                }
-                                rwb(i) += 0.5 * sum;
-                            }
-                        }
-                    }
-                    rwb(i) *= norm;
-                }
                 """
                 # added -w since numerous warnings of type "Warnung: veraltete
                 # Konvertierung von Zeichenkettenkonstante in »char*«"
                 # occurred:
-                weave_inline(locals(), code, ['adjacency', 'T', 'rwb', 'N'])
+                rwb = _newman_betweenness_badly_cython(adjacency.astype(int),
+                                                       T, rwb, N)
 
                 #  Normalize RWB by component size
                 rwb *= nNodes

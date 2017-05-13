@@ -18,9 +18,11 @@ randint = rd.randint
 INTTYPE = np.int
 FLOATTYPE = np.float
 FLOAT32TYPE = np.float32
+FLOAT64TYPE = np.float64
 ctypedef np.int_t INTTYPE_t
 ctypedef np.float_t FLOATTYPE_t
 ctypedef np.float32_t FLOAT32TYPE_t
+ctypedef np.float64_t FLOAT64TYPE_t
 
 cdef extern from "stdlib.h":
     double drand48()
@@ -36,7 +38,7 @@ cdef extern from "src_numerics.c":
         float *D, int E, int N, int *edges) 
     void _randomly_rewire_geomodel_III_fast(int iterations, float eps,
         short *A, float *D, int E, int N, int *edges, int *degree) 
-
+    double _higher_order_transitivity4_fast(int N, short* A)
 
 # geo_network =================================================================
 
@@ -44,9 +46,103 @@ def _randomly_rewire_geomodel_I(int iterations, float eps,
     np.ndarray[short, ndim=2] A, np.ndarray[float, ndim=2] D, int E, int N,
     np.ndarray[INTTYPE_t, ndim=2] edges):
 
+    cdef:
+        int i, j, s, t, k, l, edge1, edge2, count
+        int neighbor_s_index, neighbor_t_index
+        int neighbor_k_index, neighbor_l_index
+
+    #  Create list of neighbors
+    #for (int i = 0; i < N; i++) {
+    #
+    #    count = 0;
+    #
+    #    for (int j = 0; j < N; j++) {
+    #        if (A(i,j) == 1) {
+    #            neighbors(i,count) = j;
+    #            count++;
+    #        }
+    #    }
+    #}
+
+    #  Initialize random number generator
+    #srand48(time(0))
+    rd.seed(datetime.now())
+
+    i = 0
+    count = 0
+    while (i < iterations):
+        # Randomly choose 2 edges
+        edge1 = np.floor(rd.random() * E)
+        edge2 = np.floor(rd.random() * E)
+
+        s = edges[edge1,0]
+        t = edges[edge1,1]
+
+        k = edges[edge2,0]
+        l = edges[edge2,1]
+
+        #  Randomly choose 2 nodes
+        #s = floor(drand48() * N);
+        #k = floor(drand48() * N);
+
+        #  Randomly choose 1 neighbor of each
+        #neighbor_s_index = floor(drand48() * degree(s));
+        #neighbor_k_index = floor(drand48() * degree(k));
+        #t = neighbors(s,neighbor_s_index);
+        #l = neighbors(k,neighbor_k_index);
+
+        count+=1
+
+        #  Proceed only if s != k, s != l, t != k, t != l
+        if (s != k and s != l and t != k and t != l):
+            # Proceed only if the new links {s,l} and {t,k}
+            # do NOT already exist
+            if (A[s,l] == 0 and A[t,k] == 0):
+                # Proceed only if the link lengths fulfill condition C1
+                if ((np.abs(D[s,t] - D[k,t]) < eps and
+                        np.abs(D[k,l] - D[s,l]) < eps ) or
+                            (np.abs(D[s,t] - D[s,l]) < eps and
+                                np.abs(D[k,l] - D[k,t]) < eps )): 
+                    # Now rewire the links symmetrically
+                    # and increase i by 1
+                    A[s,t] = 0
+                    A[t,s] = 0
+                    A[k,l] = 0
+                    A[l,k] = 0
+                    A[s,l] = 1
+                    A[l,s] = 1
+                    A[t,k] = 1
+                    A[k,t] = 1
+
+                    edges[edge1,0] = s
+                    edges[edge1,1] = l
+                    edges[edge2,0] = k
+                    edges[edge2,1] = t
+
+                    #  Update neighbor lists of all 4 involved nodes
+                    #neighbors(s,neighbor_s_index) = l;
+                    #neighbors(k,neighbor_k_index) = t;
+
+                    #neighbor_t_index = 0;
+                    #while (neighbors(t,neighbor_t_index) != s) {
+                    #    neighbor_t_index++;
+                    #}
+                    #neighbors(t,neighbor_t_index) = k;
+
+                    #neighbor_l_index = 0;
+                    #while (neighbors(l,neighbor_l_index) != k) {
+                    #    neighbor_l_index++;
+                    #}
+                    #neighbors(l,neighbor_l_index) = s;
+
+                    i+=1
+
+    print("Trials %d, Rewirings %d", (count, iterations))
+    """
     _randomly_rewire_geomodel_I_fast(iterations, eps,
             <short*> np.PyArray_DATA(A), <float*> np.PyArray_DATA(D), E, N,
             <int*> np.PyArray_DATA(edges))
+    """
 
 def _randomly_rewire_geomodel_II(int iterations, float eps, 
     np.ndarray[short, ndim=2] A, np.ndarray[float, ndim=2] D, int E, int N,
@@ -63,6 +159,7 @@ def _randomly_rewire_geomodel_III(int iterations, float eps,
     _randomly_rewire_geomodel_III_fast(iterations, eps,
             <short*> np.PyArray_DATA(A), <float*> np.PyArray_DATA(D), E, N,
             <int*> np.PyArray_DATA(edges), <int*> np.PyArray_DATA(degree))
+
 
 # interacting_networks ========================================================
 
@@ -251,7 +348,12 @@ def _nsi_cross_local_clustering(
                     if A[node_p, node_q] and A[node_q, node_v]:
                         nsi_cc[v] += 2 * weight_p * node_weights[node_q]
 
+
 # network =====================================================================
+
+def _higher_order_transitivity4(int N, np.ndarray[short, ndim=2] A):
+    return _higher_order_transitivity4_fast(N, <short*> np.PyArray_DATA(A))
+
 
 def _local_cliquishness_4thorder(
     int N, np.ndarray[INTTYPE_t, ndim=2] A,
@@ -420,6 +522,35 @@ def _nsi_betweenness(
                 i = flat_predecessors[fi]
                 betweenness_to_j[i] += betweenness_to_j[l] * base_factor * \
                     multiplicity_to_j[i]
+
+
+def _newman_betweenness_badly_cython(np.ndarray[INTTYPE_t, ndim=2] adjacency,
+    np.ndarray[FLOAT64TYPE_t, ndim=2] T, np.ndarray[FLOAT64TYPE_t, ndim=2] rwb,
+    N):
+        
+    cdef:
+        int i, j, s, t
+        double norm, sum, Tis, Tit, Tjs, Tjt
+
+    norm = 2 / (N * (N - 1))
+
+    for i in xrange(N):
+        for s in xrange(N):
+            for t in xrange(s):
+                if (i == s or i == t):
+                    rwb[i] += 1
+                else:
+                    sum = 0
+                    Tis = T[i,s]
+                    Tit = T[i,t]
+                    for j in xrange(N):
+                        if (adjacency[i,j] == 1):
+                            Tjs = T(j,s)
+                            Tjt = T(j,t)
+                            sum += np.abs(Tis - Tit - Tjs + Tjt)
+                    rwb[i] += 0.5 * sum;
+        rwb[i] *= norm
+    return rwb
 
 
 def _cy_mpi_newman_betweenness(
