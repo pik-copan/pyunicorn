@@ -749,7 +749,7 @@ def _twin_surrogates(int n_surrogates, int N, twins,
     cdef np.ndarray[FLOATTYPE_t, ndim=2] surrogates = np.empty((n_surrogates,N))
 
     # Initialize random number generator
-    random.seed(datetime.now())
+    #random.seed(datetime.now())
     for i in xrange(n_surrogates):
         # Get the twin list for time series i
         twins_i = twins[i]

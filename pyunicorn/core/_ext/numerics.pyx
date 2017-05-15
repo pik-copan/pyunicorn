@@ -11,15 +11,18 @@ cimport numpy as np
 
 import numpy as np
 import numpy.random as rd
-from datetime import datetime
 
 randint = rd.randint
 
 INTTYPE = np.int
+INT16TYPE = np.int16
+INT32TYPE = np.int32
 FLOATTYPE = np.float
 FLOAT32TYPE = np.float32
 FLOAT64TYPE = np.float64
 ctypedef np.int_t INTTYPE_t
+ctypedef np.int16_t INT16TYPE_t
+ctypedef np.int32_t INT32TYPE_t
 ctypedef np.float_t FLOATTYPE_t
 ctypedef np.float32_t FLOAT32TYPE_t
 ctypedef np.float64_t FLOAT64TYPE_t
@@ -66,7 +69,6 @@ def _randomly_rewire_geomodel_I(int iterations, float eps,
 
     #  Initialize random number generator
     #srand48(time(0))
-    rd.seed(datetime.now())
 
     i = 0
     count = 0
@@ -621,6 +623,77 @@ def _cy_mpi_nsi_newman_betweenness(
                 this_betweenness[i_rel] += w[j] * sum_j
 
     return this_betweenness, start_i, end_i
+
+
+def _do_nsi_clustering(
+    int n_cands, np.ndarray[INTTYPE_t, ndim=1] cands,
+    np.ndarray[INT16TYPE_t, ndim=1] D_cluster,
+    np.ndarray[INT32TYPE_t, ndim=1] D_invpos,
+    np.ndarray[FLOATTYPE_t, ndim=1] w, double d0,
+    np.ndarray[INT32TYPE_t, ndim=1] D_firstpos,
+    np.ndarray[INT32TYPE_t, ndim=1] D_nextpos, int N, dict dict_D,
+    dict dict_Delta):
+
+    cdef:
+        int ca, ij, i, j, posh, h, ih, jh
+        float wi, wj, wjd0, Delta_inc, wh, Dih, Djh, Dch_wc, Dch_wc_Dih_wi, \
+            Dch_wc_Dih_wj, whd0, Dch_wc_whd0
+
+    # loop thru candidates:
+    for ca in xrange(n_cands):
+        ij = cands[ca]
+        i = ij/N
+        j = ij%N
+        wi = w[i]
+        wj = w[j]
+        wc = wi + wj
+        wjd0 = wj * d0
+        Delta_inc = 0.0
+        # loop thru all nbs of i other than j:
+        posh = D_firstpos[i]
+        while (posh > 0):
+            h = D_cluster[posh]
+            if (h != j):
+                ih = N*i+h
+                jh = N*j+h
+                wh = w[h]
+                Dih = dict_D[ih]
+                if (dict_D.has_key(jh)):
+                    Djh = dict_D[jh]
+                else:
+                    Djh = wh * wjd0
+
+                Dch_wc = (Dih + Djh) / wc
+                Dch_wc_Dih_wi = Dch_wc - Dih/wi
+                Dch_wc_Djh_wj = Dch_wc - Djh/wj
+
+                Delta_inc += (wi * Dch_wc_Dih_wi*Dch_wc_Dih_wi +
+                              wj * Dch_wc_Djh_wj*Dch_wc_Djh_wj) / wh
+
+            posh = D_nextpos[posh]
+
+        # loop thru all nbs of j other than i which are not nbs of i:
+        posh = D_firstpos[j]
+        while (posh > 0):
+            h = D_cluster[posh]
+            ih = N*i+h
+            wh = w[h]
+            whd0 = wh * d0
+            if (h != i and not dict_D.has_key(ih)):
+                jh = N*j+h
+                Djh = dict_D[jh]
+                Dch_wc = (wi*whd0 + Djh) / wc
+                Dch_wc_whd0 = Dch_wc - whd0
+                Dch_wc_Djh_wj = Dch_wc - Djh/wj
+
+                Delta_inc += (wi * Dch_wc_whd0*Dch_wc_whd0 +
+                              wj * Dch_wc_Djh_wj*Dch_wc_Djh_wj) / wh
+
+            posh = D_nextpos[posh]
+
+        dict_Delta[ij] = float(dict_Delta[ij]) + Delta_inc
+
+    return D_cluster, D_invpos, D_firstpos, D_nextpos, dict_Delta
 
 
 # grid ========================================================================

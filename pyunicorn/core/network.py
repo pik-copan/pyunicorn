@@ -48,7 +48,7 @@ from .. import mpi                  # parallelized computations
 from pyunicorn.core._ext.numerics import _local_cliquishness_4thorder, \
     _local_cliquishness_5thorder, _cy_mpi_nsi_newman_betweenness, \
     _cy_mpi_newman_betweenness, _nsi_betweenness, _higher_order_transitivity4,\
-    _newman_betweenness_badly_cython
+    _newman_betweenness_badly_cython, _do_nsi_clustering
  
 
 def nz_coords(matrix):
@@ -3967,14 +3967,12 @@ can only take values <<in>> or <<out>>."
 
                 nNodes = float(nNodes)
 
-                #  Calculate the random walk betweenness in C++ using Weave
-                code = r"""
-                """
+                #  Calculate the random walk betweenness in C++ using Cython
                 # added -w since numerous warnings of type "Warnung: veraltete
                 # Konvertierung von Zeichenkettenkonstante in »char*«"
                 # occurred:
                 rwb = _newman_betweenness_badly_cython(adjacency.astype(int),
-                                                       T, rwb, N)
+                                                       T, rwb, self.N)
 
                 #  Normalize RWB by component size
                 rwb *= nNodes
@@ -4795,10 +4793,12 @@ can only take values <<in>> or <<out>>."
         M = len(distance_keys)
         rM = xrange(M)
         rpos = xrange(1, M+1)
+        """
         if M < 65535:
             postype = "int16"
         else:
-            postype = "int32"
+        """
+        postype = "int32"
         D_firstpos = np.zeros(N, postype)  # pos. of first nb. of cl.
         D_lastpos = np.zeros(N, postype)  # pos. of last nb. of cl.
         # pos. of next nb. of the same cl.
@@ -4949,10 +4949,15 @@ can only take values <<in>> or <<out>>."
             dict_Delta[ij] = (float)dict_Delta[ij] + Delta_inc;
         }
         """
+        D_cluster, D_invpos, D_firstpos, D_nextpos, dict_Delta = 
+            _do_nsi_clustering(n_cands, cands, D_cluster, D_invpos, w, d0,
+                               D_firstpos, D_nextpos, N, dict_D, dict_Delta)
+        """
         weave_inline(locals(), code,
                      ['n_cands', 'cands', 'D_cluster', 'D_invpos', 'w', 'd0',
                       'D_firstpos', 'D_nextpos', 'N', 'dict_D', 'dict_Delta'],
                      blitz=False)
+        """
         print "initialization of error increments needed", \
               time.time()-t0, "sec."
 
