@@ -1609,10 +1609,10 @@ chosen link density."
 
         **Examples:**
 
-        >>> InteractingNetworks.SmallTestNetwork().\
+        >>> r(InteractingNetworks.SmallTestNetwork()).\
                 nsi_cross_betweenness([0,4,5],[1,3])
-        array([ 6.53333319,  1.19999999,  0.        ,
-                0.67692306,  0.67692306,  0.        ])
+        array([ 6.53333333,  1.2       ,  0.        ,
+                0.67692308,  0.67692308,  0.        ])
         >>> InteractingNetworks.SmallTestNetwork().\
                 nsi_cross_betweenness([0,1],[2,3,4,5])
         array([ 2.13333333,  0.        ,  0.        ,

@@ -4949,7 +4949,7 @@ can only take values <<in>> or <<out>>."
             dict_Delta[ij] = (float)dict_Delta[ij] + Delta_inc;
         }
         """
-        D_cluster, D_invpos, D_firstpos, D_nextpos, dict_Delta = 
+        D_cluster, D_invpos, D_firstpos, D_nextpos, dict_Delta = \
             _do_nsi_clustering(n_cands, cands, D_cluster, D_invpos, w, d0,
                                D_firstpos, D_nextpos, N, dict_D, dict_Delta)
         """
