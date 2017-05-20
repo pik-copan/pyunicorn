@@ -48,7 +48,8 @@ from .. import mpi                  # parallelized computations
 from pyunicorn.core._ext.numerics import _local_cliquishness_4thorder, \
     _local_cliquishness_5thorder, _cy_mpi_nsi_newman_betweenness, \
     _cy_mpi_newman_betweenness, _nsi_betweenness, _higher_order_transitivity4,\
-    _newman_betweenness_badly_cython, _do_nsi_clustering
+    _newman_betweenness_badly_cython, _do_nsi_clustering_I, \
+    _do_nsi_clustering_II, _do_nsi_hamming_clustering
  
 
 def nz_coords(matrix):
@@ -4949,9 +4950,9 @@ can only take values <<in>> or <<out>>."
             dict_Delta[ij] = (float)dict_Delta[ij] + Delta_inc;
         }
         """
-        D_cluster, D_invpos, D_firstpos, D_nextpos, dict_Delta = \
-            _do_nsi_clustering(n_cands, cands, D_cluster, D_invpos, w, d0,
-                               D_firstpos, D_nextpos, N, dict_D, dict_Delta)
+        dict_Delta = _do_nsi_clustering_I(n_cands, cands, D_cluster, w, d0,
+                                          D_firstpos, D_nextpos, N, dict_D,
+                                          dict_Delta)
         """
         weave_inline(locals(), code,
                      ['n_cands', 'cands', 'D_cluster', 'D_invpos', 'w', 'd0',
@@ -5215,10 +5216,16 @@ can only take values <<in>> or <<out>>."
                 posa1 = D_nextpos[posa1];
             }
             """
+            """
             weave_inline(locals(), code,
                          ['a', 'b', 'D_cluster', 'D_invpos', 'w', 'd0',
                           'D_firstpos', 'D_nextpos', 'N', 'dict_D',
                           'dict_Delta'], blitz=False)
+            """
+            dict_Delta = _do_nsi_clustering_II(a, b, D_cluster, w, d0,
+                                               D_firstpos, D_nextpos, N,
+                                               dict_D, dict_Delta)
+
             sumt3 = time.time()-t0
 
             # finally update D:
@@ -5496,11 +5503,21 @@ can only take values <<in>> or <<out>>."
             result(1) = newpart1;
             result(2) = newpart2;
             """
+            """
             weave_inline(locals(), code,
                          ['nActiveIndices', 'mind0', 'minwp0', 'lastunited',
                           'part1', 'part2', 'distances', 'theActiveIndices',
                           'linkedWeights', 'weightProducts', 'errors',
                           'result', 'mayJoin'])
+            """
+            results = _do_nsi_hamming_clustering(
+                    n2, nActiveIndices, mind0, minwp0, lastunited, part1,
+                    part2, distances.copy(mode='c'),
+                    theActiveIndices.copy(mode='c'),
+                    linkedWeights.copy(mode='c'),
+                    weightProducts.copy(mode='c'),
+                    errors.copy(mode='c'), result.copy(mode='c'),
+                    mayJoin.copy(mode='c'))
 
             mind = result[0]
             part1 = int(result[1])

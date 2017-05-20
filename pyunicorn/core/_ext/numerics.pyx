@@ -42,6 +42,10 @@ cdef extern from "src_numerics.c":
     void _randomly_rewire_geomodel_III_fast(int iterations, float eps,
         short *A, float *D, int E, int N, int *edges, int *degree) 
     double _higher_order_transitivity4_fast(int N, short* A)
+    void _do_nsi_hamming_clustering_fast(int n2, int nActiveIndices,
+        float mind0, float minwp0, int lastunited, int part1, int part2,
+        float *distances, int *theActiveIndices, float *linkedWeights,
+        float *weightProducts, float *errors, float *result, int *mayJoin)
 
 # geo_network =================================================================
 
@@ -625,10 +629,9 @@ def _cy_mpi_nsi_newman_betweenness(
     return this_betweenness, start_i, end_i
 
 
-def _do_nsi_clustering(
+def _do_nsi_clustering_I(
     int n_cands, np.ndarray[INTTYPE_t, ndim=1] cands,
     np.ndarray[INT16TYPE_t, ndim=1] D_cluster,
-    np.ndarray[INT32TYPE_t, ndim=1] D_invpos,
     np.ndarray[FLOATTYPE_t, ndim=1] w, double d0,
     np.ndarray[INT32TYPE_t, ndim=1] D_firstpos,
     np.ndarray[INT32TYPE_t, ndim=1] D_nextpos, int N, dict dict_D,
@@ -693,7 +696,196 @@ def _do_nsi_clustering(
 
         dict_Delta[ij] = float(dict_Delta[ij]) + Delta_inc
 
-    return D_cluster, D_invpos, D_firstpos, D_nextpos, dict_Delta
+    return dict_Delta
+
+
+def _do_nsi_clustering_II(int a, int b, 
+    np.ndarray[INT16TYPE_t, ndim=1] D_cluster,
+    np.ndarray[FLOATTYPE_t, ndim=1] w, double d0,
+    np.ndarray[INT32TYPE_t, ndim=1] D_firstpos,
+    np.ndarray[INT32TYPE_t, ndim=1] D_nextpos, int N, dict dict_D,
+    dict dict_Delta):
+    
+    cdef:
+        float wa = w[a], wb = w[b], wc = wa+wb, wad0 = wa*d0, wbd0 = wb*d0
+        float wa1, wa1sq, wa1d0, Da1a1, Da1a, Da1b, Da1c, wb1, wb1d0, wb1sq, \
+                wa1b1, wc1, Db1b1, Da1b1, Dc1c1_wc1sq, \
+                Dc1c1_wc1sq_Da1a1_wa1sq, Dc1c1_wc1sq_Da1a1_wb1sq, \
+                Dc1c1_wc1sq_Da1b1_wa1b1, Delta_new, wc2, Da1c2, Db1c2, \
+                Dc1c2_wc1, Dc1c2_wc1_Da1c2_wa1, Dc1c2_wc1_Db1c2_wb1, \
+                Dc1c2_wc1_wc2_d0, Db1a, Db1b, Db1c, Dc1a_wc1, Dc1b_wc1, \
+                Dc1c_wc1, Dc1c_wc1_Da1c_wa1, Dc1a_wc1_Da1a_wa1, \
+                Dc1b_wc1_Da1b_wa1, Dc1c_wc1_Db1c_wb1, Dc1a_wc1_Db1a_wb1, \
+                Dc1b_wc1_Db1b_wb1
+        int N1 = N+1, posa1 = D_firstpos[a] # a meaning c!
+        int a1, a1N, a1a1, a1a, a1b, posb1, b1, b1N, posc2, b1c2, b1a, b1b, \
+                a1b1key, b1b1
+
+
+    while (posa1 > 0):
+        a1 = D_cluster[posa1]
+        a1N = a1*N
+        a1a1 = a1*N1
+        a1a = a1N+a
+        a1b = a1N+b
+        wa1 = w[a1]
+        wa1sq = wa1*wa1
+        wa1d0 = wa1*d0
+        if (dict_D.has_key(a1a1)):
+            Da1a1 = dict_D[a1a1]
+        else:
+            Da1a1 = 0.0
+        if (dict_D.has_key(a1a)):
+            Da1a = dict_D[a1a]
+        else:
+            Da1a = wa1*wad0
+        if (dict_D.has_key(a1b)):
+            Da1b = dict_D[a1b]
+        else:
+            Da1b = wa1*wbd0
+
+        Da1c = Da1a + Da1b
+        posb1 = D_firstpos[a1]
+
+        while (posb1 > 0):
+            b1 = D_cluster[posb1]
+            b1N = b1*N
+            b1b1 = b1*N1
+
+            if (a1 < b1):
+                a1b1key = a1N+b1
+            else:
+                a1b1key = b1N+a1
+            if (dict_Delta.has_key(a1b1key)):
+                wb1 = w[b1]
+                wb1d0 = wb1 * d0
+                wb1sq = wb1*wb1
+                wa1b1 = wa1*wb1
+                wc1 = wa1+wb1
+                if (dict_D.has_key(b1b1)):
+                    Db1b1 = dict_D[b1b1]
+                else:
+                    Db1b1 = 0.0
+                if (dict_D.has_key(a1b1key)):
+                    Da1b1 = dict_D[a1b1key]
+                else:
+                    Da1b1 = wb1 * wa1d0
+                Dc1c1_wc1sq = (Da1a1+Db1b1+2.0*Da1b1) / (wc1*wc1)
+                if (b1 == a): # a meaning c!
+                    Dc1c1_wc1sq_Da1a1_wa1sq = Dc1c1_wc1sq - Da1a1/wa1sq
+                    Dc1c1_wc1sq_Db1b1_wb1sq = Dc1c1_wc1sq - Db1b1/wb1sq
+                    Dc1c1_wc1sq_Da1b1_wa1b1 = Dc1c1_wc1sq - Da1b1/wa1b1
+                    Delta_new = wa1sq * Dc1c1_wc1sq_Da1a1_wa1sq * \
+                                Dc1c1_wc1sq_Da1a1_wa1sq + \
+                                wb1sq * Dc1c1_wc1sq_Db1b1_wb1sq * \
+                                Dc1c1_wc1sq_Db1b1_wb1sq + \
+                                2.0 * wa1b1 * Dc1c1_wc1sq_Da1b1_wa1b1 * \
+                                Dc1c1_wc1sq_Da1b1_wa1b1
+                    # loop thru all nbs c2 of a1 other than b1:
+                    posc2 = D_firstpos[a1], c2
+                    while (posc2 > 0):
+                        c2 = D_cluster[posc2]
+                        if (c2 != b1):
+                            b1c2 = b1N+c2
+                            wc2 = w[c2]
+                            Da1c2 = dict_D[a1N+c2]
+                            if (dict_D.has_key(b1c2)):
+                                Db1c2 = dict_D[b1c2]
+                            else:
+                                Db1c2 = wc2*wb1d0
+                            Dc1c2_wc1 = (Da1c2 + Db1c2) / wc1
+                            Dc1c2_wc1_Da1c2_wa1 = Dc1c2_wc1 - Da1c2/wa1
+                            Dc1c2_wc1_Db1c2_wb1 = Dc1c2_wc1 - Db1c2/wb1
+                            Delta_new += (wa1 * Dc1c2_wc1_Da1c2_wa1 * \
+                                          Dc1c2_wc1_Da1c2_wa1 + \
+                                          wb1 * Dc1c2_wc1_Db1c2_wb1 * \
+                                          Dc1c2_wc1_Db1c2_wb1) / wc2
+
+                        posc2 = D_nextpos[posc2]
+
+                    #  loop thru all nbs of b1 other than a1
+                    #  which are not nbs of a1:
+                    posc2 = D_firstpos[b1]
+                    while (posc2 > 0):
+                        c2 = D_cluster[posc2]
+                        if (c2 != a1):
+                            if not (dict_D.has_key(a1N+c2)):
+                                b1c2 = b1N+c2
+                                wc2 = w[c2]
+
+                            if (dict_D.has_key(b1c2)):
+                                Db1c2 = dict_D[b1c2]
+                            else:
+                                Db1c2 = wc2*wb1d0
+                            Dc1c2_wc1 = (wc2*wa1d0 + Db1c2) / wc1
+                            Dc1c2_wc1_wc2_d0 = Dc1c2_wc1 - wc2*d0
+                            Dc1c2_wc1_Db1c2_wb1 = Dc1c2_wc1 - Db1c2/wb1
+                            Delta_new += (wa1 * Dc1c2_wc1_wc2_d0 * \
+                                          Dc1c2_wc1_wc2_d0 + \
+                                          wb1 * Dc1c2_wc1_Db1c2_wb1 * \
+                                          Dc1c2_wc1_Db1c2_wb1) / wc2
+
+                        posc2 = D_nextpos[posc2]
+                    dict_Delta[a1b1key] = Delta_new
+
+                else:
+                    b1a = b1N+a
+                    b1b = b1N+b
+                    if (dict_D.has_key(b1a)):
+                        Db1a = dict_D[b1a]
+                    else:
+                        Db1a = wb1*wad0
+                    if (dict_D.has_key(b1b)):
+                        Db1b = dict_D[b1b]
+                    else:
+                        Db1b = wb1*wbd0;
+                    Db1c = Db1a + Db1b
+                    wc1 = wa1 + wb1
+                    Dc1a_wc1 = (Da1a + Db1a) / wc1
+                    Dc1b_wc1 = (Da1b + Db1b) / wc1
+                    Dc1c_wc1 = (Da1c + Db1c) / wc1
+                    Dc1c_wc1_Da1c_wa1 = Dc1c_wc1 - Da1c/wa1
+                    Dc1a_wc1_Da1a_wa1 = Dc1a_wc1 - Da1a/wa1
+                    Dc1b_wc1_Da1b_wa1 = Dc1b_wc1 - Da1b/wa1
+                    Dc1c_wc1_Db1c_wb1 = Dc1c_wc1 - Db1c/wb1
+                    Dc1a_wc1_Db1a_wb1 = Dc1a_wc1 - Db1a/wb1
+                    Dc1b_wc1_Db1b_wb1 = Dc1b_wc1 - Db1b/wb1
+                    Delta_inc = 2 * (Dc1c_wc1_Da1c_wa1*Dc1c_wc1_Da1c_wa1/wc - \
+                                     Dc1a_wc1_Da1a_wa1*Dc1a_wc1_Da1a_wa1/wa - \
+                                     Dc1b_wc1_Da1b_wa1*Dc1b_wc1_Da1b_wa1/wb)/ \
+                                wa1 + \
+                                2 * (Dc1c_wc1_Db1c_wb1*Dc1c_wc1_Db1c_wb1/wc - \
+                                     Dc1a_wc1_Db1a_wb1*Dc1a_wc1_Db1a_wb1/wa - \
+                                     Dc1b_wc1_Db1b_wb1*Dc1b_wc1_Db1b_wb1/wb)/ \
+                                wb1
+                    dict_Delta[a1b1key] = float(dict_Delta[a1b1key])+Delta_inc
+
+            posb1 = D_nextpos[posb1]
+
+        posa1 = D_nextpos[posa1]
+    
+    return dict_Delta
+
+
+def _do_nsi_hamming_clustering(int n2, int nActiveIndices, float mind0,
+    float minwp0, int lastunited, int part1, int part2, 
+    np.ndarray[FLOATTYPE_t, ndim=2] distances,
+    np.ndarray[INTTYPE_t, ndim=1] theActiveIndices,
+    np.ndarray[FLOATTYPE_t, ndim=2] linkedWeights,
+    np.ndarray[FLOATTYPE_t, ndim=2] weightProducts,
+    np.ndarray[FLOATTYPE_t, ndim=2] errors,
+    np.ndarray[FLOATTYPE_t, ndim=1] results,
+    np.ndarray[INTTYPE_t, ndim=2] mayJoin):
+
+    return _do_nsi_hamming_clustering_fast(n2, nActiveIndices, mind0, minwp0,
+        lastunited, part1, part2,
+        <float*> np.PyArray_DATA(distances),
+        <int*> np.PyArray_DATA(theActiveIndices),
+        <float*> np.PyArray_DATA(linkedWeights),
+        <float*> np.PyArray_DATA(weightProducts),
+        <float*> np.PyArray_DATA(errors),
+        <float*> np.PyArray_DATA(results),
+        <int*> np.PyArray_DATA(mayJoin))
 
 
 # grid ========================================================================
