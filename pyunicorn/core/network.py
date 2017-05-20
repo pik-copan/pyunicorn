@@ -50,7 +50,7 @@ from pyunicorn.core._ext.numerics import _local_cliquishness_4thorder, \
     _cy_mpi_newman_betweenness, _nsi_betweenness, _higher_order_transitivity4,\
     _newman_betweenness_badly_cython, _do_nsi_clustering_I, \
     _do_nsi_clustering_II, _do_nsi_hamming_clustering
- 
+
 
 def nz_coords(matrix):
     """
