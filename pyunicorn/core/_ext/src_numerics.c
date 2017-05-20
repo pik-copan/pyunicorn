@@ -8,6 +8,8 @@
 * License: BSD (3-clause)
 */
 
+#include <math.h>
+
 // geo_network ================================================================
 
 void _randomly_rewire_geomodel_I_fast(int iterations, float eps, short *A,
@@ -330,4 +332,60 @@ void _do_nsi_hamming_clustering_fast(int n2, int nActiveIndices, float mind0,
     result[0] = mind;
     result[1] = newpart1;
     result[2] = newpart2;
+}
+
+
+double _vertex_current_flow_betweenness_fast(int N, float Is, float It,
+    float *admittance, float *R, int i) {
+
+    double VCFB=0.0;
+    int t=0;
+    int s=0;
+    int j=0;
+    double I=0;
+
+    for(t=0;t<N;t++){
+        for(s=0; s<t; s++){
+            I = 0.0;
+            if(i == t || i == s){
+                continue;
+            }
+            else{
+                for(j=0;j<N;j++){
+                    I += admittance[i*N+j]*
+                    fabs( Is*(R[i*N+s]-R[j*N+s])+
+                          It*(R[j*N+t]-R[i*N+t])
+                        ) / 2.0;
+                } // for  j
+            }
+            VCFB += 2.0*I/(N*(N-1));
+        } // for s
+    } // for t
+
+    return VCFB;
+}
+
+
+void _edge_current_flow_betweenness_fast(int N, float Is, float It, 
+    float *admittance, float *R, float *ECFB) {
+
+    int i=0;
+    int j=0;
+    int t=0;
+    int s=0;
+    double I = 0.0;
+
+    for(i=0; i<N; i++){
+        for(j=0;j<N;j++){
+            I = 0.0;
+            for(t=0;t<N;t++){
+                for(s=0; s<t; s++){
+                    I += admittance[i*N+j]*\
+                         fabs(Is*(R[i*N+s]-R[j*N+s])+
+                              It*(R[j*N+t]-R[i*N+t]));
+                } //for s
+            } // for t
+            ECFB[i*N+j] += 2.*I/(N*(N-1));
+        } // for j
+    } // for i
 }

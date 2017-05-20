@@ -53,6 +53,8 @@ from .grid import Grid
 from .network import weave_inline
 flagWeave = True
 
+from pyunicorn.core._ext.numerics import _vertex_current_flow_betweenness, \
+    _edge_current_flow_betweenness
 
 class ResNetwork(GeoNetwork):
     """ A resistive network class
@@ -755,11 +757,21 @@ class ResNetwork(GeoNetwork):
         >>> print "%.3f" % res.vertex_current_flow_betweenness(2)
         0.044
         """
+        """
         # switch the implementation according to weave support
         if self.flagWeave and not self.flagComplex:
-            return self._vertex_current_flow_betweenness_weave(i)
+        """
+        # set params
+        Is = It = np.float(1.0)
+        return _vertex_current_flow_betweenness(
+                np.int(self.N), Is, It, \
+                self.get_admittance().copy(order='c'), \
+                self.get_R().copy(order='c'), i)
+        """
+        return self._vertex_current_flow_betweenness_weave(i)
         else:
             return self._vertex_current_flow_betweenness_python(i)
+        """
 
     def edge_current_flow_betweenness(self):
         """The electrial version of Newmann's edge betweeness
@@ -784,11 +796,23 @@ class ResNetwork(GeoNetwork):
          [ 0.          0.4         0.33333333  0.          0.4       ]
          [ 0.          0.          0.          0.4         0.        ]]
         """
+        """
         # switch the implementation according to weave support
         if self.flagWeave and not self.flagComplex:
             return self._edge_current_flow_betweenness_weave()
+
+        """
+        # set currents
+        Is = It = np.float(1)
+
+        return _edge_current_flow_betweenness(np.int(self.N), Is, It, \
+                self.get_admittance().copy(order='c'), \
+                self.get_R().copy(order='c'))
+
+        """
         else:
             return self._edge_current_flow_betweenness_python()
+        """
 
 ###############################################################################
 # ##                       PRIVATE FUNCTIONS                               ## #

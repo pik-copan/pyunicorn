@@ -46,6 +46,11 @@ cdef extern from "src_numerics.c":
         float mind0, float minwp0, int lastunited, int part1, int part2,
         float *distances, int *theActiveIndices, float *linkedWeights,
         float *weightProducts, float *errors, float *result, int *mayJoin)
+    double _vertex_current_flow_betweenness_fast(int N, float Is, float It,
+        float *admittance, float *R, int i)
+    void _edge_current_flow_betweenness_fast(int N, float Is, float It,
+        float *admittance, float *R, float *ECFB)
+
 
 # geo_network =================================================================
 
@@ -926,3 +931,29 @@ def _euclidiean_distance(
         for j in xrange(i+1):
             expr = (x[i]-x[j])**2 + (y[i]-y[j])**2
             distance[i, j] = distance[j, i] = expr**(0.5)
+
+
+# resistive_network ===========================================================
+
+def _vertex_current_flow_betweenness(int N, float Is, float It,
+    np.ndarray[FLOAT32TYPE_t, ndim=2] admittance,
+    np.ndarray[FLOAT32TYPE_t, ndim=2] R, int i):
+
+    return _vertex_current_flow_betweenness_fast(N, Is, It, 
+        <float*> np.PyArray_DATA(admittance),
+        <float*> np.PyArray_DATA(R), i)
+
+def _edge_current_flow_betweenness(int N, float Is, float It,
+    np.ndarray[FLOAT32TYPE_t, ndim=2] admittance,
+    np.ndarray[FLOAT32TYPE_t, ndim=2] R,):
+
+    # alloc output
+    cdef np.ndarray[FLOAT32TYPE_t, ndim=2, mode='c'] ECFB = \
+            np.zeros((N, N), dtype='float32')
+
+    _edge_current_flow_betweenness_fast(N, Is, It, 
+        <float*> np.PyArray_DATA(admittance),
+        <float*> np.PyArray_DATA(R),
+        <float*> np.PyArray_DATA(ECFB))
+
+    return ECFB
