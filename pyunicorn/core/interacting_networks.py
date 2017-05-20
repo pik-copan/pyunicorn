@@ -1613,10 +1613,10 @@ chosen link density."
                 nsi_cross_betweenness([0,4,5],[1,3]))
         array([ 6.5333,  1.2   ,  0.    ,
                 0.6769,  0.6769,  0.    ])
-        >>> InteractingNetworks.SmallTestNetwork().\
-                nsi_cross_betweenness([0,1],[2,3,4,5])
-        array([ 2.13333333,  0.        ,  0.        ,
-                0.49230769,  0.92087912,  0.        ])
+        >>> r(InteractingNetworks.SmallTestNetwork().\
+                nsi_cross_betweenness([0,1],[2,3,4,5]))
+        array([ 2.1333,  0.    ,  0.    ,
+                0.4923,  0.9209,  0.    ])
 
         :arg [int] node_list1: list of node indices describing the first
             subnetwork
