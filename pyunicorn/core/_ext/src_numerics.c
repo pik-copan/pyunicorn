@@ -335,7 +335,7 @@ void _do_nsi_hamming_clustering_fast(int n2, int nActiveIndices, float mind0,
 }
 
 
-double _vertex_current_flow_betweenness_fast(int N, float Is, float It,
+double _vertex_current_flow_betweenness_fast(int N, double Is, double It,
     float *admittance, float *R, int i) {
 
     double VCFB=0.0;
@@ -366,7 +366,7 @@ double _vertex_current_flow_betweenness_fast(int N, float Is, float It,
 }
 
 
-void _edge_current_flow_betweenness_fast(int N, float Is, float It, 
+void _edge_current_flow_betweenness_fast(int N, double Is, double It, 
     float *admittance, float *R, float *ECFB) {
 
     int i=0;

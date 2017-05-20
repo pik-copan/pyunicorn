@@ -46,9 +46,9 @@ cdef extern from "src_numerics.c":
         float mind0, float minwp0, int lastunited, int part1, int part2,
         float *distances, int *theActiveIndices, float *linkedWeights,
         float *weightProducts, float *errors, float *result, int *mayJoin)
-    double _vertex_current_flow_betweenness_fast(int N, float Is, float It,
+    double _vertex_current_flow_betweenness_fast(int N, double Is, double It,
         float *admittance, float *R, int i)
-    void _edge_current_flow_betweenness_fast(int N, float Is, float It,
+    void _edge_current_flow_betweenness_fast(int N, double Is, double It,
         float *admittance, float *R, float *ECFB)
 
 
@@ -935,7 +935,7 @@ def _euclidiean_distance(
 
 # resistive_network ===========================================================
 
-def _vertex_current_flow_betweenness(int N, float Is, float It,
+def _vertex_current_flow_betweenness(int N, double Is, double It,
     np.ndarray[FLOAT32TYPE_t, ndim=2] admittance,
     np.ndarray[FLOAT32TYPE_t, ndim=2] R, int i):
 
@@ -943,7 +943,7 @@ def _vertex_current_flow_betweenness(int N, float Is, float It,
         <float*> np.PyArray_DATA(admittance),
         <float*> np.PyArray_DATA(R), i)
 
-def _edge_current_flow_betweenness(int N, float Is, float It,
+def _edge_current_flow_betweenness(int N, double Is, double It,
     np.ndarray[FLOAT32TYPE_t, ndim=2] admittance,
     np.ndarray[FLOAT32TYPE_t, ndim=2] R,):
 
