@@ -41,15 +41,15 @@ from scipy import sparse
 #  Import iGraph for high performance graph theory tools written in pure ANSI-C
 import igraph
 
+from pyunicorn.core._ext.numerics import _vertex_current_flow_betweenness, \
+    _edge_current_flow_betweenness
+
 # Import things we inherit from
 from .geo_network import GeoNetwork
 from .grid import Grid
 
 # a network Error (use uncertain)
 # from .network import NetworkError
-
-from pyunicorn.core._ext.numerics import _vertex_current_flow_betweenness, \
-    _edge_current_flow_betweenness
 
 
 class ResNetwork(GeoNetwork):
@@ -787,7 +787,8 @@ class ResNetwork(GeoNetwork):
         # set currents
         Is = It = np.float(1)
 
-        return _edge_current_flow_betweenness(np.int(self.N), Is, It,
+        return _edge_current_flow_betweenness(
+            np.int(self.N), Is, It,
             self.get_admittance().astype('float32').copy(order='c'),
             self.get_R().astype('float32').copy(order='c'))
 
