@@ -781,20 +781,20 @@ class ResNetwork(GeoNetwork):
         **Examples:**
 
         >>> res = ResNetwork.SmallTestNetwork()
-        >>> print res.edge_current_flow_betweenness()
-        [[ 0.          0.4         0.          0.          0.        ]
-         [ 0.4         0.          0.24444444  0.53333333  0.        ]
-         [ 0.          0.24444444  0.          0.24444444  0.        ]
-         [ 0.          0.53333333  0.24444444  0.          0.4       ]
-         [ 0.          0.          0.          0.4         0.        ]]
+        >>> print r(res.edge_current_flow_betweenness())
+        [[ 0.      0.4     0.      0.      0.    ]
+         [ 0.4     0.      0.2444  0.5333  0.    ]
+         [ 0.      0.2444  0.      0.2444  0.    ]
+         [ 0.      0.5333  0.2444  0.      0.4   ]
+         [ 0.      0.      0.      0.4     0.    ]]
         >>> # update to unit resistances
         >>> res.update_resistances(res.adjacency)
-        >>> print res.edge_current_flow_betweenness()
-        [[ 0.          0.4         0.          0.          0.        ]
-         [ 0.4         0.          0.33333333  0.4         0.        ]
-         [ 0.          0.33333333  0.          0.33333333  0.        ]
-         [ 0.          0.4         0.33333333  0.          0.4       ]
-         [ 0.          0.          0.          0.4         0.        ]]
+        >>> print r(res.edge_current_flow_betweenness())
+        [[ 0.      0.4     0.      0.      0.    ]
+         [ 0.4     0.      0.3333  0.4     0.    ]
+         [ 0.      0.3333  0.      0.3333  0.    ]
+         [ 0.      0.4     0.3333  0.      0.4   ]
+         [ 0.      0.      0.      0.4     0.    ]]
         """
         """
         # switch the implementation according to weave support
@@ -817,31 +817,6 @@ class ResNetwork(GeoNetwork):
 ###############################################################################
 # ##                       PRIVATE FUNCTIONS                               ## #
 ###############################################################################
-    def _vertex_current_flow_betweenness_python(self, i):
-        """Python version of VCFB
-        """
-        # get required matrices
-        admittance = self.get_admittance()
-        R = self.get_R()
-
-        # set params
-        Is = It = np.float(1.0)
-
-        # alloc output
-        VCFB = np.float(0)
-
-        for t in xrange(self.N):
-            for s in xrange(t):
-                I = 0.0
-                if i == t or i == s:
-                    pass
-                else:
-                    for j in xrange(self.N):
-                        I += admittance[i][j] * np.abs(
-                            Is*(R[i][s]-R[j][s]) + It*(R[j][t]-R[i][t]))/2.
-                VCFB += 2.*I/(self.N*(self.N-1))
-
-        return VCFB
 
     def _vertex_current_flow_betweenness_weave(self, i):
         """C Version of VCFB
