@@ -23,7 +23,6 @@ from GeoNetwork and provides most GeoNetwork's functions/properties.
 The class has the following instance variables::
 
     (bool) flagDebug     : flag for debugging mode
-    (bool) flagWeave     : flag for switching between python/C code parts
     (bool) flagComplex   : flag for complex input
     (ndarray) resistances: array of resistances (complex or real)
 
@@ -48,10 +47,6 @@ from .grid import Grid
 
 # a network Error (use uncertain)
 # from .network import NetworkError
-
-# Weave for inline C
-from .network import weave_inline
-flagWeave = True
 
 from pyunicorn.core._ext.numerics import _vertex_current_flow_betweenness, \
     _edge_current_flow_betweenness
@@ -143,9 +138,6 @@ class ResNetwork(GeoNetwork):
         self.adm_graph = None
         self.sparse_R = None
         self.update_resistances(resistances)
-
-        # 3b) switch weave support internally as well
-        self.flagWeave = flagWeave
 
         # 4) cache
         self._effective_resistances = None
@@ -757,10 +749,6 @@ class ResNetwork(GeoNetwork):
         >>> print "%.3f" % res.vertex_current_flow_betweenness(2)
         0.044
         """
-        """
-        # switch the implementation according to weave support
-        if self.flagWeave and not self.flagComplex:
-        """
         # set params
         Is = It = np.float(1.0)
         return _vertex_current_flow_betweenness(
@@ -768,9 +756,8 @@ class ResNetwork(GeoNetwork):
                 self.get_admittance().astype('float32').copy(order='c'), \
                 self.get_R().astype('float32').copy(order='c'), i)
         """
-        return self._vertex_current_flow_betweenness_weave(i)
-        else:
-            return self._vertex_current_flow_betweenness_python(i)
+        # In case of no Cython:
+        return self._vertex_current_flow_betweenness_python(i)
         """
 
     def edge_current_flow_betweenness(self):
@@ -796,12 +783,6 @@ class ResNetwork(GeoNetwork):
          [ 0.      0.4     0.3333  0.      0.4   ]
          [ 0.      0.      0.      0.4     0.    ]]
         """
-        """
-        # switch the implementation according to weave support
-        if self.flagWeave and not self.flagComplex:
-            return self._edge_current_flow_betweenness_weave()
-
-        """
         # set currents
         Is = It = np.float(1)
 
@@ -810,58 +791,35 @@ class ResNetwork(GeoNetwork):
                 self.get_R().astype('float32').copy(order='c'))
 
         """
-        else:
-            return self._edge_current_flow_betweenness_python()
+        # In case of no cython:
+        return self._edge_current_flow_betweenness_python()
         """
 
 ###############################################################################
 # ##                       PRIVATE FUNCTIONS                               ## #
 ###############################################################################
 
-    def _vertex_current_flow_betweenness_weave(self, i):
-        """C Version of VCFB
+    def _vertex_current_flow_betweenness_python(self, i):
+        """Python version of VCFB
         """
         # get required matrices
         admittance = self.get_admittance()
         R = self.get_R()
-
         # set params
         Is = It = np.float(1.0)
-
         # alloc output
-        VCFB = np.float(0.0)
-        N = np.int(self.N)
+        VCFB = np.float(0)
+        for t in xrange(self.N):
+            for s in xrange(t):
+                I = 0.0
+                if i == t or i == s:
+                    pass
+                else:
+                    for j in xrange(self.N):
+                        I += admittance[i][j] * np.abs(
+                            Is*(R[i][s]-R[j][s]) + It*(R[j][t]-R[i][t]))/2.
+                VCFB += 2.*I/(self.N*(self.N-1))
 
-        code = """
-            int t=0;
-            int s=0;
-            int j=0;
-            double I=0;
-            N = double(N);
-
-            for(t=0;t<N;t++){
-                for(s=0; s<t; s++){
-                    I = 0.0;
-                    if(i == t || i == s){
-                        continue;
-                    }
-                    else{
-                        for(j=0;j<N;j++){
-                            I += ADMITTANCE2(i,j)*\
-                            fabs( Is*(R2(i,s)-R2(j,s))+\
-                                  It*(R2(j,t)-R2(i,t)) \
-                                ) / 2.0;
-                        } // for  j
-                    }
-                    VCFB += 2.0*I/(N*(N-1));
-                } // for s
-            } // for t
-
-            return_val = VCFB;
-        """
-        VCFB = weave_inline(locals(), code,
-                            ['N', 'Is', 'It', 'admittance', 'R', 'i', 'VCFB'],
-                            blitz=False, headers=["<math.h>"])
         return VCFB
 
     def _edge_current_flow_betweenness_python(self):
@@ -896,50 +854,6 @@ class ResNetwork(GeoNetwork):
 
         return ECFB
 
-    def _edge_current_flow_betweenness_weave(self):
-        """
-        Weave/C version of ECFB
-        """
-        # set currents
-        Is = It = np.float(1)
-
-        # alloc output
-        ECFB = np.zeros([self.N, self.N])
-
-        # the usual
-        admittance = self.get_admittance()
-        R = self.get_R()
-
-        N = np.int(self.N)
-        code = """
-            int i=0;
-            int j=0;
-            int t=0;
-            int s=0;
-            double I = 0.0;
-
-            N = double(N);
-            for(i=0; i<N; i++){
-                for(j=0;j<N;j++){
-                    I = 0.0;
-                    for(t=0;t<N;t++){
-                        for(s=0; s<t; s++){
-                            I += ADMITTANCE2(i,j)*\
-                                 fabs(  Is*(R2(i,s)-R2(j,s))+\
-                                        It*(R2(j,t)-R2(i,t)) \
-                                    );
-                        } //for s
-                    } // for t
-                    ECFB2(i,j) += 2.*I/(N*(N-1));
-                } // for j
-            } // for i
-
-            return_val = ECFB;
-        """
-        weave_inline(locals(), code,
-                     ['N', 'Is', 'It', 'admittance', 'R', 'ECFB'],
-                     blitz=False, headers=["<math.h>"])
-        return ECFB
 
 ###############################################################################
 # ##                       FUNCTIONS ATTIC                                 ## #

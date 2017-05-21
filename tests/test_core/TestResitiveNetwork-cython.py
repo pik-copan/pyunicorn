@@ -21,13 +21,13 @@ def testVCFB():
     for i in range(5):
         vcfbPython = res._vertex_current_flow_betweenness_python(i)
         vcfbCython = res.vertex_current_flow_betweenness(i)
-        assert vcfbPython == vcfbCython
+        assert round(vcfbPython, 4) == round(vcfbCython, 4)
 
 
 def testECFB():
     ecfbPython = res._edge_current_flow_betweenness_python()
-    ecfbWeave = res.edge_current_flow_betweenness()
+    ecfbCython = res.edge_current_flow_betweenness()
     l = len(ecfbPython)
     for i in range(l):
         for j in range(l):
-            assert ecfbPython[i][j] == ecfbWeave[i][j]
+            assert round(ecfbPython[i][j], 4) == round(ecfbCython[i][j], 4)
