@@ -51,6 +51,7 @@ from .grid import Grid
 from pyunicorn.core._ext.numerics import _vertex_current_flow_betweenness, \
     _edge_current_flow_betweenness
 
+
 class ResNetwork(GeoNetwork):
     """ A resistive network class
 
@@ -752,9 +753,9 @@ class ResNetwork(GeoNetwork):
         # set params
         Is = It = np.float(1.0)
         return _vertex_current_flow_betweenness(
-                np.int(self.N), Is, It, \
-                self.get_admittance().astype('float32').copy(order='c'), \
-                self.get_R().astype('float32').copy(order='c'), i)
+            np.int(self.N), Is, It,
+            self.get_admittance().astype('float32').copy(order='c'),
+            self.get_R().astype('float32').copy(order='c'), i)
         """
         # In case of no Cython:
         return self._vertex_current_flow_betweenness_python(i)
@@ -786,9 +787,9 @@ class ResNetwork(GeoNetwork):
         # set currents
         Is = It = np.float(1)
 
-        return _edge_current_flow_betweenness(np.int(self.N), Is, It, \
-                self.get_admittance().astype('float32').copy(order='c'), \
-                self.get_R().astype('float32').copy(order='c'))
+        return _edge_current_flow_betweenness(np.int(self.N), Is, It,
+            self.get_admittance().astype('float32').copy(order='c'),
+            self.get_R().astype('float32').copy(order='c'))
 
         """
         # In case of no cython:
