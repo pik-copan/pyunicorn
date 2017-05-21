@@ -756,10 +756,6 @@ class ResNetwork(GeoNetwork):
             np.int(self.N), Is, It,
             self.get_admittance().astype('float32').copy(order='c'),
             self.get_R().astype('float32').copy(order='c'), i)
-        """
-        # In case of no Cython:
-        return self._vertex_current_flow_betweenness_python(i)
-        """
 
     def edge_current_flow_betweenness(self):
         """The electrial version of Newmann's edge betweeness
@@ -792,16 +788,7 @@ class ResNetwork(GeoNetwork):
             self.get_admittance().astype('float32').copy(order='c'),
             self.get_R().astype('float32').copy(order='c'))
 
-        """
-        # In case of no cython:
-        return self._edge_current_flow_betweenness_python()
-        """
-
-###############################################################################
-# ##                       PRIVATE FUNCTIONS                               ## #
-###############################################################################
-
-    def _vertex_current_flow_betweenness_python(self, i):
+    def vertex_current_flow_betweenness_python(self, i):
         """Python version of VCFB
         """
         # get required matrices
@@ -824,7 +811,7 @@ class ResNetwork(GeoNetwork):
 
         return VCFB
 
-    def _edge_current_flow_betweenness_python(self):
+    def edge_current_flow_betweenness_python(self):
         """
         Python version of ECFB
         """

@@ -19,13 +19,13 @@ resC = ResNetwork.SmallComplexNetwork()
 
 def testVCFB():
     for i in range(5):
-        vcfbPython = res._vertex_current_flow_betweenness_python(i)
+        vcfbPython = res.vertex_current_flow_betweenness_python(i)
         vcfbCython = res.vertex_current_flow_betweenness(i)
         assert round(vcfbPython, 4) == round(vcfbCython, 4)
 
 
 def testECFB():
-    ecfbPython = res._edge_current_flow_betweenness_python()
+    ecfbPython = res.edge_current_flow_betweenness_python()
     ecfbCython = res.edge_current_flow_betweenness()
     l = len(ecfbPython)
     for i in range(l):
