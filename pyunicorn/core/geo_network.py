@@ -683,7 +683,7 @@ average link distance sequence..."
         #  Set new adjacency matrix
         self.adjacency = A
 
-    #  FIXME: Check this method and implement in C++ via Weave for speed.
+    #  FIXME: Check this method and implement in C++ via Cython for speed.
     #  FIXME: Also improve documentation.
     #  FIXME: Add example
     def shuffled_by_distance_copy(self):

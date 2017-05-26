@@ -17,7 +17,7 @@ from math import factorial
 # array object and fast numerics
 import numpy as np
 
-# C++ inline code
+# Cython inline code
 from pyunicorn.timeseries._ext.numerics import \
     _embed_time_series, _manhattan_distance_matrix_rp, \
     _euclidean_distance_matrix_rp, _supremum_distance_matrix_rp, \

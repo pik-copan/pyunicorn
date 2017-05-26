@@ -35,10 +35,6 @@ from scipy import linalg            # solvers
 from scipy.linalg import matfuncs
 from scipy import sparse as sp      # fast sparse matrices
 from scipy.sparse.linalg import eigsh, inv, splu
-try:
-    import weave                    # C++ inline code
-except ImportError:
-    import scipy.weave as weave
 
 import igraph                       # high performance graph theory tools
 
@@ -104,15 +100,6 @@ def cached_var(cat, msg=None):
             return cache_helper(self, cat, key, msg, func, key, **kwargs)
         return wrapped
     return wrapper
-
-
-def weave_inline(local_dict, code, args, blitz=True, **kwargs):
-    """ Default configuration for C inline code. """
-    return weave.inline(
-        code, arg_names=args, local_dict=local_dict,
-        compiler='gcc', extra_compile_args=['-O3 -w'],
-        type_converters=weave.converters.blitz if blitz else None,
-        verbose=0, **kwargs)
 
 
 class NetworkError(Exception):

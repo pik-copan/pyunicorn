@@ -667,7 +667,7 @@ class CouplingAnalysis(object):
         # Add noise to destroy ties...
         array += 1E-10 * numpy.random.rand(array.shape[0], array.shape[1])
 
-        # Flatten for fast weave.inline access
+        # Flatten for fast cython access
         array = array.flatten()
 
         dim_x = int(numpy.where(xyz == 0)[0][-1] + 1)

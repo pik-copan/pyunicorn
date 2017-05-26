@@ -788,61 +788,6 @@ class ResNetwork(GeoNetwork):
             self.get_admittance().astype('float32').copy(order='c'),
             self.get_R().astype('float32').copy(order='c'))
 
-    def vertex_current_flow_betweenness_python(self, i):
-        """Python version of VCFB
-        """
-        # get required matrices
-        admittance = self.get_admittance()
-        R = self.get_R()
-        # set params
-        Is = It = np.float(1.0)
-        # alloc output
-        VCFB = np.float(0)
-        for t in xrange(self.N):
-            for s in xrange(t):
-                I = 0.0
-                if i == t or i == s:
-                    pass
-                else:
-                    for j in xrange(self.N):
-                        I += admittance[i][j] * np.abs(
-                            Is*(R[i][s]-R[j][s]) + It*(R[j][t]-R[i][t]))/2.
-                VCFB += 2.*I/(self.N*(self.N-1))
-
-        return VCFB
-
-    def edge_current_flow_betweenness_python(self):
-        """
-        Python version of ECFB
-        """
-        # set currents
-        Is = It = np.float(1)
-
-        # alloc output
-        if self.flagComplex:
-            dtype = complex
-        else:
-            dtype = float
-
-        ECFB = np.zeros([self.N, self.N], dtype=dtype)
-
-        # the usual
-        admittance = self.get_admittance()
-        R = self.get_R()
-
-        for i in xrange(self.N):
-            for j in xrange(self.N):
-                I = 0
-                for t in xrange(self.N):
-                    for s in xrange(t):
-                        I += admittance[i][j] * np.abs(
-                            Is*(R[i][s]-R[j][s])+It*(R[j][t]-R[i][t]))
-
-                # Lets try to compute the in
-                ECFB[i][j] = 2*I/(self.N*(self.N-1))
-
-        return ECFB
-
 
 ###############################################################################
 # ##                       FUNCTIONS ATTIC                                 ## #
