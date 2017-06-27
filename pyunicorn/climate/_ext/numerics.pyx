@@ -55,11 +55,11 @@ def _calculate_mutual_information_cython(
 
     cdef:
         np.ndarray[long, ndim=2, mode='c'] symbolic = \
-            np.zeros((N, n_samples), dtype='long')
+            np.zeros((N, n_samples), dtype='int64')
         np.ndarray[long, ndim=2, mode='c'] hist = \
-            np.zeros((N, n_bins), dtype='long')
+            np.zeros((N, n_bins), dtype='int64')
         np.ndarray[long, ndim=2, mode='c'] hist2d = \
-            np.zeros((n_bins, n_bins), dtype='long')
+            np.zeros((n_bins, n_bins), dtype='int64')
         np.ndarray[float, ndim=2, mode='c'] mi = \
             np.zeros((N, N), dtype='float32')
 
