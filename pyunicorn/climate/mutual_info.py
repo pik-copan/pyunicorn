@@ -125,12 +125,13 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         :return: the mutual information matrices from fast and slow algorithm.
         """
         mi_fast = self._cython_calculate_mutual_information(anomaly, fast=True)
-        mi_slow = self._cython_calculate_mutual_information(anomaly, fast=False)
+        mi_slow = self._cython_calculate_mutual_information(anomaly,
+                                                            fast=False)
 
         return (mi_fast, mi_slow)
 
     def _cython_calculate_mutual_information(self, anomaly, n_bins=32,
-                                            fast=True):
+                                             fast=True):
         """
         Calculate the mutual information matrix at zero lag.
 
@@ -177,8 +178,8 @@ anomaly values using cython..."
 
         anomaly = anomaly.copy(order='c')
         mi = _calculate_mutual_information_cython(anomaly, n_samples, N,
-                                                        n_bins, scaling,
-                                                        range_min, fast)
+                                                  n_bins, scaling,
+                                                  range_min, fast)
 
         if self.silence_level <= 1:
             print "Done!"

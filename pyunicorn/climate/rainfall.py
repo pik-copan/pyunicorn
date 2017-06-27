@@ -267,7 +267,7 @@ class RainfallClimateNetwork(ClimateNetwork):
         :return: the Spearman correlation matrix.
         """
         # Get rank time series
-        time_series_ranked = self.rank_time_series(anomaly)
+        time_series_ranked = self.rank_time_series(anomaly).astype('float32')
 
         m, tmax = anomaly.shape
 
