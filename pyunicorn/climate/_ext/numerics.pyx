@@ -50,14 +50,14 @@ cdef extern from "src_numerics.c":
 
 def _calculate_mutual_information_cython(
     np.ndarray[float, ndim=2, mode='c'] anomaly not None,
-    int n_samples, int N, int n_bins, float scaling, float range_min,
+    int n_samples, int N, int n_bins, float scaling, double range_min,
     fast=True):
 
     cdef:
         np.ndarray[long, ndim=2, mode='c'] symbolic = \
-            np.zeros((N, N), dtype='long')
+            np.zeros((N, n_samples), dtype='long')
         np.ndarray[long, ndim=2, mode='c'] hist = \
-            np.zeros((N, N), dtype='long')
+            np.zeros((N, n_bins), dtype='long')
         np.ndarray[long, ndim=2, mode='c'] hist2d = \
             np.zeros((n_bins, n_bins), dtype='long')
         np.ndarray[float, ndim=2, mode='c'] mi = \
