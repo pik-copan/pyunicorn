@@ -10,7 +10,7 @@
 
 // mutual_info ================================================================
 
-void _weave_calculate_mutual_information_slow(float *anomaly, int n_samples,
+void _cython_calculate_mutual_information_slow(float *anomaly, int n_samples,
     int N, int n_bins, float scaling, float range_min, long *symbolic,
     long *hist, long *hist2d, float *mi) {
 
@@ -86,7 +86,7 @@ void _weave_calculate_mutual_information_slow(float *anomaly, int n_samples,
 }
 
 
-void _weave_calculate_mutual_information_fast(float *anomaly, int n_samples,
+void _cython_calculate_mutual_information_fast(float *anomaly, int n_samples,
     int N, int n_bins, float scaling, float range_min, long *symbolic,
     long *hist, long *hist2d, float *mi) {
 

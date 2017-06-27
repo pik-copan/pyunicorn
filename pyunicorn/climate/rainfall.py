@@ -150,7 +150,7 @@ class RainfallClimateNetwork(ClimateNetwork):
                                            scale_fac, offset)
 
         if self.silence_level <= 1:
-            print "Calculating Rainfall-Anomaly using Weave..."
+            print "Calculating Rainfall-Anomaly using Cython..."
 
         # Calculate the anomaly for the rainfall dataset
         anomaly = self.calculate_rainfall(self.data.anomaly().T,
@@ -164,7 +164,7 @@ class RainfallClimateNetwork(ClimateNetwork):
         final_mask = self.calculate_top_events(rainfall, event_threshold)
 
         if self.silence_level <= 1:
-            print "Calculating Spearman-Rho-Matrix using Weave..."
+            print "Calculating Spearman-Rho-Matrix using Cython..."
 
         # Return the correlation matrix
         return self.calculate_corr(final_mask, anomaly)

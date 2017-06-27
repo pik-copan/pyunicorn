@@ -129,7 +129,6 @@ class VisibilityGraph(InteractingNetworks):
         return A
 
     # FIXME: There is no option for missing values
-    # Cython gives different outputs than waeve in this case
     def visibility_relations_horizontal(self):
         """
         TODO

@@ -34,11 +34,11 @@ ctypedef np.float64_t FLOAT64TYPE_t
 
 
 cdef extern from "src_numerics.c":
-    void _weave_calculate_mutual_information_slow(
+    void _cython_calculate_mutual_information_slow(
             float *anomaly, int n_samples, int N, int n_bins, float scaling,
             float range_min, long *symbolic, long *hist, long *hist2d,
             float *mi)
-    void _weave_calculate_mutual_information_fast(
+    void _cython_calculate_mutual_information_fast(
             float *anomaly, int n_samples, int N, int n_bins, float scaling,
             float range_min, long *symbolic, long *hist, long *hist2d,
             float *mi)
@@ -48,7 +48,7 @@ cdef extern from "src_numerics.c":
 
 # mutual_info =================================================================
 
-def _weave_calculate_mutual_information_cython(
+def _calculate_mutual_information_cython(
     np.ndarray[float, ndim=2, mode='c'] anomaly not None,
     int n_samples, int N, int n_bins, float scaling, float range_min,
     np.ndarray[long, ndim=2, mode='c'] symbolic not None,
@@ -57,13 +57,13 @@ def _weave_calculate_mutual_information_cython(
     np.ndarray[float, ndim=2, mode='c'] mi not None, fast=True):
 
     if fast==True:
-        _weave_calculate_mutual_information_fast(
+        _cython_calculate_mutual_information_fast(
             <float*> np.PyArray_DATA(anomaly),
             n_samples, N, n_bins, scaling, range_min,
             <long*> np.PyArray_DATA(symbolic), <long*> np.PyArray_DATA(hist),
             <long*> np.PyArray_DATA(hist2d), <float*> np.PyArray_DATA(mi))
     else:
-        _weave_calculate_mutual_information_slow(
+        _cython_calculate_mutual_information_slow(
             <float*> np.PyArray_DATA(anomaly),
             n_samples, N, n_bins, scaling, range_min,
             <long*> np.PyArray_DATA(symbolic), <long*> np.PyArray_DATA(hist),

@@ -18,7 +18,7 @@ Provides classes for generating and analyzing complex climate networks.
 import numpy as np
 
 from pyunicorn.climate._ext.numerics import \
-    _weave_calculate_mutual_information_cython
+    _calculate_mutual_information_cython
 
 #  Import progress bar for easy progress bar handling
 from ..utils import progressbar
@@ -114,9 +114,9 @@ class MutualInfoClimateNetwork(ClimateNetwork):
     #  Defines methods to calculate the mutual information matrix
     #
 
-    def eval_weave_calculate_mutual_information(self, anomaly):
+    def eval_cython_calculate_mutual_information(self, anomaly):
         """
-        Compare the fast and slow weave code to calculate mutual information.
+        Compare the fast and slow cython code to calculate mutual information.
 
         :type anomaly: 2D Numpy array (time, index)
         :arg anomaly: The anomaly time series.
@@ -124,17 +124,17 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         :rtype: tuple of two 2D Numpy arrays (index, index)
         :return: the mutual information matrices from fast and slow algorithm.
         """
-        mi_fast = self._weave_calculate_mutual_information(anomaly, fast=True)
-        mi_slow = self._weave_calculate_mutual_information(anomaly, fast=False)
+        mi_fast = self._cython_calculate_mutual_information(anomaly, fast=True)
+        mi_slow = self._cython_calculate_mutual_information(anomaly, fast=False)
 
         return (mi_fast, mi_slow)
 
-    def _weave_calculate_mutual_information(self, anomaly, n_bins=32,
+    def _cython_calculate_mutual_information(self, anomaly, n_bins=32,
                                             fast=True):
         """
         Calculate the mutual information matrix at zero lag.
 
-        The weave code is adopted from the Tisean 3.0.1 mutual.c module.
+        The cython code is adopted from the Tisean 3.0.1 mutual.c module.
 
         :type anomaly: 2D Numpy array (time, index)
         :arg anomaly: The anomaly time series.
@@ -148,7 +148,7 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         """
         if self.silence_level <= 1:
             print "Calculating mutual information matrix at zero lag from \
-anomaly values using Weave..."
+anomaly values using cython..."
 
         #  Normalize anomaly time series to zero mean and unit variance
         self.data.normalize_time_series_array(anomaly)
@@ -176,7 +176,7 @@ anomaly values using Weave..."
         mi = np.zeros((N, N), dtype='float32')
 
         anomaly = anomaly.copy(order='c')
-        mi = _weave_calculate_mutual_information_cython(anomaly, n_samples, N,
+        mi = _calculate_mutual_information_cython(anomaly, n_samples, N,
                                                         n_bins, scaling,
                                                         range_min, fast)
 
@@ -288,7 +288,7 @@ anomaly values..."
         :rtype: 2D Numpy array (index, index)
         :return: the mutual information matrix at zero lag.
         """
-        return self._weave_calculate_mutual_information(anomaly)
+        return self._cython_calculate_mutual_information(anomaly)
 
     def mutual_information(self, anomaly=None, dump=True):
         """
@@ -326,7 +326,7 @@ anomaly values..."
                     self.mi_file
                 print "Recalculating mutual information."
 
-            mi = self._weave_calculate_mutual_information(anomaly)
+            mi = self._cython_calculate_mutual_information(anomaly)
             if dump:
                 with open(self.mi_file, 'w') as f:
                     if self.silence_level <= 1:
