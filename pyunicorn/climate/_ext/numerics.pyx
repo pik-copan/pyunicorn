@@ -35,12 +35,12 @@ ctypedef np.float64_t FLOAT64TYPE_t
 
 cdef extern from "src_numerics.c":
     void _cython_calculate_mutual_information_slow(
-            float *anomaly, int n_samples, int N, int n_bins, float scaling,
-            float range_min, long *symbolic, long *hist, long *hist2d,
+            float *anomaly, int n_samples, int N, int n_bins, double scaling,
+            double range_min, long *symbolic, long *hist, long *hist2d,
             float *mi)
     void _cython_calculate_mutual_information_fast(
-            float *anomaly, int n_samples, int N, int n_bins, float scaling,
-            float range_min, long *symbolic, long *hist, long *hist2d,
+            float *anomaly, int n_samples, int N, int n_bins, double scaling,
+            double range_min, long *symbolic, long *hist, long *hist2d,
             float *mi)
     void _calculate_corr_fast(int m, int tmax, int *final_mask,
             float *time_series_ranked, float *spearman_rho)
@@ -50,7 +50,7 @@ cdef extern from "src_numerics.c":
 
 def _calculate_mutual_information_cython(
     np.ndarray[float, ndim=2, mode='c'] anomaly not None,
-    int n_samples, int N, int n_bins, float scaling, double range_min,
+    int n_samples, int N, int n_bins, double scaling, double range_min,
     fast=True):
 
     cdef:
