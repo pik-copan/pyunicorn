@@ -51,10 +51,17 @@ cdef extern from "src_numerics.c":
 def _calculate_mutual_information_cython(
     np.ndarray[float, ndim=2, mode='c'] anomaly not None,
     int n_samples, int N, int n_bins, float scaling, float range_min,
-    np.ndarray[long, ndim=2, mode='c'] symbolic not None,
-    np.ndarray[long, ndim=2, mode='c'] hist not None,
-    np.ndarray[long, ndim=2, mode='c'] hist2d not None,
-    np.ndarray[float, ndim=2, mode='c'] mi not None, fast=True):
+    fast=True):
+
+    cdef:
+        np.ndarray[long, ndim=2, mode='c'] symbolic = \
+            np.zeros((N, N), dtype='long')
+        np.ndarray[long, ndim=2, mode='c'] hist = \
+            np.zeros((N, N), dtype='long')
+        np.ndarray[long, ndim=2, mode='c'] hist2d = \
+            np.zeros((n_bins, n_bins), dtype='long')
+        np.ndarray[float, ndim=2, mode='c'] mi = \
+            np.zeros((N, N), dtype='float32')
 
     if fast==True:
         _cython_calculate_mutual_information_fast(
