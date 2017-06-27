@@ -176,7 +176,7 @@ anomaly values using cython..."
         #  Initialize mutual information array
         mi = np.zeros((N, N), dtype='float32')
 
-        anomaly = anomaly.copy(order='c')
+        anomaly = anomaly.astype('float32').copy(order='c')
         mi = _calculate_mutual_information_cython(anomaly, n_samples, N,
                                                   n_bins, scaling,
                                                   range_min, fast)
