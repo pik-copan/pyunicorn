@@ -143,7 +143,7 @@ class EventSynchronization(object):
         :return: [Precursor coincidence rate XY, Trigger coincidence rate XY,
                   Precursor coincidence rate YX, Trigger coincidence rate YX]
         """
-        
+
         N = self.__N
         # Count events that cannot be coincided due to tau and delT
         if not (tau == 0 and delT == 0):
