@@ -130,8 +130,8 @@ class EventSynchronization(object):
     def ECA(self, EventSeriesX, EventSeriesY, delT, tau=0, ts1=None, ts2=None):
         """
         Event coincidence analysis:
-        Returns the precursor and trigger coincidence rates of two event series X
-        and Y.
+        Returns the precursor and trigger coincidence rates of two event series
+        X and Y.
 
         :type EventSeriesX: 1D Numpy array
         :arg EventSeriesX: Event series containing '0's and '1's
@@ -158,11 +158,11 @@ class EventSynchronization(object):
             # Instantaneous coincidence
             n11, n12, n21, n22 = 0, 0, 0, 0
         # Get time indices
-        if ts1 == None:
+        if ts1 is None:
             e1 = np.where(EventSeriesX)[0]
         else:
             e1 = ts1[EventSeriesX]
-        if ts2 == None:
+        if ts2 is None:
             e2 = np.where(EventSeriesY)[0]
         else:
             e2 = ts2[EventSeriesY]
@@ -173,15 +173,15 @@ class EventSynchronization(object):
         # Array of all interevent distances
         dst = (np.array([e1]*l2).T - np.array([e2]*l1))
         # Count coincidences with array slicing
-        prec12 = np.count_nonzero(np.any(((dst - tau >= 0) * \
-                                  (dst - tau <= delT))[n11:,:], axis=1))
-        trig12 = np.count_nonzero(np.any(((dst - tau >= 0) * \
-                                  (dst - tau <= delT))[:,:dst.shape[1]-n22],
+        prec12 = np.count_nonzero(np.any(((dst - tau >= 0) * 
+                                  (dst - tau <= delT))[n11:, :], axis=1))
+        trig12 = np.count_nonzero(np.any(((dst - tau >= 0) *
+                                  (dst - tau <= delT))[:, :dst.shape[1]-n22],
                                   axis=0))
-        prec21 = np.count_nonzero(np.any(((-dst - tau >= 0) * \
+        prec21 = np.count_nonzero(np.any(((-dst - tau >= 0) *
                                   (-dst - tau <= delT))[:,n21:], axis=0))
-        trig21 = np.count_nonzero(np.any(((-dst - tau >= 0) * \
-                                  (-dst - tau <= delT))[:dst.shape[0]-n12,:],
+        trig21 = np.count_nonzero(np.any(((-dst - tau >= 0) *
+                                  (-dst - tau <= delT))[:dst.shape[0]-n12, :],
                                   axis=1))
         # Normalisation and output
         return (np.float32(prec12)/(l1-n11), np.float32(trig12)/(l2-n22),
