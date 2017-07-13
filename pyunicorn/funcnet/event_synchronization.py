@@ -173,16 +173,20 @@ class EventSynchronization(object):
         # Array of all interevent distances
         dst = (np.array([e1]*l2).T - np.array([e2]*l1))
         # Count coincidences with array slicing
-        prec12 = np.count_nonzero(np.any(((dst - tau >= 0) * 
-                                  (dst - tau <= delT))[n11:, :], axis=1))
+        prec12 = np.count_nonzero(np.any(((dst - tau >= 0) *
+                                          (dst - tau <= delT))[n11:, :],
+                                         axis=1))
         trig12 = np.count_nonzero(np.any(((dst - tau >= 0) *
-                                  (dst - tau <= delT))[:, :dst.shape[1]-n22],
-                                  axis=0))
+                                          (dst - tau <= delT))
+                                          [:, :dst.shape[1]-n22],
+                                          axis=0))
         prec21 = np.count_nonzero(np.any(((-dst - tau >= 0) *
-                                  (-dst - tau <= delT))[:,n21:], axis=0))
+                                          (-dst - tau <= delT))[:, n21:],
+                                          axis=0))
         trig21 = np.count_nonzero(np.any(((-dst - tau >= 0) *
-                                  (-dst - tau <= delT))[:dst.shape[0]-n12, :],
-                                  axis=1))
+                                          (-dst - tau <= delT))
+                                          [:dst.shape[0]-n12, :],
+                                          axis=1))
         # Normalisation and output
         return (np.float32(prec12)/(l1-n11), np.float32(trig12)/(l2-n22),
                 np.float32(prec21)/(l2-n21), np.float32(trig21)/(l1-n12))
