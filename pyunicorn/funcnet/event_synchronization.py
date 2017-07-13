@@ -127,7 +127,7 @@ class EventSynchronization(object):
         directed = self.directedES()
         return directed - directed.T
 
-    def ECA(EventSeriesX, EventSeriesY, delT, tau=0, ts1=None, ts2=None):
+    def ECA(self, EventSeriesX, EventSeriesY, delT, tau=0, ts1=None, ts2=None):
         """
         Event coincidence analysis:
         Returns the precursor and trigger coincidence rates of two event series
@@ -143,7 +143,8 @@ class EventSynchronization(object):
         :return: [Precursor coincidence rate XY, Trigger coincidence rate XY,
                   Precursor coincidence rate YX, Trigger coincidence rate YX]
         """
-
+        
+        N = self.__N
         # Count events that cannot be coincided due to tau and delT
         if not (tau == 0 and delT == 0):
             # Start of EventSeriesX
