@@ -127,7 +127,7 @@ class EventSynchronization(object):
         directed = self.directedES()
         return directed - directed.T
 
-    def ECA(self, EventSeriesX, EventSeriesY, delT, tau=0, ts1=None, ts2=None):
+    def ECA(EventSeriesX, EventSeriesY, delT, tau=0, ts1=None, ts2=None):
         """
         Event coincidence analysis:
         Returns the precursor and trigger coincidence rates of two event series
