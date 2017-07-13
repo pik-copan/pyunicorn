@@ -148,7 +148,7 @@ class VisibilityGraph(InteractingNetworks):
     #
     #  Specific measures for visibility graphs
     #
-    
+
     def visibility(self, node1, node2):
         """
         Returns the visibility between node 1 and 2 as boolean.
@@ -176,8 +176,8 @@ class VisibilityGraph(InteractingNetworks):
             return False
         else:
             val = self.time_series
-            i, j = min(node1,node2), max(node1,node2)
-            if np.sum(~(val[i+1:j] < min(val[i],val[j]))):
+            i, j = min(node1, node2), max(node1, node2)
+            if np.sum(~(val[i+1:j] < min(val[i], val[j]))):
                 return False
             else:
                 return True
@@ -190,18 +190,18 @@ class VisibilityGraph(InteractingNetworks):
         :rtype: 1D array of bool
         """
         time_series = self.time_series
-        testfun = lambda j: visibility(time_series, node, j)
+        testfun = lambda j: self.visibility(time_series, node, j)
         return np.array(map(testfun, xrange(len(time_series[1]))))
 
     def visibility_horizontal_single(self, node):
         """
-        Returns the horizontal visibility between all nodes of self.time_series 
+        Returns the horizontal visibility between all nodes of self.time_series
         and node as array of booleans.
         :arg int node: node index of the node
         :rtype: 1D array of bool
         """
         time_series = self.time_series
-        testfun = lambda j: visibility_horizontal(time_series, node, j)
+        testfun = lambda j: self.visibility_horizontal(time_series, node, j)
         return np.array(map(testfun, xrange(len(time_series[1]))))
 
     def retarded_degree(self):
