@@ -190,7 +190,7 @@ class VisibilityGraph(InteractingNetworks):
         :rtype: 1D array of bool
         """
         time_series = self.time_series
-        testfun = lambda j: self.visibility(time_series, node, j)
+        testfun = lambda j: self.visibility(node, j)
         return np.array(map(testfun, xrange(len(time_series[1]))))
 
     def visibility_horizontal_single(self, node):
@@ -201,7 +201,7 @@ class VisibilityGraph(InteractingNetworks):
         :rtype: 1D array of bool
         """
         time_series = self.time_series
-        testfun = lambda j: self.visibility_horizontal(time_series, node, j)
+        testfun = lambda j: self.visibility_horizontal(node, j)
         return np.array(map(testfun, xrange(len(time_series[1]))))
 
     def retarded_degree(self):

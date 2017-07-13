@@ -66,10 +66,10 @@ def testVisibility():
         node1 = np.int(np.floor(np.random.rand()*n_times))
         node2 = np.int(np.floor(np.random.rand()*n_times))
     time, val = tdata
-    i,j = min(node1,node2),max(node1,node2)
+    i, j = min(node1, node2), max(node1, node2)
     testfun = lambda k: np.less((val[k]-val[i])/(time[k]-time[i]),
                                 (val[j]-val[i])/(time[j]-time[i]))
-    test = np.bool(np.sum(~np.array(map(testfun,xrange(i+1,j)))))
+    test = np.bool(np.sum(~np.array(map(testfun, xrange(i+1,j)))))
     assert np.invert(test) == vg.visibility(node1, node2)
 
 def testVisibilityHorizontal():
@@ -83,7 +83,7 @@ def testVisibilityHorizontal():
         node2 = np.int(np.floor(np.random.rand()*n_times))
 
     val = tdata[1]
-    i,j = min(node1,node2),max(node1,node2)
+    i,j = min(node1, node2),max(node1, node2)
     if np.sum(~(val[i+1:j] < min(val[i],val[j]))):
         test = False
     else:
