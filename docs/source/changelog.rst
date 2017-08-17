@@ -4,6 +4,8 @@ Changelog
 
 A summary of major changes made in each release of ``pyunicorn``:
 
+**0.6.0**
+
 **0.5.2**
  - Update test suite and ``Travis CI``.
 
