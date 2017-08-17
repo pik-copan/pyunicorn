@@ -804,6 +804,29 @@ def _visibility_relations_horizontal(
     for i in xrange(N-1):
         A[i, i+1] = A[i+1, i] = 1
 
+def _visibility(
+        np.ndarray[FLOAT32TYPE_t, ndim=1] time,
+        np.ndarray[FLOAT32TYPE_t, ndim=1] val, int node1, int node2):
+
+    cdef:
+        int i, j, k
+        np.ndarray[BOOLTYPE_t, ndim=1] test
+
+    i = min(node1,node2)
+    j = max(node1,node2)
+
+    """
+    testfun = lambda k: np.less((val[k]-val[i])/(time[k]-time[i]),
+                                (val[j]-val[i])/(time[j]-time[i]))
+    test = np.bool(np.sum(~np.array(map(testfun, xrange(i+1,j)))))
+    return np.invert(test)
+    """
+    test = np.zeros((j-(i+1)), dtype=np.uint8)
+    for k in xrange(i+1,j):
+        test[k-(i+1)] = np.less((val[k]-val[i])/(time[k]-time[i]),
+                            (val[j]-val[i])/(time[j]-time[i]))
+    return np.invert(np.bool(np.sum(test)))
+
 def _retarded_local_clustering(
     int N, np.ndarray[INT16TYPE_t, ndim=2] A,
     np.ndarray[FLOATTYPE_t, ndim=1] norm,
