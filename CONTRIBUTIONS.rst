@@ -39,14 +39,10 @@
 **Related publications**
     See `Publications <docs/source/publications.rst>`_.
 
-**Version**
-    0.5.2
-
 **Dependencies**
     - Python 2.7
-    - `Numpy <http://www.numpy.org/>`_ 1.8+
-    - `Scipy <http://www.scipy.org/>`_ 0.14+
-    - `Weave <https://github.com/scipy/weave>`_ 0.15+
+    - `Numpy <http://www.numpy.org/>`_ 1.10+
+    - `Scipy <http://www.scipy.org/>`_ 0.16+
     - `Matplotlib <http://matplotlib.org/>`_ 1.3+
     - `igraph, python-igraph <http://igraph.org/>`_ 0.7+
 
