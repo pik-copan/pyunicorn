@@ -532,7 +532,7 @@ def run(verbose=False):
                     _globals["master"]()
                 else:
                     print "MPI master : function master() not found!"
-            except:
+            except ValueError:
                 abort()
             terminate()
             if verbose:

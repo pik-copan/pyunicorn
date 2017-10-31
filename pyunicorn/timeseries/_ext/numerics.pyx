@@ -55,13 +55,7 @@ cdef extern from "src_numerics.c":
         float *x_embedded, float *y_embedded, float *distance)
     void _test_pearson_correlation_fast(double *original_data,
         double *surrogates, float *correlation, int n_time, int N, double norm)
-    void _test_pearson_correlation_slow(double *original_data,
-        double *surrogates, float *correlation, int n_time, int N, double norm)
     void _test_mutual_information_fast(int N, int n_time, int n_bins,
-        double scaling, double range_min, double *original_data,
-        double *surrogates, int *symbolic_original, int *symbolic_surrogates,
-        int *hist_original, int *hist_surrogates, int * hist2d, float *mi)
-    void _test_mutual_information_slow(int N, int n_time, int n_bins,
         double scaling, double range_min, double *original_data,
         double *surrogates, int *symbolic_original, int *symbolic_surrogates,
         int *hist_original, int *hist_surrogates, int * hist2d, float *mi)
@@ -804,7 +798,7 @@ def _twin_surrogates(int n_surrogates, int N, twins,
 def _test_pearson_correlation(
     np.ndarray[double, ndim=2, mode='c'] original_data not None,
     np.ndarray[double, ndim=2, mode='c'] surrogates not None, 
-    int N, int n_time, BOOLTYPE_t fast):
+    int N, int n_time):
 
     cdef double norm = 1.0 / float(n_time)
 
@@ -812,18 +806,11 @@ def _test_pearson_correlation(
     cdef np.ndarray[float, ndim=2, mode='c'] correlation = np.zeros((N, N), 
             dtype="float32")
     
-    if (fast==True):
-        _test_pearson_correlation_fast(
-            <double*> np.PyArray_DATA(original_data),
-            <double*> np.PyArray_DATA(surrogates),
-            <float*> np.PyArray_DATA(correlation),
-            n_time, N, norm)
-    else:
-        _test_pearson_correlation_slow(
-            <double*> np.PyArray_DATA(original_data),
-            <double*> np.PyArray_DATA(surrogates),
-            <float*> np.PyArray_DATA(correlation),
-            n_time, N, norm)
+    _test_pearson_correlation_fast(
+        <double*> np.PyArray_DATA(original_data),
+        <double*> np.PyArray_DATA(surrogates),
+        <float*> np.PyArray_DATA(correlation),
+        n_time, N, norm)
 
     return correlation
 
@@ -831,7 +818,7 @@ def _test_pearson_correlation(
 def _test_mutual_information(
     np.ndarray[double, ndim=2, mode='c'] original_data not None,
     np.ndarray[double, ndim=2, mode='c'] surrogates not None, 
-    int N, int n_time, int n_bins, fast):
+    int N, int n_time, int n_bins):
     
     cdef:
         #  Get common range for all histograms
@@ -857,32 +844,17 @@ def _test_mutual_information(
         np.ndarray[float, ndim=2, mode='c'] mi = np.zeros((N, N),
                 dtype="float32")
 
-    if (fast==True):
-        #  original_data and surrogates must be contiguous Numpy arrays for
-        #  this code to work correctly!
-        #  All other arrays are generated from scratch in this method and
-        #  are guaranteed to be contiguous by np.
-        _test_mutual_information_fast(
-                N, n_time, n_bins, scaling, range_min,
-                <double*> np.PyArray_DATA(original_data),
-                <double*> np.PyArray_DATA(surrogates),
-                <int*> np.PyArray_DATA(symbolic_original),
-                <int*> np.PyArray_DATA(symbolic_surrogates),
-                <int*> np.PyArray_DATA(hist_original),
-                <int*> np.PyArray_DATA(hist_surrogates),
-                <int*> np.PyArray_DATA(hist2d),
-                <float*> np.PyArray_DATA(mi))
-    else:
-        _test_mutual_information_slow(
-                N, n_time, n_bins, scaling, range_min,
-                <double*> np.PyArray_DATA(original_data),
-                <double*> np.PyArray_DATA(surrogates),
-                <int*> np.PyArray_DATA(symbolic_original),
-                <int*> np.PyArray_DATA(symbolic_surrogates),
-                <int*> np.PyArray_DATA(hist_original),
-                <int*> np.PyArray_DATA(hist_surrogates),
-                <int*> np.PyArray_DATA(hist2d),
-                <float*> np.PyArray_DATA(mi))
+    _test_mutual_information_fast(
+            N, n_time, n_bins, scaling, range_min,
+            <double*> np.PyArray_DATA(original_data),
+            <double*> np.PyArray_DATA(surrogates),
+            <int*> np.PyArray_DATA(symbolic_original),
+            <int*> np.PyArray_DATA(symbolic_surrogates),
+            <int*> np.PyArray_DATA(hist_original),
+            <int*> np.PyArray_DATA(hist_surrogates),
+            <int*> np.PyArray_DATA(hist2d),
+            <float*> np.PyArray_DATA(mi))
+
     return mi
 
 

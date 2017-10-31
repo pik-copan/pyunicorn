@@ -15,7 +15,7 @@ examples = []
 def example(fn):
     try:
         name = 'Example %d' % int(fn.__name__[7:])
-    except:
+    except NameError:
         name = fn.__name__
 
     def wrapped():

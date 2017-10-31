@@ -104,23 +104,6 @@ void _test_pearson_correlation_fast(double *original_data, double *surrogates,
 }
 
 
-void _test_pearson_correlation_slow(double *original_data, double *surrogates,
-    float *correlation, int n_time, int N, double norm)  {
-
-    for (int i = 0; i < N; i++) {
-        for (int j = 0; j < N; j++) {
-            if (i != j) {
-                for (int k = 0; k < n_time; k++) {
-                    correlation[i*N+j] += original_data[i*N+k] *
-                      surrogates[j*N+k];
-                }
-                correlation[i*N+j] *= norm;
-            }
-        }
-    }
-}
-
-
 void _test_mutual_information_fast(int N, int n_time, int n_bins,
     double scaling, double range_min, double *original_data,
     double *surrogates, int *symbolic_original, int *symbolic_surrogates,
@@ -295,91 +278,5 @@ void _test_mutual_information_fast(int N, int n_time, int n_bins,
         }
         in_time += n_time;
         in_bins += n_bins;
-    }
-}
-
-
-void _test_mutual_information_slow(int N, int n_time, int n_bins,
-    double scaling, double range_min, double *original_data,
-    double *surrogates, int *symbolic_original, int *symbolic_surrogates,
-    int *hist_original, int *hist_surrogates, int * hist2d, float *mi)  {
-
-    int i, j, k, l, m;
-    int symbol, symbol_i, symbol_j;
-    double rescaled, norm, hpl, hpm, plm;
-
-    //  Calculate histogram norm
-    norm = 1.0 / n_time;
-
-    for (i = 0; i < N; i++) {
-        for (k = 0; k < n_time; k++) {
-
-            //  Original time series
-            //  Calculate symbolic trajectories for each time series,
-            //  where the symbols are bins
-            rescaled = scaling * (original_data[i*N+k] - range_min);
-
-            if (rescaled< 1.0)
-                symbolic_original[i*N+k] = rescaled * n_bins;
-            else
-                symbolic_original[i*N+k] = n_bins - 1;
-
-            //  Calculate 1d-histograms for single time series
-            symbol = symbolic_original[i*N+k];
-            hist_original[i*N+symbol] += 1;
-
-            //  Surrogate time series
-            //  Calculate symbolic trajectories for each time series,
-            //  where the symbols are bins
-            rescaled = scaling * (surrogates[i*N+k] - range_min);
-
-            if (rescaled < 1.0)
-                symbolic_surrogates[i*N+k] = rescaled * n_bins;
-            else
-                symbolic_surrogates[i*N+k] = n_bins - 1;
-
-            //  Calculate 1d-histograms for single time series
-            symbol = symbolic_surrogates[i*N+k];
-            hist_surrogates[i*N+symbol] += 1;
-        }
-    }
-
-    for (i = 0; i < N; i++) {
-        for (j = 0; j < N; j++) {
-
-            //  The case i = j is not of interest here!
-            if (i != j) {
-                //  Calculate 2d-histogram for one pair of time series
-                //  (i,j).
-                for (k = 0; k < n_time; k++) {
-                    symbol_i = symbolic_original[i*N+k];
-                    symbol_j = symbolic_surrogates[j*N+k];
-                    hist2d[symbol_i*n_bins+symbol_j] += 1;
-                }
-
-                //  Calculate mutual information for one pair of time
-                //  series (i,j).
-                for (l = 0; l < n_bins; l++) {
-                    hpl = hist_original[i*N+l] * norm;
-                    if (hpl > 0.0) {
-                        for (m = 0; m < n_bins; m++) {
-                            hpm = hist_surrogates[j*N+m] * norm;
-                            if (hpm > 0.0) {
-                                plm = hist2d[l*n_bins+m] * norm;
-                                if (plm > 0.0) {
-                                    mi[i*N+j] += plm * log(plm/hpm/hpl);
-                                }
-                            }
-                        }
-                    }
-                }
-
-                //  Reset hist2d to zero in all bins
-                for (l = 0; l < n_bins; l++) {
-                    for (m = 0; m < n_bins; m++)
-                        hist2d[l*n_bins+m] = 0;
-                }
-            }
-        }
     }
 }

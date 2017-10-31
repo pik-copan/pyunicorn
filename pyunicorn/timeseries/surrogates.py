@@ -554,7 +554,7 @@ class Surrogates(object):
         return np.sqrt(((fast_result - slow_result)**2).sum())
 
     @staticmethod
-    def test_pearson_correlation(original_data, surrogates, fast=True):
+    def test_pearson_correlation(original_data, surrogates):
         """
         Return a test matrix of the Pearson correlation coefficient (zero lag).
 
@@ -577,11 +577,10 @@ class Surrogates(object):
         norm = 1. / float(n_time)
         return _test_pearson_correlation(original_data.copy(order='c'),
                                          surrogates.copy(order='c'),
-                                         N, n_time, fast)
+                                         N, n_time)
 
     @staticmethod
-    def test_mutual_information(original_data, surrogates, n_bins=32,
-                                fast=True):
+    def test_mutual_information(original_data, surrogates, n_bins=32):
         """
         Return a test matrix of mutual information (zero lag).
 
@@ -609,7 +608,7 @@ class Surrogates(object):
         #  time series and the jth surrogate time series.
         return _test_mutual_information(original_data.copy(order='c'),
                                         surrogates.copy(order='c'), N, n_time,
-                                        n_bins, fast)
+                                        n_bins)
 
     #
     #  Define methods to perform significance tests on correlation measures

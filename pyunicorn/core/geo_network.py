@@ -1736,7 +1736,7 @@ average link distance sequence..."
             import stripack  # @UnresolvedImport
             # tries to import stripack.so which must have been compiled with
             # f2py -c -m stripack stripack.f90
-        except:
+        except ImportError:
             raise RuntimeError("NOTE: stripack.so not available, " +
                                "boundary() won't work.")
 
@@ -1854,11 +1854,11 @@ average link distance sequence..."
             mind2 = np.inf
             latlon_shape = []
             latlon_fullshape = []
-            l = len(partial_shape)-1
-            off = l/2
-            for it in range(l):
+            length = len(partial_shape)-1
+            off = length/2
+            for it in range(length):
                 pos1 = partial_shape[it]
-                pos2 = partial_shape[(it+off) % l]
+                pos2 = partial_shape[(it+off) % length]
                 latlon_shape.append(self.cartesian2latlon(pos1))
                 d2 = ((pos2-pos1)**2).sum()
                 if d2 < mind2:

@@ -76,7 +76,7 @@ def test_TestPearsonCorrelation():
     tdata = create_test_data()
     n_index, n_times = tdata.shape
     norm = 1.0 / float(n_times)
-    c = Surrogates.test_pearson_correlation(tdata, tdata, fast=True)
+    c = Surrogates.test_pearson_correlation(tdata, tdata)
     corrcoef = np.corrcoef(tdata, tdata)[n_index:,:n_index]*norm
     for i in xrange(n_index):
         corrcoef[i,i]=0.0
@@ -89,5 +89,5 @@ def test_TestMutualInformation():
     tdata = create_test_data()
     n_bins=32
     test_mi = Surrogates.test_mutual_information(tdata[:1], tdata[:1],
-                                                 n_bins=n_bins, fast=False)
+                                                 n_bins=n_bins)
     assert (test_mi>=-1.0).all() and (test_mi<=1.0).all()

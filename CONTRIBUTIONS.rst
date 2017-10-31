@@ -35,6 +35,7 @@
       <mail@dreeg.org>`_ (supplied ``resistive_network`` and corresponding
       tests)
     - `Wolfram Barfuss <barfuss@pik-potsdam.de>`_
+    - Nils Harmening
 
 **Related publications**
     See `Publications <docs/source/publications.rst>`_.

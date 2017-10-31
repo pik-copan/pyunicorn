@@ -110,28 +110,7 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         """
         return 'MutualInfoClimateNetwork:\n' + ClimateNetwork.__str__(self)
 
-    #
-    #  Defines methods to calculate the mutual information matrix
-    #
-
-    def eval_cython_calculate_mutual_information(self, anomaly):
-        """
-        Compare the fast and slow cython code to calculate mutual information.
-
-        :type anomaly: 2D Numpy array (time, index)
-        :arg anomaly: The anomaly time series.
-
-        :rtype: tuple of two 2D Numpy arrays (index, index)
-        :return: the mutual information matrices from fast and slow algorithm.
-        """
-        mi_fast = self._cython_calculate_mutual_information(anomaly, fast=True)
-        mi_slow = self._cython_calculate_mutual_information(anomaly,
-                                                            fast=False)
-
-        return (mi_fast, mi_slow)
-
-    def _cython_calculate_mutual_information(self, anomaly, n_bins=32,
-                                             fast=True):
+    def _cython_calculate_mutual_information(self, anomaly, n_bins=32):
         """
         Calculate the mutual information matrix at zero lag.
 
@@ -179,7 +158,7 @@ anomaly values using cython..."
         anomaly = anomaly.astype('float32').copy(order='c')
         mi = _calculate_mutual_information_cython(anomaly, n_samples, N,
                                                   n_bins, scaling,
-                                                  range_min, fast)
+                                                  range_min)
 
         if self.silence_level <= 1:
             print "Done!"
