@@ -34,7 +34,7 @@ ctypedef np.float64_t FLOAT64TYPE_t
 
 
 cdef extern from "src_numerics.c":
-    void _cython_calculate_mutual_information_fast(
+    void _cython_calculate_mutual_information(
             float *anomaly, int n_samples, int N, int n_bins, double scaling,
             double range_min, long *symbolic, long *hist, long *hist2d,
             float *mi)
@@ -58,7 +58,7 @@ def _calculate_mutual_information_cython(
         np.ndarray[float, ndim=2, mode='c'] mi = \
             np.zeros((N, N), dtype='float32')
 
-    _cython_calculate_mutual_information_fast(
+    _cython_calculate_mutual_information(
         <float*> np.PyArray_DATA(anomaly), n_samples, N, n_bins, scaling,
         range_min, <long*> np.PyArray_DATA(symbolic),
         <long*> np.PyArray_DATA(hist), <long*> np.PyArray_DATA(hist2d),

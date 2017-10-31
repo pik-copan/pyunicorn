@@ -35,7 +35,8 @@
       <mail@dreeg.org>`_ (supplied ``resistive_network`` and corresponding
       tests)
     - `Wolfram Barfuss <barfuss@pik-potsdam.de>`_
-    - Nils Harmening
+    - Nils Harmening (cythonized weave.inline functions, extended test
+      framework)
 
 **Related publications**
     See `Publications <docs/source/publications.rst>`_.
