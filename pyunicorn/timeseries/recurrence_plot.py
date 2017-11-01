@@ -17,17 +17,17 @@ from math import factorial
 # array object and fast numerics
 import numpy as np
 
-# C++ inline code
-from .numerics import                                    \
-    _embed_time_series, _manhatten_distance_matrix, \
-    _euclidean_distance_matrix, _supremum_distance_matrix, \
+# Cython inline code
+from pyunicorn.timeseries._ext.numerics import \
+    _embed_time_series, _manhattan_distance_matrix_rp, \
+    _euclidean_distance_matrix_rp, _supremum_distance_matrix_rp, \
     _set_adaptive_neighborhood_size, _bootstrap_distance_matrix_manhatten, \
     _bootstrap_distance_matrix_euclidean, _bootstrap_distance_matrix_supremum,\
     _diagline_dist_norqa_missingvalues, _diagline_dist_norqa, \
     _diagline_dist_rqa_missingvalues, _diagline_dist_rqa, \
     _vertline_dist_norqa_missingvalues, _vertline_dist_norqa, \
     _vertline_dist_rqa_missingvalues, _vertline_dist_rqa, _rejection_sampling,\
-    _white_vertline_dist, _twins, _twin_surrogates
+    _white_vertline_dist, _twins_r, _twin_surrogates
 
 #
 #  Class definitions
@@ -444,7 +444,7 @@ Recurrence matrix is not stored in memory."
         (n_time, dim) = embedding.shape
         distance = np.zeros((n_time, n_time), dtype="float32")
 
-        _manhatten_distance_matrix(n_time, dim, embedding, distance)
+        _manhattan_distance_matrix_rp(n_time, dim, embedding, distance)
         return distance
 
     def euclidean_distance_matrix(self, embedding):
@@ -463,7 +463,7 @@ Recurrence matrix is not stored in memory."
         (n_time, dim) = embedding.shape
         distance = np.zeros((n_time, n_time), dtype="float32")
 
-        _euclidean_distance_matrix(n_time, dim, embedding, distance)
+        _euclidean_distance_matrix_rp(n_time, dim, embedding, distance)
         distance = np.sqrt(distance)
         return distance
 
@@ -483,7 +483,7 @@ Recurrence matrix is not stored in memory."
         (n_time, dim) = embedding.shape
         distance = np.zeros((n_time, n_time), dtype="float32")
 
-        _supremum_distance_matrix(n_time, dim, embedding, distance)
+        _supremum_distance_matrix_rp(n_time, dim, embedding, distance)
         return distance
 
     def set_fixed_threshold(self, threshold):
@@ -1386,7 +1386,7 @@ adaptive neighborhood size algorithm..."
         #  Get number of neighbors for each state vector
         nR = R.sum(axis=0)
 
-        _twins(min_dist, N, R, nR, twins)
+        _twins_r(min_dist, N, R, nR, twins)
         return twins
 
     def twin_surrogates(self, n_surrogates=1, min_dist=7):

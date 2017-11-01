@@ -32,8 +32,7 @@ Known Bugs
 #  Import classes
 #
 
-from .network import Network, NetworkError, nz_coords, weave_inline, \
-    cached_const
+from .network import Network, NetworkError, nz_coords, cached_const
 from .geo_network import GeoNetwork
 from .grid import Grid
 from .data import Data

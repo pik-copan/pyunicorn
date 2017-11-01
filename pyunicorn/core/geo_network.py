@@ -18,7 +18,10 @@ from numpy import random
 # high performance graph theory tools written in pure ANSI-C
 import igraph
 
-from .network import Network, cached_const, weave_inline
+from pyunicorn.core._ext.numerics import _randomly_rewire_geomodel_I, \
+        _randomly_rewire_geomodel_II, _randomly_rewire_geomodel_III
+
+from .network import Network, cached_const
 from .grid import Grid
 
 
@@ -506,120 +509,27 @@ sequence..."
             print "Randomly rewiring given graph, preserving the degree \
 sequence and link distance distribution..."
         #  Get number of nodes
-        # N = int(self.N)
+        N = self.N
         #  Get number of links
-        E = int(self.n_links)
+        E = self.n_links
         #  Collect adjacency and distance matrices
-        A = self.adjacency
-        D = distance_matrix.astype("float32")
+        A = self.adjacency.copy(order='c')
+        D = distance_matrix.astype("float32").copy(order='c')
         #  Get degree sequence
         # degree = self.degree()
 
         #  Define for brevity
         eps = float(inaccuracy)
 
-        #  Conversions
-        iterations = int(iterations)
+        # iterations = int(iterations)
 
         #  Get edge list
-        edges = np.array(self.graph.get_edgelist())
+        edges = np.array(self.graph.get_edgelist()).copy(order='c')
 
         #  Initialize list of neighbors
         # neighbors = np.zeros((N, degree.max()))
 
-        code = """
-        int i, j, s, t, k, l, edge1, edge2, count;
-        int neighbor_s_index, neighbor_t_index;
-        int neighbor_k_index, neighbor_l_index;
-
-        //  Create list of neighbors
-        //for (int i = 0; i < N; i++) {
-        //
-        //    count = 0;
-        //
-        //    for (int j = 0; j < N; j++) {
-        //        if (A(i,j) == 1) {
-        //            neighbors(i,count) = j;
-        //            count++;
-        //        }
-        //    }
-        //}
-
-        //  Initialize random number generator
-        srand48(time(0));
-
-        i = 0;
-        count = 0;
-        while (i < iterations) {
-            //  Randomly choose 2 edges
-            edge1 = floor(drand48() * E);
-            edge2 = floor(drand48() * E);
-
-            s = edges(edge1,0);
-            t = edges(edge1,1);
-
-            k = edges(edge2,0);
-            l = edges(edge2,1);
-
-            //  Randomly choose 2 nodes
-            //s = floor(drand48() * N);
-            //k = floor(drand48() * N);
-
-            //  Randomly choose 1 neighbor of each
-            //neighbor_s_index = floor(drand48() * degree(s));
-            //neighbor_k_index = floor(drand48() * degree(k));
-            //t = neighbors(s,neighbor_s_index);
-            //l = neighbors(k,neighbor_k_index);
-
-            count++;
-
-            //  Proceed only if s != k, s != l, t != k, t != l
-            if (s != k && s != l && t != k && t != l) {
-                // Proceed only if the new links {s,l} and {t,k}
-                // do NOT already exist
-                if (A(s,l) == 0 && A(t,k) == 0) {
-                    // Proceed only if the link lengths fulfill condition C1
-                    if ((fabs(D(s,t) - D(k,t)) < eps &&
-                            fabs(D(k,l) - D(s,l)) < eps ) ||
-                                (fabs(D(s,t) - D(s,l)) < eps &&
-                                    fabs(D(k,l) - D(k,t)) < eps )) {
-                        // Now rewire the links symmetrically
-                        // and increase i by 1
-                        A(s,t) = A(t,s) = 0;
-                        A(k,l) = A(l,k) = 0;
-                        A(s,l) = A(l,s) = 1;
-                        A(t,k) = A(k,t) = 1;
-
-                        edges(edge1,0) = s;
-                        edges(edge1,1) = l;
-                        edges(edge2,0) = k;
-                        edges(edge2,1) = t;
-
-                        //  Update neighbor lists of all 4 involved nodes
-                        //neighbors(s,neighbor_s_index) = l;
-                        //neighbors(k,neighbor_k_index) = t;
-
-                        //neighbor_t_index = 0;
-                        //while (neighbors(t,neighbor_t_index) != s) {
-                        //    neighbor_t_index++;
-                        //}
-                        //neighbors(t,neighbor_t_index) = k;
-
-                        //neighbor_l_index = 0;
-                        //while (neighbors(l,neighbor_l_index) != k) {
-                        //    neighbor_l_index++;
-                        //}
-                        //neighbors(l,neighbor_l_index) = s;
-
-                        i++;
-                    }
-                }
-            }
-        }
-        printf("Trials %d, Rewirings %d", count, iterations);
-        """
-        weave_inline(locals(), code,
-                     ['iterations', 'eps', 'A', 'D', 'E', 'edges'])
+        _randomly_rewire_geomodel_I(iterations, eps, A, D, E, N, edges)
 
         #  Update all other properties of GeoNetwork
         self.adjacency = A
@@ -657,67 +567,21 @@ sequence and link distance distribution..."
             print "Randomly rewiring given graph, preserving the degree \
 sequence, link distance distribution and average link distance sequence..."
 
+        #  Get number of nodes
+        N = int(self.N)
         #  Get number of links
         E = int(self.n_links)
         #  Collect adjacency and distance matrices
-        A = self.adjacency
-        D = distance_matrix.astype("float32")
+        A = self.adjacency.copy(order='c')
+        D = distance_matrix.astype("float32").copy(order='c')
 
         #  Define for brevity
         eps = float(inaccuracy)
 
         #  Get edge list
-        edges = np.array(self.graph.get_edgelist())
+        edges = np.array(self.graph.get_edgelist()).copy(order='c')
 
-        code = """
-        int i, s, t, k, l, edge1, edge2;
-
-        //  Initialize random number generator
-        srand48(time(0));
-
-        i = 0;
-        while (i < iterations) {
-            //  Randomly choose 2 edges
-            edge1 = floor(drand48() * E);
-            edge2 = floor(drand48() * E);
-
-            s = edges(edge1,0);
-            t = edges(edge1,1);
-
-            k = edges(edge2,0);
-            l = edges(edge2,1);
-
-            //  Proceed only if s != k, s != l, t != k, t != l
-            if (s != k && s != l && t != k && t != l) {
-                // Proceed only if the new links {s,l} and {t,k}
-                // do NOT already exist
-                if (A(s,l) == 0 && A(t,k) == 0) {
-
-                    // Proceed only if the link lengths fulfill condition C2
-                    if (fabs(D(s,t) - D(s,l)) < eps &&
-                            fabs(D(t,s) - D(t,k)) < eps &&
-                                fabs(D(k,l) - D(k,t)) < eps &&
-                                    fabs(D(l,k) - D(l,s)) < eps ) {
-                        // Now rewire the links symmetrically
-                        // and increase i by 1
-                        A(s,t) = A(t,s) = 0;
-                        A(k,l) = A(l,k) = 0;
-                        A(s,l) = A(l,s) = 1;
-                        A(t,k) = A(k,t) = 1;
-
-                        edges(edge1,0) = s;
-                        edges(edge1,1) = l;
-                        edges(edge2,0) = k;
-                        edges(edge2,1) = t;
-
-                        i++;
-                    }
-                }
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['iterations', 'eps', 'A', 'D', 'E', 'edges'])
+        _randomly_rewire_geomodel_II(iterations, eps, A, D, E, N, edges)
 
         #  Update all other properties of GeoNetwork
         self.adjacency = A
@@ -757,73 +621,24 @@ sequence, link distance distribution and average link distance sequence..."
 sequence, degree-degree correlations, link distance distribution and \
 average link distance sequence..."
 
+        #  Get number of nodes
+        N = int(self.N)
         #  Get number of links
         E = int(self.n_links)
         #  Collect adjacency and distance matrices
-        A = self.adjacency
-        D = distance_matrix.astype("float32")
+        A = self.adjacency.copy(order='c')
+        D = distance_matrix.astype("float32").copy(order='c')
         #  Get degree sequence
-        degree = self.degree()
+        degree = self.degree().copy(order='c')
 
         #  Define for brevity
         eps = float(inaccuracy)
 
         #  Get edge list
-        edges = np.array(self.graph.get_edgelist())
+        edges = np.array(self.graph.get_edgelist()).copy(order='c')
 
-        code = """
-        int i, s, t, k, l, edge1, edge2;
-
-        //  Initialize random number generator
-        srand48(time(0));
-
-        i = 0;
-        while (i < iterations) {
-            //  Randomly choose 2 edges
-            edge1 = floor(drand48() * E);
-            edge2 = floor(drand48() * E);
-
-            s = edges(edge1,0);
-            t = edges(edge1,1);
-
-            k = edges(edge2,0);
-            l = edges(edge2,1);
-
-            //  Proceed only if s != k, s != l, t != k, t != l
-            if (s != k && s != l && t != k && t != l) {
-                // Proceed only if the new links {s,l} and {t,k}
-                // do NOT already exist
-                if (A(s,l) == 0 && A(t,k) == 0) {
-                    // Proceed only if degree-degree correlations
-                    // will not be changed
-                    if (degree(s) == degree(k) && degree(t) == degree(l)) {
-                        // Proceed only if the link lengths
-                        // fulfill condition C2
-                        if (fabs(D(s,t) - D(s,l)) < eps &&
-                                fabs(D(t,s) - D(t,k)) < eps &&
-                                    fabs(D(k,l) - D(k,t)) < eps &&
-                                        fabs(D(l,k) - D(l,s)) < eps ) {
-                            // Now rewire the links
-                            // symmetrically and increase i by 1
-                            A(s,t) = A(t,s) = 0;
-                            A(k,l) = A(l,k) = 0;
-                            A(s,l) = A(l,s) = 1;
-                            A(t,k) = A(k,t) = 1;
-
-                            edges(edge1,0) = s;
-                            edges(edge1,1) = l;
-                            edges(edge2,0) = k;
-                            edges(edge2,1) = t;
-
-                            i++;
-                        }
-                    }
-                }
-            }
-        }
-        """
-        weave_inline(locals(), code,
-                     ['iterations', 'eps', 'A', 'D', 'E', 'edges', 'degree'])
+        _randomly_rewire_geomodel_III(iterations, eps, A, D, E, N, edges,
+                                      degree)
 
         #  Update all other properties of GeoNetwork
         self.adjacency = A
@@ -868,7 +683,7 @@ average link distance sequence..."
         #  Set new adjacency matrix
         self.adjacency = A
 
-    #  FIXME: Check this method and implement in C++ via Weave for speed.
+    #  FIXME: Check this method and implement in C++ via Cython for speed.
     #  FIXME: Also improve documentation.
     #  FIXME: Add example
     def shuffled_by_distance_copy(self):
@@ -1921,7 +1736,7 @@ average link distance sequence..."
             import stripack  # @UnresolvedImport
             # tries to import stripack.so which must have been compiled with
             # f2py -c -m stripack stripack.f90
-        except:
+        except ImportError:
             raise RuntimeError("NOTE: stripack.so not available, " +
                                "boundary() won't work.")
 
@@ -2039,11 +1854,11 @@ average link distance sequence..."
             mind2 = np.inf
             latlon_shape = []
             latlon_fullshape = []
-            l = len(partial_shape)-1
-            off = l/2
-            for it in range(l):
+            length = len(partial_shape)-1
+            off = length/2
+            for it in range(length):
                 pos1 = partial_shape[it]
-                pos2 = partial_shape[(it+off) % l]
+                pos2 = partial_shape[(it+off) % length]
                 latlon_shape.append(self.cartesian2latlon(pos1))
                 d2 = ((pos2-pos1)**2).sum()
                 if d2 < mind2:

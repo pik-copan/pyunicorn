@@ -29,7 +29,8 @@ except ImportError:
 Some functionality in Grid class might not be available."
 
 #  Cythonized functions
-from .numerics import _cy_calculate_angular_distance, _euclidiean_distance
+from pyunicorn.core._ext.numerics import \
+    _cy_calculate_angular_distance, _euclidiean_distance
 
 #
 #  Define class Grid
@@ -486,7 +487,7 @@ text files", filename
         :return: the angular great circle distance matrix (unit radians).
         """
         if self.silence_level <= 1:
-            print "Calculating angular great circle distance using Weave..."
+            print "Calculating angular great circle distance using Cython..."
 
         #  Get number of nodes
         N = self.N

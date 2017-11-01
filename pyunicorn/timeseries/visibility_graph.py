@@ -15,11 +15,12 @@ analysis (RQA) and recurrence network analysis.
 # array object and fast numerics
 import numpy as np
 
-from .. import InteractingNetworks
-from .numerics import \
-    _visibility_relations_missingvalues,\
-    _visibility_relations_no_missingvalues, _visibility_relations_horizontal,\
+from pyunicorn.timeseries._ext.numerics import \
+    _visibility_relations_missingvalues, \
+    _visibility_relations_no_missingvalues, _visibility_relations_horizontal, \
     _retarded_local_clustering, _advanced_local_clustering
+
+from .. import InteractingNetworks
 
 
 #
@@ -128,7 +129,6 @@ class VisibilityGraph(InteractingNetworks):
         return A
 
     # FIXME: There is no option for missing values
-    # Cython gives different outputs than waeve in this case
     def visibility_relations_horizontal(self):
         """
         TODO

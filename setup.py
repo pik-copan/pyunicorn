@@ -13,17 +13,18 @@ except ImportError:
 
 extensions = [
     Extension(
-        'pyunicorn.%s.numerics' % (pkg),
-        sources=['pyunicorn/%s/numerics.%s' % (pkg, 'pyx' if CYTHON else 'c')],
+        'pyunicorn.%s._ext.numerics' % (pkg),
+        sources=['pyunicorn/%s/_ext/numerics.%s' %
+                 (pkg, 'pyx' if CYTHON else 'c')],
         include_dirs=[np.get_include()],
         extra_compile_args=['-O3', '-std=c99'])
-    for pkg in ['core', 'timeseries']]
+    for pkg in ['climate', 'core', 'funcnet', 'timeseries']]
 
 if CYTHON:
     extensions = cythonize(extensions, compiler_directives={
-        'language_level': 2, 'embedsignature': True,
-        'boundscheck': False, 'wraparound': False, 'initializedcheck': False,
-        'nonecheck': False})
+            'language_level': 2, 'embedsignature': True,
+            'boundscheck': False, 'wraparound': False,
+            'initializedcheck': False, 'nonecheck': False})
 
 setup(
     name='pyunicorn',
@@ -50,9 +51,11 @@ nonlinear climate recurrence plot surrogates spatial model',
         'Topic :: Scientific/Engineering :: Physics',
         'Intended Audience :: Science/Research'],
     provides=['pyunicorn'],
-    packages=['pyunicorn', 'pyunicorn.core', 'pyunicorn.climate',
-              'pyunicorn.timeseries', 'pyunicorn.funcnet',
-              'pyunicorn.utils', 'pyunicorn.utils.progressbar'],
+    packages=['pyunicorn', 'pyunicorn.core', 'pyunicorn.core._ext',
+              'pyunicorn.climate', 'pyunicorn.climate._ext',
+              'pyunicorn.timeseries', 'pyunicorn.timeseries._ext',
+              'pyunicorn.funcnet', 'pyunicorn.funcnet._ext', 'pyunicorn.utils',
+              'pyunicorn.utils.progressbar'],
     scripts=[],
     ext_modules=extensions,
     install_requires=open('requirements.txt', 'r').read().split('\n'),

@@ -35,19 +35,17 @@ from scipy import linalg            # solvers
 from scipy.linalg import matfuncs
 from scipy import sparse as sp      # fast sparse matrices
 from scipy.sparse.linalg import eigsh, inv, splu
-try:
-    import weave                    # C++ inline code
-except ImportError:
-    import scipy.weave as weave
 
 import igraph                       # high performance graph theory tools
 
 from ..utils import progressbar     # easy progress bar handling
 from .. import mpi                  # parallelized computations
 
-from .numerics import _local_cliquishness_4thorder,\
-    _local_cliquishness_5thorder, _cy_mpi_nsi_newman_betweenness,\
-    _cy_mpi_newman_betweenness, _nsi_betweenness
+from pyunicorn.core._ext.numerics import _local_cliquishness_4thorder, \
+    _local_cliquishness_5thorder, _cy_mpi_nsi_newman_betweenness, \
+    _cy_mpi_newman_betweenness, _nsi_betweenness, _higher_order_transitivity4,\
+    _newman_betweenness_badly_cython, _do_nsi_clustering_I, \
+    _do_nsi_clustering_II, _do_nsi_hamming_clustering
 
 
 def nz_coords(matrix):
@@ -102,15 +100,6 @@ def cached_var(cat, msg=None):
             return cache_helper(self, cat, key, msg, func, key, **kwargs)
         return wrapped
     return wrapper
-
-
-def weave_inline(local_dict, code, args, blitz=True, **kwargs):
-    """ Default configuration for C inline code. """
-    return weave.inline(
-        code, arg_names=args, local_dict=local_dict,
-        compiler='gcc', extra_compile_args=['-O3 -w'],
-        type_converters=weave.converters.blitz if blitz else None,
-        verbose=0, **kwargs)
 
 
 class NetworkError(Exception):
@@ -2439,42 +2428,11 @@ can only take values <<in>> or <<out>>."
             return self.transitivity()
 
         elif order == 4:
-            # #  Gathering
+            #  Gathering
             # N = self.N
             # A = self.adjacency
-
-            # #  Initialize
-            # T = np.zeros(1)
-
-            # code = """
-            # long cliques, stars;
-
-            # //  Initialize
-            # cliques = 0;
-            # stars = 0;
-
-            # //  Iterate over all nodes
-            # for (int v = 0; v < N; v++) {
-            #     for (int i = 0; i < N; i++) {
-            #         for (int j = 0; j < N; j++) {
-            #             for (int k = 0; k < N; k++) {
-            #                     if (A(v,i) == 1 && A(v,j) == 1 &&
-            #                            A(v,k) == 1) {
-            #                         stars++;
-            #                         if (A(i,j) == 1 && A(i,k) == 1 &&
-            #                                A(j,k) == 1)
-            #                             cliques++;
-            #                     }
-            #                 }
-            #         }
-            #     }
-            # }
-
-            # T(0) = double(cliques) / double(stars);
-            # """
-
-            # weave_inline(code, ['T', 'N', 'A'])
-            # return T[0]
+            # T = _higher_order_transitivity4(N, A)
+            # return T
 
             if estimate:
                 motif_counts = self.graph.motifs_randesu(
@@ -3166,7 +3124,7 @@ can only take values <<in>> or <<out>>."
         """
         return self.nsi_betweenness(sources=sources, targets=targets, silent=1)
 
-    def nsi_betweenness(self, cy=False, **kwargs):
+    def nsi_betweenness(self, **kwargs):
         """
         For each node, return its n.s.i. betweenness.
 
@@ -3235,112 +3193,6 @@ can only take values <<in>> or <<out>>."
         flat_neighbors = np.array(links)[:, 1].astype(int)
         E = len(flat_neighbors)
 
-        # this follows [Newman2001]_:
-        code = r"""
-        // performs Newman's algorithm for a specific target node j:
-
-        int l, distances_to_j[N], n_predecessors[N], queue[N], queue_len,
-            qi, i, next_d, l_index, oi, dl, ql, fi, ol, two_N = 2 * N;
-        double multiplicity_to_j[N], factor;
-
-        // init distances to j and queue of nodes by distance from j:
-
-        for (l=0; l<N; l++) {
-            distances_to_j[l] = two_N;
-            n_predecessors[l] = 0;
-            multiplicity_to_j[l] = 0.0;
-            // initialize contribution of paths ending in j to the
-            // betweenness of l:
-            excess_to_j[l] = betweenness_to_j[l] = is_source[l] * w[l];
-        }
-
-        distances_to_j[j] = 0;
-        queue[0] = j;
-        queue_len = 1;
-        multiplicity_to_j[j] = w[j];
-
-        // process the queue forward and grow it on the way:
-        // (this is the standard breadth-first search giving
-        // all the shortest paths to j)
-
-        for (qi=0; qi<queue_len; qi++) {
-            if ((i=queue[qi]) == -1) {
-                printf("Oops: %d,%d,%d\n",qi,queue_len,i);
-                break;
-            }
-            next_d = distances_to_j[i] + 1;
-
-
-            // iterate through all neighbours l of i:
-            for (l_index=(oi=offsets[i]); l_index<oi+k[i]; l_index++) {
-
-                // if on a shortest j-l-path,
-                // register i as predecessor of l:
-                if ((dl=distances_to_j[l=flat_neighbors[l_index]])
-                    >= next_d) {
-//                  flat_predecessors[fi =
-//                      offsets[l] + (n_predecessors[l]++)] = i;
-                    PyList_SetItem(flat_predecessors,
-                                   fi = offsets[l] + (n_predecessors[l]++),
-                                   PyInt_FromLong((long)i));
-                    multiplicity_to_j[l] += w[l] * multiplicity_to_j[i];
-                    if (dl > next_d) {
-                        distances_to_j[l] = next_d;
-                        queue[queue_len++] = l;
-                    }
-                }
-            }
-        }
-
-        // process the queue again backward: (this is Newman's 2nd part where
-        // the contribution of paths ending in j to the betweenness of all
-        // nodes is computed recursively by traversing the shortest paths
-        // backwards)
-
-        for (ql=queue_len-1; ql>-1; ql--) {
-            if ((l=queue[ql]) == -1) {
-                // this should never happen!
-                printf("Oops: %d,%d,%d\n",ql,queue_len,l);
-                break;
-            }
-            if (l == j) {
-                // set betweenness and excess to zero:
-                betweenness_to_j[l] = excess_to_j[l] = 0;
-            } else {
-                // otherwise, iterate through all predecessors i of l:
-                double base_factor = w[l] / multiplicity_to_j[l];
-
-                for (fi=(ol=offsets[l]); fi<ol+n_predecessors[l]; fi++) {
-                    // add betweenness to predecessor:
-//                  betweenness_to_j[i=flat_predecessors[fi]] +=
-//                      betweenness_to_j[l] * (
-//                      factor = base_factor * multiplicity_to_j[
-//                                                  flat_predecessors[fi]]);
-
-                    i = (int)PyInt_AsLong(
-                            PyList_GetItem(flat_predecessors,fi));
-                    betweenness_to_j[i] += betweenness_to_j[l]
-                            * (factor = base_factor * multiplicity_to_j[i]);
-                }
-            }
-        }
-
-// other possible versions:
-
-//          if (distances_to_j[l] <= 1) {
-//              // if l in j's nbrhd, set betweenness and excess to zero:
-//              betweenness_to_j[l] = excess_to_j[l] = 0;
-//          } else {
-//              // otherwise, iterate through all predecessors i of l:
-//
-//                  // FIXME: or was this the correct version?
-//                  betweenness_to_j[i=flat_predecessors[fi]] +=
-//                      betweenness_to_j[l] * (
-//                      factor = flat_predmults[fi]/multiplicity_to_j[l]);
-//                  // add excess betweenness to predecessor:
-//                  excess_to_j[i] += is_source[l] * w[l] * factor;
-        """
-
         # this main loop might be parallelized:
         for j0 in targets:
             j = int(j0)
@@ -3350,16 +3202,10 @@ can only take values <<in>> or <<out>>."
             flat_predecessors = list(np.zeros(E, dtype=int))
             # Note: this cannot be transferred as numpy array since if too
             # large we get an glibc error...
-            if not cy:
-                weave_inline(locals(), code,
-                             ['N', 'E', 'w', 'k', 'j', 'betweenness_to_j',
-                              'excess_to_j', 'offsets', 'flat_neighbors',
-                              'is_source', 'flat_predecessors'], blitz=False)
-            else:
-                _nsi_betweenness(N, E, w, k, j, betweenness_to_j,
-                                 excess_to_j, offsets.astype(int),
-                                 flat_neighbors,
-                                 is_source, np.array(flat_predecessors))
+            _nsi_betweenness(N, E, w, k, j, betweenness_to_j,
+                             excess_to_j, offsets.astype(int),
+                             flat_neighbors,
+                             is_source, np.array(flat_predecessors))
             del flat_predecessors
             betweenness_times_w += w[j] * (betweenness_to_j - excess_to_j)
 
@@ -4109,43 +3955,12 @@ can only take values <<in>> or <<out>>."
 
                 nNodes = float(nNodes)
 
-                #  Calculate the random walk betweenness in C++ using Weave
-                code = r"""
-                int i, j, s, t;
-                double norm, sum, Tis, Tit, Tjs, Tjt;
-
-                norm = 2 / (N * (N - 1));
-
-                for (i = 0; i < N; i++) {
-                    for (s = 0; s < N; s++) {
-                        for (t = 0; t < s; t++) {
-                            if (i == s || i == t)
-                                rwb(i) += 1;
-                            else {
-                                sum = 0;
-
-                                Tis = T(i,s);
-                                Tit = T(i,t);
-
-                                for (j = 0; j < N; j++) {
-                                    if (adjacency(i,j) == 1) {
-                                        Tjs = T(j,s);
-                                        Tjt = T(j,t);
-
-                                        sum += fabs(Tis - Tit - Tjs + Tjt);
-                                    }
-                                }
-                                rwb(i) += 0.5 * sum;
-                            }
-                        }
-                    }
-                    rwb(i) *= norm;
-                }
-                """
+                #  Calculate the random walk betweenness in C++ using Cython
                 # added -w since numerous warnings of type "Warnung: veraltete
                 # Konvertierung von Zeichenkettenkonstante in »char*«"
                 # occurred:
-                weave_inline(locals(), code, ['adjacency', 'T', 'rwb', 'N'])
+                rwb = _newman_betweenness_badly_cython(adjacency.astype(int),
+                                                       T, rwb, self.N)
 
                 #  Normalize RWB by component size
                 rwb *= nNodes
@@ -4966,10 +4781,12 @@ can only take values <<in>> or <<out>>."
         M = len(distance_keys)
         rM = xrange(M)
         rpos = xrange(1, M+1)
+        """
         if M < 65535:
             postype = "int16"
         else:
-            postype = "int32"
+        """
+        postype = "int32"
         D_firstpos = np.zeros(N, postype)  # pos. of first nb. of cl.
         D_lastpos = np.zeros(N, postype)  # pos. of last nb. of cl.
         # pos. of next nb. of the same cl.
@@ -5066,64 +4883,10 @@ can only take values <<in>> or <<out>>."
         cands = dict_Delta.keys()
         n_cands = len(cands)
 
-        code = r"""
-        // loop thru candidates:
-        for (int ca=0; ca<n_cands; ca++) {
-            int ij = cands[ca],
-                i = ij/N,
-                j = ij%N;
-            float   wi = w[i],
-                    wj = w[j],
-                    wc = wi + wj,
-                    wjd0 = wj * d0,
-                    Delta_inc = 0.0;
-            // loop thru all nbs of i other than j:
-            int posh = D_firstpos[i];
-            while (posh > 0) {
-                int h = D_cluster[posh];
-                if (h != j) {
-                    int ih = N*i+h,
-                        jh = N*j+h;
-                    float   wh = w[h],
-                            Dih = dict_D[ih],
-                            Djh;
-                    if (dict_D.has_key(jh))
-                        Djh = dict_D[jh];
-                    else
-                        Djh = wh * wjd0;
-                    float   Dch_wc = (Dih + Djh) / wc,
-                            Dch_wc_Dih_wi = Dch_wc - Dih/wi,
-                            Dch_wc_Djh_wj = Dch_wc - Djh/wj;
-                    Delta_inc += (wi * Dch_wc_Dih_wi*Dch_wc_Dih_wi
-                                    + wj * Dch_wc_Djh_wj*Dch_wc_Djh_wj) / wh;
-                }
-                posh = D_nextpos[posh];
-            }
-            // loop thru all nbs of j other than i which are not nbs of i:
-            posh = D_firstpos[j];
-            while (posh > 0) {
-                int h = D_cluster[posh];
-                int ih = N*i+h;
-                float   wh = w[h],
-                        whd0 = wh * d0;
-                if (h != i) if (!dict_D.has_key(ih)) {
-                    int jh = N*j+h;
-                    float   Djh = dict_D[jh],
-                            Dch_wc = (wi*whd0 + Djh) / wc,
-                            Dch_wc_whd0 = Dch_wc - whd0,
-                            Dch_wc_Djh_wj = Dch_wc - Djh/wj;
-                    Delta_inc += (wi * Dch_wc_whd0*Dch_wc_whd0
-                                    + wj * Dch_wc_Djh_wj*Dch_wc_Djh_wj) / wh;
-                }
-                posh = D_nextpos[posh];
-            }
-            dict_Delta[ij] = (float)dict_Delta[ij] + Delta_inc;
-        }
-        """
-        weave_inline(locals(), code,
-                     ['n_cands', 'cands', 'D_cluster', 'D_invpos', 'w', 'd0',
-                      'D_firstpos', 'D_nextpos', 'N', 'dict_D', 'dict_Delta'],
-                     blitz=False)
+        dict_Delta = _do_nsi_clustering_I(n_cands, cands, D_cluster, w, d0,
+                                          D_firstpos, D_nextpos, N, dict_D,
+                                          dict_Delta)
+
         print "initialization of error increments needed", \
               time.time()-t0, "sec."
 
@@ -5206,185 +4969,11 @@ can only take values <<in>> or <<out>>."
             wbd0 = wb * d0
 
             t0 = time.time()
-            code = r"""
-            float   wa = w[(int)a], wb = w[(int)b], wc = wa + wb,
-                    wad0 = wa * d0, wbd0 = wb * d0;
-            int posa1 = D_firstpos[(int)a], // a meaning c!
-                N1 = N+1;
 
-            while (posa1 > 0) {
-                int a1 = D_cluster[posa1], a1N = a1*N, a1a1 = a1*N1,
-                    a1a = a1N+(int)a, a1b = a1N+(int)b;
-                float   wa1 = w[a1], wa1sq = wa1*wa1, wa1d0 = wa1 * d0,
-                        Da1a1, Da1a, Da1b;
-                if (dict_D.has_key(a1a1))
-                    Da1a1 = dict_D[a1a1];
-                else
-                    Da1a1 = 0.0;
-                if (dict_D.has_key(a1a))
-                    Da1a = dict_D[a1a];
-                else
-                    Da1a = wa1*wad0;
-                if (dict_D.has_key(a1b))
-                    Da1b = dict_D[a1b];
-                else
-                    Da1b = wa1*wbd0;
+            dict_Delta = _do_nsi_clustering_II(a, b, D_cluster, w, d0,
+                                               D_firstpos, D_nextpos, N,
+                                               dict_D, dict_Delta)
 
-                float Da1c = Da1a + Da1b;
-                int posb1 = D_firstpos[a1];
-
-                while (posb1 > 0) {
-                    int b1 = D_cluster[posb1], a1b1key,
-                        b1N = b1*N, b1b1 = b1*N1;
-
-                    if (a1 < b1)
-                        a1b1key = a1N+b1;
-                    else
-                        a1b1key = b1N+a1;
-                    if (dict_Delta.has_key(a1b1key)) {
-                        float   wb1 = w[b1], wb1d0 = wb1 * d0, wb1sq = wb1*wb1,
-                                wa1b1 = wa1 * wb1, wc1 = wa1 + wb1,
-                                Db1b1, Da1b1;
-                        if (dict_D.has_key(b1b1))
-                            Db1b1 = dict_D[b1b1];
-                        else
-                            Db1b1 = 0.0;
-                        if (dict_D.has_key(a1b1key))
-                            Da1b1 = dict_D[a1b1key];
-                        else
-                            Da1b1 = wb1 * wa1d0;
-                        float Dc1c1_wc1sq = (Da1a1 + Db1b1 + 2.0*Da1b1)
-                                            / (wc1*wc1);
-                        if (b1 == (int)a) { // a meaning c!
-                            float   Dc1c1_wc1sq_Da1a1_wa1sq
-                                        = Dc1c1_wc1sq - Da1a1/wa1sq,
-                                    Dc1c1_wc1sq_Db1b1_wb1sq
-                                        = Dc1c1_wc1sq - Db1b1/wb1sq,
-                                    Dc1c1_wc1sq_Da1b1_wa1b1
-                                        = Dc1c1_wc1sq - Da1b1/wa1b1,
-                                    Delta_new = wa1sq
-                                        * Dc1c1_wc1sq_Da1a1_wa1sq
-                                        * Dc1c1_wc1sq_Da1a1_wa1sq
-                                        + wb1sq
-                                        * Dc1c1_wc1sq_Db1b1_wb1sq
-                                        * Dc1c1_wc1sq_Db1b1_wb1sq
-                                        + 2.0 * wa1b1
-                                        * Dc1c1_wc1sq_Da1b1_wa1b1
-                                        * Dc1c1_wc1sq_Da1b1_wa1b1;
-                            // loop thru all nbs c2 of a1 other than b1:
-                            int posc2 = D_firstpos[a1], c2;
-                            while (posc2 > 0) {
-                                c2 = D_cluster[posc2];
-                                if (c2 != b1) {
-                                    int     b1c2  = b1N+c2;
-                                    float   wc2   = w[c2],
-                                            Da1c2 = dict_D[a1N+c2], Db1c2;
-
-                                    if (dict_D.has_key(b1c2))
-                                        Db1c2 = dict_D[b1c2];
-                                    else
-                                        Db1c2 = wc2*wb1d0;
-                                    float   Dc1c2_wc1
-                                                = (Da1c2 + Db1c2) / wc1,
-                                            Dc1c2_wc1_Da1c2_wa1
-                                                = Dc1c2_wc1 - Da1c2/wa1,
-                                            Dc1c2_wc1_Db1c2_wb1
-                                                = Dc1c2_wc1 - Db1c2/wb1 ;
-                                    Delta_new += (wa1 * Dc1c2_wc1_Da1c2_wa1
-                                                    * Dc1c2_wc1_Da1c2_wa1
-                                                + wb1 * Dc1c2_wc1_Db1c2_wb1
-                                                    * Dc1c2_wc1_Db1c2_wb1)
-                                                / wc2;
-                                }
-                                posc2 = D_nextpos[posc2];
-                            }
-                            // loop thru all nbs of b1 other than a1
-                            // which are not nbs of a1:
-                            posc2 = D_firstpos[b1];
-                            while (posc2 > 0) {
-                                c2 = D_cluster[posc2];
-                                if (c2 != a1)
-                                    if (!dict_D.has_key(a1N+c2)) {
-                                    int b1c2 = b1N+c2;
-                                    float   wc2 = w[c2], Db1c2;
-
-                                    if (dict_D.has_key(b1c2))
-                                        Db1c2 = dict_D[b1c2];
-                                    else
-                                        Db1c2 = wc2*wb1d0;
-                                    float   Dc1c2_wc1 = (wc2*wa1d0 + Db1c2)
-                                                            / wc1,
-                                            Dc1c2_wc1_wc2_d0
-                                                = Dc1c2_wc1 - wc2*d0,
-                                            Dc1c2_wc1_Db1c2_wb1
-                                                = Dc1c2_wc1 - Db1c2/wb1;
-                                    Delta_new += (wa1 * Dc1c2_wc1_wc2_d0
-                                                    * Dc1c2_wc1_wc2_d0
-                                                + wb1 * Dc1c2_wc1_Db1c2_wb1
-                                                    * Dc1c2_wc1_Db1c2_wb1)
-                                                / wc2;
-                                }
-                                posc2 = D_nextpos[posc2];
-                            }
-                            dict_Delta[a1b1key] = Delta_new;
-                        } else {
-                            int     b1a = b1N+(int)a, b1b = b1N+(int)b;
-                            float   Db1a, Db1b;
-
-                            if (dict_D.has_key(b1a))
-                                Db1a = dict_D[b1a];
-                            else
-                                Db1a = wb1*wad0;
-                            if (dict_D.has_key(b1b))
-                                Db1b = dict_D[b1b];
-                            else
-                                Db1b = wb1*wbd0;
-                            float  Db1c = Db1a + Db1b,
-                                   wc1 = wa1 + wb1,
-                                   Dc1a_wc1 = (Da1a + Db1a) / wc1,
-                                   Dc1b_wc1 = (Da1b + Db1b) / wc1,
-                                   Dc1c_wc1 = (Da1c + Db1c) / wc1,
-                                   Dc1c_wc1_Da1c_wa1
-                                       = Dc1c_wc1 - Da1c/wa1,
-                                   Dc1a_wc1_Da1a_wa1
-                                       = Dc1a_wc1 - Da1a/wa1,
-                                   Dc1b_wc1_Da1b_wa1
-                                       = Dc1b_wc1 - Da1b/wa1,
-                                   Dc1c_wc1_Db1c_wb1
-                                       = Dc1c_wc1 - Db1c/wb1,
-                                   Dc1a_wc1_Db1a_wb1
-                                       = Dc1a_wc1 - Db1a/wb1,
-                                   Dc1b_wc1_Db1b_wb1
-                                       = Dc1b_wc1 - Db1b/wb1,
-                                   Delta_inc = 2 * (
-                                           Dc1c_wc1_Da1c_wa1
-                                           * Dc1c_wc1_Da1c_wa1 / wc
-                                           - Dc1a_wc1_Da1a_wa1
-                                           * Dc1a_wc1_Da1a_wa1 / wa
-                                           - Dc1b_wc1_Da1b_wa1
-                                           * Dc1b_wc1_Da1b_wa1 / wb
-                                           ) / wa1
-                                       + 2 * (
-                                           Dc1c_wc1_Db1c_wb1
-                                           * Dc1c_wc1_Db1c_wb1 / wc
-                                           - Dc1a_wc1_Db1a_wb1
-                                           * Dc1a_wc1_Db1a_wb1 / wa
-                                           - Dc1b_wc1_Db1b_wb1
-                                           * Dc1b_wc1_Db1b_wb1 / wb
-                                           ) / wb1;
-                            dict_Delta[a1b1key]
-                                = (float)dict_Delta[a1b1key] + Delta_inc;
-                        }
-                    }
-                    posb1 = D_nextpos[posb1];
-                }
-                posa1 = D_nextpos[posa1];
-            }
-            """
-            weave_inline(locals(), code,
-                         ['a', 'b', 'D_cluster', 'D_invpos', 'w', 'd0',
-                          'D_firstpos', 'D_nextpos', 'N', 'dict_D',
-                          'dict_Delta'], blitz=False)
             sumt3 = time.time()-t0
 
             # finally update D:
@@ -5575,98 +5164,14 @@ can only take values <<in>> or <<out>>."
             minwp0 = float(2.0*weightProducts.max())
             result = np.zeros(3)
 
-            code = r"""
-            int i1, i2, i3, c3, newpart1, newpart2;
-            double d, lw, mind=mind0, minwp=minwp0;
-            for (i1=0; i1<nActiveIndices; i1++) {
-                int c1 = theActiveIndices(i1);
-                if ((lastunited==-1) || (c1==lastunited)) {
-                    for (i2=0; i2<i1; i2++) {
-                        int c2 = theActiveIndices(i2);
-                        if (mayJoin(c1,c2)>0) {
-                            d = 0.0;
-                            for (i3=0; i3<i2; i3++) {
-                                c3 = theActiveIndices(i3);
-                                lw = linkedWeights(c1,c3)
-                                        + linkedWeights(c2,c3);
-                                d += fmin(lw,weightProducts(c1,c3)
-                                        + weightProducts(c2,c3)-lw)
-                                        - errors(c1,c3) - errors(c2,c3);
-                            }
-                            for (i3=i2+1; i3<i1; i3++) {
-                                c3 = theActiveIndices(i3);
-                                lw = linkedWeights(c1,c3)
-                                        + linkedWeights(c2,c3);
-                                d += fmin(lw,weightProducts(c1,c3)
-                                        + weightProducts(c2,c3)-lw)
-                                        - errors(c1,c3) - errors(c2,c3);
-                            }
-                            for (i3=i1+1; i3<nActiveIndices; i3++) {
-                                c3 = theActiveIndices(i3);
-                                lw = linkedWeights(c1,c3)
-                                        + linkedWeights(c2,c3);
-                                d += fmin(lw,weightProducts(c1,c3)
-                                        + weightProducts(c2,c3)-lw)
-                                        - errors(c1,c3) - errors(c2,c3);
-                            }
-                            double e = weightProducts(c1,c2)
-                                        - 2.0*linkedWeights(c1,c2);
-                            if (e>0.0) d += e;
-                            distances(c1,c2) = d;
-                            if ((d<mind) ||
-                                    ((d==mind) &&
-                                        (weightProducts(c1,c2)<minwp))) {
-                                mind = d;
-                                minwp = weightProducts(c1,c2);
-                                newpart1 = c1;
-                                newpart2 = c2;
-                            }
-                        }
-                    }
-                } else {
-                    for (i2=0; i2<i1; i2++) {
-                        int c2 = theActiveIndices(i2);
-                        if (mayJoin(c1,c2)>0) {
-                            double lw_united = linkedWeights(c1,lastunited)
-                                               + linkedWeights(c2,lastunited),
-                                    lw_part1 = linkedWeights(c1,part1)
-                                               + linkedWeights(c2,part1),
-                                    lw_part2 = linkedWeights(c1,part2)
-                                               + linkedWeights(c2,part2);
-                            distances(c1,c2) +=
-                                (fmin(lw_united, weightProducts(c1,lastunited)
-                                      + weightProducts(c2,lastunited)
-                                      - lw_united)
-                                   - errors(c1,lastunited)
-                                   - errors(c2,lastunited))
-                                - (fmin(lw_part1,weightProducts(c1,part1)
-                                        + weightProducts(c2,part1) - lw_part1)
-                                   - errors(c1,part1) - errors(c2,part1))
-                                - (fmin(lw_part2,weightProducts(c1,part2)
-                                        + weightProducts(c2,part2) -lw_part2)
-                                   - errors(c1,part2) - errors(c2,part2));
-                            d = distances(c1,c2);
-                            if ((d<mind) ||
-                                    ((d==mind) &&
-                                        (weightProducts(c1,c2)<minwp))) {
-                                mind = d;
-                                minwp = weightProducts(c1,c2);
-                                newpart1 = c1;
-                                newpart2 = c2;
-                            }
-                        }
-                    }
-                }
-            }
-            result(0) = mind;
-            result(1) = newpart1;
-            result(2) = newpart2;
-            """
-            weave_inline(locals(), code,
-                         ['nActiveIndices', 'mind0', 'minwp0', 'lastunited',
-                          'part1', 'part2', 'distances', 'theActiveIndices',
-                          'linkedWeights', 'weightProducts', 'errors',
-                          'result', 'mayJoin'])
+            results = _do_nsi_hamming_clustering(
+                    n2, nActiveIndices, mind0, minwp0, lastunited, part1,
+                    part2, distances.copy(mode='c'),
+                    theActiveIndices.copy(mode='c'),
+                    linkedWeights.copy(mode='c'),
+                    weightProducts.copy(mode='c'),
+                    errors.copy(mode='c'), result.copy(mode='c'),
+                    mayJoin.copy(mode='c'))
 
             mind = result[0]
             part1 = int(result[1])

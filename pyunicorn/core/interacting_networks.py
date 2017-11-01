@@ -15,12 +15,13 @@ multivariate data and generating time series surrogates.
 import numpy as np
 from numpy import random
 
-#  Import Network base class and Cython code
-from .network import Network, NetworkError
-from .numerics import                                    \
-    _randomlySetCrossLinks, _randomlyRewireCrossLinks,   \
-    _cross_transitivity, _nsi_cross_transitivity,        \
+from pyunicorn.core._ext.numerics import \
+    _randomlySetCrossLinks, _randomlyRewireCrossLinks, \
+    _cross_transitivity, _nsi_cross_transitivity, \
     _cross_local_clustering, _nsi_cross_local_clustering
+
+#  Import Network base class
+from .network import Network, NetworkError
 
 
 #
@@ -1608,14 +1609,14 @@ chosen link density."
 
         **Examples:**
 
-        >>> InteractingNetworks.SmallTestNetwork().\
-                nsi_cross_betweenness([0,4,5],[1,3])
-        array([ 6.53333333,  1.2       ,  0.        ,
-                0.67692308,  0.67692308,  0.        ])
-        >>> InteractingNetworks.SmallTestNetwork().\
-                nsi_cross_betweenness([0,1],[2,3,4,5])
-        array([ 2.13333333,  0.        ,  0.        ,
-                0.49230769,  0.92087912,  0.        ])
+        >>> r(InteractingNetworks.SmallTestNetwork().\
+                nsi_cross_betweenness([0,4,5],[1,3]))
+        array([ 6.5333,  1.2   ,  0.    ,
+                0.6769,  0.6769,  0.    ])
+        >>> r(InteractingNetworks.SmallTestNetwork().\
+                nsi_cross_betweenness([0,1],[2,3,4,5]))
+        array([ 2.1333,  0.    ,  0.    ,
+                0.4923,  0.9209,  0.    ])
 
         :arg [int] node_list1: list of node indices describing the first
             subnetwork

@@ -4,6 +4,7 @@ __pycache__/
 
 # C extensions / Cython / Weave
 *.c
+!*/_ext/src_numerics.c
 *.so
 
 # Distribution / packaging
