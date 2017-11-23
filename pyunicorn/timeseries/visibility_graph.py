@@ -22,6 +22,7 @@ from pyunicorn.timeseries._ext.numerics import \
 
 from .. import InteractingNetworks
 
+
 #
 #  Class definitions
 #
