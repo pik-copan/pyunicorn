@@ -47,9 +47,8 @@ Dependencies
 which have to be installed on your machine.
 
 Required:
-  - `Numpy <http://www.numpy.org/>`_ 1.8+
-  - `Scipy <http://www.scipy.org/>`_ 0.14+
-  - `Weave <https://github.com/scipy/weave>`_ 0.15+
+  - `Numpy <http://www.numpy.org/>`_ 1.10+
+  - `Scipy <http://www.scipy.org/>`_ 0.16+
   - `igraph, python-igraph <http://igraph.org/>`_ 0.7+
 
 Optional *(used only in certain classes and methods)*:
