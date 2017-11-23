@@ -64,7 +64,7 @@ cdef extern from "src_numerics.c":
 # cross_recurrence_plot =======================================================
 
 def _manhattan_distance_matrix_crp(
-    int ntime_x, int ntime_y, int dim, 
+    int ntime_x, int ntime_y, int dim,
     np.ndarray[double, ndim=2, mode='c'] x_embedded not None,
     np.ndarray[double, ndim=2, mode='c'] y_embedded not None):
 
@@ -81,7 +81,7 @@ def _manhattan_distance_matrix_crp(
 
 
 def _euclidean_distance_matrix_crp(
-    int ntime_x, int ntime_y, int dim, 
+    int ntime_x, int ntime_y, int dim,
     np.ndarray[double, ndim=2, mode='c'] x_embedded not None,
     np.ndarray[double, ndim=2, mode='c'] y_embedded not None):
 
@@ -98,7 +98,7 @@ def _euclidean_distance_matrix_crp(
 
 
 def _supremum_distance_matrix_crp(
-    int ntime_x, int ntime_y, int dim, 
+    int ntime_x, int ntime_y, int dim,
     np.ndarray[float, ndim=2, mode='c'] x_embedded not None,
     np.ndarray[float, ndim=2, mode='c'] y_embedded not None):
 
@@ -797,15 +797,15 @@ def _twin_surrogates(int n_surrogates, int N, twins,
 
 def _test_pearson_correlation(
     np.ndarray[double, ndim=2, mode='c'] original_data not None,
-    np.ndarray[double, ndim=2, mode='c'] surrogates not None, 
+    np.ndarray[double, ndim=2, mode='c'] surrogates not None,
     int N, int n_time):
 
     cdef double norm = 1.0 / float(n_time)
 
     #  Initialize Pearson correlation matrix
-    cdef np.ndarray[float, ndim=2, mode='c'] correlation = np.zeros((N, N), 
+    cdef np.ndarray[float, ndim=2, mode='c'] correlation = np.zeros((N, N),
             dtype="float32")
-    
+
     _test_pearson_correlation_fast(
         <double*> np.PyArray_DATA(original_data),
         <double*> np.PyArray_DATA(surrogates),
@@ -817,9 +817,9 @@ def _test_pearson_correlation(
 
 def _test_mutual_information(
     np.ndarray[double, ndim=2, mode='c'] original_data not None,
-    np.ndarray[double, ndim=2, mode='c'] surrogates not None, 
+    np.ndarray[double, ndim=2, mode='c'] surrogates not None,
     int N, int n_time, int n_bins):
-    
+
     cdef:
         #  Get common range for all histograms
         double range_min = np.min((original_data.min(), surrogates.min()))
@@ -939,6 +939,30 @@ def _visibility_relations_horizontal(
     # Add trivial connections of subsequent observations in time series
     for i in xrange(N-1):
         A[i, i+1] = A[i+1, i] = 1
+
+
+def _visibility(
+        np.ndarray[FLOAT32TYPE_t, ndim=1] time,
+        np.ndarray[FLOAT32TYPE_t, ndim=1] val, int node1, int node2):
+
+    cdef:
+        int i, j, k
+        np.ndarray[BOOLTYPE_t, ndim=1] test
+
+    i = min(node1,node2)
+    j = max(node1,node2)
+
+    """
+    testfun = lambda k: np.less((val[k]-val[i])/(time[k]-time[i]),
+                                (val[j]-val[i])/(time[j]-time[i]))
+    test = np.bool(np.sum(~np.array(map(testfun, xrange(i+1,j)))))
+    return np.invert(test)
+    """
+    test = np.zeros((j-(i+1)), dtype=np.uint8)
+    for k in xrange(i+1,j):
+        test[k-(i+1)] = np.less((val[k]-val[i])/(time[k]-time[i]),
+                            (val[j]-val[i])/(time[j]-time[i]))
+    return np.invert(np.bool(np.sum(test)))
 
 
 def _retarded_local_clustering(
