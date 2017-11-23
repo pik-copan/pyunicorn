@@ -29,6 +29,7 @@ To Do
 
 """
 
+from pkg_resources import get_distribution
 
 from .utils import mpi
 from .core import *
@@ -39,5 +40,5 @@ __copyright__ = \
     "Copyright (C) 2008-2017 Jonathan F. Donges and pyunicorn authors"
 __license__ = "BSD (3-clause)"
 __url__ = "http://www.pik-potsdam.de/members/donges/software"
-__version__ = "0.5.2"
+__version__ = get_distribution(__package__).version
 __docformat__ = "restructuredtext en"
