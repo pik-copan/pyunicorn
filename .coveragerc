@@ -4,7 +4,7 @@ source = pyunicorn
 
 [paths]
 source =
-   src/attr
+   src/pyunicorn
    .tox/*/lib/python*/site-packages/pyunicorn
 
 [report]
