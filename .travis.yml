@@ -33,7 +33,7 @@ before_install:
     - export PKG_CONFIG_PATH="$HOME/igraph/lib/pkgconfig:$PKG_CONFIG_PATH"
     - export LD_LIBRARY_PATH="$HOME/igraph/lib:$LD_LIBRARY_PATH"
     - ls -R $HOME/igraph
-    - pip install --user codecov
+    - pip install codecov
 
     # current python packages via miniconda
     - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then export MINICONDA=""; else export MINICONDA="3"; fi
