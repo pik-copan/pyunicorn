@@ -76,7 +76,7 @@ script:
     - tox -e doctest,units
 
 after_success:
-    - codecov --file ./lcov.info --disable search
+    - codecov
     - bash <(curl -s https://codecov.io/bash)
 
 notifications:
