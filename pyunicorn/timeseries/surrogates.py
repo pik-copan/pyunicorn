@@ -597,7 +597,6 @@ class Surrogates(object):
         :type surrogates: 2D Numpy array [index, time]
         :arg surrogates: The surrogate time series.
         :arg int n_bins: Number of bins for estimating prob. distributions.
-        :arg bool fast: fast or slow algorithm to be used.
         :rtype: 2D array [index, index]
         :return: the mutual information test matrix.
         """
