@@ -26,6 +26,7 @@ from .. import InteractingNetworks
 #  Class definitions
 #
 
+
 class VisibilityGraph(InteractingNetworks):
     """
     Class VisibilityGraph for generating and analyzing visibility graphs of

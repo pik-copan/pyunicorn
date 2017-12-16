@@ -88,7 +88,7 @@ def test_TestPearsonCorrelation():
 def test_TestMutualInformation():
     tdata = create_test_data()
     n_bins=32
-    test_mi = Surrogates.test_mutual_information(tdata[:1], tdata[:1],
+    test_mi = Surrogates.test_mutual_information(tdata[:1], tdata[-1:],
                                                  n_bins=n_bins)
     assert (test_mi>=-1.0).all() and (test_mi<=1.0).all()
 
