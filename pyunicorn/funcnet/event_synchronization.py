@@ -164,7 +164,18 @@ class EventSynchronization(object):
         tau2 = np.minimum(tau2, 2 * self.taumax)
         # Count equal time events and synchronised events
         eqtime = 0.5 * (dstxy2.size - np.count_nonzero(dstxy2))
-        countxy = np.sum((dstxy2 > 0) * (dstxy2 <= tau2)) + eqtime
-        countyx = np.sum((dstxy2 < 0) * (dstxy2 >= -tau2)) + eqtime
+        # Calculate boolean matrices of coincidences
+        Axy = (dstxy2 > 0) * (dstxy2 <= tau2)
+        Ayx = (dstxy2 < 0) * (-dstxy2 <= tau2)
+        # Loop over coincidences and determine number of double counts by checking
+        # if at least one event of the pair is also coincided in other direction
+        countxydouble = countyxdouble = 0
+        for i,j in np.transpose(np.where(Axy)):
+            countxydouble += np.any(Ayx[i,:]) or np.any(Ayx[:,j])
+        for i,j in np.transpose(np.where(Ayx)):
+            countyxdouble += np.any(Axy[i,:]) or np.any(Axy[:,j])
+        # Calculate counting quantities and subtract half of double countings
+        countxy = np.sum(Axy) + eqtime - 0.5 * countxydouble
+        countyx = np.sum(Ayx) + eqtime - 0.5 * countyxdouble    
         norm = np.sqrt((lx-2) * (ly-2))
         return countxy / norm, countyx / norm
