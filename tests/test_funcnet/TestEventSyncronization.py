@@ -40,15 +40,8 @@ def NonVecEventSync(es1, es2, taumax):
                 continue
 
             # finding the dynamical delay tau
-            tmp = ex[m+1] - ex[m]
-            if tmp > ex[m] - ex[m-1]:
-                tmp = ex[m] - ex[m-1]
-            tau = ey[n+1] - ey[n]
-            if tau > ey[n] - ey[n-1]:
-                tau = ey[n] - ey[n-1]
-            if tau > tmp:
-                tau = tmp
-            tau = tau / 2
+            tau = min([ex[m+1] - ex[m], ex[m] - ex[m-1], 
+                       ey[n+1] - ey[n], ey[n] - ey[n-1]]) / 2
 
             if dst > 0 and dst <= tau:
                 count += 1
