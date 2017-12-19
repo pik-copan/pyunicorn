@@ -15,9 +15,9 @@
 void _randomly_rewire_geomodel_I_fast(int iterations, float eps, short *A,
     float *D, int E, int N, int *edges)  {
 
-    int i, j, s, t, k, l, edge1, edge2, count;
-    int neighbor_s_index, neighbor_t_index;
-    int neighbor_k_index, neighbor_l_index;
+    int i, s, t, k, l, edge1, edge2, count;
+    //int j, neighbor_s_index, neighbor_t_index;
+    //int neighbor_k_index, neighbor_l_index;
 
     //  Create list of neighbors
     //for (int i = 0; i < N; i++) {

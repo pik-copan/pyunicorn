@@ -117,6 +117,6 @@ anomaly values..."
         diag = C_inv.diagonal()[:]
 
         #  Calculate matrix of normalizations
-        norm = np.sqrt(np.outer(diag, diag))
+        norm = np.sqrt(abs(np.outer(diag, diag)))
 
         return - C_inv / norm

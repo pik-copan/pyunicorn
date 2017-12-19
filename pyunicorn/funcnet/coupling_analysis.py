@@ -219,6 +219,8 @@ class CouplingAnalysis(object):
         elif lag_mode == 'all':
             return _cross_correlation_all(array.copy(order='c'), N, tau_max,
                                           corr_range)
+        else:
+            return None
 
     def mutual_information(self, tau_max=0, estimator='knn',
                            knn=10, bins=6, lag_mode='max'):
@@ -408,6 +410,8 @@ class CouplingAnalysis(object):
             return similarity_matrix, lag_matrix
         elif lag_mode == 'all':
             return lagfuncs
+        else:
+            return None
 
     def information_transfer(self, tau_max=0, estimator='knn',
                              knn=10, past=1, cond_mode='ity', lag_mode='max'):
@@ -607,6 +611,8 @@ class CouplingAnalysis(object):
             return similarity_matrix, lag_matrix
         elif lag_mode == 'all':
             return lagfuncs
+        else:
+            return None
 
     #
     #  Define helper methods

@@ -257,6 +257,7 @@ class RecurrencePlot(object):
         else:
             print "Exception: Sequential RQA mode is enabled. \
 Recurrence matrix is not stored in memory."
+            return None
 
     def distance_matrix(self, embedding, metric):
         """

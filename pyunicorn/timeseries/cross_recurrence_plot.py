@@ -201,6 +201,8 @@ class CrossRecurrencePlot(RecurrencePlot):
         elif metric == "supremum":
             return self.supremum_distance_matrix(x_embedded.astype('float32'),
                                                  y_embedded.astype('float32'))
+        else:
+            return None
 
     #
     #  Calculate recurrence plot

@@ -374,6 +374,7 @@ supported by Data class!"
             if silence_level <= 1:
                 print "This file type can currently not be read \
 by pyunicorn."
+            return None
 
     def print_data_info(self):
         """Print information on the data encapsulated by the Data object."""

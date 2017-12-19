@@ -103,7 +103,7 @@ class NetCDFDictionary(object):
             print "MODULE: File %s opened." % file_name
         except RuntimeError:
             print "MODULE: File %s couldn't be opened." % file_name
-            return
+            return None
 
         #  Create empty dictionary structure
         content = {"global_attributes": {}, "dimensions": {}, "variables": {}}

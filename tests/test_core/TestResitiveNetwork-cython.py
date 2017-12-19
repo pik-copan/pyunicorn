@@ -10,8 +10,8 @@ Weave tests to check that python and weave implementations give the same
 results
 """
 
-from pyunicorn import ResNetwork
 import numpy as np
+from pyunicorn import ResNetwork
 
 
 res = ResNetwork.SmallTestNetwork()
