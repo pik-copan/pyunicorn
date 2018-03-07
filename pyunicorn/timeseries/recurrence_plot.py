@@ -808,7 +808,7 @@ adaptive neighborhood size algorithm..."
         N = self.N
         SUM = np.sum(np.diag(R, lag))
 
-        return SUM / float(N-lag)
+        return SUM / float(N-lag )
 
     #
     #  RQA measures based on black diagonal lines
@@ -980,7 +980,7 @@ adaptive neighborhood size algorithm..."
         #  the main diagonal)
         full_sum = (np.arange(n_time) * diagline).sum()
 
-        return partial_sum / float(full_sum)
+        return partial_sum / float(full_sum + 0.00000001)
 
     def average_diaglength(self, l_min=2, resampled_dist=None):
         """
@@ -1010,7 +1010,7 @@ adaptive neighborhood size algorithm..."
         #  Total number of diagonal lines of at least length l_min
         number_diagline = diagline[l_min:].sum()
 
-        return partial_sum / float(number_diagline)
+        return partial_sum / float(number_diagline + 0.00000001)
 
     def diag_entropy(self, l_min=2, resampled_dist=None):
         """
@@ -1039,7 +1039,7 @@ adaptive neighborhood size algorithm..."
 
         #  Normalized array of the number of all diagonal lines = probability
         #  of diagonal line length
-        diagnorm = diagline / float(diagline.sum())
+        diagnorm = diagline / float(diagline.sum()+ 0.00000001)
 
         return -(diagnorm * np.log(diagnorm)).sum()
 
@@ -1179,7 +1179,7 @@ adaptive neighborhood size algorithm..."
         #  Number of all recurrence points that form vertical lines
         full_sum = (np.arange(n_time) * vertline).sum()
 
-        return partial_sum / float(full_sum)
+        return partial_sum / float(full_sum+ 0.00000001)
 
     def average_vertlength(self, v_min=2, resampled_dist=None):
         """
@@ -1210,7 +1210,7 @@ adaptive neighborhood size algorithm..."
         #  Total number of vertical lines of at least length v_min
         number_vertline = vertline[v_min:].sum()
 
-        return partial_sum / float(number_vertline)
+        return partial_sum / (float(number_vertline) + 0.00000001)
 
     def trapping_time(self, v_min=2, resampled_dist=None):
         """
@@ -1245,7 +1245,7 @@ adaptive neighborhood size algorithm..."
 
         #  Normalized array of the number of all vertical lines = probability
         #  of vertical line length
-        vertline_normed = vertline / float(vertline.sum())
+        vertline_normed = vertline / float(vertline.sum() + 0.00000001)
 
         return -(vertline_normed * np.log(vertline_normed)).sum()
 
@@ -1323,7 +1323,7 @@ adaptive neighborhood size algorithm..."
         #  Total number of white vertical lines of at least length v_min
         number_white_vertline = white_vertline[w_min:].sum()
 
-        return partial_sum / float(number_white_vertline)
+        return partial_sum / float(number_white_vertline + 0.00000001)
 
     def mean_recurrence_time(self, w_min=1):
         """
@@ -1351,7 +1351,8 @@ adaptive neighborhood size algorithm..."
 
         #  Normalized array of the number of all vertical lines = probability
         #  of vertical line length
-        white_vertline_normed = white_vertline / float(white_vertline.sum())
+        white_vertline_normed = white_vertline / float(
+            white_vertline.sum() + 0.00000001)
 
         return -(white_vertline_normed * np.log(white_vertline_normed)).sum()
 
