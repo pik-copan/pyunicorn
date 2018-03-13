@@ -80,7 +80,7 @@ class CouplingAnalysisPurePython(object):
             self.dataarray = numpy.fastCopyAndTranspose(dataarray)
 
         else:
-            print "irregular array shape..."
+            print("irregular array shape...")
             self.dataarray = numpy.fastCopyAndTranspose(dataarray)
 
         #  factorials below 10 in a list for permutation patterns

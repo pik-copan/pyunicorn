@@ -22,8 +22,8 @@ import numpy as np
 try:
     import netCDF4
 except ImportError:
-    print "pyunicorn: Package netCDF4 could not be loaded. Some \
-functionality in class Data might not be available!"
+    print("pyunicorn: Package netCDF4 could not be loaded. Some \
+functionality in class Data might not be available!")
 
 
 from .grid import Grid
@@ -263,7 +263,7 @@ class Data(object):
         :arg int silence_level: The inverse level of verbosity of the object.
         """
         if silence_level <= 1:
-            print "Reading NetCDF File and converting data to NumPy array..."
+            print("Reading NetCDF File and converting data to NumPy array...")
 
         # Initialize dictionary of results
         res = {}
@@ -302,9 +302,9 @@ class Data(object):
 
                 res["observable"] = observable[:, level, :, :].copy()
             else:
-                print "Regular NetCDF data sets with dimensions other than \
+                print("Regular NetCDF data sets with dimensions other than \
 3 (time, lat, lon) or 4 (time, level, lat, lon) are not \
-supported by Data class!"
+supported by Data class!")
 
         elif file_type == "iNetCDF":
             # Create Grid instance
@@ -326,9 +326,9 @@ supported by Data class!"
 
                 res["observable"] = observable[:, level, :].copy()
             else:
-                print "Irregular NetCDF data sets with dimensions other than \
+                print("Irregular NetCDF data sets with dimensions other than \
 2 (time, index) or 3 (time, level, index) are not \
-supported by Data class!"
+supported by Data class!")
 
         # Get length of raw data time axis
         n_time = res["observable"].shape[0]
@@ -372,20 +372,20 @@ supported by Data class!"
                                         silence_level)
         else:
             if silence_level <= 1:
-                print "This file type can currently not be read \
-by pyunicorn."
+                print("This file type can currently not be read \
+by pyunicorn.")
 
     def print_data_info(self):
         """Print information on the data encapsulated by the Data object."""
         # Open netCDF3 or netCDF4 file
         f = netCDF4.Dataset(self.file_name, "r")
-        print "File format:", f.file_format
-        print "Global attributes:"
+        print("File format:", f.file_format)
+        print("Global attributes:")
         for name in f.ncattrs():
-            print name + ":", getattr(f, name)
-        print "Variables (size):"
+            print(name + ":", getattr(f, name))
+        print("Variables (size):")
         for name, obj in f.variables.iteritems():
-            print "%s (%i)" % (name, len(obj))
+            print("%s (%i)" % (name, len(obj)))
         f.close()
 
     def observable(self):
@@ -580,8 +580,8 @@ by pyunicorn."
             array /= scale_factor
             scaled_array = array.astype('uint8')
         else:
-            print "Data type %s variable %s for rescaling array \
-not supported!" % var_type
+            print("Data type %s variable %s for rescaling array \
+not supported!" % var_type)
             scale_factor = 1.
             add_offset = 0.
 

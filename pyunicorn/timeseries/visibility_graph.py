@@ -110,7 +110,7 @@ class VisibilityGraph(InteractingNetworks):
         TODO
         """
         if self.silence_level <= 1:
-            print "Calculating visibility relations..."
+            print("Calculating visibility relations...")
 
         #  Prepare
         x = self.time_series
@@ -133,7 +133,7 @@ class VisibilityGraph(InteractingNetworks):
         TODO
         """
         if self.silence_level <= 1:
-            print "Calculating horizontal visibility relations..."
+            print("Calculating horizontal visibility relations...")
 
         #  Prepare
         x = self.time_series

@@ -22,8 +22,8 @@ import numpy as np
 try:
     import Ngl
 except ImportError:
-    print "climate: Package Ngl could not be loaded. Some functionality \
-in class MapPlots might not be available!"
+    print("climate: Package Ngl could not be loaded. Some functionality \
+in class MapPlots might not be available!")
 
 #
 #  Define class MapPlots

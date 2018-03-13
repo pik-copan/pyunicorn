@@ -78,7 +78,7 @@ class HavlinClimateNetwork(ClimateNetwork):
         :arg int silence_level: The inverse level of verbosity of the object.
         """
         if silence_level <= 1:
-            print "Generating a Havlin climate network..."
+            print("Generating a Havlin climate network...")
         self.silence_level = silence_level
 
         #  Set instance variables
@@ -146,8 +146,8 @@ class HavlinClimateNetwork(ClimateNetwork):
         :return: the correlation strength and maximum lag matrices.
         """
         if self.silence_level <= 1:
-            print "Calculating correlation strength matrix \
-following [Yamasaki2008]_..."
+            print("Calculating correlation strength matrix \
+following [Yamasaki2008]_...")
 
         #  Initialize
         N = self.N
@@ -252,8 +252,8 @@ following [Yamasaki2008]_..."
         try:
             return self._similarity_measure
         except AttributeError:
-            print "Correlation strength matrix was deleted earlier and \
-cannot be retrieved."
+            print("Correlation strength matrix was deleted earlier and \
+cannot be retrieved.")
 
     def correlation_lag(self):
         """
@@ -265,8 +265,8 @@ cannot be retrieved."
         try:
             return self._correlation_lag
         except AttributeError:
-            print "Lag matrix was deleted earlier and \
-cannot be retrieved."
+            print("Lag matrix was deleted earlier and \
+cannot be retrieved.")
 
     #
     #  Methods to calculate weighted network measures

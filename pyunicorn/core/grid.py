@@ -25,8 +25,8 @@ import numpy as np
 try:
     from matplotlib import path
 except ImportError:
-    print "An error occurred when importing matplotlib.path! \
-Some functionality in Grid class might not be available."
+    print("An error occurred when importing matplotlib.path! \
+Some functionality in Grid class might not be available.")
 
 #  Cythonized functions
 from pyunicorn.core._ext.numerics import \
@@ -131,8 +131,8 @@ class Grid(object):
             cPickle.dump(self, f)
             f.close()
         except IOError:
-            print "An error occurred while saving Grid instance to \
-                   cPickle file", filename
+            print("An error occurred while saving Grid instance to \
+                   cPickle file", filename)
 
     def save_txt(self, filename):
         """
@@ -155,8 +155,8 @@ class Grid(object):
             np.savetxt(filename + "_lon.txt", lon_seq)
             np.savetxt(filename + "_time.txt", time_seq)
         except IOError:
-            print "An error occurred while saving Grid instance to \
-text files", filename
+            print("An error occurred while saving Grid instance to \
+text files", filename)
 
     @staticmethod
     def Load(filename):
@@ -175,8 +175,8 @@ text files", filename
 
             return grid
         except IOError:
-            print "An error occurred while loading Grid instance from \
-cPickle file", filename
+            print("An error occurred while loading Grid instance from \
+cPickle file", filename)
 
     @staticmethod
     def LoadTXT(filename):
@@ -196,8 +196,8 @@ cPickle file", filename
             lon_seq = np.loadtxt(filename + "_lon.txt")
             time_seq = np.loadtxt(filename + "_time.txt")
         except IOError:
-            print "An error occurred while loading Grid instance from \
-text files", filename
+            print("An error occurred while loading Grid instance from \
+text files", filename)
 
         return Grid(time_seq, lat_seq, lon_seq)
 
@@ -487,7 +487,7 @@ text files", filename
         :return: the angular great circle distance matrix (unit radians).
         """
         if self.silence_level <= 1:
-            print "Calculating angular great circle distance using Cython..."
+            print("Calculating angular great circle distance using Cython...")
 
         #  Get number of nodes
         N = self.N
@@ -568,7 +568,7 @@ text files", filename
 
         **Example:**
 
-        >>> print Grid.SmallTestGrid().print_boundaries()
+        >>> print(Grid.SmallTestGrid().print_boundaries())
                  time     lat     lon
            min    0.0    0.00    2.50
            max    9.0   25.00   15.00
@@ -619,7 +619,7 @@ text files", filename
 
         **Example:**
 
-        >>> print Grid.SmallTestGrid().print_grid_size()
+        >>> print(Grid.SmallTestGrid().print_grid_size())
            space    time
                6      10
 
@@ -655,8 +655,8 @@ text files", filename
                  great circle distances.
         """
         if self.silence_level <= 1:
-            print "Calculating the geometric distance distribution of the \
-grid..."
+            print("Calculating the geometric distance distribution of the \
+grid...")
 
         #  Get angular distance matrix
         D = self.angular_distance()

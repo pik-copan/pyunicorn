@@ -111,8 +111,8 @@ class CoupledTsonisClimateNetwork(CoupledClimateNetwork):
                                            node_weight_type=node_weight_type,
                                            silence_level=silence_level)
         else:
-            print "\nThe two observables (layers) have to have the same \
-number of temporal sampling points!\n"
+            print("\nThe two observables (layers) have to have the same \
+number of temporal sampling points!\n")
 
     def __str__(self):
         """
@@ -141,8 +141,8 @@ number of temporal sampling points!\n"
         :return: the correlation matrix at zero lag.
         """
         if self.silence_level <= 1:
-            print "Calculating correlation matrix at zero lag from anomaly \
-values..."
+            print("Calculating correlation matrix at zero lag from anomaly \
+values...")
 
         anomaly = np.concatenate((anomaly_1, anomaly_2), axis=1)
 

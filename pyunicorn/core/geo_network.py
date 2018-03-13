@@ -114,8 +114,8 @@ class GeoNetwork(Network):
             used.
         """
         if self.silence_level <= 1:
-            print "Setting area weights according to type " \
-                  + str(node_weight_type) + "..."
+            print("Setting area weights according to type " \
+                  + str(node_weight_type) + "...")
 
         #  Set instance variable accordingly
         self.node_weight_type = node_weight_type
@@ -208,8 +208,8 @@ class GeoNetwork(Network):
         if fileformat in ["graphml", "graphmlz", "graphviz"]:
             self.graph.save(filename, format=fileformat)
         else:
-            print "ERROR: the chosen format is not supported by save_for_cgv \
-for use with the CGV software."
+            print("ERROR: the chosen format is not supported by save_for_cgv \
+for use with the CGV software.")
 
     @staticmethod
     def Load(filename_network, filename_grid, fileformat=None,
@@ -311,8 +311,8 @@ for use with the CGV software."
 
         **Example:**
 
-        >>> print GeoNetwork.ErdosRenyi(
-        ...     grid=Grid.SmallTestGrid(), n_nodes=6, n_links=5)
+        >>> print(GeoNetwork.ErdosRenyi(
+        ...     grid=Grid.SmallTestGrid(), n_nodes=6, n_links=5))
         Generating Erdos-Renyi random graph with 6 nodes and 5 links...
         Setting area weights according to type surface...
         GeoNetwork:
@@ -384,8 +384,8 @@ for use with the CGV software."
         #  FIXME: Add example
 
         if silence_level <= 1:
-            print "Generating Barabasi-Albert random graph (n = " \
-                  + str(n_nodes) + ", m = " + str(n_links) + ")..."
+            print("Generating Barabasi-Albert random graph (n = " \
+                  + str(n_nodes) + ", m = " + str(n_links) + ")...")
 
         graph = igraph.Graph.Barabasi(n_nodes, n_links)
 
@@ -431,7 +431,7 @@ for use with the CGV software."
         ...         degrees=GeoNetwork.SmallTestNetwork().degree(),
         ...         silence_level=2)
         ...     n = net.n_links
-        >>> print net.link_density
+        >>> print(net.link_density)
         0.466666666667
 
         :type degrees: 1D array [index]
@@ -445,8 +445,8 @@ for use with the CGV software."
         :return: the configuration model network.
         """
         if silence_level <= 1:
-            print "Generating configuration model random graph from degree \
-sequence..."
+            print("Generating configuration model random graph from degree \
+sequence...")
 
         graph = igraph.Graph.Degree_Sequence(list(degrees))
 
@@ -506,8 +506,8 @@ sequence..."
         :arg inaccuracy: The inaccuracy with which to conserve :math:`p(l)`.
         """
         if self.silence_level <= 1:
-            print "Randomly rewiring given graph, preserving the degree \
-sequence and link distance distribution..."
+            print("Randomly rewiring given graph, preserving the degree \
+sequence and link distance distribution...")
         #  Get number of nodes
         N = self.N
         #  Get number of links
@@ -564,8 +564,8 @@ sequence and link distance distribution..."
         """
         #  FIXME: Add example
         if self.silence_level <= 1:
-            print "Randomly rewiring given graph, preserving the degree \
-sequence, link distance distribution and average link distance sequence..."
+            print("Randomly rewiring given graph, preserving the degree \
+sequence, link distance distribution and average link distance sequence...")
 
         #  Get number of nodes
         N = int(self.N)
@@ -617,9 +617,9 @@ sequence, link distance distribution and average link distance sequence..."
         """
         #  FIXME: Add example
         if self.silence_level <= 1:
-            print "Randomly rewiring given graph, preserving the degree \
+            print("Randomly rewiring given graph, preserving the degree \
 sequence, degree-degree correlations, link distance distribution and \
-average link distance sequence..."
+average link distance sequence...")
 
         #  Get number of nodes
         N = int(self.N)
@@ -706,7 +706,7 @@ average link distance sequence..."
         n_pairs_by_dist = {}
         n_links_by_dist = {}
         for j in xrange(0, N):
-            print j
+            print(j)
             for i in xrange(0, j):
                 d = D[i, j]
                 try:
@@ -726,18 +726,18 @@ average link distance sequence..."
                 p_by_dist[d] = n_links_by_dist[d] * 1.0 / n_pairs_by_dist[d]
             except KeyError:
                 p_by_dist[d] = 0.0
-            print d, p_by_dist[d]
+            print(d, p_by_dist[d])
         del n_links_by_dist, n_pairs_by_dist
 
         #  Link new pairs with respective probability
         A_new = np.zeros((N, N))
         for j in xrange(0, N):
-            print "new ", j
+            print("new ", j)
             for i in xrange(0, j):
                 d = D[i, j]
                 if p_by_dist[d] >= np.random.random():
                     A_new[i, j] = A_new[j, i] = 1
-                    print i, j, d, p_by_dist[d]
+                    print(i, j, d, p_by_dist[d])
 
         #  Create new GeoNetwork object based on A_new
         net = GeoNetwork(adjacency=A_new, grid=self.grid,
@@ -785,7 +785,7 @@ average link distance sequence..."
                  bin boundaries.
         """
         if self.silence_level <= 1:
-            print "Calculating geographical frequency distribution..."
+            print("Calculating geographical frequency distribution...")
 
         #  Initializations
         hist = np.zeros(n_bins)
@@ -890,7 +890,7 @@ average link distance sequence..."
                  and lower bin boundaries.
         """
         if self.silence_level <= 1:
-            print "Calculating link distance distribution..."
+            print("Calculating link distance distribution...")
 
         #  Collect matrices
         A = self.adjacency
@@ -938,7 +938,7 @@ average link distance sequence..."
         :return: the area weighted connectivity sequence.
         """
         if self.silence_level <= 1:
-            print "Calculating area weighted connectivity..."
+            print("Calculating area weighted connectivity...")
 
         if self.directed:
             return (self.inarea_weighted_connectivity() +
@@ -963,7 +963,7 @@ average link distance sequence..."
         :return: the in-area weighted connectivity sequence.
         """
         if self.silence_level <= 1:
-            print "Calculating in - area weighted connectivity..."
+            print("Calculating in - area weighted connectivity...")
 
         #  Calculate the sequence of cosine of latitude for all nodes
         cos_lat = self.grid.cos_lat()
@@ -994,7 +994,7 @@ average link distance sequence..."
         :return: the out-area weighted connectivity sequence.
         """
         if self.silence_level <= 1:
-            print "Calculating out - area weighted connectivity..."
+            print("Calculating out - area weighted connectivity...")
 
         #  Calculate the sequence of cosine of latitude for all nodes
         cos_lat = self.grid.cos_lat()
@@ -1027,7 +1027,7 @@ average link distance sequence..."
                  and lower bin boundaries.
         """
         if self.silence_level <= 1:
-            print "Calculating AWC frequency distribution..."
+            print("Calculating AWC frequency distribution...")
 
         awc = self.area_weighted_connectivity()
 
@@ -1053,7 +1053,7 @@ average link distance sequence..."
                  and lower bin boundaries.
         """
         if self.silence_level <= 1:
-            print "Calculating in-AWC frequency distribution..."
+            print("Calculating in-AWC frequency distribution...")
 
         in_awc = self.inarea_weighted_connectivity()
 
@@ -1079,7 +1079,7 @@ average link distance sequence..."
                  and lower bin boundaries.
         """
         if self.silence_level <= 1:
-            print "Calculating out-AWC frequency distribution..."
+            print("Calculating out-AWC frequency distribution...")
 
         out_awc = self.outarea_weighted_connectivity()
 
@@ -1106,7 +1106,7 @@ average link distance sequence..."
                  and lower bin boundaries.
         """
         if self.silence_level <= 1:
-            print "Calculating cumulative AWC distribution..."
+            print("Calculating cumulative AWC distribution...")
 
         awc = self.area_weighted_connectivity()
 
@@ -1133,7 +1133,7 @@ average link distance sequence..."
                  and lower bin boundaries.
         """
         if self.silence_level <= 1:
-            print "Calculating cumulative in-AWC distribution..."
+            print("Calculating cumulative in-AWC distribution...")
 
         in_awc = self.inarea_weighted_connectivity()
 
@@ -1160,7 +1160,7 @@ average link distance sequence..."
                  error, and lower bin boundaries.
         """
         if self.silence_level <= 1:
-            print "Calculating cumulative out-AWC distribution..."
+            print("Calculating cumulative out-AWC distribution...")
 
         out_awc = self.outarea_weighted_connectivity()
 
@@ -1183,7 +1183,7 @@ average link distance sequence..."
         :return: the average neighbor area weighted connectivity sequence.
         """
         if self.silence_level <= 1:
-            print "Calculating average neighbour AWC..."
+            print("Calculating average neighbour AWC...")
 
         A = self.undirected_adjacency()
         degree = self.degree()
@@ -1209,7 +1209,7 @@ average link distance sequence..."
         :return: the maximum neighbor area weighted connectivity sequence.
         """
         if self.silence_level <= 1:
-            print "Calculating maximum neighbour AWC..."
+            print("Calculating maximum neighbour AWC...")
 
         A = self.undirected_adjacency().A
         awc = self.area_weighted_connectivity()
@@ -1291,7 +1291,7 @@ average link distance sequence..."
         :return: the average link distance sequence (undirected).
         """
         if self.silence_level <= 1:
-            print "Calculating average link distance..."
+            print("Calculating average link distance...")
 
         A = self.undirected_adjacency().A
         degree = self.degree()
@@ -1316,7 +1316,7 @@ average link distance sequence..."
         :return: the in-average link distance sequence.
         """
         if self.silence_level <= 1:
-            print "Calculating in-average link distance..."
+            print("Calculating in-average link distance...")
 
         A = self.adjacency.T
         in_degree = self.indegree()
@@ -1341,7 +1341,7 @@ average link distance sequence..."
         :return: the out-average link distance sequence.
         """
         if self.silence_level <= 1:
-            print "Calculating out-average link distance..."
+            print("Calculating out-average link distance...")
 
         A = self.adjacency
         out_degree = self.outdegree()
@@ -1369,7 +1369,7 @@ average link distance sequence..."
         :return: the total link distance sequence.
         """
         if self.silence_level <= 1:
-            print "Calculating total link distance..."
+            print("Calculating total link distance...")
 
         ald = self.average_link_distance(geometry_corrected)
         awc = self.area_weighted_connectivity()
@@ -1391,7 +1391,7 @@ average link distance sequence..."
         :return: the in-total link distance sequence.
         """
         if self.silence_level <= 1:
-            print "Calculating in-total link distance..."
+            print("Calculating in-total link distance...")
 
         in_ald = self.inaverage_link_distance(geometry_corrected)
         in_awc = self.inarea_weighted_connectivity()
@@ -1413,7 +1413,7 @@ average link distance sequence..."
         :return: the out-total link distance sequence.
         """
         if self.silence_level <= 1:
-            print "Calculating out-total link distance..."
+            print("Calculating out-total link distance...")
 
         out_ald = self.outaverage_link_distance(geometry_corrected)
         out_awc = self.outarea_weighted_connectivity()
@@ -1470,7 +1470,7 @@ average link distance sequence..."
         :return: the undirected connectivity weighted distance sequence.
         """
         if self.silence_level <= 1:
-            print "Calculating connectivity weighted link distance..."
+            print("Calculating connectivity weighted link distance...")
 
         A = self.undirected_adjacency().A
         degree = self.degree()
@@ -1491,7 +1491,7 @@ average link distance sequence..."
         :return: the in-connectivity weighted distance sequence.
         """
         if self.silence_level <= 1:
-            print "Calculating in-connectivity weighted link distance..."
+            print("Calculating in-connectivity weighted link distance...")
 
         A = self.adjacency.transpose()
         indegree = self.indegree()
@@ -1513,7 +1513,7 @@ average link distance sequence..."
         :return: the out-connectivity weighted distance sequence.
         """
         if self.silence_level <= 1:
-            print "Calculating out-connectivity weighted link distance..."
+            print("Calculating out-connectivity weighted link distance...")
 
         A = self.adjacency
         outdegree = self.outdegree()
@@ -1537,7 +1537,7 @@ average link distance sequence..."
         :return: the maximum link distance sequence.
         """
         if self.silence_level <= 1:
-            print "Calculating maximum link distance..."
+            print("Calculating maximum link distance...")
 
         A = self.undirected_adjacency().A
         D = self.grid.angular_distance()
@@ -1630,7 +1630,7 @@ average link distance sequence..."
         :return: the local Tsonis clustering sequence.
         """
         if self.silence_level <= 1:
-            print "Calculating local Tsonis clustering coefficients..."
+            print("Calculating local Tsonis clustering coefficients...")
 
         tsonis_clustering = np.zeros(self.N)
         return tsonis_clustering
@@ -1816,7 +1816,7 @@ average link distance sequence..."
                     break
                 this_remove.append(i)
             remaining -= set(this_remove)
-            # if len(nodes_set)==151: print i,this_remove,remaining,cont
+            # if len(nodes_set)==151: print(i,this_remove,remaining,cont)
             if cont:
                 continue
             o = list(self.grid_neighbours_set[i] - nodes_set)[0]
@@ -1832,7 +1832,7 @@ average link distance sequence..."
                 try:
                     j = nbi[(nbi.index(o)-1) % len(nbi)]
                 except IndexError:
-                    print "O!", i, o, j, nbi, self.grid_neighbours[o], steps
+                    print("O!", i, o, j, nbi, self.grid_neighbours[o], steps)
                     raise
                 if j in nodes_set:
                     i = j

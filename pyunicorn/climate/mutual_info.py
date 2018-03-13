@@ -79,7 +79,7 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         :arg int silence_level: The inverse level of verbosity of the object.
         """
         if silence_level <= 1:
-            print "Generating a mutual information climate network..."
+            print("Generating a mutual information climate network...")
         self.silence_level = silence_level
 
         #  Set instance variables
@@ -127,8 +127,8 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         :return: the mutual information matrix at zero lag.
         """
         if self.silence_level <= 1:
-            print "Calculating mutual information matrix at zero lag from \
-anomaly values using cython..."
+            print("Calculating mutual information matrix at zero lag from \
+anomaly values using cython...")
 
         #  Normalize anomaly time series to zero mean and unit variance
         self.data.normalize_time_series_array(anomaly)
@@ -161,7 +161,7 @@ anomaly values using cython..."
                                                   range_min)
 
         if self.silence_level <= 1:
-            print "Done!"
+            print("Done!")
 
         return mi
 
@@ -180,8 +180,8 @@ anomaly values using cython..."
         :return: the mutual information matrix at zero lag.
         """
         if self.silence_level <= 1:
-            print "Calculating mutual information matrix at zero lag from \
-anomaly values..."
+            print("Calculating mutual information matrix at zero lag from \
+anomaly values...")
 
         #  Define references to numpy functions for faster function calls
         histogram = np.histogram
@@ -288,29 +288,29 @@ anomaly values..."
         try:
             #  Try to load MI from file
             if self.silence_level <= 1:
-                print "Loading mutual information matrix from %s..." % \
-                    self.mi_file
+                print("Loading mutual information matrix from %s..." % \
+                    self.mi_file)
 
             with open(self.mi_file, 'r') as f:
                 mi = np.load(f)
                 #  Check if the dimensions of mutual_information correspond to
                 #  the grid.
                 if mi.shape != (self.N, self.N):
-                    print (self.mi_file +
-                           " in current directory has incorrect dimensions!")
+                    print(self.mi_file +
+                          " in current directory has incorrect dimensions!")
                     raise RuntimeError
 
         except (IOError, RuntimeError):
             if self.silence_level <= 1:
-                print "An error occured while loading data from %s." % \
-                    self.mi_file
-                print "Recalculating mutual information."
+                print("An error occured while loading data from %s." % \
+                    self.mi_file)
+                print("Recalculating mutual information.")
 
             mi = self._cython_calculate_mutual_information(anomaly)
             if dump:
                 with open(self.mi_file, 'w') as f:
                     if self.silence_level <= 1:
-                        print "Storing in", self.mi_file
+                        print("Storing in", self.mi_file)
                     mi.dump(f)
 
         return mi

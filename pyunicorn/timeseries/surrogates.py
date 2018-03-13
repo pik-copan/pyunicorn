@@ -57,7 +57,7 @@ class Surrogates(object):
         :arg int silence_level: The inverse level of verbosity of the object.
         """
         if silence_level <= 1:
-            print "Generated an instance of the Surrogates class."
+            print("Generated an instance of the Surrogates class.")
 
         #  Set class variables
         self.original_data = original_data
@@ -173,8 +173,8 @@ class Surrogates(object):
         :return: the embedded time series.
         """
         if self.silence_level <= 1:
-            print "Embedding all time series in dimension", dimension, \
-                  "and with lag", delay, "..."
+            print("Embedding all time series in dimension", dimension, \
+                  "and with lag", delay, "...")
         (N, n_time) = time_series_array.shape
 
         embedding = np.empty((N, n_time - (dimension - 1)*delay, dimension))
@@ -200,7 +200,7 @@ class Surrogates(object):
         :return: the recurrence matrix.
         """
         if self.silence_level <= 1:
-            print "Calculating the recurrence plot..."
+            print("Calculating the recurrence plot...")
 
         n_time = embedding.shape[0]
         dimension = embedding.shape[1]
@@ -233,7 +233,7 @@ class Surrogates(object):
         :return: the list of twins for each state vector in the time series.
         """
         if self.silence_level <= 1:
-            print "Finding twins..."
+            print("Finding twins...")
 
         N = embedding_array.shape[0]
         n_time = embedding_array.shape[1]
@@ -279,7 +279,7 @@ class Surrogates(object):
         :return: The surrogate time series.
         """
         if self.silence_level <= 1:
-            print "Generating white noise surrogates by random shuffling..."
+            print("Generating white noise surrogates by random shuffling...")
 
         #  Generate reference to shuffle function
         shuffle = random.shuffle
@@ -332,7 +332,7 @@ class Surrogates(object):
         :return: The surrogate time series.
         """
         if self.silence_level <= 1:
-            print "Generating correlated noise surrogates..."
+            print("Generating correlated noise surrogates...")
 
         #  Calculate FFT of original_data time series
         #  The FFT of the original_data data has to be calculated only once,
@@ -631,8 +631,8 @@ class Surrogates(object):
         :return: the similarity measure histogram and lower bin boundaries.
         """
         if self.silence_level <= 1:
-            print "Estimating probability density distribution of \
-original_data data..."
+            print("Estimating probability density distribution of \
+original_data data...")
 
         #  Normalize original_data time series to zero mean and unit variance
         if not self._normalized:
@@ -680,8 +680,8 @@ original_data data..."
         :return: similarity measure test histogram and lower bin boundaries.
         """
         if self.silence_level <= 1:
-            print "Starting significance test based on", realizations, \
-                  "realizations of surrogates..."
+            print("Starting significance test based on", realizations, \
+                  "realizations of surrogates...")
 
         original_data = self.original_data
         self._fft_cached = False
@@ -717,9 +717,9 @@ original_data data..."
 
             #  Test if correlation measure values are outside range
             if correlation_measure_test.min() < interval[0]:
-                print "Warning! Correlation measure value left of range."
+                print("Warning! Correlation measure value left of range.")
             if correlation_measure_test.max() > interval[1]:
-                print "Warning! Correlation measure value right of range."
+                print("Warning! Correlation measure value right of range.")
 
             #  Estimate density of current realization
             (hist, lbb) = numpy_hist(correlation_measure_test, n_bins,

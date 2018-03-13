@@ -72,7 +72,7 @@ def cache_helper(self, cat, key, msg, func, *args, **kwargs):
 
     if self.cache[cat].setdefault(key) is None:
         if msg is not None and self.silence_level <= 1:
-            print 'Calculating ' + msg + '...'
+            print('Calculating ' + msg + '...')
         self.cache[cat][key] = func(self, *args, **kwargs)
     return self.cache[cat][key]
 
@@ -222,7 +222,7 @@ class Network(object):
 
         **Example:**
 
-        >>> print Network.SmallTestNetwork()
+        >>> print(Network.SmallTestNetwork())
         Network: undirected, 6 nodes, 7 links, link density 0.467.
 
         :rtype: string
@@ -284,9 +284,9 @@ class Network(object):
 
         **Example:**
 
-        >>> net = Network(adjacency=[[0,1],[0,0]], directed=True); print net
+        >>> net = Network(adjacency=[[0,1],[0,0]], directed=True); print(net)
         Network: directed, 2 nodes, 1 links, link density 0.500.
-        >>> print net.undirected_copy()
+        >>> print(net.undirected_copy())
         Network: undirected, 2 nodes, 1 links, link density 1.000.
 
         :rtype: :class:`Network` instance
@@ -328,11 +328,11 @@ class Network(object):
 
         **Example:**
 
-        >>> net = Network.SmallTestNetwork(); print net
+        >>> net = Network.SmallTestNetwork(); print(net)
         Network: undirected, 6 nodes, 7 links, link density 0.467.
-        >>> net2 = net.splitted_copy(node=5, proportion=0.2); print net2
+        >>> net2 = net.splitted_copy(node=5, proportion=0.2); print(net2)
         Network: undirected, 7 nodes, 9 links, link density 0.429.
-        >>> print net.node_weights; print net2.node_weights
+        >>> print(net.node_weights); print(net2.node_weights)
         [ 1.5  1.7  1.9  2.1  2.3  2.5]
         [ 1.5  1.7  1.9  2.1  2.3  2.  0.5]
 
@@ -403,9 +403,9 @@ class Network(object):
 
         **Example:**
 
-        >>> net = Network.SmallTestNetwork(); print net
+        >>> net = Network.SmallTestNetwork(); print(net)
         Network: undirected, 6 nodes, 7 links, link density 0.467.
-        >>> net.adjacency = [[0,1],[1,0]]; print net
+        >>> net.adjacency = [[0,1],[1,0]]; print(net)
         Network: undirected, 2 nodes, 1 links, link density 1.000.
 
         :type adjacency: square array-like [[0|1]]
@@ -485,9 +485,9 @@ class Network(object):
 
         **Example:**
 
-        >>> net = Network.SmallTestNetwork(); print net.node_weights
+        >>> net = Network.SmallTestNetwork(); print(net.node_weights)
         [ 1.5  1.7  1.9  2.1  2.3  2.5]
-        >>> net.node_weights = [1,1,1,1,1,1]; print net.node_weights
+        >>> net.node_weights = [1,1,1,1,1,1]; print(net.node_weights)
         [ 1.  1.  1.  1.  1.  1.]
 
         :type weights: array-like [float>=0]
@@ -729,7 +729,7 @@ class Network(object):
 
         **Example:**
 
-        >>> print Network.ErdosRenyi(n_nodes=10, n_links=18)
+        >>> print(Network.ErdosRenyi(n_nodes=10, n_links=18))
         Generating Erdos-Renyi random graph with 10 nodes and 18 links...
         Network: undirected, 10 nodes, 18 links, link density 0.400.
 
@@ -794,7 +794,7 @@ class Network(object):
         **Example:** Generating a random tree:
 
         >>> net = Network.BarabasiAlbert_igraph(n_nodes=100, n_links_each=1)
-        >>> print net.link_density
+        >>> print(net.link_density)
         0.02
 
         :type n_nodes: int > 0
@@ -908,7 +908,7 @@ class Network(object):
             last_W += 1
             # link it to some i:
             i = int(link_target[int(random.uniform(last_Kstar))])
-            print "n", n, "i", i
+            print("n", n, "i", i)
             A[i, n-1] = A[n-1, i] = 1
             nbs[n-1] = [i]
             nbs[i].append(n-1)
@@ -922,28 +922,28 @@ class Network(object):
                 # increase weight of some j not already linked to all:
                 j = int(inc_target[int(random.uniform(last_W))])
                 while len(nbs[j]) == n-1:
-                    print " not j", j
+                    print(" not j", j)
                     j = int(inc_target[int(random.uniform(last_W))])
                 w[j] += 1
-                print " jj", jj, "j", j, "w[j]", w[j]
+                print(" jj", jj, "j", j, "w[j]", w[j])
                 inc_target[last_W] = j
                 last_W += 1
                 # link_target[last_Kstar] = j
                 # last_Kstar += 1
                 # for i in nbs[j]:
-                #     print "  i", i
+                #     print("  i", i)
                 #     link_target[last_Kstar] = i
                 #     last_Kstar += 1
 
                 # link it to some i not already linked to it:
                 i = int(link_target[int(random.uniform(last_Kstar))])
                 while i == j or A[i, j] == 1:
-                    # print "  not i",i
+                    # print("  not i",i)
                     i = int(link_target[int(random.uniform(last_Kstar))])
                 A[i, j] = A[j, i] = 1
                 nbs[j].append(i)
                 nbs[i].append(j)
-                # print "  i",i,"nbs[i]",nbs[i],"nbs[j]",nbs[j]
+                # print("  i",i,"nbs[i]",nbs[i],"nbs[j]",nbs[j])
                 # link_target[last_Kstar:last_Kstar+w[j]] = i
                 # last_Kstar += w[j]
                 # link_target[last_Kstar:last_Kstar+w[i]] = j
@@ -1006,13 +1006,13 @@ class Network(object):
                 # link it to some i's:
                 for _ in xrange(n_links_new):
                     i = _link_target()
-                    # print j,i
+                    # print(j,i)
                     while i == j:
-                        # print "not i",i
+                        # print("not i",i)
                         i = _link_target()
                     if A[i, j]:
                         continue
-                    # print "j", j, "i", i
+                    # print("j", j, "i", i)
                     A[i, j] = A[j, i] = 1
                     nbs[i].append(j)
                     nbs[j] = [i]
@@ -1022,12 +1022,12 @@ class Network(object):
                     link_prob[i] = w[i] * kstar[i]**preferential_exponent
                     link_prob[j] = w[j] * kstar[j]**preferential_exponent
                     total_link_prob += link_prob[i] + link_prob[j]
-                # print total_link_prob, link_prob.sum()
+                # print(total_link_prob, link_prob.sum())
                 for _ in xrange(n_growths):
                     # increase weight of some i:
                     i = inc_target[int(
                         random.uniform(low=0, high=len(inc_target)))]
-                    # print i,inc_target
+                    # print(i,inc_target)
                     total_link_prob -= link_prob[nbs[i]].sum() + link_prob[i]
                     w[i] += 1
                     inc_target.append(i)
@@ -1037,8 +1037,8 @@ class Network(object):
                     link_prob[nbs[i]] = \
                         w[nbs[i]] * kstar[nbs[i]]**preferential_exponent
                     total_link_prob += link_prob[nbs[i]].sum() + link_prob[i]
-                    # print " ii",ii,"i",i,"w[i]",w[i]
-                # print total_link_prob, link_prob.sum()
+                    # print(" ii",ii,"i",i,"w[i]",w[i])
+                # print(total_link_prob, link_prob.sum())
                 for ii in range(n_links_old):
                     # j2 = _link_target()
                     j2 = inc_target[int(
@@ -1057,7 +1057,7 @@ class Network(object):
                     link_prob[i] = w[i] * kstar[i]**preferential_exponent
                     link_prob[j2] = w[j2] * kstar[j2]**preferential_exponent
                     total_link_prob += link_prob[i] + link_prob[j2]
-                # print total_link_prob, link_prob.sum()
+                # print(total_link_prob, link_prob.sum())
                 if (j % 10) == 0:
                     progress.update(j)
 
@@ -1091,10 +1091,10 @@ class Network(object):
                     i = int(link_target[int(
                         random.uniform(low=0, high=len(link_target)))])
                     while i == j or A[i, j] == 1:
-                        # print "not i",i
+                        # print("not i",i)
                         i = int(link_target[int(
                             random.uniform(low=0, high=len(link_target)))])
-                    # print "j", j, "i", i
+                    # print("j", j, "i", i)
                     A[i, j] = A[j, i] = 1
                     nbs[j] = [i]
                     nbs[i].append(j)
@@ -1108,7 +1108,7 @@ class Network(object):
                     #        random.uniform(len(inc_target)))])
                     # last_grown[i] = j
                     w[i] += 1
-                    # print " ii",ii,"i",i,"w[i]",w[i]
+                    # print(" ii",ii,"i",i,"w[i]",w[i])
                     inc_target.append(i)
                     link_target += nbs[i] + [i]
                 for ii in range(n_links_old):
@@ -1200,7 +1200,7 @@ class Network(object):
         >>> net = Network.ConfigurationModel([3 for _ in xrange(0,1000)])
         Generating configuration model random graph
         from given degree sequence...
-        >>> print int(round(net.degree().mean()))
+        >>> print(int(round(net.degree().mean())))
         3
 
         :type degrees: 1d numpy array or list [node]
@@ -1252,9 +1252,9 @@ class Network(object):
 
         **Example:** Generate a network of 100 nodes with degree 5 each:
 
-        >>> net = Network.SmallTestNetwork(); print net
+        >>> net = Network.SmallTestNetwork(); print(net)
         Network: undirected, 6 nodes, 7 links, link density 0.467.
-        >>> net.randomly_rewire(iterations=10); print net
+        >>> net.randomly_rewire(iterations=10); print(net)
         Randomly rewiring the network,preserving the degree sequence...
         Network: undirected, 6 nodes, 7 links, link density 0.467.
 
@@ -1280,7 +1280,7 @@ class Network(object):
 
         **Example:**
 
-        >>> print Network.SmallTestNetwork().edge_list()[:8]
+        >>> print(Network.SmallTestNetwork().edge_list()[:8])
         [[0 3] [0 4] [0 5] [1 2] [1 3] [1 4] [2 1] [2 4]]
 
         :rtype: array-like (numpy matrix or list of lists/tuples)
@@ -1297,7 +1297,7 @@ class Network(object):
         **Example:**
 
         >>> net = Network(adjacency=[[0,1],[0,0]], directed=True)
-        >>> print net.undirected_adjacency().A
+        >>> print(net.undirected_adjacency().A)
         [[0 1] [1 0]]
 
         :rtype: array([[0|1]])
@@ -1322,8 +1322,8 @@ class Network(object):
         :rtype: square array [node,node] of ints
         """
         if link_attribute == "topological":
-            print ("WARNING: link_attribute='topological' is deprecated.\n"
-                   + "Use link_attribute=None instead.")
+            print("WARNING: link_attribute='topological' is deprecated.\n"
+                  + "Use link_attribute=None instead.")
             link_attribute = None
 
         if link_attribute is None:
@@ -1333,8 +1333,8 @@ class Network(object):
                 elif direction == "in":
                     diagonal = self.indegree()
                 else:
-                    print "ERROR: argument direction of Network.laplacian \
-can only take values <<in>> or <<out>>."
+                    print("ERROR: argument direction of Network.laplacian \
+can only take values <<in>> or <<out>>.")
             else:
                 diagonal = self.degree()
 
@@ -1467,9 +1467,9 @@ can only take values <<in>> or <<out>>."
             self.graph.vs.set_attribute_values(attrname=attribute_name,
                                                values=values)
         else:
-            print "Error! Vertex attribute data array", attribute_name, \
+            print("Error! Vertex attribute data array", attribute_name, \
                   "has to have the same length as the number of nodes \
-                   in the graph."
+                   in the graph.")
 
     def node_attribute(self, attribute_name):
         """
@@ -1557,7 +1557,7 @@ can only take values <<in>> or <<out>>."
             self.clear_link_attribute(attribute_name)
             self.graph.es.__delattr__(attribute_name)
         else:
-            print "WARNING: Link attribute", attribute_name, "not found!"
+            print("WARNING: Link attribute", attribute_name, "not found!")
 
     def set_link_attribute(self, attribute_name, values):
         """
@@ -2046,7 +2046,7 @@ can only take values <<in>> or <<out>>."
 
         as compared to the unweighted version:
 
-        >>> print Network.SmallTestNetwork().max_neighbors_degree()
+        >>> print(Network.SmallTestNetwork().max_neighbors_degree())
         Calculating maximum neighbours' degree...
         [3 3 3 3 3 3]
 
@@ -2419,7 +2419,7 @@ can only take values <<in>> or <<out>>."
         :rtype: number (float) between 0 and 1
         """
         if self.silence_level <= 1:
-            print "Calculating transitivity of order", order, "..."
+            print("Calculating transitivity of order", order, "...")
 
         if order == 0 or order == 1 or order == 2:
             raise NetworkError("Higher order transitivity is not defined " +
@@ -2445,7 +2445,7 @@ can only take values <<in>> or <<out>>."
                 2 * motif_counts[9] + 4 * motif_counts[10]
             n_cliques = motif_counts[10]
 
-            # print motif_counts
+            # print(motif_counts)
 
             if n_stars != 0:
                 return 4 * n_cliques / float(n_stars)
@@ -2484,7 +2484,7 @@ can only take values <<in>> or <<out>>."
             raise NetworkError("Not implemented yet...")
 
         if self.silence_level <= 1:
-            print "Calculating local cliquishness of order", order, "..."
+            print("Calculating local cliquishness of order", order, "...")
 
         if order == 0 or order == 1 or order == 2:
             raise NetworkError(
@@ -2517,19 +2517,19 @@ can only take values <<in>> or <<out>>."
 
         **Example:**
 
-        >>> print r(Network.weighted_local_clustering(weighted_A=[
+        >>> print(r(Network.weighted_local_clustering(weighted_A=[
         ...     [ 0.  , 0.  , 0.  , 0.55, 0.65, 0.75],
         ...     [ 0.  , 0.  , 0.63, 0.77, 0.91, 0.  ],
         ...     [ 0.  , 0.63, 0.  , 0.  , 1.17, 0.  ],
         ...     [ 0.55, 0.77, 0.  , 0.  , 0.  , 0.  ],
         ...     [ 0.65, 0.91, 1.17, 0.  , 0.  , 0.  ],
-        ...     [ 0.75, 0.  , 0.  , 0.  , 0.  , 0.  ]]))
+        ...     [ 0.75, 0.  , 0.  , 0.  , 0.  , 0.  ]])))
         Calculating local weighted clustering coefficient...
         [ 0.  0.2149  0.3539  0.  0.1538  0. ]
 
         as compared to the unweighted version:
 
-        >>> print r(Network.SmallTestNetwork().local_clustering())
+        >>> print(r(Network.SmallTestNetwork().local_clustering()))
         Calculating local clustering coefficients...
         [ 0.  0.3333  1.  0.  0.3333  0. ]
 
@@ -2540,7 +2540,7 @@ can only take values <<in>> or <<out>>."
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
         # TODO: must be symmetric? directed version?
-        print "Calculating local weighted clustering coefficient..."
+        print("Calculating local weighted clustering coefficient...")
 
         wA = np.array(weighted_A)
         max_w = np.ones_like(wA).dot(wA.max())
@@ -2557,7 +2557,7 @@ can only take values <<in>> or <<out>>."
         **Example:**
 
         >>> net = Network.SmallTestNetwork()
-        >>> print r(net.nsi_twinness())
+        >>> print(r(net.nsi_twinness()))
         Calculating n.s.i. degree...
         [[ 1.      0.      0.      0.4286  0.4524  0.4762]
          [ 0.      1.      0.7375  0.475   0.7375  0.    ]
@@ -2565,7 +2565,7 @@ can only take values <<in>> or <<out>>."
          [ 0.4286  0.475   0.      1.      0.      0.    ]
          [ 0.4524  0.7375  0.7973  0.      1.      0.    ]
          [ 0.4762  0.      0.      0.      0.      1.    ]]
-        >>> print r(net.splitted_copy().nsi_twinness())
+        >>> print(r(net.splitted_copy().nsi_twinness()))
         Calculating n.s.i. degree...
         [[ 1.      0.      0.      0.4286  0.4524  0.4762  0.4762]
          [ 0.      1.      0.7375  0.475   0.7375  0.      0.    ]
@@ -2673,8 +2673,8 @@ can only take values <<in>> or <<out>>."
         else:
             k = self.nsi_degree(typical_weight=typical_weight)
             if self.silence_level <= 1:
-                print ("Calculating corrected n.s.i." +
-                       "local clustering coefficients...")
+                print("Calculating corrected n.s.i." +
+                      "local clustering coefficients...")
 
             Ap = self.sp_Aplus()
             Ap_Dw = Ap * self.sp_diag_w()
@@ -2792,7 +2792,7 @@ can only take values <<in>> or <<out>>."
 
         **Example:**
 
-        >>> print Network.SmallTestNetwork().path_lengths()
+        >>> print(Network.SmallTestNetwork().path_lengths())
         Calculating all shortest path lengths...
         [[ 0.  2.  2.  1.  1.  1.]
          [ 2.  0.  1.  1.  1.  3.]
@@ -2806,13 +2806,13 @@ can only take values <<in>> or <<out>>."
         :rtype: square array [[float]]
         """
         if link_attribute == "topological":
-            print ("WARNING: link_attribute='topological' is deprecated.\n"
-                   + "Use link_attribute=None instead.")
+            print("WARNING: link_attribute='topological' is deprecated.\n"
+                  + "Use link_attribute=None instead.")
             link_attribute = None
 
         if link_attribute is None:
             if self.silence_level <= 1:
-                print "Calculating all shortest path lengths..."
+                print("Calculating all shortest path lengths...")
 
             # fixed negative numbers to infinity!
             pl = np.array(self.graph.shortest_paths(), dtype=float)
@@ -2820,7 +2820,7 @@ can only take values <<in>> or <<out>>."
             return pl
         else:
             if self.silence_level <= 1:
-                print "Calculating weighted shortest path lengths..."
+                print("Calculating weighted shortest path lengths...")
 
             return np.array(
                 self.graph.shortest_paths(weights=link_attribute, mode=1))
@@ -2832,7 +2832,7 @@ can only take values <<in>> or <<out>>."
 
         **Example:**
 
-        >>> print r(Network.SmallTestNetwork().average_path_length())
+        >>> print(r(Network.SmallTestNetwork().average_path_length()))
         Calculating average (weighted) shortest path length...
         1.6667
 
@@ -2841,12 +2841,12 @@ can only take values <<in>> or <<out>>."
         :rtype: float
         """
         if link_attribute == "topological":
-            print ("WARNING: link_attribute='topological' is deprecated.\n"
-                   + "Use link_attribute=None instead.")
+            print("WARNING: link_attribute='topological' is deprecated.\n"
+                  + "Use link_attribute=None instead.")
             link_attribute = None
 
         if self.silence_level <= 1:
-            print "Calculating average (weighted) shortest path length..."
+            print("Calculating average (weighted) shortest path length...")
 
         if link_attribute is None:
             return self.graph.average_path_length()
@@ -2925,7 +2925,7 @@ can only take values <<in>> or <<out>>."
 
         **Example:**
 
-        >>> print Network.SmallTestNetwork().diameter()
+        >>> print(Network.SmallTestNetwork().diameter())
         3
 
         :arg bool directed: Indicates whether to respect link directions if the
@@ -2951,7 +2951,7 @@ can only take values <<in>> or <<out>>."
 
         **Example:**
 
-        >>> print r(Network.SmallTestNetwork().matching_index())
+        >>> print(r(Network.SmallTestNetwork().matching_index()))
         Calculating matching index matrix...
         [[ 1.    0.5   0.25    0.      0.      0.    ]
          [ 0.5   1.    0.25    0.      0.2     0.    ]
@@ -2978,7 +2978,7 @@ can only take values <<in>> or <<out>>."
 
         **Example:**
 
-        >>> print Network.SmallTestNetwork().link_betweenness()
+        >>> print(Network.SmallTestNetwork().link_betweenness())
         Calculating link betweenness...
         [[ 0.   0.   0.   3.5  5.5  5. ] [ 0.   0.   2.   3.5  2.5  0. ]
          [ 0.   2.   0.   0.   3.   0. ] [ 3.5  3.5  0.   0.   0.   0. ]
@@ -3017,7 +3017,7 @@ can only take values <<in>> or <<out>>."
 
         **Example:**
 
-        >>> print Network.SmallTestNetwork().edge_betweenness()
+        >>> print(Network.SmallTestNetwork().edge_betweenness())
         Calculating link betweenness...
         [[ 0.   0.   0.   3.5  5.5  5. ] [ 0.   0.   2.   3.5  2.5  0. ]
          [ 0.   2.   0.   0.   3.   0. ] [ 3.5  3.5  0.   0.   0.   0. ]
@@ -3155,7 +3155,7 @@ can only take values <<in>> or <<out>>."
         """
         if self.silence_level <= 1:
             if "silent" not in kwargs:
-                print "Calculating n.s.i. betweenness..."
+                print("Calculating n.s.i. betweenness...")
 
         w = self.node_weights
         if "aw" in kwargs:
@@ -3224,18 +3224,18 @@ can only take values <<in>> or <<out>>."
         :rtype: 1d numpy array [node] of floats
         """
         if link_attribute == "topological":
-            print ("WARNING: link_attribute='topological' is deprecated.\n"
-                   + "Use link_attribute=None instead.")
+            print("WARNING: link_attribute='topological' is deprecated.\n"
+                  + "Use link_attribute=None instead.")
             link_attribute = None
 
         if link_attribute is None:
             if self.silence_level <= 1:
-                print "Calculating topological eigenvector centrality..."
+                print("Calculating topological eigenvector centrality...")
 
             return np.array(self.graph.eigenvector_centrality(weights=None))
         else:
             if self.silence_level <= 1:
-                print "Calculating weighted eigenvector centrality..."
+                print("Calculating weighted eigenvector centrality...")
 
             return np.array(self.graph.eigenvector_centrality(
                 weights=link_attribute))
@@ -3322,17 +3322,17 @@ can only take values <<in>> or <<out>>."
         :rtype: 1d numpy array [node] of
         """
         if link_attribute == "topological":
-            print ("WARNING: link_attribute='topological' is deprecated.\n"
-                   + "Use link_attribute=None instead.")
+            print("WARNING: link_attribute='topological' is deprecated.\n"
+                  + "Use link_attribute=None instead.")
             link_attribute = None
         if link_attribute is None:
             if self.silence_level <= 1:
-                print "Calculating PageRank..."
+                print("Calculating PageRank...")
             return np.array(self.graph.personalized_pagerank(
                 directed=use_directed, weights=None))
         else:
             if self.silence_level <= 1:
-                print "Calculating weighted PageRank..."
+                print("Calculating weighted PageRank...")
             return np.array(self.graph.personalized_pagerank(
                 directed=use_directed, weights=link_attribute))
 
@@ -3355,13 +3355,13 @@ can only take values <<in>> or <<out>>."
         """
         # TODO: check and describe behaviour for unconnected networks.
         if link_attribute == "topological":
-            print ("WARNING: link_attribute='topological' is deprecated.\n"
-                   + "Use link_attribute=None instead.")
+            print("WARNING: link_attribute='topological' is deprecated.\n"
+                  + "Use link_attribute=None instead.")
             link_attribute = None
 
         if link_attribute is None:
             if self.silence_level <= 1:
-                print "Calculating closeness..."
+                print("Calculating closeness...")
 
             #  Return the absolute value of tcc, since a bug sometimes results
             #  in negative signs
@@ -3372,7 +3372,7 @@ can only take values <<in>> or <<out>>."
             path_lengths = self.path_lengths(link_attribute)
 
             if self.silence_level <= 1:
-                print "Calculating weighted closeness..."
+                print("Calculating weighted closeness...")
 
             #  Identify unconnected pairs and save in binary array isinf
             unconnected_pairs = np.isinf(path_lengths)
@@ -3579,13 +3579,13 @@ can only take values <<in>> or <<out>>."
                     arenas_betweenness[nodes[j]] = component_betweenness[j]
 
         if self.silence_level <= 0:
-            print "...took", time.time()-t0, "seconds"
+            print("...took", time.time()-t0, "seconds")
 
         return arenas_betweenness
 
     # TODO: remove this slow version after regression test:
     def _arenas_betweenness_slow(self):
-        print "WARNING: _arenas_betweenness_slow() is deprecated!"
+        print("WARNING: _arenas_betweenness_slow() is deprecated!")
 
         t0 = time.time()
 
@@ -3665,7 +3665,7 @@ can only take values <<in>> or <<out>>."
                     awRandomWalkBetweenness[vertexList[j]] = rwb[j]
 
         if self.silence_level <= 1:
-            print "...took", time.time()-t0, "seconds"
+            print("...took", time.time()-t0, "seconds")
 
         return awRandomWalkBetweenness
 
@@ -3770,7 +3770,7 @@ can only take values <<in>> or <<out>>."
         :rtype: 1d numpy array [node] of floats >= 0
         """
         if self.silence_level <= 1:
-            print "Calculating n.s.i. Arenas-type random walk betweenness..."
+            print("Calculating n.s.i. Arenas-type random walk betweenness...")
 
         t0 = time.time()
 
@@ -3826,9 +3826,9 @@ can only take values <<in>> or <<out>>."
                         min((mpi.size-1) * 10.0, 0.1 * N))))
                     step = int(np.ceil(1.0 * N / (1.0 * parts)))
                     if self.silence_level <= 0:
-                        print ("   parallelizing on " + str(mpi.size-1) +
-                               " slaves into " + str(parts) +
-                               " parts with " + str(step) + " nodes each...")
+                        print("   parallelizing on " + str(mpi.size-1) +
+                              " slaves into " + str(parts) +
+                              " parts with " + str(step) + " nodes each...")
 
                     for index in xrange(parts):
                         start_i = index * step
@@ -3842,7 +3842,7 @@ can only take values <<in>> or <<out>>."
                         else:
                             this_twinness = None
                         if self.silence_level <= 0:
-                            print "   submitting", index
+                            print("   submitting", index)
                             mpi.submit_call(
                                 "Network._mpi_nsi_arenas_betweenness",
                                 (N, sp_P, this_Aplus, w, this_w,
@@ -3855,10 +3855,10 @@ can only take values <<in>> or <<out>>."
                     for index in xrange(parts):
                         start_i = index * step
                         if self.silence_level <= 0:
-                            print "   retrieving results from", index
+                            print("   retrieving results from", index)
                         error_message, result = mpi.get_result(index)
                         if error_message != '':
-                            print error_message
+                            print(error_message)
                             sys.exit()
                         this_betweenness, start_i, end_i = result
                         component_betweenness += this_betweenness
@@ -3873,7 +3873,7 @@ can only take values <<in>> or <<out>>."
                             N, sp_P, Aplus, w, w, 0, N,
                             exclude_neighbors, stopping_mode, this_twinness)
                     if error_message != '':
-                        print error_message
+                        print(error_message)
                         sys.exit()
                     this_betweenness, start_i, end_i = result
                     component_betweenness += this_betweenness
@@ -3896,14 +3896,14 @@ can only take values <<in>> or <<out>>."
                     nsi_arenas_betweenness[nodes[j]] = component_betweenness[j]
 
         if self.silence_level <= 0:
-            print "...took", time.time()-t0, "seconds"
+            print("...took", time.time()-t0, "seconds")
 
         return nsi_arenas_betweenness
 
     # deactivated and replaced by corrected and faster version (see below):
     # TODO: remove after regression test
     def _newman_betweenness_badly(self, link_attribute=None):
-        print "WARNING: _newman_betweenness_badly() is deprecated!"
+        print("WARNING: _newman_betweenness_badly() is deprecated!")
 
         #  Initialize the array to hold random walk betweenness
         randomWalkBetweenness = np.zeros(self.N)
@@ -4048,9 +4048,9 @@ can only take values <<in>> or <<out>>."
                     # corresponding step size for c index of outer loop:
                     step = int(np.ceil(1.0 * N / (1.0 * parts)))
                     if self.silence_level <= 0:
-                        print ("   parallelizing on " + str((mpi.size-1))
-                               + " slaves into " + str(parts) + " parts with "
-                               + str(step) + " nodes each...")
+                        print("   parallelizing on " + str((mpi.size-1))
+                              + " slaves into " + str(parts) + " parts with "
+                              + str(step) + " nodes each...")
 
                     # now submit the jobs:
                     for index in xrange(parts):
@@ -4062,7 +4062,7 @@ can only take values <<in>> or <<out>>."
                         # submit the job and add it to the list of jobs, so
                         # that later the results can be retrieved:
                         if self.silence_level <= 0:
-                            print "submitting part from", start_i, "to", end_i
+                            print("submitting part from", start_i, "to", end_i)
                         mpi.submit_call("_cy_mpi_newman_betweenness",
                                         (this_A.astype(int), V.astype(float),
                                          N, start_i, end_i),
@@ -4075,7 +4075,7 @@ can only take values <<in>> or <<out>>."
                         # the following call connects to the submitted job,
                         # waits until it finishes, and retrieves the result:
                         if self.silence_level <= 0:
-                            print "retrieving results from ", index
+                            print("retrieving results from ", index)
                         this_betweenness, start_i, end_i = \
                             mpi.get_result(index)
                         component_betweenness[start_i:end_i] = this_betweenness
@@ -4093,7 +4093,7 @@ can only take values <<in>> or <<out>>."
                     newman_betweenness[nodes[j]] = component_betweenness[j]
 
         if self.silence_level <= 0:
-            print "...took", time.time()-t0, "seconds"
+            print("...took", time.time()-t0, "seconds")
 
         return newman_betweenness
 
@@ -4154,7 +4154,7 @@ can only take values <<in>> or <<out>>."
         :rtype: array [float>=0]
         """
         if self.silence_level <= 1:
-            print "Calculating n.s.i. Newman-type random walk betweenness..."
+            print("Calculating n.s.i. Newman-type random walk betweenness...")
 
         t0 = time.time()
 
@@ -4227,9 +4227,9 @@ can only take values <<in>> or <<out>>."
                                                    0.1 * N))))
                     step = int(np.ceil(1.0*N/(1.0*parts)))
                     if self.silence_level <= 0:
-                        print ("   parallelizing on " + str((mpi.size-1))
-                               + " slaves into " + str(parts) + " parts with "
-                               + str(step) + " nodes each...")
+                        print("   parallelizing on " + str((mpi.size-1))
+                              + " slaves into " + str(parts) + " parts with "
+                              + str(step) + " nodes each...")
 
                     for idx in xrange(parts):
                         start_i = idx * step
@@ -4272,7 +4272,7 @@ can only take values <<in>> or <<out>>."
                     nsi_newman_betweenness[nodes[j]] = component_betweenness[j]
 
         if self.silence_level <= 0:
-            print "...took", time.time()-t0, "seconds"
+            print("...took", time.time()-t0, "seconds")
 
         return nsi_newman_betweenness
 
@@ -4296,14 +4296,14 @@ can only take values <<in>> or <<out>>."
         :rtype: float
         """
         if link_attribute == "topological":
-            print ("WARNING: link_attribute='topological' is deprecated.\n"
-                   + "Use link_attribute=None instead.")
+            print("WARNING: link_attribute='topological' is deprecated.\n"
+                  + "Use link_attribute=None instead.")
             link_attribute = None
 
         path_lengths = self.path_lengths(link_attribute)
 
         if self.silence_level <= 1:
-            print "Calculating global (weighted) efficiency..."
+            print("Calculating global (weighted) efficiency...")
 
         #  Set path lengths on diagonal to infinity to avoid summing over those
         #  entries when calculating efficiency
@@ -4372,7 +4372,7 @@ can only take values <<in>> or <<out>>."
 
         for i in range(N):
             if self.silence_level == 0:
-                print i
+                print(i)
             di = np.array(self.graph.shortest_paths(i), dtype=float).flatten()
             di[np.where(di == np.inf)] = replace_inf_by
 
@@ -4423,8 +4423,8 @@ can only take values <<in>> or <<out>>."
         :rtype: 1d numpy array [node] of floats
         """
         if link_attribute == "topological":
-            print ("WARNING: link_attribute='topological' is deprecated.\n"
-                   + "Use link_attribute=None instead.")
+            print("WARNING: link_attribute='topological' is deprecated.\n"
+                  + "Use link_attribute=None instead.")
             link_attribute = None
 
         vulnerability = np.zeros(self.N)
@@ -4433,7 +4433,7 @@ can only take values <<in>> or <<out>>."
         global_efficiency = self.global_efficiency(link_attribute)
 
         if self.silence_level <= 1:
-            print "Calculating (weighted) node vulnerabilities..."
+            print("Calculating (weighted) node vulnerabilities...")
 
         #  Initialize progress bar
         if self.silence_level <= 1:
@@ -4678,16 +4678,16 @@ can only take values <<in>> or <<out>>."
         cluster_sizes = cluster_sizes[list(cluster_index_set)]
         cluster_fit = cluster_explained_var / var
         if self.silence_level <= 1:
-            print "max_n_clusters was", max_n_clusters
-            print "found", len(evals), "eigenvalues and", \
-                  len(cluster_index_set), "clusters"
-            print "cluster sizes range from", cluster_sizes.min(), "to", \
+            print("max_n_clusters was", max_n_clusters)
+            print("found", len(evals), "eigenvalues and", \
+                  len(cluster_index_set), "clusters")
+            print("cluster sizes range from", cluster_sizes.min(), "to", \
                   cluster_sizes.max(), "with median", \
-                  np.median(cluster_sizes), ":", cluster_sizes
-            print "max and min found eigenvalues are", max(evals), "and", \
-                  min(evals), "(average of all was", tau/N, ")"
-            print "pca and clusters explain", sum(evals)/tau, "and", \
-                  sum(cluster_explained_var)/tau, "of total variance."
+                  np.median(cluster_sizes), ":", cluster_sizes)
+            print("max and min found eigenvalues are", max(evals), "and", \
+                  min(evals), "(average of all was", tau/N, ")")
+            print("pca and clusters explain", sum(evals)/tau, "and", \
+                  sum(cluster_explained_var)/tau, "of total variance.")
 
         return (cluster_index,  # cluster_index for each node
                 cluster_fit,    # fraction of node's variance explained by
@@ -4808,8 +4808,8 @@ can only take values <<in>> or <<out>>."
                      (n_pairs - M)  # TODO: link weight
             else:
                 d0 = 1.0 * N
-            print "calculated", d0, "as average non-linked distance,", \
-                  "needed", time.time()-t0, "sec."
+            print("calculated", d0, "as average non-linked distance,", \
+                  "needed", time.time()-t0, "sec.")
 
         ftype = "float32"
         dict_D = {}  # weighted sum of distances between clusters
@@ -4852,7 +4852,7 @@ can only take values <<in>> or <<out>>."
             D_cluster[posi] = i
             D_invpos[posi] = posj
         del distance_keys
-        print "initialization of distances needed", time.time()-t0, "sec."
+        print("initialization of distances needed", time.time()-t0, "sec.")
 
         # init candidates:
         t0 = time.time()
@@ -4877,7 +4877,7 @@ can only take values <<in>> or <<out>>."
                 Dcc_wc2 = 2 * wiwjd0 / wc**2
             dict_Delta[ij] = (wi**2 + wj**2) * (Dcc_wc2)**2 + \
                 2 * wiwj * (Dcc_wc2-1)**2
-        print "initialization of candidates needed", time.time()-t0, "sec."
+        print("initialization of candidates needed", time.time()-t0, "sec.")
 
         t0 = time.time()
         cands = dict_Delta.keys()
@@ -4887,8 +4887,8 @@ can only take values <<in>> or <<out>>."
                                           D_firstpos, D_nextpos, N, dict_D,
                                           dict_Delta)
 
-        print "initialization of error increments needed", \
-              time.time()-t0, "sec."
+        print("initialization of error increments needed", \
+              time.time()-t0, "sec.")
 
         # successively join the best pair:
         sumt1 = sumt2 = sumt3 = 0.0
@@ -5011,14 +5011,14 @@ can only take values <<in>> or <<out>>."
             clid[a] = c
             w[a] = wc
 
-            print n_clusters, ": joining", ca, cb, "to", c, "at", this_error
+            print(n_clusters, ": joining", ca, cb, "to", c, "at", this_error)
             if n_clusters < 10:
-                print "D", dict_D
-                print "Delta", dict_Delta
+                print("D", dict_D)
+                print("Delta", dict_Delta)
 
-        print "part 1 needed", sumt1, "sec."
-        print "part 2 needed", sumt2, "sec."
-        print "part 3 needed", sumt3, "sec."
+        print("part 1 needed", sumt1, "sec.")
+        print("part 2 needed", sumt2, "sec.")
+        print("part 3 needed", sumt3, "sec.")
 
         if tree_dotfile is not None:
             # use penwidth and len!
@@ -5102,10 +5102,10 @@ can only take values <<in>> or <<out>>."
 
         # join admissibility matrix:
         if admissible_joins is None:
-            print "all joins admissible"
+            print("all joins admissible")
             mayJoin = np.zeros((n2, n2), dtype=int) + 1
         else:
-            print "only some joins admissible"
+            print("only some joins admissible")
             mayJoin = np.zeros((n2, n2), dtype=int)
             mayJoin[0:n, 0:n] = admissible_joins
         # cluster membership indicators:
@@ -5177,7 +5177,7 @@ can only take values <<in>> or <<out>>."
             part1 = int(result[1])
             part2 = int(result[2])
             if mind < 0:
-                print united, mind, part1, part2
+                print(united, mind, part1, part2)
                 raise Exception()
 
             cluster2rank[np.array(activeIndices)[
@@ -5188,9 +5188,9 @@ can only take values <<in>> or <<out>>."
 
             if united < n + 100 or united % (1 + n2/100) == 0 or \
                     united >= n2 - 100:
-                print "for", n2-united, "clusters with error", \
+                print("for", n2-united, "clusters with error", \
                       hamming[united]/WW, "we join clusters", part1, "and", \
-                      part2, "to get cluster", united
+                      part2, "to get cluster", united)
                 sys.stdout.flush()
 
             # unite parts:
@@ -5235,11 +5235,11 @@ can only take values <<in>> or <<out>>."
             errors[united, united] = \
                 weightProducts[united, united] - linkedWeights[united, united]
             if errors.min() < -1e-10:
-                print errors
+                print(errors)
                 raise Exception()
             lastunited = united
 
-        print time.time()-t0, "seconds"
+        print(time.time()-t0, "seconds")
 
         # node2cluster = np.array(range(0, n2)).reshape((n2, 1))*clusterMembers
 

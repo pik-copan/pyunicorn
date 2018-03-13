@@ -315,7 +315,7 @@ class ClimateData(Data):
                  cycle.
         """
         if self.silence_level <= 1:
-            print "Calculating climatological mean values..."
+            print("Calculating climatological mean values...")
 
         #  Get raw data
         observable = self.observable()
@@ -377,7 +377,7 @@ class ClimateData(Data):
         :return: the anomalized time series.
         """
         if self.silence_level <= 1:
-            print "Calculating daily (monthly) anomaly values..."
+            print("Calculating daily (monthly) anomaly values...")
 
         #  Get raw data
         observable = self.observable()
@@ -431,7 +431,7 @@ class ClimateData(Data):
         :return: the anomalized time series for selected months.
         """
         selected_indices = self.indices_selected_months(selected_months)
-        print selected_indices
+        print(selected_indices)
         return self.anomaly()[selected_indices, :]
 
     def shuffled_anomaly(self):
@@ -455,7 +455,7 @@ class ClimateData(Data):
         :return: the anomalized and shuffled time series.
         """
         if self.silence_level <= 1:
-            print "Shuffling anomaly time series for significance tests..."
+            print("Shuffling anomaly time series for significance tests...")
 
         N = self.grid.grid_size()["space"]
         shuffled_anomaly = np.empty(self.anomaly().shape)

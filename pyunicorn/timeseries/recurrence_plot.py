@@ -255,8 +255,8 @@ class RecurrencePlot(object):
         if not self.sparse_rqa:
             return self.R
         else:
-            print "Exception: Sequential RQA mode is enabled. \
-Recurrence matrix is not stored in memory."
+            print("Exception: Sequential RQA mode is enabled. \
+Recurrence matrix is not stored in memory.")
 
     def distance_matrix(self, embedding, metric):
         """
@@ -362,14 +362,14 @@ Recurrence matrix is not stored in memory."
                     y0 = RecurrencePlot.legendre_coordinates(x, dim=2, t=t,
                                                              tau_w=tau_w)
                     tau_w = np.sqrt(3*x.var()/(y0[:, 1]**2).mean())
-                print "tau_w set to", tau_w
+                print("tau_w set to", tau_w)
             if tau_w is None:
                 p = dim
             else:
                 p = 1
                 while (t[2*p+1:] - t[:-(2*p+1)]).mean() < tau_w and p < N/4:
                     p += 1
-                print "p set to", p
+                print("p set to", p)
 
         m = 2*p + 1
         N1 = N - m + 1
@@ -439,7 +439,7 @@ Recurrence matrix is not stored in memory."
         :return: the manhattan distance matrix.
         """
         if self.silence_level <= 1:
-            print "Calculating the manhattan distance matrix..."
+            print("Calculating the manhattan distance matrix...")
 
         (n_time, dim) = embedding.shape
         distance = np.zeros((n_time, n_time), dtype="float32")
@@ -458,7 +458,7 @@ Recurrence matrix is not stored in memory."
         :return: the euclidean distance matrix.
         """
         if self.silence_level <= 1:
-            print "Calculating the euclidean distance matrix..."
+            print("Calculating the euclidean distance matrix...")
 
         (n_time, dim) = embedding.shape
         distance = np.zeros((n_time, n_time), dtype="float32")
@@ -478,7 +478,7 @@ Recurrence matrix is not stored in memory."
         :return: the supremum distance matrix.
         """
         if self.silence_level <= 1:
-            print "Calculating the supremum distance matrix..."
+            print("Calculating the supremum distance matrix...")
 
         (n_time, dim) = embedding.shape
         distance = np.zeros((n_time, n_time), dtype="float32")
@@ -496,7 +496,7 @@ Recurrence matrix is not stored in memory."
         :arg number threshold: The recurrence threshold.
         """
         if self.silence_level <= 1:
-            print "Calculating recurrence plot at fixed threshold..."
+            print("Calculating recurrence plot at fixed threshold...")
 
         #  Get distance matrix, according to self.metric
         distance = RecurrencePlot.distance_matrix(
@@ -532,8 +532,8 @@ Recurrence matrix is not stored in memory."
             standard deviation of the time series.
         """
         if self.silence_level <= 1:
-            print "Calculating recurrence plot at fixed threshold in units of \
-time series STD..."
+            print("Calculating recurrence plot at fixed threshold in units of \
+time series STD...")
 
         #  Get absolute threshold
         threshold = threshold_std * self.time_series.std()
@@ -551,7 +551,7 @@ time series STD..."
         :arg number recurrence_rate: The recurrence rate.
         """
         if self.silence_level <= 1:
-            print "Calculating recurrence plot at fixed recurrence rate..."
+            print("Calculating recurrence plot at fixed recurrence rate...")
 
         #  Get distance matrix, according to self.metric
         distance = self.distance_matrix(self.embedding, self.metric)
@@ -585,8 +585,8 @@ time series STD..."
         :arg number local_recurrence_rate: The local recurrence rate.
         """
         if self.silence_level <= 1:
-            print "Calculating recurrence plot at fixed \
-local recurrence rate..."
+            print("Calculating recurrence plot at fixed \
+local recurrence rate...")
 
         #  Get distance matrix, according to self.metric
         distance = self.distance_matrix(self.embedding, self.metric)
@@ -629,8 +629,8 @@ local recurrence rate..."
             processing by the algorithm. The standard order is :math:`1,...,N`.
         """
         if self.silence_level <= 1:
-            print "Calculating recurrence plot using the \
-adaptive neighborhood size algorithm..."
+            print("Calculating recurrence plot using the \
+adaptive neighborhood size algorithm...")
 
         #  Get distance matrix, according to self.metric
         distance = self.distance_matrix(self.embedding, self.metric)
@@ -1375,7 +1375,7 @@ adaptive neighborhood size algorithm..."
             series.
         """
         if self.silence_level <= 1:
-            print "Finding twins based on recurrence matrix..."
+            print("Finding twins based on recurrence matrix...")
 
         #  Initialize
         twins = []
@@ -1415,7 +1415,7 @@ adaptive neighborhood size algorithm..."
         #  1. Use the algorithm proposed in [*] to find twins
         #  2. Reconstruct one-dimensional twin surrogate time series
         if self.silence_level <= 1:
-            print "Generating twin surrogates..."
+            print("Generating twin surrogates...")
 
         #  Collect
         N = self.N
