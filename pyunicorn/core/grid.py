@@ -16,7 +16,12 @@ multivariate data and generating time series surrogates.
 #
 
 #  Import cPickle for loading and saving Python objects
-import cPickle
+#  (Use pickle in python 3):
+from sys import version
+if version < '3':
+    import cPickle as pickle
+else:
+    import pickle
 
 #  array object and fast numerics
 import numpy as np
@@ -128,11 +133,11 @@ class Grid(object):
         """
         try:
             f = open(filename, 'w')
-            cPickle.dump(self, f)
+            pickle.dump(self, f)
             f.close()
         except IOError:
             print("An error occurred while saving Grid instance to \
-                   cPickle file", filename)
+                   cPickle/pickle file", filename)
 
     def save_txt(self, filename):
         """
@@ -161,7 +166,8 @@ text files", filename)
     @staticmethod
     def Load(filename):
         """
-        Return a Grid object stored in a cPickle file.
+        Return a Grid object stored in a cPickle file. On python 3,
+        uses pickle instead.
 
         :arg str filename: The name of the file where Grid object is stored
             (including ending).
@@ -170,13 +176,13 @@ text files", filename)
         """
         try:
             f = open(filename, 'r')
-            grid = cPickle.load(f)
+            grid = pickle.load(f)
             f.close()
 
             return grid
         except IOError:
             print("An error occurred while loading Grid instance from \
-cPickle file", filename)
+cPickle/pickle file", filename)
 
     @staticmethod
     def LoadTXT(filename):
