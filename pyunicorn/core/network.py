@@ -38,7 +38,14 @@ from scipy.sparse.linalg import eigsh, inv, splu
 
 import igraph                       # high performance graph theory tools
 
-from ..utils import progressbar     # easy progress bar handling
+# Progressbar breaks Network import on python 3.
+# TODO: Use progressbar3?
+if sys.version < '3':
+    has_progressbar = True
+    from ..utils import progressbar     # easy progress bar handling
+else:
+    has_progressbar = False
+
 from .. import mpi                  # parallelized computations
 
 from pyunicorn.core._ext.numerics import _local_cliquishness_4thorder, \
@@ -996,8 +1003,8 @@ class Network(object):
                     i += 1
                     cum += link_prob[i]
                 return i
-
-            progress = progressbar.ProgressBar(maxval=N).start()
+            if has_progressbar:
+                progress = progressbar.ProgressBar(maxval=N).start()
             for j in range(n_initials, N):
                 # add node j with unit weight:
                 link_prob[j] = kstar[j] = w[j] = 1
@@ -1058,10 +1065,11 @@ class Network(object):
                     link_prob[j2] = w[j2] * kstar[j2]**preferential_exponent
                     total_link_prob += link_prob[i] + link_prob[j2]
                 # print(total_link_prob, link_prob.sum())
-                if (j % 10) == 0:
+                if (j % 10) == 0 and has_progressbar:
                     progress.update(j)
 
-            progress.finish()
+            if has_progressbar:
+                progress.finish()
 
         else:
             link_target = []
@@ -1163,7 +1171,8 @@ class Network(object):
             return i
 
         this_N = n_initials
-        progress = progressbar.ProgressBar(maxval=N).start()
+        if has_progressbar:
+            progress = progressbar.ProgressBar(maxval=N).start()
         it = 0
         while this_N < N and it < n_increases:
             it += 1
@@ -1183,10 +1192,11 @@ class Network(object):
                 inc_prob[i] = w[i]**exponent
                 total_inc_prob += inc_prob[this_N] + inc_prob[i]
                 this_N += 1
-            if (this_N % 10) == 0:
+            if (this_N % 10) == 0 and has_progressbar:
                 progress.update(this_N)
 
-        progress.finish()
+        if has_progressbar:
+            progress.finish()
         return w
 
     @staticmethod
@@ -4436,13 +4446,13 @@ can only take values <<in>> or <<out>>.")
             print("Calculating (weighted) node vulnerabilities...")
 
         #  Initialize progress bar
-        if self.silence_level <= 1:
+        if self.silence_level <= 1 and has_progressbar:
             progress = progressbar.ProgressBar(maxval=self.N).start()
 
         for i in xrange(self.N):
             #  Update progress bar every 10 steps
             if self.silence_level <= 1:
-                if (i % 10) == 0:
+                if (i % 10) == 0 and has_progressbar:
                     progress.update(i)
 
             #  Remove vertex i from graph
@@ -4463,7 +4473,7 @@ can only take values <<in>> or <<out>>.")
             del graph, network
 
         #  Terminate progress bar
-        if self.silence_level <= 1:
+        if self.silence_level <= 1 and has_progressbar:
             progress.finish()
 
         return vulnerability
