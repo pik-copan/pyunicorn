@@ -104,8 +104,8 @@ class EventSynchronization(object):
         eventmatrix = self.__eventmatrix
         res = np.ones((self.__N, self.__N)) * np.inf
 
-        for i in xrange(0, self.__N):
-            for j in xrange(i+1, self.__N):
+        for i in range(0, self.__N):
+            for j in range(i+1, self.__N):
                 res[i, j], res[j, i] = self._EventSync(eventmatrix[:, i],
                                                        eventmatrix[:, j])
         return res

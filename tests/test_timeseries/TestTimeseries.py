@@ -12,13 +12,11 @@ Simple tests for the timeseries class.
 
 import numpy as np
 
-from pyunicorn.timeseries import CrossRecurrencePlot
-from pyunicorn.timeseries import VisibilityGraph
-from pyunicorn.timeseries import Surrogates
+from pyunicorn.timeseries import CrossRecurrencePlot, VisibilityGraph
+    Surrogates
 from pyunicorn.core.data import Data
 
-from numpy.testing import assert_array_equal
-from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 # turn off for weave compilation & error detection
 parallel = False
@@ -67,7 +65,7 @@ def testTwinSurrogates():
     s = Surrogates(tdata)
     tsurro = s.twin_surrogates(tdata, 1, 0, 0.2)
     corrcoef = np.corrcoef(tdata, tsurro)[n_index:,:n_index]
-    for i in xrange(n_index):
+    for i in range(n_index):
         corrcoef[i,i]=0.0
     assert (corrcoef>=-1.0).all() and (corrcoef<=1.0).all()
 
@@ -78,7 +76,7 @@ def test_TestPearsonCorrelation():
     norm = 1.0 / float(n_times)
     c = Surrogates.test_pearson_correlation(tdata, tdata)
     corrcoef = np.corrcoef(tdata, tdata)[n_index:,:n_index]*norm
-    for i in xrange(n_index):
+    for i in range(n_index):
         corrcoef[i,i]=0.0
 
     assert c.shape == (n_index, n_index)
@@ -105,7 +103,7 @@ def create_test_timeseries():
     #  Create time series
     ts = np.zeros((2, 10))
 
-    for i in xrange(2):
+    for i in range(2):
         ts[i,:] = np.random.rand(10)
 
     ts[0,:].sort()
@@ -126,7 +124,7 @@ def testVisibility():
     i, j = min(node1, node2), max(node1, node2)
     testfun = lambda k: np.less((val[k]-val[i])/(time[k]-time[i]),
                                 (val[j]-val[i])/(time[j]-time[i]))
-    test = np.bool(np.sum(~np.array(map(testfun, xrange(i+1,j)))))
+    test = np.bool(np.sum(~np.array(map(testfun, range(i+1,j)))))
     assert np.invert(test) == vg.visibility(node1, node2)
 """
 

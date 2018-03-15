@@ -22,8 +22,9 @@ import numpy as np
 try:
     from netCDF4 import Dataset
 except ImportError:
-    print "pyunicorn: Package netCDF4 could not be loaded. \
-Some functionality in class NetCDFDictionary might not be available!"
+    print("pyunicorn: Package netCDF4 could not be loaded. \
+          Some functionality in class NetCDFDictionary might not be \
+          available!")
 
 
 #
@@ -100,9 +101,9 @@ class NetCDFDictionary(object):
         #  Open NetCDF4 file
         try:
             cdf = Dataset(file_name, "r")
-            print "MODULE: File %s opened." % file_name
+            print("MODULE: File %s opened." % file_name)
         except RuntimeError:
-            print "MODULE: File %s couldn't be opened." % file_name
+            print("MODULE: File %s couldn't be opened." % file_name)
             return None
 
         #  Create empty dictionary structure
@@ -127,22 +128,22 @@ class NetCDFDictionary(object):
             if var in with_array or 'all' in with_array:
                 try:
                     content["variables"][var]["array"] = cdf.variables[var][:]
-                    print "MODULE: Array %s loaded to dictionary." % var
+                    print("MODULE: Array %s loaded to dictionary." % var)
                 except MemoryError:
-                    print "Memory Error during loading of array %s" % var
+                    print("Memory Error during loading of array %s" % var)
                 except RuntimeError:
-                    print "Other Error during loading of array %s" % var
+                    print("Other Error during loading of array %s" % var)
 
                 try:
                     content["variables"][var]["array"] = \
                         content["variables"][var]["array"].astype('float32')
-                    print "MODULE: Array %s converted to 'float32'." % var
+                    print("MODULE: Array %s converted to 'float32'." % var)
                 except MemoryError:
-                    print "MODULE: Memory Error during conversion of \
-array %s." % var
+                    print("MODULE: Memory Error during conversion of \
+                          array %s." % var)
                 except RuntimeError:
-                    print "MODULE: Other Error during conversion of \
-array %s." % var
+                    print("MODULE: Other Error during conversion of \
+                          array %s." % var)
 
                 #  If a scale_factor is given in the variable, rescale array
                 if "scale_factor" in content["variables"][var]["attributes"]:
@@ -159,7 +160,7 @@ array %s." % var
                 content["variables"][var]["attributes"]["actual_range"] = \
                     np.array([ar_min, ar_max])
 
-        print "MODULE: Dictionary loaded from NetCDF file."
+        print("MODULE: Dictionary loaded from NetCDF file.")
         cdf.close()
 
         return NetCDFDictionary(content)
@@ -180,10 +181,10 @@ array %s." % var
         #  Check dictionary for empty entries
         for val in self.dict.keys():
             if not self.dict[val]:
-                print "MODULE: Entry %s is empty." % val
+                print("MODULE: Entry %s is empty." % val)
 
-        print "MODULE: If %s already existed, old file will be \
-overwritten." % file_name
+        print("MODULE: If %s already existed, old file will be \
+              overwritten." % file_name)
         #  Format can be:
         #  NETCDF3_CLASSIC, NETCDF3_64BIT, NETCDF4_CLASSIC, NETCDF4
         cdf = Dataset(file_name, "w", format="NETCDF4")
@@ -204,8 +205,8 @@ overwritten." % file_name
             #  Check variable dictionary for empty entries
             for key in self.dict["variables"][var].keys():
                 if not self.dict["variables"][var][key] and key != "type":
-                    print "MODULE: Entry %s in variable %s is empty." \
-                          % (key, var)
+                    print("MODULE: Entry %s in variable %s is empty." \
+                          % (key, var))
 
             var_type = self.dict["variables"][var]["array"].dtype.char
             try:
@@ -214,8 +215,8 @@ overwritten." % file_name
                     zlib=compress, complevel=comp_level,
                     least_significant_digit=least_significant_digit)
             except RuntimeError:
-                print "MODULE: Couldn't create variable %s in NetCDF file." \
-                      % var
+                print("MODULE: Couldn't create variable %s in NetCDF file." \
+                      % var)
 
             #  Copy the array
             var_[:] = self.dict["variables"][var]["array"]
@@ -232,4 +233,4 @@ overwritten." % file_name
                         self.dict["variables"][var]["attributes"][att])
 
         cdf.close()
-        print "MODULE: Dictionary saved as NetCDF file %s." % file_name
+        print("MODULE: Dictionary saved as NetCDF file %s." % file_name)

@@ -21,8 +21,9 @@ import numpy as np
 try:
     import scipy.signal
 except ImportError:
-    print "climate: Package scipy.signal could not be loaded. Some \
-functionality in class HilbertClimateNetwork might not be available!"
+    print("climate: Package scipy.signal could not be loaded. Some \
+          functionality in class HilbertClimateNetwork might not be \
+          available!")
 
 #  Import cnNetwork for Network base class
 from .climate_network import ClimateNetwork
@@ -80,7 +81,7 @@ class HilbertClimateNetwork(ClimateNetwork):
         :arg int silence_level: The inverse level of verbosity of the object.
         """
         if silence_level <= 1:
-            print "Generating a Hilbert climate network..."
+            print("Generating a Hilbert climate network...")
         self.silence_level = silence_level
 
         #  Set instance variables
@@ -177,8 +178,8 @@ class HilbertClimateNetwork(ClimateNetwork):
         :return: the Hilbert coherence and phase matrices.
         """
         if self.silence_level <= 1:
-            print "Calculating Hilbert transform correlation measures \
-following [Bergner2008]_..."
+            print("Calculating Hilbert transform correlation measures \
+                  following [Bergner2008]_...")
 
         #  Calculate the analytic signals associated with the anomaly time
         #  series.

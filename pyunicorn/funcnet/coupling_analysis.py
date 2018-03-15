@@ -17,8 +17,7 @@ from scipy import special, linalg   # special math functions
 
 # import mpi                          # parallelized computations
 
-from pyunicorn.funcnet._ext.numerics import \
-    _symmetrize_by_absmax, _cross_correlation_max, \
+from ._ext.numerics import _symmetrize_by_absmax, _cross_correlation_max, \
     _cross_correlation_all, _get_nearest_neighbors_cython
 
 
@@ -74,7 +73,7 @@ class CouplingAnalysis(object):
         numpy.random.seed(42)
         noise = numpy.random.randn(1000, 4)
         data = noise
-        for t in xrange(2, 1000):
+        for t in range(2, 1000):
             data[t, 0] = 0.8 * data[t-1, 0] + noise[t, 0]
             data[t, 1] = 0.8 * data[t-1, 1] + 0.5 * data[t-2, 0] + noise[t, 1]
             data[t, 2] = 0.7 * data[t-1, 0] + noise[t, 2]
@@ -190,11 +189,10 @@ class CouplingAnalysis(object):
         if numpy.isnan(data).sum() != 0:
             raise ValueError("NaNs in the data")
         if tau_max < 0:
-            raise ValueError("tau_max = %d, " % (tau_max)
-                             + "but 0 <= tau_max")
+            raise ValueError("tau_max = %d, but 0 <= tau_max" % tau_max)
         if lag_mode not in ['max', 'all']:
-            raise ValueError("lag_mode = %s, " % (lag_mode)
-                             + "but must be one of 'max', 'all'")
+            raise ValueError("lag_mode = %s, but must be one of 'max', 'all'"
+                             % lag_mode)
 
         #  Normalize time series to zero mean and unit variance for all lags
         corr_range = T - tau_max
@@ -315,12 +313,11 @@ class CouplingAnalysis(object):
         if numpy.isnan(data).sum() != 0:
             raise ValueError("NaNs in the data")
         if tau_max < 0:
-            raise ValueError("tau_max = %d, " % (tau_max)
-                             + "but 0 <= tau_max")
+            raise ValueError("tau_max = %d, but 0 <= tau_max" % tau_max)
         if estimator == 'knn':
             if knn > T/2. or knn < 1:
-                raise ValueError("knn = %s , " % str(knn) +
-                                 "should be between 1 and T/2")
+                raise ValueError("knn = %s, should be between 1 and T/2"
+                                 % str(knn))
 
         if lag_mode == 'max':
             similarity_matrix = numpy.ones((N, N), dtype='float32')
@@ -384,8 +381,8 @@ class CouplingAnalysis(object):
                         array -= array.mean(axis=1).reshape(dim, 1)
                         array /= array.std(axis=1).reshape(dim, 1)
                         if numpy.isnan(array).sum() != 0:
-                            raise ValueError("nans after standardizing, "
-                                             "possibly constant array!""")
+                            raise ValueError("nans after standardizing, \
+                                             possibly constant array!")
 
                         x = array[0, :]
                         y = array[1, :]
@@ -504,8 +501,8 @@ class CouplingAnalysis(object):
 
         # Sanity checks
         if not isinstance(data, numpy.ndarray):
-            raise TypeError("data is of type %s, " % type(data) +
-                            "must be numpy.ndarray")
+            raise TypeError("data is of type %s, must be numpy.ndarray"
+                            % type(data))
         if N > T:
             print("Warning: data.shape = %s," % str(data.shape) +
                   " is it of shape (observations, variables) ?")
@@ -515,11 +512,10 @@ class CouplingAnalysis(object):
         if numpy.isnan(data).sum() != 0:
             raise ValueError("NaNs in the data")
         if tau_max < 0:
-            raise ValueError("tau_max = %d, " % (tau_max)
-                             + "but 0 <= tau_max")
+            raise ValueError("tau_max = %d, but 0 <= tau_max" % tau_max)
         if estimator == 'knn':
             if knn > T/2. or knn < 1:
-                raise ValueError("knn = %s , " % str(knn) +
+                raise ValueError("knn = %s, " % str(knn) +
                                  "should be between 1 and T/2")
 
         if lag_mode == 'max':
@@ -571,8 +567,8 @@ class CouplingAnalysis(object):
                         array -= array.mean(axis=1).reshape(dim, 1)
                         array /= array.std(axis=1).reshape(dim, 1)
                         if numpy.isnan(array).sum() != 0:
-                            raise ValueError("nans after standardizing, "
-                                             "possibly constant array!""")
+                            raise ValueError("nans after standardizing, \
+                                             possibly constant array!")
 
                         x = array[0, :]
                         y = array[1, :]
@@ -667,8 +663,8 @@ class CouplingAnalysis(object):
             # If the time series is constant, return nan rather than raising
             # Exception
             if numpy.isnan(array).sum() != 0:
-                raise ValueError("nans after standardizing, "
-                                 "possibly constant array!")
+                raise ValueError("nans after standardizing, possibly \
+                                 constant array!")
 
         # Add noise to destroy ties...
         array += 1E-10 * numpy.random.rand(array.shape[0], array.shape[1])
@@ -747,7 +743,7 @@ class CouplingAnalysis(object):
         flathist = numpy.zeros((base**D), dtype='int16')
         multisymb = numpy.zeros(T, dtype='int64')
 
-        for i in xrange(D):
+        for i in range(D):
             multisymb += symb_array[i, :]*base**i
 
         result = numpy.bincount(multisymb)

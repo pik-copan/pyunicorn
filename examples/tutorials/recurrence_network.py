@@ -101,7 +101,7 @@ METRIC = "supremum"
 time_series = logistic_map(x0, r, T)
 
 #  Print the time series
-print time_series
+print(time_series)
 
 #  Plot the time series
 pylab.plot(time_series, "r")
@@ -120,14 +120,14 @@ pylab.ylabel("$n$")
 pylab.show()
 
 #  Calculate and print the recurrence rate
-print "Recurrence rate:", rp.recurrence_rate()
+print("Recurrence rate:", rp.recurrence_rate())
 
 #  Calculate some standard RQA measures
 DET = rp.determinism(l_min=2)
 LAM = rp.laminarity(v_min=2)
 
-print "Determinism:", DET
-print "Laminarity:", LAM
+print("Determinism:", DET)
+print("Laminarity:", LAM)
 
 #  Generate a recurrence plot object with fixed recurrence rate RR
 rp = RecurrencePlot(time_series, dim=DIM, tau=TAU, metric=METRIC,
@@ -135,14 +135,14 @@ rp = RecurrencePlot(time_series, dim=DIM, tau=TAU, metric=METRIC,
 
 #  Calculate and print the recurrence rate again to check if it worked...
 RR = rp.recurrence_rate()
-print "Recurrence rate:", RR
+print("Recurrence rate:", RR)
 
 #  Calculate some standard RQA measures
 DET = rp.determinism(l_min=2)
 LAM = rp.laminarity(v_min=2)
 
-print "Determinism:", DET
-print "Laminarity:", LAM
+print("Determinism:", DET)
+print("Laminarity:", LAM)
 
 #  Generate a recurrence network at fixed recurrence rate
 rn = RecurrenceNetwork(time_series, dim=DIM, tau=TAU, metric=METRIC,
@@ -154,7 +154,7 @@ T = rn.transitivity()
 C = rn.global_clustering()
 R = rn.assortativity()
 
-print "Average path length:", L
-print "Transitivity:", T
-print "Global clustering:", C
-print "Assortativity:", R
+print("Average path length:", L)
+print("Transitivity:", T)
+print("Global clustering:", C)
+print("Assortativity:", R)

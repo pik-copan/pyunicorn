@@ -22,8 +22,8 @@ import numpy as np
 try:
     import Ngl
 except ImportError:
-    print "climate: Package Ngl could not be loaded. Some functionality \
-in class MapPlots might not be available!"
+    print("climate: Package Ngl could not be loaded. Some functionality \
+          in class MapPlots might not be available!")
 
 #
 #  Define class MapPlots
@@ -194,7 +194,7 @@ class MapPlots(object):
         list of dictionaries. Stores the plots in the file indicated by
         filename in the current directory.
         """
-        for k in xrange(len(self.map_mult_data)):
+        for k in range(len(self.map_mult_data)):
             #  Set resources
             resources = self.resources
 

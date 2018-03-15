@@ -17,7 +17,7 @@ import numpy as np
 from ..funcnet import EventSynchronization
 from .climate_network import ClimateNetwork
 from .climate_data import ClimateData
-from .. import Data
+from ..core import Data
 
 
 #
@@ -61,8 +61,8 @@ class EventSynchronizationClimateNetwork(EventSynchronization, ClimateNetwork):
         """
         etypes = ["directedES", "symmetricES", "antisymmetricES"]
         if eventsynctype not in etypes:
-            raise IOError("wrong eventsynctype...\n" +
-                          "Available options: '%s', '%s' or '%s'" %
+            raise IOError("wrong eventsynctype...\n \
+                          Available options: '%s', '%s' or '%s'" %
                           (etypes[0], etypes[1], etypes[2]))
 
         self.__eventsynctype = eventsynctype
@@ -89,7 +89,7 @@ class EventSynchronizationClimateNetwork(EventSynchronization, ClimateNetwork):
         **Example:**
 
         >>> data = EventSynchronizationClimateNetwork.SmallTestData()
-        >>> print EventSynchronizationClimateNetwork(data, 0.8, 16)
+        >>> print(EventSynchronizationClimateNetwork(data, 0.8, 16))
         Extracting network adjacency matrix by thresholding...
         Setting area weights according to type surface...
         Setting area weights according to type surface...
@@ -106,8 +106,8 @@ class EventSynchronizationClimateNetwork(EventSynchronization, ClimateNetwork):
         Local connections filtered out: False
         Type of event synchronization to construct the network: directedES
         """
-        text = ("EventSynchronizationClimateNetwork: \n%s\n%s\n" +
-                "Type of event synchronization to construct the network: %s")
+        text = ("EventSynchronizationClimateNetwork: \n%s\n%s\n \
+                Type of event synchronization to construct the network: %s")
         return text % (EventSynchronization.__str__(self),
                        ClimateNetwork.__str__(self), self.__eventsynctype)
 

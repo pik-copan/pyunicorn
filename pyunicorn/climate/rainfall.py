@@ -14,7 +14,7 @@ Provides classes for generating and analyzing complex climate networks.
 #  Import essential packages
 #
 
-from pyunicorn.climate._ext.numerics import _calculate_corr
+from ._ext.numerics import _calculate_corr
 
 #  Import cnTsonisClimateNetwork for TsonisClimateNetwork class
 from .climate_network import ClimateNetwork
@@ -80,7 +80,7 @@ class RainfallClimateNetwork(ClimateNetwork):
         :arg int silence_level: The inverse level of verbosity of the object.
         """
         if silence_level <= 1:
-            print "Generating a Rainfall climate network..."
+            print("Generating a Rainfall climate network...")
 
         #  Set instance variables
         self.data = data
@@ -150,7 +150,7 @@ class RainfallClimateNetwork(ClimateNetwork):
                                            scale_fac, offset)
 
         if self.silence_level <= 1:
-            print "Calculating Rainfall-Anomaly using Cython..."
+            print("Calculating Rainfall-Anomaly using Cython...")
 
         # Calculate the anomaly for the rainfall dataset
         anomaly = self.calculate_rainfall(self.data.anomaly().T,
@@ -164,7 +164,7 @@ class RainfallClimateNetwork(ClimateNetwork):
         final_mask = self.calculate_top_events(rainfall, event_threshold)
 
         if self.silence_level <= 1:
-            print "Calculating Spearman-Rho-Matrix using Cython..."
+            print("Calculating Spearman-Rho-Matrix using Cython...")
 
         # Return the correlation matrix
         return self.calculate_corr(final_mask, anomaly)

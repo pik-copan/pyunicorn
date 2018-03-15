@@ -229,7 +229,7 @@ class Navigator(object):
             sum_D = np.zeros((S, S))
             sum_D[:N, :N] = self.D0 * (self.weight[:N].reshape((-1, 1)) *
                                        self.weight[:N].reshape((1, -1)))
-            print sum_D
+            print(sum_D)
         else:
             sum_D = None
         if self.LB0 is not None:
@@ -269,8 +269,8 @@ class Navigator(object):
         self.linked_proportion = self.linked_weight * fac
         if sum_D is not None:
             self.D = sum_D * fac
-            print sum_D
-            print self.D
+            print(sum_D)
+            print(self.D)
         if sum_LB is not None:
             self.LB = sum_LB * fac
         del fac
@@ -319,12 +319,12 @@ class Navigator(object):
                         else:
                             self.label[j] = self.label[gp] + \
                                 labelnullpart[level]
-                        print j, self.label[j]
+                        print(j, self.label[j])
                     grandpa[pa] = pa
                 elif level >= 0:
                     for i in C:
                         self.label[i] = self.label[grandpa[i]] + "." + str(S-i)
-                        print i, self.label[i]
+                        print(i, self.label[i])
         elif self.label is None:
             self.label = [str(i) for i in range(S)]
         self.is_geo = "grid" in self.network.__dict__
@@ -826,7 +826,7 @@ class Navigator(object):
                 dmax = 0.0
                 for i, j in links:
                     dmax = max(dmax, self.D[i, j])
-                print "DMAX", dmax
+                print("DMAX", dmax)
             f = file(path+"/links-betweenness.kml", "w")
             f.write("""<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
@@ -844,7 +844,7 @@ class Navigator(object):
                     a = "ff"
                 elif np.isnan(self.D[i, j]):
                     a = "ff"
-                    print i, j, "nan"
+                    print(i, j, "nan")
                 else:
                     a = hex(511-int((self.D[i, j]-1)/(dmax-1)*255))[-2:]
                 f.write("""

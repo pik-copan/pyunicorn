@@ -15,7 +15,7 @@ analysis (RQA) and recurrence network analysis.
 # array object and fast numerics
 import numpy as np
 
-from .. import Network
+from ..core import Network
 from .joint_recurrence_plot import JointRecurrencePlot
 
 
@@ -138,11 +138,11 @@ class JointRecurrenceNetwork(JointRecurrencePlot, Network):
                 Network.__init__(self, A, directed=False,
                                  silence_level=silence_level)
             else:
-                raise ValueError(
-                    "Both time series x and y need to have the same length!")
+                raise ValueError("Both time series x and y need to have the \
+                                 same length!")
         else:
-            raise ValueError(
-                "Delay value (lag) must not exceed length of time series!")
+            raise ValueError("Delay value (lag) must not exceed length of \
+                             time series!")
 
     def __str__(self):
         """

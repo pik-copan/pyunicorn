@@ -18,5 +18,5 @@ res = ResNetwork.SmallTestNetwork()
 
 
 def testAdmittiveDegreeType():
-    print "testing types"
+    print("testing types")
     assert isinstance(res.admittive_degree(), np.ndarray)
