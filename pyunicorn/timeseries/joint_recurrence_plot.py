@@ -125,7 +125,7 @@ class JointRecurrencePlot(RecurrencePlot):
             self, np.empty((2, 0)), metric=metric[0], normalize=normalize,
             threshold=threshold[0] if threshold else 0,
             recurrence_rate=recurrence_rate, silence_level=silence_level)
-        
+
         self._distance_matrix_cached = False
         self.JR = None
         """The joint recurrence matrix."""

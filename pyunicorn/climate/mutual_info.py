@@ -293,7 +293,7 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         except (IOError, RuntimeError):
             if self.silence_level <= 1:
                 print("An error occured while loading data from %s." %
-                      self.mi_file
+                      self.mi_file)
                 print("Recalculating mutual information.")
 
             mi = self._cython_calculate_mutual_information(anomaly)

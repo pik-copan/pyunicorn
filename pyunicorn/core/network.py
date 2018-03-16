@@ -1467,7 +1467,7 @@ class Network(object):
             self.graph.vs.set_attribute_values(attrname=attribute_name,
                                                values=values)
         else:
-            print("Error! Vertex attribute data array", attribute_name, \
+            print("Error! Vertex attribute data array", attribute_name,
                   "has to have the same length as the number of nodes \
                   in the graph.")
 
@@ -4673,20 +4673,20 @@ class Network(object):
         cluster_explained_var = np.max(explained_var, axis=1)
         cluster_index_set = set(cluster_index)
         cluster_sizes = np.zeros(max(cluster_index_set)+1)
-        for i in xrange(0, N):
+        for i in range(0, N):
             cluster_sizes[cluster_index[i]] += self.node_weights[i]
         cluster_sizes = cluster_sizes[list(cluster_index_set)]
         cluster_fit = cluster_explained_var / var
         if self.silence_level <= 1:
             print("max_n_clusters was", max_n_clusters)
-            print("found", len(evals), "eigenvalues and", \
+            print("found", len(evals), "eigenvalues and",
                   len(cluster_index_set), "clusters")
-            print("cluster sizes range from", cluster_sizes.min(), "to", \
-                  cluster_sizes.max(), "with median", \
+            print("cluster sizes range from", cluster_sizes.min(), "to",
+                  cluster_sizes.max(), "with median",
                   np.median(cluster_sizes), ":", cluster_sizes)
-            print("max and min found eigenvalues are", max(evals), "and", \
+            print("max and min found eigenvalues are", max(evals), "and",
                   min(evals), "(average of all was", tau/N, ")")
-            print("pca and clusters explain", sum(evals)/tau, "and", \
+            print("pca and clusters explain", sum(evals)/tau, "and",
                   sum(cluster_explained_var)/tau, "of total variance.")
 
         return (cluster_index,  # cluster_index for each node
@@ -4808,7 +4808,7 @@ class Network(object):
                      (n_pairs - M)  # TODO: link weight
             else:
                 d0 = 1.0 * N
-            print("calculated", d0, "as average non-linked distance,", \
+            print("calculated", d0, "as average non-linked distance,",
                   "needed", time.time()-t0, "sec.")
 
         ftype = "float32"
@@ -4887,7 +4887,7 @@ class Network(object):
                                           D_firstpos, D_nextpos, N, dict_D,
                                           dict_Delta)
 
-        print("initialization of error increments needed", \
+        print("initialization of error increments needed",
               time.time()-t0, "sec.")
 
         # successively join the best pair:
@@ -5188,8 +5188,8 @@ class Network(object):
 
             if united < n + 100 or united % (1 + n2/100) == 0 or \
                     united >= n2 - 100:
-                print("for", n2-united, "clusters with error", \
-                      hamming[united]/WW, "we join clusters", part1, "and", \
+                print("for", n2-united, "clusters with error",
+                      hamming[united]/WW, "we join clusters", part1, "and",
                       part2, "to get cluster", united)
                 sys.stdout.flush()
 

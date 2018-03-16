@@ -246,7 +246,7 @@ if am_master:
         if available:
             # send name to call, args, time_est to slave:
             if _verbose:
-                print("MPI master : assigning call with id", id, "to slave", \
+                print("MPI master : assigning call with id", id, "to slave",
                       slave, ":", name_to_call, args, kwargs, "...")
             comm.send((name_to_call, args, kwargs, module, time_est),
                       dest=slave)
@@ -254,7 +254,7 @@ if am_master:
             # do it myself right now:
             slave = 0
             if _verbose:
-                print("MPI master : calling", name_to_call, args, kwargs, \
+                print("MPI master : calling", name_to_call, args, kwargs,
                       "...")
             try:
                 object_to_call = eval(name_to_call,
@@ -305,7 +305,7 @@ if am_master:
                                    + ") called before get_result("
                                    + str(slave_queue[source][0]) + ")!")
             if _verbose:
-                print("MPI master : retrieving result for call with id", id, \
+                print("MPI master : retrieving result for call with id", id,
                       "from slave", source, "...")
             (result, this_stats) = comm.recv(source=source)
             stats.append(this_stats)
@@ -313,7 +313,7 @@ if am_master:
             total_time[source] = this_stats["total_time"]
         else:
             if _verbose:
-                print("MPI master : returning result for call with id", id, \
+                print("MPI master : returning result for call with id", id,
                       "...")
             result = results[id]
             # TODO: rather return a copy and del the original?
@@ -412,7 +412,7 @@ if am_master:
             # tell slaves to terminate:
             for slave in range(1, size):
                 if _verbose:
-                    print("MPI master : telling slave", slave, \
+                    print("MPI master : telling slave", slave,
                           "to terminate...")
                 comm.send(("terminate", (), {}, "", 0), dest=slave)
             available = False
@@ -467,7 +467,7 @@ else:  # am_slave and available:
                     print("MPI slave", rank, ": terminating...")
                 break
             if _verbose:
-                print("MPI slave", rank, ": calling", name_to_call, \
+                print("MPI slave", rank, ": calling", name_to_call,
                       args, "...")
             try:
                 object_to_call = eval(name_to_call,

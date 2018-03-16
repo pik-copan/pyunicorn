@@ -291,7 +291,7 @@ class ClimateData(Data):
         elif self.time_cycle == 360:
             selected_days = []
             for month in selected_months:
-                for day in xrange(30):
+                for day in range(30):
                     selected_days.append(month * 30 + day)
 
             return self.indices_selected_phases(selected_days)
@@ -387,7 +387,7 @@ class ClimateData(Data):
         anomaly = np.zeros(observable.shape)
 
         #  Thanks to Jakob Runge
-        for i in xrange(time_cycle):
+        for i in range(time_cycle):
             sample = observable[i::time_cycle, :]
             anomaly[i::time_cycle, :] = sample - sample.mean(axis=0)
 

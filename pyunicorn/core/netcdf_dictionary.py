@@ -205,8 +205,8 @@ class NetCDFDictionary(object):
             #  Check variable dictionary for empty entries
             for key in self.dict["variables"][var].keys():
                 if not self.dict["variables"][var][key] and key != "type":
-                    print("MODULE: Entry %s in variable %s is empty." \
-                          % (key, var))
+                    print("MODULE: Entry %s in variable %s is empty." %
+                          (key, var))
 
             var_type = self.dict["variables"][var]["array"].dtype.char
             try:
@@ -215,8 +215,8 @@ class NetCDFDictionary(object):
                     zlib=compress, complevel=comp_level,
                     least_significant_digit=least_significant_digit)
             except RuntimeError:
-                print("MODULE: Couldn't create variable %s in NetCDF file." \
-                      % var)
+                print("MODULE: Couldn't create variable %s in NetCDF file." %
+                      var)
 
             #  Copy the array
             var_[:] = self.dict["variables"][var]["array"]
