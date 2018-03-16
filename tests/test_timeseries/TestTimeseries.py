@@ -12,7 +12,7 @@ Simple tests for the timeseries class.
 
 import numpy as np
 
-from pyunicorn.timeseries import CrossRecurrencePlot, VisibilityGraph
+from pyunicorn.timeseries import CrossRecurrencePlot, VisibilityGraph, \
     Surrogates
 from pyunicorn.core.data import Data
 

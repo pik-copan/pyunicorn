@@ -391,7 +391,7 @@ class ResNetwork(GeoNetwork):
          [ 0.     0.125  0.     0.125  0.   ]
          [ 0.     0.5    0.125  0.     0.1  ]
          [ 0.     0.     0.     0.1    0.   ]]
-        >>> print(type( res.get_admittance() )
+        >>> print(type( res.get_admittance() ))
         <class 'numpy.ndarray'>
 
         """
