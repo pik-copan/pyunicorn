@@ -4577,7 +4577,7 @@ class Network(object):
             #  Return the normalized hamming distance
             return hamming / float(self.N * (self.N - 1))
         else:
-            raise NetworkError("Only defined for networks with same number of
+            raise NetworkError("Only defined for networks with same number of \
                                nodes.")
 
     def spreading(self, alpha=None):
