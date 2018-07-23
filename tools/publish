@@ -13,7 +13,7 @@ generate_html=1
 generate_pdf=1
 delete_git=1
 dest=""
-python="$(which python2)"
+python="$(which python3)"
 
 # evaluate arguments
 if !(( $# == 0 || $# == 4 || $# == 5 )); then

@@ -36,11 +36,11 @@ cdef extern from "time.h":
 
 cdef extern from "src_numerics.c":
     void _randomly_rewire_geomodel_I_fast(int iterations, float eps, short *A,
-        float *D, int E, int N, int *edges) 
+        float *D, int E, int N, int *edges)
     void _randomly_rewire_geomodel_II_fast(int iterations, float eps, short *A,
-        float *D, int E, int N, int *edges) 
+        float *D, int E, int N, int *edges)
     void _randomly_rewire_geomodel_III_fast(int iterations, float eps,
-        short *A, float *D, int E, int N, int *edges, int *degree) 
+        short *A, float *D, int E, int N, int *edges, int *degree)
     double _higher_order_transitivity4_fast(int N, short* A)
     void _do_nsi_hamming_clustering_fast(int n2, int nActiveIndices,
         float mind0, float minwp0, int lastunited, int part1, int part2,
@@ -54,7 +54,7 @@ cdef extern from "src_numerics.c":
 
 # geo_network =================================================================
 
-def _randomly_rewire_geomodel_I(int iterations, float eps, 
+def _randomly_rewire_geomodel_I(int iterations, float eps,
     np.ndarray[short, ndim=2] A, np.ndarray[float, ndim=2] D, int E, int N,
     np.ndarray[INTTYPE_t, ndim=2] edges):
 
@@ -113,7 +113,7 @@ def _randomly_rewire_geomodel_I(int iterations, float eps,
                 if ((np.abs(D[s,t] - D[k,t]) < eps and
                         np.abs(D[k,l] - D[s,l]) < eps ) or
                             (np.abs(D[s,t] - D[s,l]) < eps and
-                                np.abs(D[k,l] - D[k,t]) < eps )): 
+                                np.abs(D[k,l] - D[k,t]) < eps )):
                     # Now rewire the links symmetrically
                     # and increase i by 1
                     A[s,t] = 0
@@ -155,7 +155,7 @@ def _randomly_rewire_geomodel_I(int iterations, float eps,
             <int*> np.PyArray_DATA(edges))
     """
 
-def _randomly_rewire_geomodel_II(int iterations, float eps, 
+def _randomly_rewire_geomodel_II(int iterations, float eps,
     np.ndarray[short, ndim=2] A, np.ndarray[float, ndim=2] D, int E, int N,
     np.ndarray[INTTYPE_t, ndim=2] edges):
 
@@ -538,7 +538,7 @@ def _nsi_betweenness(
 def _newman_betweenness_badly_cython(np.ndarray[INTTYPE_t, ndim=2] adjacency,
     np.ndarray[FLOAT64TYPE_t, ndim=2] T, np.ndarray[FLOAT64TYPE_t, ndim=2] rwb,
     N):
-        
+
     cdef:
         int i, j, s, t
         double norm, sum, Tis, Tit, Tjs, Tjt
@@ -650,7 +650,7 @@ def _do_nsi_clustering_I(
     # loop thru candidates:
     for ca in range(n_cands):
         ij = cands[ca]
-        i = ij/N
+        i = int(ij/N)
         j = ij%N
         wi = w[i]
         wj = w[j]
@@ -704,13 +704,13 @@ def _do_nsi_clustering_I(
     return dict_Delta
 
 
-def _do_nsi_clustering_II(int a, int b, 
+def _do_nsi_clustering_II(int a, int b,
     np.ndarray[INT16TYPE_t, ndim=1] D_cluster,
     np.ndarray[FLOATTYPE_t, ndim=1] w, double d0,
     np.ndarray[INT32TYPE_t, ndim=1] D_firstpos,
     np.ndarray[INT32TYPE_t, ndim=1] D_nextpos, int N, dict dict_D,
     dict dict_Delta):
-    
+
     cdef:
         float wa = w[a], wb = w[b], wc = wa+wb, wad0 = wa*d0, wbd0 = wb*d0
         float wa1, wa1sq, wa1d0, Da1a1, Da1a, Da1b, Da1c, wb1, wb1d0, wb1sq, \
@@ -868,12 +868,12 @@ def _do_nsi_clustering_II(int a, int b,
             posb1 = D_nextpos[posb1]
 
         posa1 = D_nextpos[posa1]
-    
+
     return dict_Delta
 
 
 def _do_nsi_hamming_clustering(int n2, int nActiveIndices, float mind0,
-    float minwp0, int lastunited, int part1, int part2, 
+    float minwp0, int lastunited, int part1, int part2,
     np.ndarray[FLOATTYPE_t, ndim=2] distances,
     np.ndarray[INTTYPE_t, ndim=1] theActiveIndices,
     np.ndarray[FLOATTYPE_t, ndim=2] linkedWeights,
@@ -939,7 +939,7 @@ def _vertex_current_flow_betweenness(int N, double Is, double It,
     np.ndarray[FLOAT32TYPE_t, ndim=2] admittance,
     np.ndarray[FLOAT32TYPE_t, ndim=2] R, int i):
 
-    return _vertex_current_flow_betweenness_fast(N, Is, It, 
+    return _vertex_current_flow_betweenness_fast(N, Is, It,
         <float*> np.PyArray_DATA(admittance),
         <float*> np.PyArray_DATA(R), i)
 
@@ -951,7 +951,7 @@ def _edge_current_flow_betweenness(int N, double Is, double It,
     cdef np.ndarray[FLOAT32TYPE_t, ndim=2, mode='c'] ECFB = \
             np.zeros((N, N), dtype='float32')
 
-    _edge_current_flow_betweenness_fast(N, Is, It, 
+    _edge_current_flow_betweenness_fast(N, Is, It,
         <float*> np.PyArray_DATA(admittance),
         <float*> np.PyArray_DATA(R),
         <float*> np.PyArray_DATA(ECFB))

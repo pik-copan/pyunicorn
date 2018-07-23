@@ -13,17 +13,16 @@ except ImportError:
 
 extensions = [
     Extension(
-        'pyunicorn.%s._ext.numerics' % (pkg),
-        sources=['pyunicorn/%s/_ext/%snumerics.%s' %
-                 (pkg, '' if CYTHON else 'src_',
-                  'pyx' if CYTHON else 'c')],
+        f'pyunicorn.{pkg}._ext.numerics',
+        sources=[f"pyunicorn/{pkg}/_ext/{pre}numerics.{ext}" for pre, ext in
+                 [('', 'pyx') if CYTHON else ('', 'c')]],
         include_dirs=[np.get_include()],
         extra_compile_args=['-O3', '-std=c99'])
     for pkg in ['climate', 'core', 'funcnet', 'timeseries']]
 
 if CYTHON:
     extensions = cythonize(extensions, compiler_directives={
-            'language_level': 2, 'embedsignature': True,
+            'language_level': 3, 'embedsignature': True,
             'boundscheck': False, 'wraparound': False,
             'initializedcheck': False, 'nonecheck': False})
 

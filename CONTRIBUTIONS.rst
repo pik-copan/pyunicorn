@@ -42,9 +42,9 @@
     See `Publications <docs/source/publications.rst>`_.
 
 **Dependencies**
-    - Python 2.7
-    - `Numpy <http://www.numpy.org/>`_ 1.10+
-    - `Scipy <http://www.scipy.org/>`_ 0.16+
+    - Python 3.6
+    - `Numpy <http://www.numpy.org/>`_ 1.12+
+    - `Scipy <http://www.scipy.org/>`_ 0.18+
     - `Matplotlib <http://matplotlib.org/>`_ 1.3+
     - `igraph, python-igraph <http://igraph.org/>`_ 0.7+
 
