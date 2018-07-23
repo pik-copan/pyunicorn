@@ -38,7 +38,14 @@ from scipy.sparse.linalg import eigsh, inv, splu
 
 import igraph                       # high performance graph theory tools
 
-from ..utils import progressbar     # easy progress bar handling
+# Progressbar breaks Network import on python 3.
+# TODO: Use progressbar3?
+if sys.version < '3':
+    has_progressbar = True
+    from ..utils import progressbar     # easy progress bar handling
+else:
+    has_progressbar = False
+
 from ..utils import mpi             # parallelized computations
 
 from ._ext.numerics import _local_cliquishness_4thorder, \
@@ -996,8 +1003,8 @@ class Network(object):
                     i += 1
                     cum += link_prob[i]
                 return i
-
-            progress = progressbar.ProgressBar(maxval=N).start()
+            if has_progressbar:
+                progress = progressbar.ProgressBar(maxval=N).start()
             for j in range(n_initials, N):
                 # add node j with unit weight:
                 link_prob[j] = kstar[j] = w[j] = 1
@@ -1023,6 +1030,7 @@ class Network(object):
                     link_prob[j] = w[j] * kstar[j]**preferential_exponent
                     total_link_prob += link_prob[i] + link_prob[j]
                 # print(total_link_prob, link_prob.sum())
+
                 for _ in range(n_growths):
                     # increase weight of some i:
                     i = inc_target[int(
@@ -1058,10 +1066,11 @@ class Network(object):
                     link_prob[j2] = w[j2] * kstar[j2]**preferential_exponent
                     total_link_prob += link_prob[i] + link_prob[j2]
                 # print(total_link_prob, link_prob.sum())
-                if (j % 10) == 0:
+                if (j % 10) == 0 and has_progressbar:
                     progress.update(j)
 
-            progress.finish()
+            if has_progressbar:
+                progress.finish()
 
         else:
             link_target = []
@@ -1163,7 +1172,8 @@ class Network(object):
             return i
 
         this_N = n_initials
-        progress = progressbar.ProgressBar(maxval=N).start()
+        if has_progressbar:
+            progress = progressbar.ProgressBar(maxval=N).start()
         it = 0
         while this_N < N and it < n_increases:
             it += 1
@@ -1183,10 +1193,11 @@ class Network(object):
                 inc_prob[i] = w[i]**exponent
                 total_inc_prob += inc_prob[this_N] + inc_prob[i]
                 this_N += 1
-            if (this_N % 10) == 0:
+            if (this_N % 10) == 0 and has_progressbar:
                 progress.update(this_N)
 
-        progress.finish()
+        if has_progressbar:
+            progress.finish()
         return w
 
     @staticmethod
@@ -1333,8 +1344,8 @@ class Network(object):
                 elif direction == "in":
                     diagonal = self.indegree()
                 else:
-                    print("ERROR: argument direction of Network.laplacian \
-                          can only take values <<in>> or <<out>>.")
+                    print("ERROR: argument direction of Network.laplacian "
+                          "can only take values <<in>> or <<out>>.")
             else:
                 diagonal = self.degree()
 
@@ -1468,8 +1479,8 @@ class Network(object):
                                                values=values)
         else:
             print("Error! Vertex attribute data array", attribute_name,
-                  "has to have the same length as the number of nodes \
-                  in the graph.")
+                  "has to have the same length as the number of nodes "
+                  "in the graph.")
 
     def node_attribute(self, attribute_name):
         """
@@ -2673,8 +2684,8 @@ class Network(object):
         else:
             k = self.nsi_degree(typical_weight=typical_weight)
             if self.silence_level <= 1:
-                print("Calculating corrected n.s.i. local clustering \
-                      coefficients...")
+                print("Calculating corrected n.s.i. "
+                      "local clustering coefficients...")
 
             Ap = self.sp_Aplus()
             Ap_Dw = Ap * self.sp_diag_w()
@@ -4436,13 +4447,13 @@ class Network(object):
             print("Calculating (weighted) node vulnerabilities...")
 
         #  Initialize progress bar
-        if self.silence_level <= 1:
+        if self.silence_level <= 1 and has_progressbar:
             progress = progressbar.ProgressBar(maxval=self.N).start()
 
         for i in range(self.N):
             #  Update progress bar every 10 steps
             if self.silence_level <= 1:
-                if (i % 10) == 0:
+                if (i % 10) == 0 and has_progressbar:
                     progress.update(i)
 
             #  Remove vertex i from graph
@@ -4463,7 +4474,7 @@ class Network(object):
             del graph, network
 
         #  Terminate progress bar
-        if self.silence_level <= 1:
+        if self.silence_level <= 1 and has_progressbar:
             progress.finish()
 
         return vulnerability
@@ -4679,15 +4690,15 @@ class Network(object):
         cluster_fit = cluster_explained_var / var
         if self.silence_level <= 1:
             print("max_n_clusters was", max_n_clusters)
-            print("found", len(evals), "eigenvalues and",
-                  len(cluster_index_set), "clusters")
-            print("cluster sizes range from", cluster_sizes.min(), "to",
-                  cluster_sizes.max(), "with median",
-                  np.median(cluster_sizes), ":", cluster_sizes)
-            print("max and min found eigenvalues are", max(evals), "and",
-                  min(evals), "(average of all was", tau/N, ")")
-            print("pca and clusters explain", sum(evals)/tau, "and",
-                  sum(cluster_explained_var)/tau, "of total variance.")
+            print(f"found {len(evals)} eigenvalues and "
+                  "{len(cluster_index_set)} clusters")
+            print(f"cluster sizes range from {cluster_sizes.min()} to "
+                  "{cluster_sizes.max()} with median {np.median(cluster_sizes)}"
+                  ": {cluster_sizes}")
+            print(f"max and min found eigenvalues are {max(evals)} and "
+                  "{min(evals)} (average of all was {tau/N})")
+            print(f"pca and clusters explain {sum(evals)/tau} and "
+                  "{sum(cluster_explained_var)/tau} of total variance.")
 
         return (cluster_index,  # cluster_index for each node
                 cluster_fit,    # fraction of node's variance explained by
@@ -4808,8 +4819,8 @@ class Network(object):
                      (n_pairs - M)  # TODO: link weight
             else:
                 d0 = 1.0 * N
-            print("calculated", d0, "as average non-linked distance,",
-                  "needed", time.time()-t0, "sec.")
+            print(f"calculated {d0} as average non-linked distance, "
+                  "needed {time.time()-t0} sec.")
 
         ftype = "float32"
         dict_D = {}  # weighted sum of distances between clusters
@@ -4887,8 +4898,8 @@ class Network(object):
                                           D_firstpos, D_nextpos, N, dict_D,
                                           dict_Delta)
 
-        print("initialization of error increments needed",
-              time.time()-t0, "sec.")
+        print(f"initialization of error increments needed"
+              "{time.time()-t0} sec.")
 
         # successively join the best pair:
         sumt1 = sumt2 = sumt3 = 0.0
@@ -5188,9 +5199,8 @@ class Network(object):
 
             if united < n + 100 or united % (1 + n2/100) == 0 or \
                     united >= n2 - 100:
-                print("for", n2-united, "clusters with error",
-                      hamming[united]/WW, "we join clusters", part1, "and",
-                      part2, "to get cluster", united)
+                print(f"for {n2-united} clusters with error {hamming[united]/WW} "
+                      "we join clusters {part1} and {part2} to get cluster {united}")
                 sys.stdout.flush()
 
             # unite parts:

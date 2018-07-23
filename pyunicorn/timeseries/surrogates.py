@@ -173,8 +173,8 @@ class Surrogates(object):
         :return: the embedded time series.
         """
         if self.silence_level <= 1:
-            print("Embedding all time series in dimension", dimension,
-                  "and with lag", delay, "...")
+            print(f"Embedding all time series in dimension {dimension} "
+                  "and with lag {delay} ...")
         (N, n_time) = time_series_array.shape
 
         embedding = np.empty((N, n_time - (dimension - 1)*delay, dimension))
@@ -630,8 +630,8 @@ class Surrogates(object):
         :return: the similarity measure histogram and lower bin boundaries.
         """
         if self.silence_level <= 1:
-            print("Estimating probability density distribution of \
-                  original_data data...")
+            print("Estimating probability density distribution of "
+                  "original_data ...")
 
         #  Normalize original_data time series to zero mean and unit variance
         if not self._normalized:
@@ -679,7 +679,7 @@ class Surrogates(object):
         :return: similarity measure test histogram and lower bin boundaries.
         """
         if self.silence_level <= 1:
-            print("Starting significance test based on", realizations,
+            print(f"Starting significance test based on {realizations} "
                   "realizations of surrogates...")
 
         original_data = self.original_data

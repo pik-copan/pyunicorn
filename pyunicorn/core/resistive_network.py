@@ -438,7 +438,6 @@ class ResNetwork(GeoNetwork):
          [ 0.     0.     0.    -0.1    0.1  ]]
         >>> print(type( ResNetwork.SmallTestNetwork().admittance_lapacian() ))
         <class 'numpy.ndarray'>
-
          """
 
         return np.diag(sum(self.get_admittance())) - self.get_admittance()
@@ -472,7 +471,6 @@ class ResNetwork(GeoNetwork):
         [ 2.25  1.31111111  7.4  2.03448276  7.25  ]
         >>> print(type(ResNetwork.SmallTestNetwork().admittive_degree()))
         <class 'numpy.ndarray'>
-
         """
 
         # get the admittive degree (row sum)
@@ -608,7 +606,6 @@ class ResNetwork(GeoNetwork):
         4.444
         >>> print(type( res.effective_resistance(1,1) ))
         <class 'float'>
-
         """
         # return def for self-loop
         if a == b:
@@ -637,7 +634,6 @@ class ResNetwork(GeoNetwork):
         7.28889
         >>> print(type( res.average_effective_resistance() ))
         <class 'numpy.float64'>
-
         """
 
         # since the NW is symmetric, we can only
@@ -669,12 +665,10 @@ class ResNetwork(GeoNetwork):
         14.444
         >>> print(type(res.diameter_effective_resistance()))
         <class 'numpy.float64'>
-
         >>> res = ResNetwork.SmallTestNetwork()
         >>> x = res.average_effective_resistance()
         >>> print("%.3f" % res.diameter_effective_resistance())
         14.444
-
         """
         # try to use pre-computed values
         if self._effective_resistances is not None:

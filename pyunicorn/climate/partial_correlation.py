@@ -100,8 +100,8 @@ class PartialCorrelationClimateNetwork(TsonisClimateNetwork):
         :return: the partial correlation matrix at zero lag.
         """
         if self.silence_level <= 1:
-            print("Calculating partial correlation matrix at zero lag from \
-                  anomaly values...")
+            print("Calculating partial correlation matrix at zero lag from "
+                  "anomaly values...")
 
         #  Calculate the correlation matrix, cast to float64 for precise
         #  calculation of inverse matrix.

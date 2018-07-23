@@ -22,8 +22,8 @@ import numpy as np
 try:
     import netCDF4
 except ImportError:
-    print("pyunicorn: Package netCDF4 could not be loaded. Some \
-          functionality in class Data might not be available!")
+    print("pyunicorn: Package netCDF4 could not be loaded. Some "
+          "functionality in class Data might not be available!")
 
 
 from .grid import Grid
@@ -302,9 +302,9 @@ class Data(object):
 
                 res["observable"] = observable[:, level, :, :].copy()
             else:
-                print("Regular NetCDF data sets with dimensions other than \
-                      3 (time, lat, lon) or 4 (time, level, lat, lon) are not \
-                      supported by Data class!")
+                print("Regular NetCDF data sets with dimensions other than "
+                      "3 (time, lat, lon) or 4 (time, level, lat, lon) are not "
+                      "supported by Data class!")
 
         elif file_type == "iNetCDF":
             # Create Grid instance
@@ -326,9 +326,9 @@ class Data(object):
 
                 res["observable"] = observable[:, level, :].copy()
             else:
-                print("Irregular NetCDF data sets with dimensions other than \
-                      2 (time, index) or 3 (time, level, index) are not \
-                      supported by Data class!")
+                print("Irregular NetCDF data sets with dimensions other than "
+                      "2 (time, index) or 3 (time, level, index) are not "
+                      "supported by Data class!")
 
         # Get length of raw data time axis
         n_time = res["observable"].shape[0]
@@ -372,8 +372,8 @@ class Data(object):
                                         silence_level)
         else:
             if silence_level <= 1:
-                print("This file type can currently not be read \
-                      by pyunicorn.")
+                print("This file type can currently not be read "
+                      "by pyunicorn.")
             return None
 
     def print_data_info(self):
@@ -581,8 +581,8 @@ class Data(object):
             array /= scale_factor
             scaled_array = array.astype('uint8')
         else:
-            print("Data type %s variable %s for rescaling array \
-                  not supported!" % var_type)
+            print("Data type %s variable %s for rescaling array "
+                  "not supported!" % var_type)
             scale_factor = 1.
             add_offset = 0.
 

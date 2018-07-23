@@ -18,15 +18,15 @@ multivariate data and generating time series surrogates.
 #  array object and fast numerics
 import numpy as np
 
-#  Import cPickle for loading and saving Python objects
-import _pickle as cPickle
+#  Import pickle for loading and saving Python objects
+import pickle
 
 # Import package to calculate points inside a polygon
 try:
     from matplotlib import path
 except ImportError:
-    print("An error occurred when importing matplotlib.path! \
-          Some functionality in Grid class might not be available.")
+    print("An error occurred when importing matplotlib.path! "
+          "Some functionality in Grid class might not be available.")
 
 #  Cythonized functions
 from ._ext.numerics import _cy_calculate_angular_distance, _euclidiean_distance
@@ -120,18 +120,18 @@ class Grid(object):
 
     def save(self, filename):
         """
-        Save the Grid object to a cPickle file.
+        Save the Grid object to a pickle file.
 
         :arg str filename: The name of the file where Grid object is stored
             (including ending).
         """
         try:
             f = open(filename, 'w')
-            cPickle.dump(self, f)
+            pickle.dump(self, f)
             f.close()
         except IOError:
-            print("An error occurred while saving Grid instance to \
-                  cPickle file", filename)
+            print(f"An error occurred while saving Grid instance to "
+                  "pickle file {filename}")
 
     def save_txt(self, filename):
         """
@@ -154,13 +154,13 @@ class Grid(object):
             np.savetxt(filename + "_lon.txt", lon_seq)
             np.savetxt(filename + "_time.txt", time_seq)
         except IOError:
-            print("An error occurred while saving Grid instance to \
-                  text files", filename)
+            print(f"An error occurred while saving Grid instance to "
+                  "text files {filename}")
 
     @staticmethod
     def Load(filename):
         """
-        Return a Grid object stored in a cPickle file.
+        Return a Grid object stored in a pickle file.
 
         :arg str filename: The name of the file where Grid object is stored
             (including ending).
@@ -169,13 +169,13 @@ class Grid(object):
         """
         try:
             f = open(filename, 'r')
-            grid = cPickle.load(f)
+            grid = pickle.load(f)
             f.close()
 
             return grid
         except IOError:
-            print("An error occurred while loading Grid instance from \
-                  cPickle file", filename)
+            print(f"An error occurred while loading Grid instance from "
+                  "pickle file {filename}")
 
     @staticmethod
     def LoadTXT(filename):
@@ -195,8 +195,8 @@ class Grid(object):
             lon_seq = np.loadtxt(filename + "_lon.txt")
             time_seq = np.loadtxt(filename + "_time.txt")
         except IOError:
-            print("An error occurred while loading Grid instance from \
-                  text files", filename)
+            print(f"An error occurred while loading Grid instance from "
+                  "text files {filename}")
 
         return Grid(time_seq, lat_seq, lon_seq)
 
@@ -654,8 +654,8 @@ class Grid(object):
                  great circle distances.
         """
         if self.silence_level <= 1:
-            print("Calculating the geometric distance distribution of the \
-                  grid...")
+            print("Calculating the geometric distance distribution of the "
+                  "grid...")
 
         #  Get angular distance matrix
         D = self.angular_distance()

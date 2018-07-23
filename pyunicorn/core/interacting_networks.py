@@ -177,8 +177,8 @@ class InteractingNetworks(Network):
         #  determine number of cross links
         if cross_link_density is not None:
             number_cross_links = int(cross_link_density * (N1 * N2))
-            print("Setting number of cross links according to \
-                  chosen link density.")
+            print("Setting number of cross links according to "
+                  "chosen link density.")
         elif cross_link_density is None and number_cross_links is None:
             number_cross_links = int(cross_A.sum())
             print("Creating a null model for the given interacting networks.")

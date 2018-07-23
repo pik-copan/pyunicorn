@@ -91,8 +91,8 @@ class ClimateNetwork(GeoNetwork):
         elif link_density is not None:
             self.set_link_density(link_density)
         else:
-            print("Either threshold or link_density have to be prescribed \
-                  for network construction!")
+            print("Either threshold or link_density have to be prescribed "
+                  "for network construction!")
         GeoNetwork.__init__(self, adjacency=self.adjacency, grid=self.grid,
                             directed=self.directed,
                             node_weight_type=self.node_weight_type,
@@ -475,8 +475,8 @@ class ClimateNetwork(GeoNetwork):
         :return: the network's adjacency matrix.
         """
         if self.silence_level <= 1:
-            print("Extracting network adjacency matrix removing local \
-                  connections...")
+            print("Extracting network adjacency matrix removing local "
+                  "connections...")
 
         #  This function provides a smooth transition of distance weight
         #  centered around distance d_min.
@@ -503,8 +503,8 @@ class ClimateNetwork(GeoNetwork):
         try:
             return self._similarity_measure
         except AttributeError:
-            print("The similarity matrix was deleted earlier and cannot be \
-                  returned.")
+            print("The similarity matrix was deleted earlier and cannot be "
+                  "returned.")
 
     def non_local(self):
         """

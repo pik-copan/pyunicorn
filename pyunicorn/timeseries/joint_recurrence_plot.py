@@ -302,8 +302,8 @@ class JointRecurrencePlot(RecurrencePlot):
             deviation of the time series. Give for both time series separately.
         """
         if self.silence_level <= 1:
-            print("Calculating recurrence plot at fixed threshold in units of \
-                  time series STD...")
+            print("Calculating recurrence plot at fixed threshold "
+                  "in units of time series STD...")
 
         #  Get absolute threshold
         threshold_x = threshold_std[0] * self.x.std()
@@ -325,8 +325,8 @@ class JointRecurrencePlot(RecurrencePlot):
             separately.
         """
         if self.silence_level <= 1:
-            print("Calculating joint recurrence plot at fixed recurrence \
-                  rate...")
+            print("Calculating joint recurrence plot at "
+                  "fixed recurrence rate...")
 
         #  Disable caching of distances in RecurrencePlot class
         self._distance_matrix_cached = False

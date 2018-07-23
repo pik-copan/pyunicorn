@@ -254,8 +254,8 @@ class RecurrencePlot(object):
         if not self.sparse_rqa:
             return self.R
         else:
-            print("Exception: Sequential RQA mode is enabled. Recurrence \
-                  matrix is not stored in memory.")
+            print("Exception: Sequential RQA mode is enabled. "
+                  "Recurrence matrix is not stored in memory.")
             return None
 
     def distance_matrix(self, embedding, metric):
@@ -532,8 +532,8 @@ class RecurrencePlot(object):
             standard deviation of the time series.
         """
         if self.silence_level <= 1:
-            print("Calculating recurrence plot at fixed threshold in units of \
-                  time series STD...")
+            print("Calculating recurrence plot at fixed threshold in units of "
+                  "time series STD...")
 
         #  Get absolute threshold
         threshold = threshold_std * self.time_series.std()
@@ -585,8 +585,8 @@ class RecurrencePlot(object):
         :arg number local_recurrence_rate: The local recurrence rate.
         """
         if self.silence_level <= 1:
-            print("Calculating recurrence plot at fixed local recurrence \
-                  rate...")
+            print("Calculating recurrence plot at fixed "
+                  "local recurrence rate...")
 
         #  Get distance matrix, according to self.metric
         distance = self.distance_matrix(self.embedding, self.metric)
@@ -629,8 +629,8 @@ class RecurrencePlot(object):
             processing by the algorithm. The standard order is :math:`1,...,N`.
         """
         if self.silence_level <= 1:
-            print("Calculating recurrence plot using the adaptive \
-                  neighborhood size algorithm...")
+            print("Calculating recurrence plot using the "
+                  "adaptive neighborhood size algorithm...")
 
         #  Get distance matrix, according to self.metric
         distance = self.distance_matrix(self.embedding, self.metric)

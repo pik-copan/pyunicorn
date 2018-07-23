@@ -126,8 +126,8 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         :return: the mutual information matrix at zero lag.
         """
         if self.silence_level <= 1:
-            print("Calculating mutual information matrix at zero lag from \
-                  anomaly values using cython...")
+            print("Calculating mutual information matrix at zero lag from "
+                  "anomaly values using cython...")
 
         #  Normalize anomaly time series to zero mean and unit variance
         self.data.normalize_time_series_array(anomaly)
@@ -170,8 +170,8 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         :return: the mutual information matrix at zero lag.
         """
         if self.silence_level <= 1:
-            print("Calculating mutual information matrix at zero lag from \
-                  anomaly values...")
+            print("Calculating mutual information matrix at zero lag from "
+                  "anomaly values...")
 
         #  Define references to numpy functions for faster function calls
         histogram = np.histogram
@@ -278,8 +278,8 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         try:
             #  Try to load MI from file
             if self.silence_level <= 1:
-                print("Loading mutual information matrix from %s..." %
-                      self.mi_file)
+                print(f"Loading mutual information matrix from "
+                      "{self.mi_file}...")
 
             with open(self.mi_file, 'r') as f:
                 mi = np.load(f)
@@ -292,8 +292,8 @@ class MutualInfoClimateNetwork(ClimateNetwork):
 
         except (IOError, RuntimeError):
             if self.silence_level <= 1:
-                print("An error occured while loading data from %s." %
-                      self.mi_file)
+                print("An error occured while loading data from "
+                      "{self.mi_file}.")
                 print("Recalculating mutual information.")
 
             mi = self._cython_calculate_mutual_information(anomaly)

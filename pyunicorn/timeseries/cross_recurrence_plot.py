@@ -312,8 +312,8 @@ class CrossRecurrencePlot(RecurrencePlot):
         :arg number recurrence_rate: The recurrence rate.
         """
         if self.silence_level <= 1:
-            print("Calculating cross recurrence plot at fixed recurrence \
-                  rate...")
+            print("Calculating cross recurrence plot at "
+                  "fixed recurrence rate...")
 
         #  Get distance matrix, according to self.metric
         distance = self.distance_matrix(self.x_embedded, self.y_embedded,

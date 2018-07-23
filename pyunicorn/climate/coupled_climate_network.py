@@ -130,8 +130,8 @@ class CoupledClimateNetwork(InteractingNetworks, ClimateNetwork):
                                     silence_level=silence_level)
             InteractingNetworks.__init__(self, self.adjacency)
         else:
-            print("The two observables (layers) have to have the same number \
-                  of temporal sampling points!")
+            print("The two observables (layers) have to have the same number "
+                  "of temporal sampling points!")
 
     def __str__(self):
         """

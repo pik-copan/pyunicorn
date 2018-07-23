@@ -114,8 +114,8 @@ class GeoNetwork(Network):
             used.
         """
         if self.silence_level <= 1:
-            print("Setting area weights according to type " +
-                  str(node_weight_type) + "...")
+            print(f"Setting area weights according to type "
+                  "{node_weight_type} ...")
 
         #  Set instance variable accordingly
         self.node_weight_type = node_weight_type
@@ -208,8 +208,8 @@ class GeoNetwork(Network):
         if fileformat in ["graphml", "graphmlz", "graphviz"]:
             self.graph.save(filename, format=fileformat)
         else:
-            print("ERROR: the chosen format is not supported by save_for_cgv \
-                  for use with the CGV software.")
+            print("ERROR: the chosen format is not supported by save_for_cgv "
+                  "for use with the CGV software.")
 
     @staticmethod
     def Load(filename_network, filename_grid, fileformat=None,
@@ -384,8 +384,8 @@ class GeoNetwork(Network):
         #  FIXME: Add example
 
         if silence_level <= 1:
-            print("Generating Barabasi-Albert random graph (n = " +
-                  str(n_nodes) + ", m = " + str(n_links) + ")...")
+            print(f"Generating Barabasi-Albert random graph "
+                  "(n = {n_nodes}, m = {n_links})...")
 
         graph = igraph.Graph.Barabasi(n_nodes, n_links)
 
@@ -445,8 +445,8 @@ class GeoNetwork(Network):
         :return: the configuration model network.
         """
         if silence_level <= 1:
-            print("Generating configuration model random graph from degree \
-                  sequence...")
+            print("Generating configuration model random graph from degree "
+                  "sequence...")
 
         graph = igraph.Graph.Degree_Sequence(list(degrees))
 
@@ -506,8 +506,8 @@ class GeoNetwork(Network):
         :arg inaccuracy: The inaccuracy with which to conserve :math:`p(l)`.
         """
         if self.silence_level <= 1:
-            print("Randomly rewiring given graph, preserving the degree \
-                  sequence and link distance distribution...")
+            print("Randomly rewiring given graph, preserving the degree "
+                  "sequence and link distance distribution...")
         #  Get number of nodes
         N = self.N
         #  Get number of links
@@ -564,9 +564,9 @@ class GeoNetwork(Network):
         """
         #  FIXME: Add example
         if self.silence_level <= 1:
-            print("Randomly rewiring given graph, preserving the degree \
-                  sequence, link distance distribution and average link \
-                  distance sequence...")
+            print("Randomly rewiring given graph, preserving the degree "
+                  "sequence, link distance distribution and average link "
+                  "distance sequence...")
 
         #  Get number of nodes
         N = int(self.N)
@@ -618,9 +618,9 @@ class GeoNetwork(Network):
         """
         #  FIXME: Add example
         if self.silence_level <= 1:
-            print("Randomly rewiring given graph, preserving the degree \
-                  sequence, degree-degree correlations, link distance \
-                  distribution and average link distance sequence...")
+            print("Randomly rewiring given graph, preserving the degree "
+                  "sequence, degree-degree correlations, link distance "
+                  "distribution and average link distance sequence...")
 
         #  Get number of nodes
         N = int(self.N)

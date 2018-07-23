@@ -153,8 +153,8 @@ class TsonisClimateNetwork(ClimateNetwork):
         :return: the correlation matrix at zero lag.
         """
         if self.silence_level <= 1:
-            print("Calculating correlation matrix at zero lag from anomaly \
-                  values...")
+            print("Calculating correlation matrix at zero lag from anomaly "
+                  "values...")
         #  Cast to float32 type to save memory since correlation coefficients
         #  are not needed in high floating point precision.
         correlation = np.corrcoef(anomaly.transpose()).astype("float32")
