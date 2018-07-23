@@ -125,8 +125,8 @@ class SpearmanClimateNetwork(TsonisClimateNetwork):
         :return: the Spearman's rho matrix at zero lag.
         """
         if self.silence_level <= 1:
-            print("Calculating Spearman Rho matrix at zero lag from anomaly \
-values...")
+            print("Calculating Spearman Rho matrix at zero lag from anomaly "
+                  "values...")
 
         #  Convert anomaly time series to time series of ranks
         ranks = self.rank_time_series(anomaly)

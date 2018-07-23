@@ -46,9 +46,9 @@ if sys.version < '3':
 else:
     has_progressbar = False
 
-from .. import mpi                  # parallelized computations
+from ..utils import mpi             # parallelized computations
 
-from pyunicorn.core._ext.numerics import _local_cliquishness_4thorder, \
+from ._ext.numerics import _local_cliquishness_4thorder, \
     _local_cliquishness_5thorder, _cy_mpi_nsi_newman_betweenness, \
     _cy_mpi_newman_betweenness, _nsi_betweenness, _higher_order_transitivity4,\
     _newman_betweenness_badly_cython, _do_nsi_clustering_I, \
@@ -217,8 +217,8 @@ class Network(object):
         elif edge_list is not None:
             self.set_edge_list(edge_list)
         else:
-            raise NetworkError("An adjacency matrix or edge list has to be " +
-                               "given to initialize an instance of Network.")
+            raise NetworkError("An adjacency matrix or edge list has to be \
+                               given to initialize an instance of Network.")
 
         self._set_node_weights(node_weights)
         self.degree()
@@ -313,7 +313,7 @@ class Network(object):
         :rtype: :class:`Network` instance
         """
         idx = np.array(permutation)
-        if sorted(idx) != range(self.N):
+        if (sorted(idx) != np.arange(self.N)).any():
             raise NetworkError("Incorrect permutation indices!")
 
         return Network(adjacency=self.sp_A[idx][:, idx],
@@ -440,7 +440,7 @@ class Network(object):
         self.n_links = edges.shape[0]
         self.link_density = 1.0 * self.n_links / N / (N - 1)
         if not self.directed:
-            self.n_links /= 2
+            self.n_links //= 2
 
         # create graph object
         self.graph = igraph.Graph(n=N, edges=list(edges),
@@ -840,10 +840,10 @@ class Network(object):
 
         # inverse cum. degree distribution
         targets, last_child = np.zeros(2*m*(N-m), dtype=np.int8), np.zeros(N)
-        targets[m:2*m] = xrange(1, 1+m)
+        targets[m:2*m] = range(1, 1+m)
         n_targets = 2*m
-        for j in xrange(1+m, N):
-            for it in xrange(m):
+        for j in range(1+m, N):
+            for it in range(m):
                 while True:
                     i = targets[int(random.uniform(low=0, high=n_targets))]
                     if last_child[i] != j:
@@ -1011,7 +1011,7 @@ class Network(object):
                 total_link_prob += 1
                 inc_target.append(j)
                 # link it to some i's:
-                for _ in xrange(n_links_new):
+                for _ in range(n_links_new):
                     i = _link_target()
                     # print(j,i)
                     while i == j:
@@ -1030,7 +1030,8 @@ class Network(object):
                     link_prob[j] = w[j] * kstar[j]**preferential_exponent
                     total_link_prob += link_prob[i] + link_prob[j]
                 # print(total_link_prob, link_prob.sum())
-                for _ in xrange(n_growths):
+
+                for _ in range(n_growths):
                     # increase weight of some i:
                     i = inc_target[int(
                         random.uniform(low=0, high=len(inc_target)))]
@@ -1086,7 +1087,7 @@ class Network(object):
                         A[i, j] = A[j, i] = 1
                         nbs[i].append(j)
                         nbs[j].append(i)
-                link_target += [i for _ in xrange(n_links_new + n_links_old)]
+                link_target += [i for _ in range(n_links_new + n_links_old)]
 
             # last_grown = np.zeros(N)
             for j in range(n_initials, N):
@@ -1207,7 +1208,7 @@ class Network(object):
 
         **Example:** Generate a network of 1000 nodes with degree 3 each:
 
-        >>> net = Network.ConfigurationModel([3 for _ in xrange(0,1000)])
+        >>> net = Network.ConfigurationModel([3 for _ in range(0,1000)])
         Generating configuration model random graph
         from given degree sequence...
         >>> print(int(round(net.degree().mean())))
@@ -1343,15 +1344,15 @@ class Network(object):
                 elif direction == "in":
                     diagonal = self.indegree()
                 else:
-                    print("ERROR: argument direction of Network.laplacian \
-can only take values <<in>> or <<out>>.")
+                    print("ERROR: argument direction of Network.laplacian "
+                          "can only take values <<in>> or <<out>>.")
             else:
                 diagonal = self.degree()
 
             return np.diag(diagonal, 0) - self.adjacency
         else:
-            raise NotImplementedError(
-                "Only implemented for link_attribute=None.")
+            raise NotImplementedError("Only implemented for link_attribute \
+                                      =None.")
 
     def nsi_laplacian(self):
         """
@@ -1477,9 +1478,9 @@ can only take values <<in>> or <<out>>.")
             self.graph.vs.set_attribute_values(attrname=attribute_name,
                                                values=values)
         else:
-            print("Error! Vertex attribute data array", attribute_name, \
-                  "has to have the same length as the number of nodes \
-                   in the graph.")
+            print("Error! Vertex attribute data array", attribute_name,
+                  "has to have the same length as the number of nodes "
+                  "in the graph.")
 
     def node_attribute(self, attribute_name):
         """
@@ -2432,8 +2433,8 @@ can only take values <<in>> or <<out>>.")
             print("Calculating transitivity of order", order, "...")
 
         if order == 0 or order == 1 or order == 2:
-            raise NetworkError("Higher order transitivity is not defined " +
-                               "for orders 0, 1 and 2.")
+            raise NetworkError("Higher order transitivity is not defined for \
+                               orders 0, 1 and 2.")
         elif order == 3:
             return self.transitivity()
 
@@ -2466,8 +2467,8 @@ can only take values <<in>> or <<out>>.")
             pass
 
         elif order > 5:
-            raise NotImplementedError("Higher order transitivity is not yet " +
-                                      "implemented for orders larger than 5.")
+            raise NotImplementedError("Higher order transitivity is not yet \
+                                      implemented for orders larger than 5.")
         else:
             raise ValueError("Order has to be a positive integer.")
 
@@ -2497,8 +2498,8 @@ can only take values <<in>> or <<out>>.")
             print("Calculating local cliquishness of order", order, "...")
 
         if order == 0 or order == 1 or order == 2:
-            raise NetworkError(
-                "Local cliquishness is not defined for orders 0, 1 and 2.")
+            raise NetworkError("Local cliquishness is not defined for orders \
+                               0, 1 and 2.")
 
         elif order == 3:
             return self.local_clustering()
@@ -2512,8 +2513,8 @@ can only take values <<in>> or <<out>>.")
                                                 self.adjacency.astype(int),
                                                 self.degree())
         elif order > 5:
-            raise NotImplementedError("Local cliquishness is not yet " +
-                                      "implemented for orders larger than 5.")
+            raise NotImplementedError("Local cliquishness is not yet \
+                                      implemented for orders larger than 5.")
         else:
             raise ValueError("Order has to be a positive integer.")
 
@@ -2683,7 +2684,7 @@ can only take values <<in>> or <<out>>.")
         else:
             k = self.nsi_degree(typical_weight=typical_weight)
             if self.silence_level <= 1:
-                print("Calculating corrected n.s.i." +
+                print("Calculating corrected n.s.i. "
                       "local clustering coefficients...")
 
             Ap = self.sp_Aplus()
@@ -2780,8 +2781,8 @@ can only take values <<in>> or <<out>>.")
 
         # denominator depends on degrees of neighbours
         N, k = self.N, self.nsi_degree()
-        mink = np.array([[min(k[i], k[j]) for j in xrange(N)]
-                         for i in xrange(N)])
+        mink = np.array([[min(k[i], k[j]) for j in range(N)]
+                         for i in range(N)])
         denominator = (mink * (self.sp_diag_w() * Ap)).diagonal()
         return numerator / denominator
 
@@ -3008,7 +3009,7 @@ can only take values <<in>> or <<out>>.")
         A_list = self.graph.get_adjlist()
 
         #  Write link betweenness values to matrix
-        for i in xrange(len(A_list)):
+        for i in range(len(A_list)):
             for j in A_list[i]:
                 #  Only visit links once
                 if i < j:
@@ -3192,7 +3193,7 @@ can only take values <<in>> or <<out>>.")
 
         # node offsets for flat arrays:
         offsets = np.zeros(N)
-        for i in xrange(1, N):
+        for i in range(1, N):
             offsets[i] = offsets[i-1] + k[i-1]
         # Note: We don't use k.cumsum() since that uses to much memory!
 
@@ -3530,7 +3531,7 @@ can only take values <<in>> or <<out>>.")
                   + str(components.giant().vcount()
                         / float(self.graph.vcount())) + "))")
 
-        for c in xrange(len(components)):
+        for c in range(len(components)):
             #  If the component has size 1, set random walk betweenness to zero
             if len(components[c]) == 1:
                 arenas_betweenness[components[c][0]] = 0
@@ -3560,7 +3561,7 @@ can only take values <<in>> or <<out>>.")
                 #  Get the P that is modified and inverted by the C++ code
                 P = np.dot(np.diag(1 / k), A)
 
-                for i in xrange(N):
+                for i in range(N):
                     #  Store the kth row of the P
                     row_i = np.copy(P[i, :])
 
@@ -3585,7 +3586,7 @@ can only take values <<in>> or <<out>>.")
 
                 #  Copy results into randomWalkBetweennessArray at the correct
                 #  positions
-                for j in xrange(len(nodes)):
+                for j in range(len(nodes)):
                     arenas_betweenness[nodes[j]] = component_betweenness[j]
 
         if self.silence_level <= 0:
@@ -3613,7 +3614,7 @@ can only take values <<in>> or <<out>>.")
                   + str(components.giant().vcount()
                         / float(self.graph.vcount())) + "))")
 
-        for i in xrange(len(components)):
+        for i in range(len(components)):
             #  If the component has size 1, set random walk betweenness to zero
             if len(components[i]) == 1:
                 awRandomWalkBetweenness[components[i][0]] = 0
@@ -3630,7 +3631,7 @@ can only take values <<in>> or <<out>>.")
 
                 # Extract corresponding area weight vector:
                 aw = np.zeros(len(vertexList))
-                for j in xrange(len(vertexList)):
+                for j in range(len(vertexList)):
                     aw[j] = self.node_weights[vertexList[j]]
 
                 #  Generate a Network object representing the subgraph
@@ -3653,7 +3654,7 @@ can only take values <<in>> or <<out>>.")
                 Ap = adjacency + Identity
                 pMatrix = np.diag(1/awDegreeSequence).dot(Ap).dot(np.diag(aw))
 
-                for k in xrange(nNodes):
+                for k in range(nNodes):
                     #  For k and each neighbour of it, set the corresponding
                     #  row of the pMatrix to zero to account for the absorption
                     #  of random walkers at their destination
@@ -3671,7 +3672,7 @@ can only take values <<in>> or <<out>>.")
 
                 #  Copy results into randomWalkBetweennessArray at the correct
                 #  positions
-                for j in xrange(len(vertexList)):
+                for j in range(len(vertexList)):
                     awRandomWalkBetweenness[vertexList[j]] = rwb[j]
 
         if self.silence_level <= 1:
@@ -3687,7 +3688,7 @@ can only take values <<in>> or <<out>>.")
         error_message, result = '', None
         try:
             component_betweenness = np.zeros(N)
-            for i in xrange(start_i, end_i):
+            for i in range(start_i, end_i):
                 # For i and each neighbour of it, modify the corresponding row
                 # of P to account for the absorption of random walkers at their
                 # destination
@@ -3798,7 +3799,7 @@ can only take values <<in>> or <<out>>.")
                   + str(components.giant().vcount()
                         / float(self.graph.vcount())) + "))")
 
-        for c in xrange(len(components)):
+        for c in range(len(components)):
             #  If the component has size 1, set random walk betweenness to zero
             if len(components[c]) == 1:
                 nsi_arenas_betweenness[components[c][0]] = 0
@@ -3814,7 +3815,7 @@ can only take values <<in>> or <<out>>.")
 
                 # Extract corresponding area weight vector
                 w = np.zeros(len(nodes))
-                for j in xrange(len(nodes)):
+                for j in range(len(nodes)):
                     w[j] = self.node_weights[nodes[j]]
 
                 #  Generate a Network object representing the subgraph
@@ -3840,7 +3841,7 @@ can only take values <<in>> or <<out>>.")
                               " slaves into " + str(parts) +
                               " parts with " + str(step) + " nodes each...")
 
-                    for index in xrange(parts):
+                    for index in range(parts):
                         start_i = index * step
                         end_i = min((index + 1) * step, N)
                         if start_i >= end_i:
@@ -3862,7 +3863,7 @@ can only take values <<in>> or <<out>>.")
 
                     # Retrieve results of all submited jobs
                     component_betweenness = np.zeros(N)
-                    for index in xrange(parts):
+                    for index in range(parts):
                         start_i = index * step
                         if self.silence_level <= 0:
                             print("   retrieving results from", index)
@@ -3902,7 +3903,7 @@ can only take values <<in>> or <<out>>.")
 
                 #  Copy results into randomWalkBetweennessArray at the correct
                 #  positions
-                for j in xrange(len(nodes)):
+                for j in range(len(nodes)):
                     nsi_arenas_betweenness[nodes[j]] = component_betweenness[j]
 
         if self.silence_level <= 0:
@@ -3922,7 +3923,7 @@ can only take values <<in>> or <<out>>.")
         #  separately. Therefore get different components of the graph first
         components = self.graph.clusters()
 
-        for i in xrange(len(components)):
+        for i in range(len(components)):
             #  If the component has size 1, set random walk betweenness to zero
             if len(components[i]) == 1:
                 randomWalkBetweenness[components[i][0]] = 0
@@ -3980,7 +3981,7 @@ can only take values <<in>> or <<out>>.")
 
                 #  Copy results into randomWalkBetweennessArray at the correct
                 #  positions
-                for j in xrange(len(vertexList)):
+                for j in range(len(vertexList)):
                     randomWalkBetweenness[vertexList[j]] = rwb[j]
 
         return randomWalkBetweenness
@@ -4021,7 +4022,7 @@ can only take values <<in>> or <<out>>.")
                   + str(components.giant().vcount()
                         / float(self.graph.vcount())) + "))")
 
-        for c in xrange(len(components)):
+        for c in range(len(components)):
             #  If the component has size 1, set random walk betweenness to zero
             if len(components[c]) < 2:
                 newman_betweenness[components[c][0]] = 0
@@ -4063,7 +4064,7 @@ can only take values <<in>> or <<out>>.")
                               + str(step) + " nodes each...")
 
                     # now submit the jobs:
-                    for index in xrange(parts):
+                    for index in range(parts):
                         start_i = index * step
                         end_i = min((index + 1) * step, N)
                         if start_i >= end_i:
@@ -4081,7 +4082,7 @@ can only take values <<in>> or <<out>>.")
 
                     # Retrieve results of all submitted jobs:
                     component_betweenness = np.zeros(N)
-                    for index in xrange(parts):
+                    for index in range(parts):
                         # the following call connects to the submitted job,
                         # waits until it finishes, and retrieves the result:
                         if self.silence_level <= 0:
@@ -4099,7 +4100,7 @@ can only take values <<in>> or <<out>>.")
 
                 # sort results into correct positions
                 nodes = components[c]
-                for j in xrange(len(nodes)):
+                for j in range(len(nodes)):
                     newman_betweenness[nodes[j]] = component_betweenness[j]
 
         if self.silence_level <= 0:
@@ -4182,7 +4183,7 @@ can only take values <<in>> or <<out>>.")
                   + str(components.giant().vcount()
                         / float(self.graph.vcount())) + "))")
 
-        for c in xrange(len(components)):
+        for c in range(len(components)):
             #  If the component has size 1, set random walk betweenness to zero
             # FIXME: check why there was a problem with ==1
             if len(components[c]) < 2:
@@ -4201,7 +4202,7 @@ can only take values <<in>> or <<out>>.")
 
                 # Extract corresponding area weight vector:
                 w = np.zeros(len(nodes))
-                for j in xrange(len(nodes)):
+                for j in range(len(nodes)):
                     w[j] = self.node_weights[nodes[j]]
 
                 #  Generate a Network object representing the subgraph
@@ -4241,7 +4242,7 @@ can only take values <<in>> or <<out>>.")
                               + " slaves into " + str(parts) + " parts with "
                               + str(step) + " nodes each...")
 
-                    for idx in xrange(parts):
+                    for idx in range(parts):
                         start_i = idx * step
                         end_i = min((idx+1)*step, N)
                         if start_i >= end_i:
@@ -4260,7 +4261,7 @@ can only take values <<in>> or <<out>>.")
 
                     # Retrieve results of all submited jobs
                     component_betweenness = np.zeros(N)
-                    for idx in xrange(parts):
+                    for idx in range(parts):
                         this_betweenness, start_i, end_i = mpi.get_result(idx)
                         component_betweenness[start_i:end_i] = this_betweenness
 
@@ -4278,7 +4279,7 @@ can only take values <<in>> or <<out>>.")
 
                 #  Copy results into randomWalkBetweennessArray at the correct
                 #  positions
-                for j in xrange(len(nodes)):
+                for j in range(len(nodes)):
                     nsi_newman_betweenness[nodes[j]] = component_betweenness[j]
 
         if self.silence_level <= 0:
@@ -4449,7 +4450,7 @@ can only take values <<in>> or <<out>>.")
         if self.silence_level <= 1 and has_progressbar:
             progress = progressbar.ProgressBar(maxval=self.N).start()
 
-        for i in xrange(self.N):
+        for i in range(self.N):
             #  Update progress bar every 10 steps
             if self.silence_level <= 1:
                 if (i % 10) == 0 and has_progressbar:
@@ -4587,8 +4588,8 @@ can only take values <<in>> or <<out>>.")
             #  Return the normalized hamming distance
             return hamming / float(self.N * (self.N - 1))
         else:
-            raise NetworkError(
-                "Only defined for networks with same number of nodes.")
+            raise NetworkError("Only defined for networks with same number of \
+                               nodes.")
 
     def spreading(self, alpha=None):
         """
@@ -4618,7 +4619,7 @@ can only take values <<in>> or <<out>>.")
         w, k = self.node_weights, self.nsi_degree()
         if alpha is None:
             alpha = self.total_node_weight / k.dot(w)
-        # print alpha
+        # print(alpha)
         return (matfuncs.expm2(
             np.log(2.0)*(Aplus * alpha * w - sp.identity(N))).dot(Aplus) *
                 w.reshape((N, 1))).sum(axis=0)
@@ -4676,28 +4677,28 @@ can only take values <<in>> or <<out>>.")
         # variance.  assign node to cluster 2*i if eigenvector positive at the
         # node, otherwise to cluster 2*i+1:
         cluster_index = 2 * np.argmax(explained_var, axis=1)
-        for i in xrange(0, N):
+        for i in range(0, N):
             if evecs[i, cluster_index[i]/2] < 0.0:
                 cluster_index[i] += 1
 
         cluster_explained_var = np.max(explained_var, axis=1)
         cluster_index_set = set(cluster_index)
         cluster_sizes = np.zeros(max(cluster_index_set)+1)
-        for i in xrange(0, N):
+        for i in range(0, N):
             cluster_sizes[cluster_index[i]] += self.node_weights[i]
         cluster_sizes = cluster_sizes[list(cluster_index_set)]
         cluster_fit = cluster_explained_var / var
         if self.silence_level <= 1:
             print("max_n_clusters was", max_n_clusters)
-            print("found", len(evals), "eigenvalues and", \
-                  len(cluster_index_set), "clusters")
-            print("cluster sizes range from", cluster_sizes.min(), "to", \
-                  cluster_sizes.max(), "with median", \
-                  np.median(cluster_sizes), ":", cluster_sizes)
-            print("max and min found eigenvalues are", max(evals), "and", \
-                  min(evals), "(average of all was", tau/N, ")")
-            print("pca and clusters explain", sum(evals)/tau, "and", \
-                  sum(cluster_explained_var)/tau, "of total variance.")
+            print(f"found {len(evals)} eigenvalues and "
+                  "{len(cluster_index_set)} clusters")
+            print(f"cluster sizes range from {cluster_sizes.min()} to "
+                  "{cluster_sizes.max()} with median {np.median(cluster_sizes)}"
+                  ": {cluster_sizes}")
+            print(f"max and min found eigenvalues are {max(evals)} and "
+                  "{min(evals)} (average of all was {tau/N})")
+            print(f"pca and clusters explain {sum(evals)/tau} and "
+                  "{sum(cluster_explained_var)/tau} of total variance.")
 
         return (cluster_index,  # cluster_index for each node
                 cluster_fit,    # fraction of node's variance explained by
@@ -4748,7 +4749,7 @@ can only take values <<in>> or <<out>>.")
         """
         N = self.N
         N2 = 2*N - 1
-        rN = xrange(N)
+        rN = range(N)
         w = self.node_weights.copy()
         k = self.nsi_degree()  # TODO: link weight
 
@@ -4789,8 +4790,8 @@ can only take values <<in>> or <<out>>.")
             except AttributeError:
                 distance_keys = [(i, j) for i in range(N) for j in range(N)]
         M = len(distance_keys)
-        rM = xrange(M)
-        rpos = xrange(1, M+1)
+        rM = range(M)
+        rpos = range(1, M+1)
         """
         if M < 65535:
             postype = "int16"
@@ -4818,8 +4819,8 @@ can only take values <<in>> or <<out>>.")
                      (n_pairs - M)  # TODO: link weight
             else:
                 d0 = 1.0 * N
-            print("calculated", d0, "as average non-linked distance,", \
-                  "needed", time.time()-t0, "sec.")
+            print(f"calculated {d0} as average non-linked distance, "
+                  "needed {time.time()-t0} sec.")
 
         ftype = "float32"
         dict_D = {}  # weighted sum of distances between clusters
@@ -4897,14 +4898,14 @@ can only take values <<in>> or <<out>>.")
                                           D_firstpos, D_nextpos, N, dict_D,
                                           dict_Delta)
 
-        print("initialization of error increments needed", \
-              time.time()-t0, "sec.")
+        print(f"initialization of error increments needed"
+              "{time.time()-t0} sec.")
 
         # successively join the best pair:
         sumt1 = sumt2 = sumt3 = 0.0
         actives = range(N)
         min_clusters = 1
-        for n_clusters in xrange(N-1, 0, -1):
+        for n_clusters in range(N-1, 0, -1):
 
             # find best pair a<b:
             t0 = time.time()
@@ -5164,7 +5165,7 @@ can only take values <<in>> or <<out>>.")
 
         # iteratively join those two clusters which increase Hamming distance
         # the least:
-        for united in xrange(n, n2):
+        for united in range(n, n2):
 
             # find next optimal pair:
 
@@ -5188,7 +5189,7 @@ can only take values <<in>> or <<out>>.")
             part2 = int(result[2])
             if mind < 0:
                 print(united, mind, part1, part2)
-                raise Exception()
+                raise Exception
 
             cluster2rank[np.array(activeIndices)[
                 (-clusterWeights[activeIndices]).argsort()], n2+1-united] = \
@@ -5198,9 +5199,8 @@ can only take values <<in>> or <<out>>.")
 
             if united < n + 100 or united % (1 + n2/100) == 0 or \
                     united >= n2 - 100:
-                print("for", n2-united, "clusters with error", \
-                      hamming[united]/WW, "we join clusters", part1, "and", \
-                      part2, "to get cluster", united)
+                print(f"for {n2-united} clusters with error {hamming[united]/WW} "
+                      "we join clusters {part1} and {part2} to get cluster {united}")
                 sys.stdout.flush()
 
             # unite parts:
@@ -5238,7 +5238,7 @@ can only take values <<in>> or <<out>>.")
             mayJoin[united, 0:united] = \
                 mayJoin[part1, 0:united] + mayJoin[part2, 0:united]
             mayJoin[0:united, united] = mayJoin[united, 0:united].flatten()
-            for c in xrange(0, united):
+            for c in range(0, united):
                 lw = linkedWeights[united, c]
                 errors[united, c] = errors[c, united] = \
                     min(lw, weightProducts[united, c] - lw)
@@ -5246,7 +5246,7 @@ can only take values <<in>> or <<out>>.")
                 weightProducts[united, united] - linkedWeights[united, united]
             if errors.min() < -1e-10:
                 print(errors)
-                raise Exception()
+                raise Exception
             lastunited = united
 
         print(time.time()-t0, "seconds")

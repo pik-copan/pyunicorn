@@ -41,7 +41,7 @@ from scipy import sparse
 #  Import iGraph for high performance graph theory tools written in pure ANSI-C
 import igraph
 
-from pyunicorn.core._ext.numerics import _vertex_current_flow_betweenness, \
+from ._ext.numerics import _vertex_current_flow_betweenness, \
     _edge_current_flow_betweenness
 
 # Import things we inherit from
@@ -327,7 +327,7 @@ class ResNetwork(GeoNetwork):
          [ 0.     0.5    0.125  0.     0.1  ]
          [ 0.     0.     0.     0.1    0.   ]]
         >>> print(type(res.get_admittance()))
-        <type 'numpy.ndarray'>
+        <class 'numpy.ndarray'>
         """
         # a sparse matrix for the admittance values
         # we start w/ a lil_matrix, maybe convert that
@@ -372,7 +372,7 @@ class ResNetwork(GeoNetwork):
          [ 0.     0.5    0.125  0.     0.1  ]
          [ 0.     0.     0.     0.1    0.   ]]
         >>> print(type( res.get_admittance() ))
-        <type 'numpy.ndarray'>
+        <class 'numpy.ndarray'>
         """
         return np.array(self.sparse_Adm.todense())
 
@@ -392,7 +392,7 @@ class ResNetwork(GeoNetwork):
          [ 0.     0.5    0.125  0.     0.1  ]
          [ 0.     0.     0.     0.1    0.   ]]
         >>> print(type( res.get_admittance() ))
-        <type 'numpy.ndarray'>
+        <class 'numpy.ndarray'>
 
         """
         # a sparse matrix for the admittance values
@@ -437,8 +437,7 @@ class ResNetwork(GeoNetwork):
          [ 0.    -0.5   -0.125  0.725 -0.1  ]
          [ 0.     0.     0.    -0.1    0.1  ]]
         >>> print(type( ResNetwork.SmallTestNetwork().admittance_lapacian() ))
-        <type 'numpy.ndarray'>
-
+        <class 'numpy.ndarray'>
          """
 
         return np.diag(sum(self.get_admittance())) - self.get_admittance()
@@ -455,8 +454,8 @@ class ResNetwork(GeoNetwork):
 
         >>> print(ResNetwork.SmallTestNetwork().admittive_degree())
         [ 0.5    1.125  0.25   0.725  0.1  ]
-        >>> print(type( ResNetwork.SmallTestNetwork().admittive_degree()))
-        <type 'numpy.ndarray'>
+        >>> print(type( ResNetwork.SmallTestNetwork().admittive_degree() ))
+        <class 'numpy.ndarray'>
         """
         return np.sum(self.get_admittance(), axis=0)
 
@@ -471,8 +470,7 @@ class ResNetwork(GeoNetwork):
                 average_neighbors_admittive_degree())
         [ 2.25  1.31111111  7.4  2.03448276  7.25  ]
         >>> print(type(ResNetwork.SmallTestNetwork().admittive_degree()))
-        <type 'numpy.ndarray'>
-
+        <class 'numpy.ndarray'>
         """
 
         # get the admittive degree (row sum)
@@ -499,12 +497,12 @@ class ResNetwork(GeoNetwork):
         # adjacency = self.adjacency
         # ANED = np.zeros(N)
         # ED = self.admittive_degree()
-        # for i in xrange(N):
+        # for i in range(N):
         #     sum = 0
-        #     for j in xrange(N):
+        #     for j in range(N):
         #         sum += adjacency[i][j]*ED[j]
         #     ANED[i] = sum/ED[i]
-        # # print ANED
+        # # print(ANED)
 
     def local_admittive_clustering(self):
         r"""
@@ -535,7 +533,7 @@ class ResNetwork(GeoNetwork):
         >>> print(res.local_admittive_clustering())
         [ 0.  0.00694444  0.0625  0.01077586  0. ]
         >>> print(type(res.local_admittive_clustering()))
-        <type 'numpy.ndarray'>
+        <class 'numpy.ndarray'>
         """
 
         # needed vals: admittance matrix and admittiv_degree
@@ -553,10 +551,10 @@ class ResNetwork(GeoNetwork):
             ac = np.zeros(self.N)
 
         # TODO: Sweave me!
-        for i in xrange(self.N):
+        for i in range(self.N):
             dummy = 0
-            for j in xrange(self.N):
-                for k in xrange(self.N):
+            for j in range(self.N):
+                for k in range(self.N):
                     dummy += admittance[i][j]*admittance[i][k]*admittance[j][k]
             if d[i] == 1:
                 ac[i] = 0
@@ -578,7 +576,7 @@ class ResNetwork(GeoNetwork):
         >>> print("%.3f" % res.global_admittive_clustering())
         0.016
         >>> print(type(res.global_admittive_clustering()))
-        <type 'numpy.float64'>
+        <class 'numpy.float64'>
         """
 
         return self.local_admittive_clustering().mean()
@@ -603,12 +601,11 @@ class ResNetwork(GeoNetwork):
         >>> print(res.effective_resistance(1,1))
         0.0
         >>> print(type( res.effective_resistance(1,1) ))
-        <type 'float'>
+        <class 'float'>
         >>> print("%.3f" % res.effective_resistance(1,2))
         4.444
         >>> print(type( res.effective_resistance(1,1) ))
-        <type 'float'>
-
+        <class 'float'>
         """
         # return def for self-loop
         if a == b:
@@ -636,8 +633,7 @@ class ResNetwork(GeoNetwork):
         >>> print("%.5f" % res.average_effective_resistance())
         7.28889
         >>> print(type( res.average_effective_resistance() ))
-        <type 'numpy.float64'>
-
+        <class 'numpy.float64'>
         """
 
         # since the NW is symmetric, we can only
@@ -647,8 +643,8 @@ class ResNetwork(GeoNetwork):
         # we also store a hidden, quick access var
         self._effective_resistances = np.array([])
 
-        for i in xrange(self.N):
-            for j in xrange(i):
+        for i in range(self.N):
+            for j in range(i):
                 self._effective_resistances = np.append(
                     self._effective_resistances,
                     self.effective_resistance(i, j))
@@ -668,13 +664,11 @@ class ResNetwork(GeoNetwork):
         Re-computing all effective resistances
         14.444
         >>> print(type(res.diameter_effective_resistance()))
-        <type 'numpy.float64'>
-
+        <class 'numpy.float64'>
         >>> res = ResNetwork.SmallTestNetwork()
         >>> x = res.average_effective_resistance()
         >>> print("%.3f" % res.diameter_effective_resistance())
         14.444
-
         """
         # try to use pre-computed values
         if self._effective_resistances is not None:
@@ -805,7 +799,7 @@ class ResNetwork(GeoNetwork):
     #     R = self.get_R()
 
     #     t = R[a,a] - R[a,b] - R[b,a] + R[b,b]
-    #     print "the t is %f + %fi " % (t.real,t.imag)
+    #     print("the t is %f + %fi " % (t.real,t.imag))
     #     # construct a vector that is all zero except for
     #     # the source (a) and the sink (b)
     #     # if self.flagComplex:

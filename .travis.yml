@@ -1,6 +1,6 @@
 language: python
 python:
-    - 2.7
+    - 3.6
 
 sudo: false
 dist: trusty
@@ -11,8 +11,6 @@ env:
         # possibly different versions in the future
         - IGRAPH=0.7.1
     matrix:
-        - NUMPY=1.10 SCIPY=0.16 CYTHON=0.23
-        - NUMPY=1.11 SCIPY=0.17 CYTHON=0.24
         - NUMPY=1.12 SCIPY=0.18 CYTHON=0.25
         - NUMPY=1.13 SCIPY=0.19 CYTHON=0.26
 addons:
@@ -35,7 +33,7 @@ before_install:
     - ls -R $HOME/igraph
 
     # current python packages via miniconda
-    - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then export MINICONDA=""; else export MINICONDA="3"; fi
+    - if [[ "$TRAVIS_PYTHON_VERSION" == "3.6" ]]; then export MINICONDA=""; else export MINICONDA="3"; fi
     - travis_retry wget http://repo.continuum.io/miniconda/Miniconda$MINICONDA-latest-Linux-x86_64.sh -O miniconda.sh
     - bash miniconda.sh -b -p $HOME/miniconda
     - export PATH="$HOME/miniconda/bin:$PATH"; hash -r

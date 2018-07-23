@@ -15,10 +15,9 @@ multivariate data and generating time series surrogates.
 import numpy as np
 from numpy import random
 
-from pyunicorn.core._ext.numerics import \
-    _randomlySetCrossLinks, _randomlyRewireCrossLinks, \
-    _cross_transitivity, _nsi_cross_transitivity, \
-    _cross_local_clustering, _nsi_cross_local_clustering
+from ._ext.numerics import _randomlySetCrossLinks, _randomlyRewireCrossLinks, \
+    _cross_transitivity, _nsi_cross_transitivity, _cross_local_clustering, \
+    _nsi_cross_local_clustering
 
 #  Import Network base class
 from .network import Network, NetworkError
@@ -178,8 +177,8 @@ class InteractingNetworks(Network):
         #  determine number of cross links
         if cross_link_density is not None:
             number_cross_links = int(cross_link_density * (N1 * N2))
-            print("Setting number of cross links according to \
-chosen link density.")
+            print("Setting number of cross links according to "
+                  "chosen link density.")
         elif cross_link_density is None and number_cross_links is None:
             number_cross_links = int(cross_A.sum())
             print("Creating a null model for the given interacting networks.")
@@ -636,7 +635,7 @@ chosen link density.")
         if self.directed:
             return n_links
         else:
-            return n_links / 2
+            return n_links // 2
 
     def cross_link_density(self, node_list1, node_list2):
         """

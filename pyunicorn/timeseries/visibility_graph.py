@@ -15,16 +15,16 @@ analysis (RQA) and recurrence network analysis.
 # array object and fast numerics
 import numpy as np
 
-from pyunicorn.timeseries._ext.numerics import \
-    _visibility_relations_missingvalues, \
+from ..core import InteractingNetworks
+
+from ._ext.numerics import _visibility_relations_missingvalues, \
     _visibility_relations_no_missingvalues, _visibility_relations_horizontal, \
     _visibility, _retarded_local_clustering, _advanced_local_clustering
-
-from .. import InteractingNetworks
 
 #
 #  Class definitions
 #
+
 
 class VisibilityGraph(InteractingNetworks):
     """
@@ -190,7 +190,7 @@ class VisibilityGraph(InteractingNetworks):
         """
         time_series = self.time_series
         testfun = lambda j: self.visibility(node, j)
-        return np.array(map(testfun, xrange(len(time_series[1]))))
+        return np.array(map(testfun, range(len(time_series[1]))))
 
     def visibility_horizontal_single(self, node):
         """
@@ -201,7 +201,7 @@ class VisibilityGraph(InteractingNetworks):
         """
         time_series = self.time_series
         testfun = lambda j: self.visibility_horizontal(node, j)
-        return np.array(map(testfun, xrange(len(time_series[1]))))
+        return np.array(map(testfun, range(len(time_series[1]))))
 
     def retarded_degree(self):
         """Return number of neighbors in the past of a node."""
@@ -209,7 +209,7 @@ class VisibilityGraph(InteractingNetworks):
         retarded_degree = np.zeros(self.N)
         A = self.adjacency
 
-        for i in xrange(self.N):
+        for i in range(self.N):
             retarded_degree[i] = A[i, :i].sum()
 
         return retarded_degree
@@ -220,7 +220,7 @@ class VisibilityGraph(InteractingNetworks):
         advanced_degree = np.zeros(self.N)
         A = self.adjacency
 
-        for i in xrange(self.N):
+        for i in range(self.N):
             advanced_degree[i] = A[i, i:].sum()
 
         return advanced_degree
@@ -273,7 +273,7 @@ class VisibilityGraph(InteractingNetworks):
         retarded_closeness = np.zeros(self.N)
         path_lengths = self.path_lengths()
 
-        for i in xrange(self.N):
+        for i in range(self.N):
             retarded_closeness[i] = path_lengths[i, :i].mean() ** (-1)
 
         return retarded_closeness
@@ -284,7 +284,7 @@ class VisibilityGraph(InteractingNetworks):
         advanced_closeness = np.zeros(self.N)
         path_lengths = self.path_lengths()
 
-        for i in xrange(self.N):
+        for i in range(self.N):
             advanced_closeness[i] = path_lengths[i, i+1:].mean() ** (-1)
 
         return advanced_closeness
@@ -297,7 +297,7 @@ class VisibilityGraph(InteractingNetworks):
         #  Prepare
         retarded_betweenness = np.zeros(self.N)
 
-        for i in xrange(self.N):
+        for i in range(self.N):
             retarded_indices = np.arange(i)
             retarded_betweenness[i] = self.nsi_betweenness(
                 sources=retarded_indices, targets=retarded_indices)[i]
@@ -312,7 +312,7 @@ class VisibilityGraph(InteractingNetworks):
         #  Prepare
         advanced_betweenness = np.zeros(self.N)
 
-        for i in xrange(self.N):
+        for i in range(self.N):
             advanced_indices = np.arange(i+1, self.N)
             advanced_betweenness[i] = self.nsi_betweenness(
                 sources=advanced_indices, targets=advanced_indices)[i]
@@ -327,7 +327,7 @@ class VisibilityGraph(InteractingNetworks):
         #  Prepare
         trans_betweenness = np.zeros(self.N)
 
-        for i in xrange(self.N):
+        for i in range(self.N):
             retarded_indices = np.arange(i)
             advanced_indices = np.arange(i+1, self.N)
             trans_betweenness[i] = self.nsi_betweenness(

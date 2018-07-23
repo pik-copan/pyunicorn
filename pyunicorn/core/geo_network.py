@@ -18,7 +18,7 @@ from numpy import random
 # high performance graph theory tools written in pure ANSI-C
 import igraph
 
-from pyunicorn.core._ext.numerics import _randomly_rewire_geomodel_I, \
+from ._ext.numerics import _randomly_rewire_geomodel_I, \
         _randomly_rewire_geomodel_II, _randomly_rewire_geomodel_III
 
 from .network import Network, cached_const
@@ -114,8 +114,8 @@ class GeoNetwork(Network):
             used.
         """
         if self.silence_level <= 1:
-            print("Setting area weights according to type " \
-                  + str(node_weight_type) + "...")
+            print(f"Setting area weights according to type "
+                  "{node_weight_type} ...")
 
         #  Set instance variable accordingly
         self.node_weight_type = node_weight_type
@@ -208,8 +208,8 @@ class GeoNetwork(Network):
         if fileformat in ["graphml", "graphmlz", "graphviz"]:
             self.graph.save(filename, format=fileformat)
         else:
-            print("ERROR: the chosen format is not supported by save_for_cgv \
-for use with the CGV software.")
+            print("ERROR: the chosen format is not supported by save_for_cgv "
+                  "for use with the CGV software.")
 
     @staticmethod
     def Load(filename_network, filename_grid, fileformat=None,
@@ -384,8 +384,8 @@ for use with the CGV software.")
         #  FIXME: Add example
 
         if silence_level <= 1:
-            print("Generating Barabasi-Albert random graph (n = " \
-                  + str(n_nodes) + ", m = " + str(n_links) + ")...")
+            print(f"Generating Barabasi-Albert random graph "
+                  "(n = {n_nodes}, m = {n_links})...")
 
         graph = igraph.Graph.Barabasi(n_nodes, n_links)
 
@@ -432,7 +432,7 @@ for use with the CGV software.")
         ...         silence_level=2)
         ...     n = net.n_links
         >>> print(net.link_density)
-        0.466666666667
+        0.4666666666666667
 
         :type degrees: 1D array [index]
         :arg degrees: The original degree sequence.
@@ -445,8 +445,8 @@ for use with the CGV software.")
         :return: the configuration model network.
         """
         if silence_level <= 1:
-            print("Generating configuration model random graph from degree \
-sequence...")
+            print("Generating configuration model random graph from degree "
+                  "sequence...")
 
         graph = igraph.Graph.Degree_Sequence(list(degrees))
 
@@ -506,8 +506,8 @@ sequence...")
         :arg inaccuracy: The inaccuracy with which to conserve :math:`p(l)`.
         """
         if self.silence_level <= 1:
-            print("Randomly rewiring given graph, preserving the degree \
-sequence and link distance distribution...")
+            print("Randomly rewiring given graph, preserving the degree "
+                  "sequence and link distance distribution...")
         #  Get number of nodes
         N = self.N
         #  Get number of links
@@ -564,8 +564,9 @@ sequence and link distance distribution...")
         """
         #  FIXME: Add example
         if self.silence_level <= 1:
-            print("Randomly rewiring given graph, preserving the degree \
-sequence, link distance distribution and average link distance sequence...")
+            print("Randomly rewiring given graph, preserving the degree "
+                  "sequence, link distance distribution and average link "
+                  "distance sequence...")
 
         #  Get number of nodes
         N = int(self.N)
@@ -617,9 +618,9 @@ sequence, link distance distribution and average link distance sequence...")
         """
         #  FIXME: Add example
         if self.silence_level <= 1:
-            print("Randomly rewiring given graph, preserving the degree \
-sequence, degree-degree correlations, link distance distribution and \
-average link distance sequence...")
+            print("Randomly rewiring given graph, preserving the degree "
+                  "sequence, degree-degree correlations, link distance "
+                  "distribution and average link distance sequence...")
 
         #  Get number of nodes
         N = int(self.N)
@@ -705,9 +706,9 @@ average link distance sequence...")
         #  Count pairs and links by distance
         n_pairs_by_dist = {}
         n_links_by_dist = {}
-        for j in xrange(0, N):
+        for j in range(0, N):
             print(j)
-            for i in xrange(0, j):
+            for i in range(0, j):
                 d = D[i, j]
                 try:
                     n_pairs_by_dist[d] += 1
@@ -731,9 +732,9 @@ average link distance sequence...")
 
         #  Link new pairs with respective probability
         A_new = np.zeros((N, N))
-        for j in xrange(0, N):
+        for j in range(0, N):
             print("new ", j)
-            for i in xrange(0, j):
+            for i in range(0, j):
                 d = D[i, j]
                 if p_by_dist[d] >= np.random.random():
                     A_new[i, j] = A_new[j, i] = 1
@@ -807,7 +808,7 @@ average link distance sequence...")
             ((n_bins - 1) * scaling * (sequence - range_min)).astype("int")
 
         #  Calculate histogram
-        for i in xrange(len(sequence)):
+        for i in range(len(sequence)):
             hist[symbolic[i]] += cos_lat[i]
 
         #  Normalize histogram by the total dimensionless area
@@ -857,7 +858,7 @@ average link distance sequence...")
         """
         (dist, error, lbb) = self.geographical_distribution(sequence, n_bins)
         cumu_dist = np.zeros(n_bins)
-        for i in xrange(n_bins):
+        for i in range(n_bins):
             cumu_dist[i] = dist[i:].sum()
         return (cumu_dist, error, lbb)
 
@@ -1215,7 +1216,7 @@ average link distance sequence...")
         awc = self.area_weighted_connectivity()
         max_neighbor_awc = np.zeros(self.N)
 
-        for i in xrange(self.N):
+        for i in range(self.N):
             max_neighbor_awc[i] = awc[A[i, :] == 1].max()
 
         return max_neighbor_awc
@@ -1443,7 +1444,7 @@ average link distance sequence...")
         cos_lat = self.grid.cos_lat()
         norm = cos_lat.sum()
 
-        for i in xrange(self.N):
+        for i in range(self.N):
             connectivity_weighted_distance[i] = \
                 (adjacency[i, :] * cos_lat * D[i, :]).sum()
 
@@ -1691,7 +1692,7 @@ average link distance sequence...")
         B = np.zeros((N, N)).astype("int")
         width = self.grid.grid()["lon"].size
 
-        for i in xrange(0, N):
+        for i in range(0, N):
             if i % width > 0:
                 B[i, i - 1] = 1
             elif lon_closed:
@@ -1737,8 +1738,8 @@ average link distance sequence...")
             # tries to import stripack.so which must have been compiled with
             # f2py -c -m stripack stripack.f90
         except ImportError:
-            raise RuntimeError("NOTE: stripack.so not available, " +
-                               "boundary() won't work.")
+            raise RuntimeError("NOTE: stripack.so not available, boundary() \
+                               won't work.")
 
         N = self.N
         nodes_set = set(nodes)
@@ -1793,8 +1794,8 @@ average link distance sequence...")
                     self.grid_neighbours[i] = nbsi
                     self.grid_neighbours_set[i] = set(nbsi)
         else:
-            raise NotImplementedError(
-                "Not yet implemented for lat-lon-regular grids!")
+            raise NotImplementedError("Not yet implemented for \
+                                      lat-lon-regular grids!")
 
         remaining = nodes_set.copy()
         boundary = []

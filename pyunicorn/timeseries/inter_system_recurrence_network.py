@@ -15,7 +15,7 @@ analysis (RQA) and recurrence network analysis.
 # array object and fast numerics
 import numpy as np
 
-from .. import InteractingNetworks
+from ..core import InteractingNetworks
 from .recurrence_plot import RecurrencePlot
 from .cross_recurrence_plot import CrossRecurrencePlot
 
@@ -178,9 +178,9 @@ class InterSystemRecurrenceNetwork(InteractingNetworks):
                 #  Calculate the ISRN using a fixed recurrence rate
                 ISRM = self.set_fixed_recurrence_rate(recurrence_rate)
             else:
-                raise NameError(
-                    "Please give either threshold or recurrence_rate " +
-                    "to construct the joint recurrence plot!")
+                raise NameError("Please give either threshold or \
+                                recurrence_rate to construct the joint \
+                                recurrence plot!")
 
             InteractingNetworks.__init__(self, adjacency=ISRM, directed=False,
                                          silence_level=self.silence_level)
@@ -188,8 +188,8 @@ class InterSystemRecurrenceNetwork(InteractingNetworks):
             self.missing_values = False
 
         else:
-            raise ValueError(
-                "Both time series x and y need to have the same dimension!")
+            raise ValueError("Both time series x and y need to have the same \
+                             dimension!")
 
     def __str__(self):
         """

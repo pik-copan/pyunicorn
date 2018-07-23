@@ -69,17 +69,17 @@ def _cross_correlation_max(
         int i,j,tau,k, argmax
 
     # loop over all node pairs, NOT symmetric due to time shifts!
-    for i in xrange(N):
-        for j in xrange(N):
+    for i in range(N):
+        for j in range(N):
             if i != j:
                 max = 0.0
                 argmax = 0
                 # loop over taus INCLUDING the last tau value
-                for tau in xrange(tau_max + 1):
+                for tau in range(tau_max + 1):
                     crossij = 0
                     # here the actual cross correlation is calculated
                     # assuming standardized arrays
-                    for k in xrange(corr_range):
+                    for k in range(corr_range):
                         crossij += array[tau,i,k] * array[tau_max,j,k]
                     # calculate max and argmax by comparing to
                     # previous value and storing max
@@ -105,14 +105,14 @@ def _cross_correlation_all(
         int i, j, tau, k
         double crossij
     # loop over all node pairs, NOT symmetric due to time shifts!
-    for i in xrange(N):
-        for j in xrange(N):
+    for i in range(N):
+        for j in range(N):
             # loop over taus INCLUDING the last tau value
-            for tau in xrange(tau_max):
+            for tau in range(tau_max):
                 crossij = 0
                 # here the actual cross correlation is calculated
                 # assuming standardized arrays
-                for k in xrange(corr_range):
+                for k in range(corr_range):
                     crossij += array[tau,i,k] * array[tau_max,j,k]
 
                 lagfuncs[i,j,tau_max-tau] = crossij/(float)(corr_range)

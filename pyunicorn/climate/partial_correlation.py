@@ -100,8 +100,8 @@ class PartialCorrelationClimateNetwork(TsonisClimateNetwork):
         :return: the partial correlation matrix at zero lag.
         """
         if self.silence_level <= 1:
-            print("Calculating partial correlation matrix at zero lag from \
-anomaly values...")
+            print("Calculating partial correlation matrix at zero lag from "
+                  "anomaly values...")
 
         #  Calculate the correlation matrix, cast to float64 for precise
         #  calculation of inverse matrix.
@@ -117,6 +117,6 @@ anomaly values...")
         diag = C_inv.diagonal()[:]
 
         #  Calculate matrix of normalizations
-        norm = np.sqrt(np.outer(diag, diag))
+        norm = np.sqrt(abs(np.outer(diag, diag)))
 
         return - C_inv / norm

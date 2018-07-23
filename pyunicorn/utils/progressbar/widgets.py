@@ -20,8 +20,6 @@
 
 '''Default ProgressBar widgets'''
 
-from __future__ import division
-
 import datetime
 import math
 
@@ -124,7 +122,7 @@ class FileTransferSpeed(Widget):
 
     format = '%6.2f %s%s/s'
     prefixes = ' kMGTPEZY'
-    __slots__ = ('unit', 'format')
+    __slots__ = ('unit', )
 
     def __init__(self, unit='B'):
         self.unit = unit

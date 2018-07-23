@@ -42,7 +42,7 @@ multivariate nonlinear time series analysis",
 nonlinear climate recurrence plot surrogates spatial model',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.6',
         'Operating System :: OS Independent',
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',

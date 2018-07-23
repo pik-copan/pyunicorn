@@ -10,8 +10,8 @@ Weave tests to check that python and weave implementations give the same
 results
 """
 
-from pyunicorn import ResNetwork
 import numpy as np
+from pyunicorn import ResNetwork
 
 
 res = ResNetwork.SmallTestNetwork()
@@ -26,13 +26,13 @@ def testVCFB():
         Is = It = np.float(1.0)
         # alloc output
         vcfbPython = np.float(0)
-        for t in xrange(res.N):
-            for s in xrange(t):
+        for t in range(res.N):
+            for s in range(t):
                 I = 0.0
                 if i == t or i == s:
                     pass
                 else:
-                    for j in xrange(res.N):
+                    for j in range(res.N):
                         I += admittance[i][j] * np.abs(
                             Is*(R[i][s]-R[j][s]) + It*(R[j][t]-R[i][t]))/2.
                 vcfbPython += 2.*I/(res.N*(res.N-1))
@@ -53,11 +53,11 @@ def testECFB():
     # the usual
     admittance = res.get_admittance()
     R = res.get_R()
-    for i in xrange(res.N):
-        for j in xrange(res.N):
+    for i in range(res.N):
+        for j in range(res.N):
             I = 0
-            for t in xrange(res.N):
-                for s in xrange(t):
+            for t in range(res.N):
+                for s in range(t):
                     I += admittance[i][j] * np.abs(
                         Is*(R[i][s]-R[j][s])+It*(R[j][t]-R[i][t]))
             # Lets try to compute the in
@@ -67,4 +67,5 @@ def testECFB():
     l = len(ecfbPython)
     for i in range(l):
         for j in range(l):
-            assert round(ecfbPython[i][j], 4) == round(ecfbCython[i][j], 4)
+            assert round((ecfbPython[i][j].astype('float32')), 4) == \
+                   round((ecfbCython[i][j].astype('float32')), 4)

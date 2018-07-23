@@ -14,7 +14,7 @@ Provides classes for generating and analyzing complex climate networks.
 #  Import essential packages
 #
 
-from pyunicorn.climate._ext.numerics import _calculate_corr
+from ._ext.numerics import _calculate_corr
 
 #  Import cnTsonisClimateNetwork for TsonisClimateNetwork class
 from .climate_network import ClimateNetwork

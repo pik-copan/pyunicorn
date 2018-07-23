@@ -18,8 +18,7 @@ from math import factorial
 import numpy as np
 
 # Cython inline code
-from pyunicorn.timeseries._ext.numerics import \
-    _embed_time_series, _manhattan_distance_matrix_rp, \
+from ._ext.numerics import _embed_time_series, _manhattan_distance_matrix_rp, \
     _euclidean_distance_matrix_rp, _supremum_distance_matrix_rp, \
     _set_adaptive_neighborhood_size, _bootstrap_distance_matrix_manhatten, \
     _bootstrap_distance_matrix_euclidean, _bootstrap_distance_matrix_supremum,\
@@ -215,9 +214,9 @@ class RecurrencePlot(object):
                 RecurrencePlot.set_adaptive_neighborhood_size(
                     self, self.adaptive_neighborhood_size)
             else:
-                raise NameError(
-                    "Please give either threshold or recurrence_rate " +
-                    "to construct the recurrence plot!")
+                raise NameError("Please give either threshold or \
+                                recurrence_rate to construct the recurrence \
+                                plot!")
 
     def __str__(self):
         """
@@ -255,8 +254,9 @@ class RecurrencePlot(object):
         if not self.sparse_rqa:
             return self.R
         else:
-            print("Exception: Sequential RQA mode is enabled. \
-Recurrence matrix is not stored in memory.")
+            print("Exception: Sequential RQA mode is enabled. "
+                  "Recurrence matrix is not stored in memory.")
+            return None
 
     def distance_matrix(self, embedding, metric):
         """
@@ -311,7 +311,7 @@ Recurrence matrix is not stored in memory.")
         std = time_series.std(axis=0)
 
         #  Normalize all components separately
-        for i in xrange(dim):
+        for i in range(dim):
             time_series[:, i] -= mean[i]
             if std[i] != 0:
                 time_series[:, i] /= std[i]
@@ -532,8 +532,8 @@ Recurrence matrix is not stored in memory.")
             standard deviation of the time series.
         """
         if self.silence_level <= 1:
-            print("Calculating recurrence plot at fixed threshold in units of \
-time series STD...")
+            print("Calculating recurrence plot at fixed threshold in units of "
+                  "time series STD...")
 
         #  Get absolute threshold
         threshold = threshold_std * self.time_series.std()
@@ -585,8 +585,8 @@ time series STD...")
         :arg number local_recurrence_rate: The local recurrence rate.
         """
         if self.silence_level <= 1:
-            print("Calculating recurrence plot at fixed \
-local recurrence rate...")
+            print("Calculating recurrence plot at fixed "
+                  "local recurrence rate...")
 
         #  Get distance matrix, according to self.metric
         distance = self.distance_matrix(self.embedding, self.metric)
@@ -597,7 +597,7 @@ local recurrence rate...")
         #  Initialize recurrence matrix
         recurrence = np.zeros((n_time, n_time), dtype="int8")
 
-        for i in xrange(n_time):
+        for i in range(n_time):
             #  Get threshold for state vector i to obtain fixed local
             #  recurrence rate
             local_threshold = self.threshold_from_recurrence_rate(
@@ -629,8 +629,8 @@ local recurrence rate...")
             processing by the algorithm. The standard order is :math:`1,...,N`.
         """
         if self.silence_level <= 1:
-            print("Calculating recurrence plot using the \
-adaptive neighborhood size algorithm...")
+            print("Calculating recurrence plot using the "
+                  "adaptive neighborhood size algorithm...")
 
         #  Get distance matrix, according to self.metric
         distance = self.distance_matrix(self.embedding, self.metric)
@@ -944,7 +944,7 @@ adaptive neighborhood size algorithm...")
         n_time = self.N
         lmax = 1
 
-        for i in xrange(1, n_time):
+        for i in range(1, n_time):
             if diagline[i] != 0:
                 lmax = i
 
@@ -1145,7 +1145,7 @@ adaptive neighborhood size algorithm...")
         n_time = self.N
         vmax = 1
 
-        for i in xrange(1, n_time):
+        for i in range(1, n_time):
             if vertline[i] != 0:
                 vmax = i
 
@@ -1294,7 +1294,7 @@ adaptive neighborhood size algorithm...")
         N = self.N
         vmax = 1
 
-        for i in xrange(1, N):
+        for i in range(1, N):
             if white_vertline[i] != 0:
                 vmax = i
 

@@ -15,7 +15,7 @@ analysis (RQA) and recurrence network analysis.
 # array object and fast numerics
 import numpy as np
 
-from .. import Network
+from ..core import Network
 from .recurrence_plot import RecurrencePlot
 
 
