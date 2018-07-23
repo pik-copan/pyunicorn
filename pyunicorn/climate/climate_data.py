@@ -18,7 +18,7 @@ Provides classes for generating and analyzing complex climate networks.
 import numpy as np
 from numpy import random
 
-from .. import Data
+from ..core import Data
 
 
 #
@@ -238,7 +238,7 @@ class ClimateData(Data):
 
         phase_indices = np.zeros((self.time_cycle, range_years), dtype=int)
 
-        for i in xrange(self.time_cycle):
+        for i in range(self.time_cycle):
             phase_indices[i, :] = np.arange(i, range_years * self.time_cycle,
                                             self.time_cycle)
 
@@ -291,13 +291,13 @@ class ClimateData(Data):
         elif self.time_cycle == 360:
             selected_days = []
             for month in selected_months:
-                for day in xrange(30):
+                for day in range(30):
                     selected_days.append(month * 30 + day)
 
             return self.indices_selected_phases(selected_days)
         else:
-            raise NotImplementedError("Currently only time cycles 12 and 360 "
-                                      "are supported")
+            raise NotImplementedError("Currently only time cycles 12 and 360 \
+                                      are supported")
 
     def _calculate_phase_mean(self):
         """
@@ -315,7 +315,7 @@ class ClimateData(Data):
                  cycle.
         """
         if self.silence_level <= 1:
-            print "Calculating climatological mean values..."
+            print("Calculating climatological mean values...")
 
         #  Get raw data
         observable = self.observable()
@@ -329,7 +329,7 @@ class ClimateData(Data):
         phase_mean = np.zeros((time_cycle, N))
 
         #  Calculate mean value for each day (month) on each node
-        for i in xrange(time_cycle):
+        for i in range(time_cycle):
             phase_mean[i, :] = observable[i::time_cycle, :].mean(axis=0)
 
         return phase_mean
@@ -377,7 +377,7 @@ class ClimateData(Data):
         :return: the anomalized time series.
         """
         if self.silence_level <= 1:
-            print "Calculating daily (monthly) anomaly values..."
+            print("Calculating daily (monthly) anomaly values...")
 
         #  Get raw data
         observable = self.observable()
@@ -387,7 +387,7 @@ class ClimateData(Data):
         anomaly = np.zeros(observable.shape)
 
         #  Thanks to Jakob Runge
-        for i in xrange(time_cycle):
+        for i in range(time_cycle):
             sample = observable[i::time_cycle, :]
             anomaly[i::time_cycle, :] = sample - sample.mean(axis=0)
 
@@ -431,7 +431,7 @@ class ClimateData(Data):
         :return: the anomalized time series for selected months.
         """
         selected_indices = self.indices_selected_months(selected_months)
-        print selected_indices
+        print(selected_indices)
         return self.anomaly()[selected_indices, :]
 
     def shuffled_anomaly(self):
@@ -455,12 +455,12 @@ class ClimateData(Data):
         :return: the anomalized and shuffled time series.
         """
         if self.silence_level <= 1:
-            print "Shuffling anomaly time series for significance tests..."
+            print("Shuffling anomaly time series for significance tests...")
 
         N = self.grid.grid_size()["space"]
         shuffled_anomaly = np.empty(self.anomaly().shape)
 
-        for i in xrange(N):
+        for i in range(N):
             temp = self.anomaly()[:, i].copy()
             random.shuffle(temp)
             shuffled_anomaly[:, i] = temp

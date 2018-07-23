@@ -15,9 +15,8 @@ analysis (RQA) and recurrence network analysis.
 # array object and fast numerics
 import numpy as np
 
-from pyunicorn.timeseries._ext.numerics import \
-    _manhattan_distance_matrix_crp, _euclidean_distance_matrix_crp, \
-    _supremum_distance_matrix_crp
+from ._ext.numerics import _manhattan_distance_matrix_crp, \
+    _euclidean_distance_matrix_crp, _supremum_distance_matrix_crp
 
 from .recurrence_plot import RecurrencePlot
 
@@ -151,9 +150,8 @@ class CrossRecurrencePlot(RecurrencePlot):
             CrossRecurrencePlot.\
                 set_fixed_recurrence_rate(self, recurrence_rate)
         else:
-            raise NameError(
-                "Please give either threshold or recurrence_rate " +
-                "to construct the cross recurrence plot!")
+            raise NameError("Please give either threshold or recurrence_rate \
+                            to construct the cross recurrence plot!")
 
     def __str__(self):
         """
@@ -201,6 +199,8 @@ class CrossRecurrencePlot(RecurrencePlot):
         elif metric == "supremum":
             return self.supremum_distance_matrix(x_embedded.astype('float32'),
                                                  y_embedded.astype('float32'))
+        else:
+            return None
 
     #
     #  Calculate recurrence plot
@@ -218,7 +218,7 @@ class CrossRecurrencePlot(RecurrencePlot):
         :return: the manhattan distance matrix.
         """
         if self.silence_level <= 1:
-            print "Calculating the manhattan distance matrix..."
+            print("Calculating the manhattan distance matrix...")
 
         ntime_x = x_embedded.shape[0]
         ntime_y = y_embedded.shape[0]
@@ -239,7 +239,7 @@ class CrossRecurrencePlot(RecurrencePlot):
         :return: the euclidean distance matrix.
         """
         if self.silence_level <= 1:
-            print "Calculating the euclidean distance matrix..."
+            print("Calculating the euclidean distance matrix...")
 
         ntime_x = x_embedded.shape[0]
         ntime_y = y_embedded.shape[0]
@@ -260,7 +260,7 @@ class CrossRecurrencePlot(RecurrencePlot):
         :return: the supremum distance matrix.
         """
         if self.silence_level <= 1:
-            print "Calculating the supremum distance matrix..."
+            print("Calculating the supremum distance matrix...")
 
         ntime_x = x_embedded.shape[0]
         ntime_y = y_embedded.shape[0]
@@ -280,7 +280,7 @@ class CrossRecurrencePlot(RecurrencePlot):
         :arg number threshold: The recurrence threshold.
         """
         if self.silence_level <= 1:
-            print "Calculating cross recurrence plot at fixed threshold..."
+            print("Calculating cross recurrence plot at fixed threshold...")
 
         #  Get distance matrix, according to self.metric
         distance = self.distance_matrix(self.x_embedded, self.y_embedded,
@@ -312,8 +312,8 @@ class CrossRecurrencePlot(RecurrencePlot):
         :arg number recurrence_rate: The recurrence rate.
         """
         if self.silence_level <= 1:
-            print "Calculating cross recurrence plot at \
-fixed recurrence rate..."
+            print("Calculating cross recurrence plot at fixed recurrence \
+                  rate...")
 
         #  Get distance matrix, according to self.metric
         distance = self.distance_matrix(self.x_embedded, self.y_embedded,

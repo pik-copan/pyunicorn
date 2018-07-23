@@ -15,9 +15,9 @@ multivariate data and generating time series surrogates.
 import numpy as np
 from numpy import random
 
-from pyunicorn.timeseries._ext.numerics import \
-    _embed_time_series_array, _recurrence_plot, _twins_s, _twin_surrogates, \
-    _test_pearson_correlation, _test_mutual_information
+from ._ext.numerics import _embed_time_series_array, _recurrence_plot, \
+    _twins_s, _twin_surrogates, _test_pearson_correlation, \
+    _test_mutual_information
 
 # easy progress bar handling
 from ..utils import progressbar
@@ -57,7 +57,7 @@ class Surrogates(object):
         :arg int silence_level: The inverse level of verbosity of the object.
         """
         if silence_level <= 1:
-            print "Generated an instance of the Surrogates class."
+            print("Generated an instance of the Surrogates class.")
 
         #  Set class variables
         self.original_data = original_data
@@ -105,7 +105,7 @@ class Surrogates(object):
         #  Create time series
         ts = np.zeros((6, 200))
 
-        for i in xrange(6):
+        for i in range(6):
             ts[i, :] = np.sin(np.arange(200)*np.pi/15. + i*np.pi/2.) + \
                 np.sin(np.arange(200) * np.pi / 30.)
 
@@ -139,7 +139,7 @@ class Surrogates(object):
         mean = time_series_array.mean(axis=1)
         std = time_series_array.std(axis=1)
 
-        for i in xrange(time_series_array.shape[0]):
+        for i in range(time_series_array.shape[0]):
             #  Remove mean value from time series at each node (grid point)
             time_series_array[i, :] -= mean[i]
             #  Normalize the standard deviation of anomalies to one
@@ -173,8 +173,8 @@ class Surrogates(object):
         :return: the embedded time series.
         """
         if self.silence_level <= 1:
-            print "Embedding all time series in dimension", dimension, \
-                  "and with lag", delay, "..."
+            print("Embedding all time series in dimension", dimension,
+                  "and with lag", delay, "...")
         (N, n_time) = time_series_array.shape
 
         embedding = np.empty((N, n_time - (dimension - 1)*delay, dimension))
@@ -200,7 +200,7 @@ class Surrogates(object):
         :return: the recurrence matrix.
         """
         if self.silence_level <= 1:
-            print "Calculating the recurrence plot..."
+            print("Calculating the recurrence plot...")
 
         n_time = embedding.shape[0]
         dimension = embedding.shape[1]
@@ -233,7 +233,7 @@ class Surrogates(object):
         :return: the list of twins for each state vector in the time series.
         """
         if self.silence_level <= 1:
-            print "Finding twins..."
+            print("Finding twins...")
 
         N = embedding_array.shape[0]
         n_time = embedding_array.shape[1]
@@ -279,14 +279,14 @@ class Surrogates(object):
         :return: The surrogate time series.
         """
         if self.silence_level <= 1:
-            print "Generating white noise surrogates by random shuffling..."
+            print("Generating white noise surrogates by random shuffling...")
 
         #  Generate reference to shuffle function
         shuffle = random.shuffle
 
         surrogates = original_data.copy()
 
-        for i in xrange(surrogates.shape[0]):
+        for i in range(surrogates.shape[0]):
             shuffle(surrogates[i, :])
 
         return surrogates
@@ -332,7 +332,7 @@ class Surrogates(object):
         :return: The surrogate time series.
         """
         if self.silence_level <= 1:
-            print "Generating correlated noise surrogates..."
+            print("Generating correlated noise surrogates...")
 
         #  Calculate FFT of original_data time series
         #  The FFT of the original_data data has to be calculated only once,
@@ -380,7 +380,7 @@ class Surrogates(object):
         ranks = original_data.argsort(axis=1).argsort(axis=1)
         rescaled_data = np.zeros(original_data.shape)
 
-        for i in xrange(original_data.shape[0]):
+        for i in range(original_data.shape[0]):
             rescaled_data[i, :] = gaussian[i, ranks[i, :]]
 
         #  Phase randomize rescaled data
@@ -393,7 +393,7 @@ class Surrogates(object):
 
         ranks = phase_randomized_data.argsort(axis=1).argsort(axis=1)
 
-        for i in xrange(original_data.shape[0]):
+        for i in range(original_data.shape[0]):
             rescaled_data[i, :] = sorted_original[i, ranks[i, :]]
 
         return rescaled_data
@@ -443,7 +443,7 @@ class Surrogates(object):
         R = self.AAFT_surrogates(original_data)
 
         #  Start iteration
-        for i in xrange(n_iterations):
+        for i in range(n_iterations):
             #  Get Fourier phases of R surrogate
             r_fft = np.fft.rfft(R, axis=1)
             r_phases = r_fft / np.abs(r_fft)
@@ -456,7 +456,7 @@ class Surrogates(object):
             #  Rescale to desired amplitude distribution
             ranks = s.argsort(axis=1).argsort(axis=1)
 
-            for j in xrange(original_data.shape[0]):
+            for j in range(original_data.shape[0]):
                 R[j, :] = sorted_original[j, ranks[j, :]]
 
         if output == "true_amplitudes":
@@ -597,7 +597,6 @@ class Surrogates(object):
         :type surrogates: 2D Numpy array [index, time]
         :arg surrogates: The surrogate time series.
         :arg int n_bins: Number of bins for estimating prob. distributions.
-        :arg bool fast: fast or slow algorithm to be used.
         :rtype: 2D array [index, index]
         :return: the mutual information test matrix.
         """
@@ -631,8 +630,8 @@ class Surrogates(object):
         :return: the similarity measure histogram and lower bin boundaries.
         """
         if self.silence_level <= 1:
-            print "Estimating probability density distribution of \
-original_data data..."
+            print("Estimating probability density distribution of \
+                  original_data data...")
 
         #  Normalize original_data time series to zero mean and unit variance
         if not self._normalized:
@@ -680,8 +679,8 @@ original_data data..."
         :return: similarity measure test histogram and lower bin boundaries.
         """
         if self.silence_level <= 1:
-            print "Starting significance test based on", realizations, \
-                  "realizations of surrogates..."
+            print("Starting significance test based on", realizations,
+                  "realizations of surrogates...")
 
         original_data = self.original_data
         self._fft_cached = False
@@ -702,7 +701,7 @@ original_data data..."
         if self.silence_level <= 2:
             progress = progressbar.ProgressBar(maxval=realizations).start()
 
-        for i in xrange(realizations):
+        for i in range(realizations):
             #  Update progress bar
             if self.silence_level <= 2:
                 progress.update(i)
@@ -717,9 +716,9 @@ original_data data..."
 
             #  Test if correlation measure values are outside range
             if correlation_measure_test.min() < interval[0]:
-                print "Warning! Correlation measure value left of range."
+                print("Warning! Correlation measure value left of range.")
             if correlation_measure_test.max() > interval[1]:
-                print "Warning! Correlation measure value right of range."
+                print("Warning! Correlation measure value right of range.")
 
             #  Estimate density of current realization
             (hist, lbb) = numpy_hist(correlation_measure_test, n_bins,

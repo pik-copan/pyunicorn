@@ -114,7 +114,7 @@ void _test_mutual_information_fast(int N, int n_time, int n_bins,
 
     double *p_original, *p_surrogates;
     float *p_mi;
-    long *p_symbolic_original, *p_symbolic_surrogates, *p_hist_original,
+    int *p_symbolic_original, *p_symbolic_surrogates, *p_hist_original,
          *p_hist_surrogates, *p_hist2d;
 
     //  Calculate histogram norm

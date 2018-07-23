@@ -186,8 +186,8 @@ cdef void overwriteAdjacency(
         unsigned int i, j
         INTTYPE_t n1, n2
 
-    for i in xrange(m):
-        for j in xrange(n):
+    for i in range(m):
+        for j in range(n):
             n1, n2 = nodes1[i], nodes2[j]
             A[n1, n2] = A[n2, n1] = cross_A[i, j]
 
@@ -208,7 +208,7 @@ def _randomlySetCrossLinks(
         unsigned int i, j
 
     # create random cross links
-    for _ in xrange(number_cross_links):
+    for _ in range(number_cross_links):
         while True:
             i, j = randint(m), randint(n)
             if not cross_A[i, j]:
@@ -228,7 +228,7 @@ def _randomlyRewireCrossLinks(
         INTTYPE_t e1, e2, a, b, c, d
 
     # implement permutations
-    for _ in xrange(number_swaps):
+    for _ in range(number_swaps):
         while True:
             # choose two random edges
             e1, e2 = randint(number_cross_links), randint(number_cross_links)
@@ -260,13 +260,13 @@ def _cross_transitivity(
         INTTYPE_t n1, n2, n3
         long triangles = 0, triples = 0
 
-    for i in xrange(m):
+    for i in range(m):
         n1 = nodes1[i]
         # loop over unique pairs of nodes in subnetwork 2
-        for j in xrange(n):
+        for j in range(n):
             n2 = nodes2[j]
             if A[n1, n2]:
-                for k in xrange(j):
+                for k in range(j):
                     n3 = nodes2[k]
                     if A[n1, n3]:
                         triples += 1
@@ -289,17 +289,17 @@ def _nsi_cross_transitivity(
         INTTYPE_t node_v, node_p, node_q
         FLOATTYPE_t weight_v, weight_p, ppv, pqv, T1 = 0, T2 = 0
 
-    for v in xrange(m):
+    for v in range(m):
         node_v = nodes1[v]
         weight_v = node_weights[node_v]
-        for p in xrange(n):
+        for p in range(n):
             node_p = nodes2[p]
             if A[node_v, node_p]:
                 weight_p = node_weights[node_p]
                 ppv = weight_p * weight_p * weight_v
                 T1 += ppv
                 T2 += ppv
-                for q in xrange(p + 1, n):
+                for q in range(p + 1, n):
                     node_q = nodes2[q]
                     if A[node_v, node_q]:
                         pqv = 2 * weight_p * node_weights[node_q] * weight_v
@@ -320,16 +320,16 @@ def _cross_local_clustering(
         INTTYPE_t n1, n2, n3
         long counter
 
-    for i in xrange(m):
+    for i in range(m):
         n1 = nodes1[i]
         # check if node1[i] has cross degree larger than 1
         if norm[i]:
             counter = 0
             # loop over unique pairs of nodes in subnetwork 2
-            for j in xrange(n):
+            for j in range(n):
                 n2 = nodes2[j]
                 if A[n1, n2]:
-                    for k in xrange(j):
+                    for k in range(j):
                         n3 = nodes2[k]
                         if A[n2, n3] and A[n3, n1]:
                             counter += 1
@@ -347,14 +347,14 @@ def _nsi_cross_local_clustering(
         INTTYPE_t node_v, node_p, node_q
         FLOATTYPE_t weight_p
 
-    for v in xrange(m):
+    for v in range(m):
         node_v = nodes1[v]
-        for p in xrange(n):
+        for p in range(n):
             node_p = nodes2[p]
             if A[node_v, node_p]:
                 weight_p = node_weights[node_p]
                 nsi_cc[v] += weight_p * weight_p
-                for q in xrange(p + 1, n):
+                for q in range(p + 1, n):
                     node_q = nodes2[q]
                     if A[node_p, node_q] and A[node_q, node_v]:
                         nsi_cc[v] += 2 * weight_p * node_weights[node_q]
@@ -379,24 +379,24 @@ def _local_cliquishness_4thorder(
             np.zeros(N, dtype=FLOATTYPE)
 
     # Iterate over all nodes
-    for i in xrange(N):
+    for i in range(N):
         # If degree is smaller than order - 1, set local cliquishness to 0
         degree_i = degree[i]
         if degree_i >= order - 1:
             # Get neighbors of node i
             index = 0
-            for j in xrange(N):
+            for j in range(N):
                 if A[i, j] == 1:
                     neighbors[index] = j
                     index += 1
             counter = 0
             # Iterate over possibly existing edges between 3 neighbors of i
-            for j in xrange(degree_i):
+            for j in range(degree_i):
                 node1 = neighbors[j]
-                for k in xrange(degree_i):
+                for k in range(degree_i):
                     node2 = neighbors[k]
                     if A[node1, node2] == 1:
-                        for l in xrange(degree_i):
+                        for l in range(degree_i):
                             node3 = neighbors[l]
                             if A[node2, node3] == 1 and A[node3, node1] == 1:
                                 counter += 1
@@ -418,27 +418,27 @@ def _local_cliquishness_5thorder(
             np.zeros(N, dtype=FLOATTYPE)
 
     # Iterate over all nodes
-    for i in xrange(N):
+    for i in range(N):
         # If degree is smaller than order - 1, set local cliquishness to 0
         degree_i = degree[i]
         if degree_i >= order - 1:
             # Get neighbors of node i
             index = 0
-            for j in xrange(N):
+            for j in range(N):
                 if A[i, j] == 1:
                     neighbors[index] = j
                     index += 1
             counter = 0
             # Iterate over possibly existing edges between 4 neighbors of i
-            for j in xrange(degree_i):
+            for j in range(degree_i):
                 node1 = neighbors[j]
-                for k in xrange(degree_i):
+                for k in range(degree_i):
                     node2 = neighbors[k]
                     if A[node1, node2] == 1:
-                        for l in xrange(degree_i):
+                        for l in range(degree_i):
                             node3 = neighbors[l]
                             if A[node1, node3] == 1 and A[node2, node3] == 1:
-                                for m in xrange(degree_i):
+                                for m in range(degree_i):
                                     node4 = neighbors[m]
                                     if (A[node1, node4] == 1 and
                                         A[node2, node4] == 1 and
@@ -473,7 +473,7 @@ def _nsi_betweenness(
             np.zeros(N, dtype=FLOATTYPE)
 
     # init distances to j and queue of nodes by distance from j
-    for l in xrange(N):
+    for l in range(N):
         # distances_to_j[l] = 2 * N
         # n_predecessors[l] = 0
         # multiplicity_to_j[l] = 0.0
@@ -489,16 +489,16 @@ def _nsi_betweenness(
     # breadth-first search giving all the shortest paths to j)
     qi = 0
     while qi < queue_len:
-    #for qi in xrange(queue_len):
+    #for qi in range(queue_len):
         i = queue[qi]
         if i == -1:
             # this should never happen ...
-            print "Opps: %d,%d,%d\n" % qi, queue_len, i
+            print("Opps: %d,%d,%d\n" % qi, queue_len, i)
             break
         next_d = distances_to_j[i] + 1
         #iterate through all neighbors l of i
         oi = offsets[i]
-        for l_index in xrange(oi, oi+k[i]):
+        for l_index in range(oi, oi+k[i]):
             # if on a shortes j-l-path, register i as predecessor of l
             l = flat_neighbors[l_index]
             dl = distances_to_j[l]
@@ -516,10 +516,10 @@ def _nsi_betweenness(
     # process the queue again backward: (this is Newman's 2nd part where
     # the contribution of paths ending in j to the betweenness of all nodes
     # is computed recursively by traversing the shortest paths backwards)
-    for ql in xrange(queue_len-1, -1, -1):
+    for ql in range(queue_len-1, -1, -1):
         l = queue[ql]
         if l == -1:
-            print "Opps: %d,%d,%d\n" % ql, queue_len, l
+            print("Opps: %d,%d,%d\n" % ql, queue_len, l)
             break
         if l == j:
             # set betweenness and excess to zero
@@ -528,7 +528,7 @@ def _nsi_betweenness(
             # otherwise, iterate through all predecessors i of l:
             base_factor = w[l] / multiplicity_to_j[l]
             ol = offsets[l]
-            for fi in xrange(ol, ol+n_predecessors[l]):
+            for fi in range(ol, ol+n_predecessors[l]):
                 # add betweenness to predecessor
                 i = flat_predecessors[fi]
                 betweenness_to_j[i] += betweenness_to_j[l] * base_factor * \
@@ -545,16 +545,16 @@ def _newman_betweenness_badly_cython(np.ndarray[INTTYPE_t, ndim=2] adjacency,
 
     norm = 2 / (N * (N - 1))
 
-    for i in xrange(N):
-        for s in xrange(N):
-            for t in xrange(s):
+    for i in range(N):
+        for s in range(N):
+            for t in range(s):
                 if (i == s or i == t):
                     rwb[i] += 1
                 else:
                     sum = 0
                     Tis = T[i,s]
                     Tit = T[i,t]
-                    for j in xrange(N):
+                    for j in range(N):
                         if (adjacency[i,j] == 1):
                             Tjs = T(j,s)
                             Tjt = T(j,t)
@@ -581,17 +581,17 @@ def _cy_mpi_newman_betweenness(
         np.ndarray[FLOATTYPE_t, ndim=1] this_betweenness =\
             np.zeros(this_N, dtype=FLOATTYPE)
 
-    for i_rel in xrange(this_N):
+    for i_rel in range(this_N):
         # correct i index for V matrix
         i_abs = i_rel + start_i
-        for j in xrange(N):
+        for j in range(N):
              if this_A[i_rel, j]:
                 sum_j = 0.0
-                for s in xrange(N):
+                for s in range(N):
                     if i_abs != s:
                         Vis_minus_Vjs = V[i_abs, s] - V[j, s]
                         sum_s = 0.0
-                        for t in xrange(s):
+                        for t in range(s):
                             if i_abs != t:
                                 sum_s += abs(Vis_minus_Vjs - V[i_abs, t] +
                                              V[j, t])
@@ -615,16 +615,16 @@ def _cy_mpi_nsi_newman_betweenness(
         np.ndarray[FLOATTYPE_t, ndim=1] this_betweenness =\
             np.zeros(this_N, dtype=FLOATTYPE)
 
-    for i_rel in xrange(this_N):
+    for i_rel in range(this_N):
         i_abs = i_rel + start_i
-        for j in xrange(N):
+        for j in range(N):
              if this_A[i_rel, j]:
                 sum_j = 0.0
-                for s in xrange(N):
+                for s in range(N):
                     if this_not_adj_or_equal[i_rel, s]:
                         Vis_minus_Vjs = V[i_abs, s] - V[j, s]
                         sum_s = 0.0
-                        for t in xrange(s):
+                        for t in range(s):
                             if this_not_adj_or_equal[i_rel, t]:
                                 sum_s += w[t] *\
                                     abs(Vis_minus_Vjs - V[i_abs, t] + V[j, t])
@@ -648,7 +648,7 @@ def _do_nsi_clustering_I(
             Dch_wc_Dih_wj, whd0, Dch_wc_whd0
 
     # loop thru candidates:
-    for ca in xrange(n_cands):
+    for ca in range(n_cands):
         ij = cands[ca]
         i = ij/N
         j = ij%N
@@ -906,8 +906,8 @@ def _cy_calculate_angular_distance(
         FLOAT32TYPE_t expr
         unsigned int i,j
 
-    for i in xrange(N):
-        for j in xrange(i+1):
+    for i in range(N):
+        for j in range(i+1):
             expr = sin_lat[i]*sin_lat[j] + cos_lat[i]*cos_lat[j] * \
                 (sin_lon[i]*sin_lon[j] + cos_lon[i]*cos_lon[j])
 
@@ -927,8 +927,8 @@ def _euclidiean_distance(
         unsigned int i,j
         FLOAT32TYPE_t expr
 
-    for i in xrange(N):
-        for j in xrange(i+1):
+    for i in range(N):
+        for j in range(i+1):
             expr = (x[i]-x[j])**2 + (y[i]-y[j])**2
             distance[i, j] = distance[j, i] = expr**(0.5)
 

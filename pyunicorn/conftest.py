@@ -50,7 +50,7 @@ def rr(obj, decimals=4):
     """
     Force arrays in stubborn scientific notation into a few digits.
     """
-    print np.vectorize('%.4g'.__mod__)(r(obj, decimals=decimals))
+    print(np.vectorize('%.4g'.__mod__)(r(obj, decimals=decimals)))
 
 
 @pytest.fixture(autouse=True)

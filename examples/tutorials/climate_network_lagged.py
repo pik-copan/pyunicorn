@@ -65,10 +65,10 @@ LAG = 10
 #  Print script title
 #
 
-print "\n"
-print "Tutorial on how to use climate"
-print "-------------------------------"
-print "\n"
+print("\n")
+print("Tutorial on how to use climate")
+print("-------------------------------")
+print("\n")
 
 #
 #  Create a ClimateData object containing the data and print information
@@ -80,7 +80,7 @@ data = climate.ClimateData.Load(
     window=WINDOW, time_cycle=TIME_CYCLE)
 
 #  Print some information on the data set
-print data
+print(data)
 
 #
 #  Create a MapPlots object to manage 2D-plotting on the sphere
@@ -125,7 +125,7 @@ net = climate.ClimateNetwork(grid=grid, similarity_measure=similarity_matrix,
 #  Some calculations
 #
 
-print "Link density:", net.link_density
+print("Link density:", net.link_density)
 
 #  Get degree
 degree = net.degree()
