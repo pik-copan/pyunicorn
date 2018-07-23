@@ -33,7 +33,7 @@ from .grid import Grid
 #  Define class Data
 #
 
-class Data(object):
+class Data:
 
     """
     Encapsulates general spatio-temporal data.
@@ -105,7 +105,7 @@ class Data(object):
         if self.file_name:
             self.print_data_info()
 
-        return ('Data: %i grid points, %i measurements.\n' +
+        return ('Data: %i grid points, %i measurements.\n'
                 'Geographical boundaries:\n%s') % (
                     self.grid.N, self.grid.n_grid_points,
                     self.grid.print_boundaries())
@@ -303,8 +303,8 @@ class Data(object):
                 res["observable"] = observable[:, level, :, :].copy()
             else:
                 print("Regular NetCDF data sets with dimensions other than "
-                      "3 (time, lat, lon) or 4 (time, level, lat, lon) are not "
-                      "supported by Data class!")
+                      "3 (time, lat, lon) or 4 (time, level, lat, lon) are "
+                      "not supported by Data class!")
 
         elif file_type == "iNetCDF":
             # Create Grid instance
@@ -726,9 +726,8 @@ class Data(object):
         decay_length = int(gamma * n_time / 2)
 
         #  Calculate decay and growth regions
-        growth_region = 0.5 * (
-            1 + np.cos(np.arange(decay_length) * np.pi /
-                       float(decay_length) + np.pi))
+        growth_region = 0.5 * (1 + np.cos(
+            np.arange(decay_length) * np.pi / float(decay_length) + np.pi))
         growth_region = np.tile(growth_region, (n_nodes, 1))
         growth_region = growth_region.transpose()
 

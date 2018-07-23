@@ -212,7 +212,7 @@ class JointRecurrencePlot(RecurrencePlot):
         """
         Returns a string representation.
         """
-        return ('JointRecurrencePlot: time series shapes %s.\n' +
+        return ('JointRecurrencePlot: time series shapes %s.\n'
                 'Embedding dimension %i\nThreshold %s, %s metric') % (
                     self.x.shape, self.dim if self.dim else 0,
                     self.threshold, self.metric)

@@ -118,8 +118,8 @@ class CoupledTsonisClimateNetwork(CoupledClimateNetwork):
         """
         Return a string representation of CoupledClimateNetwork object.
         """
-        return ('CoupledTsonisClimateNetwork:\n' +
-                CoupledClimateNetwork.__str__(self))
+        return ('CoupledTsonisClimateNetwork:\n'
+                f'{CoupledClimateNetwork.__str__(self)}')
 
     #
     #  Defines methods to calculate the correlation matrix

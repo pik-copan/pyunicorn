@@ -195,7 +195,7 @@ class InterSystemRecurrenceNetwork(InteractingNetworks):
         """
         Returns a string representation.
         """
-        return ('InterSystemRecurrenceNetwork: time series shapes %s, %s.\n' +
+        return ('InterSystemRecurrenceNetwork: time series shapes %s, %s.\n'
                 'Embedding dimension %i\nThreshold %s, %s metric.\n%s') % (
                     self.x.shape, self.y.shape, self.dim if self.dim else 0,
                     self.threshold, self.metric,
@@ -310,10 +310,7 @@ class InterSystemRecurrenceNetwork(InteractingNetworks):
 
         #  Set diagonal of ISRM to zero to avoid self-loops
         ISRM.flat[::self.N + 1] = 0
-
-        #  Initialize the underlying InteractingNetworks object
-        InteractingNetworks.__init__(self, adjacency=ISRM, directed=False,
-                                     silence_level=self.silence_level)
+        return ISRM
 
     #
     #  Methods to quantify inter system recurrence networks

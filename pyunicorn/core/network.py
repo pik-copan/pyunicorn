@@ -38,14 +38,6 @@ from scipy.sparse.linalg import eigsh, inv, splu
 
 import igraph                       # high performance graph theory tools
 
-# Progressbar breaks Network import on python 3.
-# TODO: Use progressbar3?
-if sys.version < '3':
-    has_progressbar = True
-    from ..utils import progressbar     # easy progress bar handling
-else:
-    has_progressbar = False
-
 from ..utils import mpi             # parallelized computations
 
 from ._ext.numerics import _local_cliquishness_4thorder, \
@@ -53,6 +45,14 @@ from ._ext.numerics import _local_cliquishness_4thorder, \
     _cy_mpi_newman_betweenness, _nsi_betweenness, _higher_order_transitivity4,\
     _newman_betweenness_badly_cython, _do_nsi_clustering_I, \
     _do_nsi_clustering_II, _do_nsi_hamming_clustering
+
+# Progressbar breaks Network import on python 3.
+# TODO: Use progressbar3?
+if sys.version < '3':
+    has_progressbar = True
+    from ..utils import progressbar     # easy progress bar handling
+else:
+    has_progressbar = False
 
 
 def nz_coords(matrix):
@@ -234,7 +234,7 @@ class Network(object):
 
         :rtype: string
         """
-        return ('Network: %sdirected, %i nodes, %i links, ' +
+        return ('Network: %sdirected, %i nodes, %i links, '
                 'link density %.3f.') % ('' if self.directed else 'un', self.N,
                                          self.n_links, self.link_density)
 
@@ -760,9 +760,8 @@ class Network(object):
         """
         if link_probability is not None and n_links is None:
             if silence_level < 1:
-                print("Generating Erdos-Renyi random graph with " +
-                      str(n_nodes) + " nodes and probability " +
-                      str(link_probability) + "...")
+                print(f"Generating Erdos-Renyi random graph with "
+                      f"{n_nodes} nodes and probability {link_probability}...")
 
             graph = igraph.Graph.Erdos_Renyi(n=n_nodes, p=link_probability)
             #  Get edge list
@@ -770,9 +769,8 @@ class Network(object):
 
         elif link_probability is None and n_links is not None:
             if silence_level < 1:
-                print("Generating Erdos-Renyi random graph with " +
-                      str(n_nodes) + " nodes and " +
-                      str(n_links) + " links...")
+                print(f"Generating Erdos-Renyi random graph with "
+                      f"{n_nodes} nodes and {n_links} links...")
 
             graph = igraph.Graph.Erdos_Renyi(n=n_nodes, m=n_links)
             #  Get edge list
@@ -1183,8 +1181,8 @@ class Network(object):
             inc_prob[i] = w[i]**exponent
             total_inc_prob += inc_prob[i]
             if (mode == "exp" and random.uniform() > hold_prob**w[i]) or \
-                    (mode == "rec" and random.uniform() <
-                     w[i]*1.0/(split_weight+w[i])):  # reciprocal
+                    (mode == "rec" and random.uniform()
+                     < w[i]*1.0/(split_weight+w[i])):  # reciprocal
                 # split i into i,this_N:
                 total_inc_prob -= inc_prob[i]
                 w[this_N] = w[i]*random.beta(beta, beta)
@@ -3395,8 +3393,8 @@ class Network(object):
             #  neighbors. These nodes get zero geographical closeness
             #  centrality.
             path_length_sum = path_lengths.sum(axis=1)
-            CC[path_length_sum != 0] = ((self.N - 1) /
-                                        path_length_sum[path_length_sum != 0])
+            CC[path_length_sum != 0] = \
+                (self.N - 1) / path_length_sum[path_length_sum != 0]
 
             #  Reverse changes to weightedPathLengths
             path_lengths[unconnected_pairs] = np.inf
@@ -3837,9 +3835,9 @@ class Network(object):
                         min((mpi.size-1) * 10.0, 0.1 * N))))
                     step = int(np.ceil(1.0 * N / (1.0 * parts)))
                     if self.silence_level <= 0:
-                        print("   parallelizing on " + str(mpi.size-1) +
-                              " slaves into " + str(parts) +
-                              " parts with " + str(step) + " nodes each...")
+                        print(f"   parallelizing on {mpi.size-1}"
+                              f" slaves into {parts} parts with "
+                              f"{step} nodes each...")
 
                     for index in range(parts):
                         start_i = index * step
@@ -4603,8 +4601,8 @@ class Network(object):
         if alpha is None:
             alpha = 1.0 / self.degree().mean()
         return matfuncs.expm2(
-            np.log(2.0) * (alpha * self.adjacency -
-                           np.identity(self.N))).sum(axis=0).flatten()
+            np.log(2.0) * (alpha * self.adjacency
+                           - np.identity(self.N))).sum(axis=0).flatten()
 
     def nsi_spreading(self, alpha=None):
         """
@@ -4621,8 +4619,8 @@ class Network(object):
             alpha = self.total_node_weight / k.dot(w)
         # print(alpha)
         return (matfuncs.expm2(
-            np.log(2.0)*(Aplus * alpha * w - sp.identity(N))).dot(Aplus) *
-                w.reshape((N, 1))).sum(axis=0)
+            np.log(2.0)*(Aplus * alpha * w - sp.identity(N))).dot(Aplus)
+            * w.reshape((N, 1))).sum(axis=0)
 
     def do_nsi_pca_clustering(self, max_n_clusters=None):
         """
@@ -4691,14 +4689,14 @@ class Network(object):
         if self.silence_level <= 1:
             print("max_n_clusters was", max_n_clusters)
             print(f"found {len(evals)} eigenvalues and "
-                  "{len(cluster_index_set)} clusters")
+                  f"{len(cluster_index_set)} clusters")
             print(f"cluster sizes range from {cluster_sizes.min()} to "
-                  "{cluster_sizes.max()} with median {np.median(cluster_sizes)}"
-                  ": {cluster_sizes}")
+                  f"{cluster_sizes.max()} with median "
+                  f"{np.median(cluster_sizes)}: {cluster_sizes}")
             print(f"max and min found eigenvalues are {max(evals)} and "
-                  "{min(evals)} (average of all was {tau/N})")
+                  f"{min(evals)} (average of all was {tau/N})")
             print(f"pca and clusters explain {sum(evals)/tau} and "
-                  "{sum(cluster_explained_var)/tau} of total variance.")
+                  f"{sum(cluster_explained_var)/tau} of total variance.")
 
         return (cluster_index,  # cluster_index for each node
                 cluster_fit,    # fraction of node's variance explained by
@@ -4820,7 +4818,7 @@ class Network(object):
             else:
                 d0 = 1.0 * N
             print(f"calculated {d0} as average non-linked distance, "
-                  "needed {time.time()-t0} sec.")
+                  f"needed {time.time()-t0} sec.")
 
         ftype = "float32"
         dict_D = {}  # weighted sum of distances between clusters
@@ -4899,7 +4897,7 @@ class Network(object):
                                           dict_Delta)
 
         print(f"initialization of error increments needed"
-              "{time.time()-t0} sec.")
+              f"{time.time()-t0} sec.")
 
         # successively join the best pair:
         sumt1 = sumt2 = sumt3 = 0.0
@@ -5037,9 +5035,9 @@ class Network(object):
             minlen = [int(parent[n]-max(n, N-1)) for n in range(N2-1)]
             # TODO: eps + error difference
             edgelen = np.array(
-                [max(0.0, error[N2-parent[n]]) for n in range(N)] +
-                [max(0.0, error[N2-parent[n]]-error[N2-n])
-                 for n in range(N, N2-1)])  # minlen
+                [max(0.0, error[N2-parent[n]]) for n in range(N)]
+                + [max(0.0, error[N2-parent[n]]-error[N2-n])
+                   for n in range(N, N2-1)])  # minlen
             # TODO: 1/(eps + error difference)
             # [1.0 for i in range(N2-1)]
             penwidth = 30.0 / (1.0 + 29.0*edgelen/edgelen.max())
@@ -5199,8 +5197,9 @@ class Network(object):
 
             if united < n + 100 or united % (1 + n2/100) == 0 or \
                     united >= n2 - 100:
-                print(f"for {n2-united} clusters with error {hamming[united]/WW} "
-                      "we join clusters {part1} and {part2} to get cluster {united}")
+                print(f"for {n2-united} clusters with error "
+                      f"{hamming[united]/WW} we join clusters "
+                      f"{part1} and {part2} to get cluster {united}")
                 sys.stdout.flush()
 
             # unite parts:

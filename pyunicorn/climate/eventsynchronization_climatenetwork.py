@@ -106,8 +106,8 @@ class EventSynchronizationClimateNetwork(EventSynchronization, ClimateNetwork):
         Local connections filtered out: False
         Type of event synchronization to construct the network: directedES
         """
-        text = ("EventSynchronizationClimateNetwork: \n%s\n%s\n \
-                Type of event synchronization to construct the network: %s")
+        text = ("EventSynchronizationClimateNetwork: \n%s\n%s\n"
+                "Type of event synchronization to construct the network: %s")
         return text % (EventSynchronization.__str__(self),
                        ClimateNetwork.__str__(self), self.__eventsynctype)
 

@@ -15,11 +15,11 @@ multivariate data and generating time series surrogates.
 #  Import essential packages
 #
 
-#  array object and fast numerics
-import numpy as np
-
 #  Import pickle for loading and saving Python objects
 import pickle
+
+#  array object and fast numerics
+import numpy as np
 
 # Import package to calculate points inside a polygon
 try:
@@ -36,7 +36,7 @@ from ._ext.numerics import _cy_calculate_angular_distance, _euclidiean_distance
 #
 
 
-class Grid(object):
+class Grid:
 
     """
     Encapsulates a horizontal spatio-temporal grid on the sphere.
@@ -130,8 +130,8 @@ class Grid(object):
             pickle.dump(self, f)
             f.close()
         except IOError:
-            print(f"An error occurred while saving Grid instance to "
-                  "pickle file {filename}")
+            print("An error occurred while saving Grid instance to "
+                  f"pickle file {filename}")
 
     def save_txt(self, filename):
         """
@@ -154,8 +154,8 @@ class Grid(object):
             np.savetxt(filename + "_lon.txt", lon_seq)
             np.savetxt(filename + "_time.txt", time_seq)
         except IOError:
-            print(f"An error occurred while saving Grid instance to "
-                  "text files {filename}")
+            print("An error occurred while saving Grid instance to "
+                  f"text files {filename}")
 
     @staticmethod
     def Load(filename):
@@ -174,8 +174,8 @@ class Grid(object):
 
             return grid
         except IOError:
-            print(f"An error occurred while loading Grid instance from "
-                  "pickle file {filename}")
+            print("An error occurred while loading Grid instance from "
+                  f"pickle file {filename}")
 
     @staticmethod
     def LoadTXT(filename):
@@ -195,8 +195,8 @@ class Grid(object):
             lon_seq = np.loadtxt(filename + "_lon.txt")
             time_seq = np.loadtxt(filename + "_time.txt")
         except IOError:
-            print(f"An error occurred while loading Grid instance from "
-                  "text files {filename}")
+            print("An error occurred while loading Grid instance from "
+                  f"text files {filename}")
 
         return Grid(time_seq, lat_seq, lon_seq)
 
@@ -582,8 +582,8 @@ class Grid(object):
         Pretty print the spatio-temporal grid boundaries.
         """
         return (
-            "         time     lat     lon" +
-            "\n   min {time_min:6.1f} {lat_min: 7.2f} {lon_min: 7.2f}" +
+            "         time     lat     lon"
+            "\n   min {time_min:6.1f} {lat_min: 7.2f} {lon_min: 7.2f}"
             "\n   max {time_max:6.1f} {lat_max: 7.2f} {lon_max: 7.2f}"
         ).format(**self.boundaries())
 
@@ -689,7 +689,7 @@ class Grid(object):
 
         >>> Grid.SmallTestGrid().region_indices(
         ...     np.array([0.,0.,0.,11.,11.,11.,11.,0.]))
-        array([False,  True,  True, False, False, False], dtype=bool)
+        array([False,  True,  True, False, False, False])
 
         :type region: 1D Numpy array [n_polygon_nodes]
         :arg region: array of lon, lat, lon, lat, ...

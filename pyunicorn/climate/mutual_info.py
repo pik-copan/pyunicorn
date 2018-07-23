@@ -278,22 +278,22 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         try:
             #  Try to load MI from file
             if self.silence_level <= 1:
-                print(f"Loading mutual information matrix from "
-                      "{self.mi_file}...")
+                print("Loading mutual information matrix from "
+                      f"{self.mi_file}...")
 
             with open(self.mi_file, 'r') as f:
                 mi = np.load(f)
                 #  Check if the dimensions of mutual_information correspond to
                 #  the grid.
                 if mi.shape != (self.N, self.N):
-                    print(self.mi_file +
-                          " in current directory has incorrect dimensions!")
+                    print(f"{self.mi_file} in current directory has "
+                          "incorrect dimensions!")
                     raise RuntimeError
 
         except (IOError, RuntimeError):
             if self.silence_level <= 1:
                 print("An error occured while loading data from "
-                      "{self.mi_file}.")
+                      f"{self.mi_file}.")
                 print("Recalculating mutual information.")
 
             mi = self._cython_calculate_mutual_information(anomaly)

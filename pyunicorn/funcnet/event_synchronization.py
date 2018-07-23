@@ -18,7 +18,7 @@ import numpy as np
 from .. import cached_const
 
 
-class EventSynchronization(object):
+class EventSynchronization:
 
     """
     Contains methods to calculate event synchronization matrices from event
@@ -74,8 +74,8 @@ class EventSynchronization(object):
         """(dict) cache of re-usable computation results"""
 
         # Check for right input format
-        if len(np.unique(eventmatrix)) != 2 or not (np.unique(eventmatrix) ==
-                                                    np.array([0, 1])).all():
+        if len(np.unique(eventmatrix)) != 2 or not (
+                np.unique(eventmatrix) == np.array([0, 1])).all():
             raise ValueError("Eventmatrix not in correct format")
 
         # Print warning if number of events is not identical for all variables
@@ -152,8 +152,8 @@ class EventSynchronization(object):
         if lx in [1, 2] or ly in [1, 2]:    # Too few events to calculate
             return 0., 0.
         # Array of distances
-        dstxy2 = 2 * (np.repeat(ex[:, 1:-1].T, ly-2, axis=1) -
-                      np.repeat(ey[:, 1:-1], lx-2, axis=0))
+        dstxy2 = 2 * (np.repeat(ex[:, 1:-1].T, ly-2, axis=1)
+                      - np.repeat(ey[:, 1:-1], lx-2, axis=0))
         # Dynamical delay
         diffx = np.diff(ex)
         diffy = np.diff(ey)

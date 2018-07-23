@@ -31,7 +31,7 @@ except ImportError:
 #  Define class NetCDF
 #
 
-class NetCDFDictionary(object):
+class NetCDFDictionary:
 
     """
     Encapsulates appropriate dictionary following NetCDF conventions.
@@ -139,11 +139,11 @@ class NetCDFDictionary(object):
                         content["variables"][var]["array"].astype('float32')
                     print("MODULE: Array %s converted to 'float32'." % var)
                 except MemoryError:
-                    print(f"MODULE: Memory Error during conversion of "
-                          "array {var}.")
+                    print("MODULE: Memory Error during conversion of "
+                          f"array {var}.")
                 except RuntimeError:
-                    print(f"MODULE: Other Error during conversion of "
-                          "array {var}.")
+                    print("MODULE: Other Error during conversion of "
+                          f"array {var}.")
 
                 #  If a scale_factor is given in the variable, rescale array
                 if "scale_factor" in content["variables"][var]["attributes"]:
@@ -183,7 +183,7 @@ class NetCDFDictionary(object):
             if not self.dict[val]:
                 print("MODULE: Entry %s is empty." % val)
 
-        print("MODULE: If {file_name} already existed, old file will be "
+        print(f"MODULE: If {file_name} already existed, old file will be "
               "overwritten.")
         #  Format can be:
         #  NETCDF3_CLASSIC, NETCDF3_64BIT, NETCDF4_CLASSIC, NETCDF4
@@ -214,7 +214,8 @@ class NetCDFDictionary(object):
                     zlib=compress, complevel=comp_level,
                     least_significant_digit=least_significant_digit)
             except RuntimeError:
-                print(f"MODULE: Couldn't create variable {var} in NetCDF file.")
+                print(f"MODULE: Couldn't create variable {var} "
+                      "in NetCDF file.")
 
             #  Copy the array
             var_[:] = self.dict["variables"][var]["array"]

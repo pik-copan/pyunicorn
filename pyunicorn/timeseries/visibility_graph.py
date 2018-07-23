@@ -358,7 +358,7 @@ class VisibilityGraph(InteractingNetworks):
         N_past = np.arange(self.N)
         N_future = N_past[::-1]
 
-        ccloseness = (self.N - 1) * (self.retarded_closeness() / N_past +
-                                     self.advanced_closeness() / N_future)
+        ccloseness = (self.N - 1) * (self.retarded_closeness() / N_past
+                                     + self.advanced_closeness() / N_future)
 
         return ccloseness

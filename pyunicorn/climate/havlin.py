@@ -103,9 +103,10 @@ class HavlinClimateNetwork(ClimateNetwork):
         """
         Return a string version of the instance of HavlinClimateNetwork.
         """
-        return ('HavlinClimateNetwork:\n%s\nMaximum delay used for ' +
-                'correlation strength estimation: %s') % (
-                    ClimateNetwork.__str__(self), self.get_max_delay())
+        return (f'HavlinClimateNetwork:\n'
+                '{ClimateNetwork.__str__(self)}\n'
+                'Maximum delay used for correlation strength estimation: '
+                '{self.get_max_delay()}')
 
     def clear_cache(self, irreversible=False):
         """

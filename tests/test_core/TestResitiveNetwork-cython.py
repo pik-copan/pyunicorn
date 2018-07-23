@@ -29,7 +29,7 @@ def testVCFB():
         for t in range(res.N):
             for s in range(t):
                 I = 0.0
-                if i == t or i == s:
+                if i in (t, s):
                     pass
                 else:
                     for j in range(res.N):

@@ -1014,9 +1014,9 @@ class InteractingNetworks(Network):
         """
         if self.directed:
             return (self.cross_indegree(node_list1, node_list2,
-                                        link_attribute) +
-                    self.cross_outdegree(node_list1, node_list2,
-                                         link_attribute))
+                                        link_attribute)
+                    + self.cross_outdegree(node_list1, node_list2,
+                                           link_attribute))
         else:
             return self.cross_outdegree(node_list1, node_list2,
                                         link_attribute)
@@ -1101,8 +1101,8 @@ class InteractingNetworks(Network):
         :return: the internal degree sequence.
         """
         if self.directed:
-            return (self.internal_indegree(node_list, link_attribute) +
-                    self.internal_outdegree(node_list, link_attribute))
+            return (self.internal_indegree(node_list, link_attribute)
+                    + self.internal_outdegree(node_list, link_attribute))
         else:
             return self.internal_outdegree(node_list, link_attribute)
 
@@ -1434,8 +1434,8 @@ class InteractingNetworks(Network):
         :rtype: 1D array [node index]
         :return: the n.s.i. cross-degree for layer 1.
         """
-        cross_A = (self.adjacency +
-                   np.eye(self.N))[node_list1, :][:, node_list2]
+        cross_A = (self.adjacency
+                   + np.eye(self.N))[node_list1, :][:, node_list2]
         return (cross_A * self.node_weights[node_list2]).sum(axis=1)
 
     def nsi_cross_mean_degree(self, node_list1, node_list2):
@@ -1447,9 +1447,9 @@ class InteractingNetworks(Network):
         >>> InteractingNetworks.SmallTestNetwork().\
                 nsi_cross_mean_degree([0,1,2],[3,4,5])
         2.5
-        >>> InteractingNetworks.SmallTestNetwork().\
-                nsi_cross_mean_degree([0,2,5],[1,4])
-        0.94999999999999996
+        >>> r(InteractingNetworks.SmallTestNetwork().\
+                nsi_cross_mean_degree([0,2,5],[1,4]))
+        0.95
 
         :arg [int] node_list1: list of node indices describing the subnetwork 1
         :arg [int] node_list2: list of node indices describing the subnetwork 2
@@ -1566,9 +1566,9 @@ class InteractingNetworks(Network):
 
         **Examples:**
 
-        >>> InteractingNetworks.SmallTestNetwork().\
-                nsi_cross_global_clustering([0,1,2],[3,4,5])
-        0.66878664680862498
+        >>> r(InteractingNetworks.SmallTestNetwork().\
+                nsi_cross_global_clustering([0,1,2],[3,4,5]))
+        0.6688
 
         :arg [int] node_list1: list of node indices describing the subnetwork 1
         :arg [int] node_list2: list of node indices describing the subnetwork 2

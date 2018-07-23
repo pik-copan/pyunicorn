@@ -22,7 +22,7 @@ import numpy
 #  Define class CouplingAnalysisPurePython
 #
 
-class CouplingAnalysisPurePython(object):
+class CouplingAnalysisPurePython:
 
     """
     Contains methods to calculate coupling matrices from large arrays
@@ -374,8 +374,8 @@ class CouplingAnalysisPurePython(object):
 
             # This gives the symbolic time series
             symbolic_array[t] = \
-                (array.reshape(self.N, corr_range, 1) >=
-                 edges.reshape(self.N, 1, bins)).sum(axis=2) - 1
+                (array.reshape(self.N, corr_range, 1)
+                 >= edges.reshape(self.N, 1, bins)).sum(axis=2) - 1
 
         return self._calculate_mi(symbolic_array, corr_range=corr_range,
                                   bins=bins, tau_max=tau_max,
@@ -472,8 +472,8 @@ class CouplingAnalysisPurePython(object):
 
         # This gives the symbolic time series
         symbolic_array[0] = \
-            (array.reshape(self.N, corr_range, 1) >=
-             edges.reshape(self.N, 1, bins)).sum(axis=2) - 1
+            (array.reshape(self.N, corr_range, 1)
+             >= edges.reshape(self.N, 1, bins)).sum(axis=2) - 1
 
         res = self._calculate_mi(symbolic_array, corr_range=corr_range,
                                  bins=bins, tau_max=0, lag_mode='all')
@@ -532,8 +532,8 @@ class CouplingAnalysisPurePython(object):
 
             # This gives the symbolic time series
             symbolic_array[t] = \
-                (array.reshape(self.N, sample_range, 1) >=
-                 edges.reshape(self.N, 1, bins)).sum(axis=2) - 1
+                (array.reshape(self.N, sample_range, 1)
+                 >= edges.reshape(self.N, 1, bins)).sum(axis=2) - 1
 
         return self._calculate_mi(symbolic_array, corr_range=sample_range,
                                   bins=bins, tau_max=tau_max,

@@ -30,7 +30,7 @@ except ImportError:
 #
 
 
-class MapPlots(object):
+class MapPlots:
 
     """
     Encapsulates map plotting functions.

@@ -247,14 +247,15 @@ if am_master:
             # send name to call, args, time_est to slave:
             if _verbose:
                 print(f"MPI master : assigning call with id {id} to slave "
-                      "{slave}: {name_to_call} {args} {kwargs} ...")
+                      f"{slave}: {name_to_call} {args} {kwargs} ...")
             comm.send((name_to_call, args, kwargs, module, time_est),
                       dest=slave)
         else:
             # do it myself right now:
             slave = 0
             if _verbose:
-                print(f"MPI master : calling {name_to_call} {args} {kwargs} ...")
+                print(f"MPI master : calling {name_to_call} {args} {kwargs} "
+                      "...")
             try:
                 object_to_call = eval(name_to_call,
                                       sys.modules[module].__dict__)
@@ -305,14 +306,15 @@ if am_master:
                                    + str(slave_queue[source][0]) + ")!")
             if _verbose:
                 print(f"MPI master : retrieving result for call with id {id} "
-                      "from slave {source} ...")
+                      f"from slave {source} ...")
             (result, this_stats) = comm.recv(source=source)
             stats.append(this_stats)
             n_processed[source] = this_stats["n_processed"]
             total_time[source] = this_stats["total_time"]
         else:
             if _verbose:
-                print(f"MPI master : returning result for call with id {id} ...")
+                print(f"MPI master : returning result for call with id {id} "
+                      "...")
             result = results[id]
             # TODO: rather return a copy and del the original?
         queue.remove(id)
@@ -351,53 +353,53 @@ if am_master:
 
         if available:
             slave_quotients = total_time/total_time_est
-            print("\n" +
-                  "MPI: processing statistics\n" +
-                  "     =====================\n" +
-                  "     results collected:         " +
-                  str(n_processed[1:].sum()) + "\n" +
-                  "     results not yet collected: " +
-                  str(len(queue)) + "\n" +
-                  "     total reported time:       " +
-                  str(call_times.sum()) + "\n" +
-                  "     mean time per call:        " +
-                  str(call_times.mean()) + "\n" +
-                  "     std.dev. of time per call: " +
-                  str(call_times.std()) + "\n" +
-                  "     coeff. of var. of actual over estd. time per call: " +
-                  str(call_quotients.std()/call_quotients.mean()) + "\n" +
-                  "     slaves:                      " +
-                  str(n_slaves) + "\n" +
-                  "     mean calls per slave:        " +
-                  str(n_processed[1:].mean()) + "\n" +
-                  "     std.dev. of calls per slave: " +
-                  str(n_processed[1:].std()) + "\n" +
-                  "     min calls per slave:         " +
-                  str(n_processed[1:].min()) + "\n" +
-                  "     max calls per slave:         " +
-                  str(n_processed[1:].max()) + "\n" +
-                  "     mean time per slave:        " +
-                  str(total_time.mean()) + "\n" +
-                  "     std.dev. of time per slave: " +
-                  str(total_time.std()) + "\n" +
-                  "     coeff. of var. of actual over estd. time per slave: " +
-                  str(slave_quotients.std()/slave_quotients.mean()) + "\n")
+            print("\n"
+                  "MPI: processing statistics\n"
+                  "     =====================\n"
+                  "     results collected:         "
+                  f"{n_processed[1:].sum()}\n"
+                  "     results not yet collected: "
+                  f"{len(queue)}\n"
+                  "     total reported time:       "
+                  f"{call_times.sum()}\n"
+                  "     mean time per call:        "
+                  f"{call_times.mean()}\n"
+                  "     std.dev. of time per call: "
+                  f"{call_times.std()}\n"
+                  "     coeff. of var. of actual over estd. time per call: "
+                  f"{call_quotients.std()/call_quotients.mean()}\n"
+                  "     slaves:                      "
+                  f"{n_slaves}\n"
+                  "     mean calls per slave:        "
+                  f"{n_processed[1:].mean()}\n"
+                  "     std.dev. of calls per slave: "
+                  f"{n_processed[1:].std()}\n"
+                  "     min calls per slave:         "
+                  f"{n_processed[1:].min()}\n"
+                  "     max calls per slave:         "
+                  f"{n_processed[1:].max()}\n"
+                  "     mean time per slave:        "
+                  f"{total_time.mean()}\n"
+                  "     std.dev. of time per slave: "
+                  f"{total_time.std()}\n"
+                  "     coeff. of var. of actual over estd. time per slave: "
+                  f"{slave_quotients.std()/slave_quotients.mean()}\n")
         else:
-            print("\n" +
-                  "MPI: processing statistics\n" +
-                  "     =====================\n" +
-                  "     results collected:         " +
-                  str(n_processed[0]) + "\n" +
-                  "     results not yet collected: " +
-                  str(len(queue)) + "\n" +
-                  "     total reported time:       " +
-                  str(call_times.sum()) + "\n" +
-                  "     mean time per call:        " +
-                  str(call_times.mean()) + "\n" +
-                  "     std.dev. of time per call: " +
-                  str(call_times.std()) + "\n" +
-                  "     coeff. of var. of actual over estd. time per call: " +
-                  str(call_quotients.std()/call_quotients.mean()) + "\n")
+            print("\n"
+                  "MPI: processing statistics\n"
+                  "     =====================\n"
+                  "     results collected:         "
+                  f"{n_processed[0]}\n"
+                  "     results not yet collected: "
+                  f"{len(queue)}\n"
+                  "     total reported time:       "
+                  f"{call_times.sum()}\n"
+                  "     mean time per call:        "
+                  f"{call_times.mean()}\n"
+                  "     std.dev. of time per call: "
+                  f"{call_times.std()}\n"
+                  "     coeff. of var. of actual over estd. time per call: "
+                  f"{call_quotients.std()/call_quotients.mean()}\n")
 
     def terminate():
         """

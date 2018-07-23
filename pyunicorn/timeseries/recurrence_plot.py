@@ -33,7 +33,7 @@ from ._ext.numerics import _embed_time_series, _manhattan_distance_matrix_rp, \
 #
 
 
-class RecurrencePlot(object):
+class RecurrencePlot:
 
     """
     Class RecurrencePlot for generating and quantitatively analyzing
@@ -222,7 +222,7 @@ class RecurrencePlot(object):
         """
         Returns a string representation.
         """
-        return ('RecurrencePlot: time series shape %s.\n' +
+        return ('RecurrencePlot: time series shape %s.\n'
                 'Embedding dimension %i\nThreshold %s, %s metric') % (
                     self.time_series.shape, self.dim if self.dim else 0,
                     self.threshold, self.metric)

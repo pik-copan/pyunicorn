@@ -27,7 +27,7 @@ from ..utils import progressbar
 #  Define class Surrogates
 #
 
-class Surrogates(object):
+class Surrogates:
 
     """
     Encapsulates structures and methods related to surrogate time series.
@@ -174,7 +174,7 @@ class Surrogates(object):
         """
         if self.silence_level <= 1:
             print(f"Embedding all time series in dimension {dimension} "
-                  "and with lag {delay} ...")
+                  f"and with lag {delay} ...")
         (N, n_time) = time_series_array.shape
 
         embedding = np.empty((N, n_time - (dimension - 1)*delay, dimension))

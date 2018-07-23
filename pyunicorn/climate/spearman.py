@@ -88,8 +88,8 @@ class SpearmanClimateNetwork(TsonisClimateNetwork):
         """
         Returns a string representation of SpearmanClimateNetwork.
         """
-        return ('SpearmanClimateNetwork:\n' +
-                TsonisClimateNetwork.__str__(self))
+        return ('SpearmanClimateNetwork:\n'
+                f'{TsonisClimateNetwork.__str__(self)}')
 
     #
     #  Defines methods to calculate the correlation matrix

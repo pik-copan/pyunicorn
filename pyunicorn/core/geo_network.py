@@ -87,8 +87,8 @@ class GeoNetwork(Network):
         """
         Return a string representation of the GeoNetwork object.
         """
-        return ('GeoNetwork:\n' + Network.__str__(self) +
-                '\nGeographical boundaries:\n' + self.grid.print_boundaries())
+        return (f'GeoNetwork:\n{Network.__str__(self)}\n'
+                f'Geographical boundaries:\n{self.grid.print_boundaries()}')
 
     def clear_cache(self):
         """
@@ -114,8 +114,8 @@ class GeoNetwork(Network):
             used.
         """
         if self.silence_level <= 1:
-            print(f"Setting area weights according to type "
-                  "{node_weight_type} ...")
+            print("Setting area weights according to type "
+                  f"{node_weight_type} ...")
 
         #  Set instance variable accordingly
         self.node_weight_type = node_weight_type
@@ -318,7 +318,7 @@ class GeoNetwork(Network):
         GeoNetwork:
         Network: undirected, 6 nodes, 5 links, link density 0.333.
         Geographical boundaries:
-                   time     lat     lon
+                 time     lat     lon
            min    0.0    0.00    2.50
            max    9.0   25.00   15.00
 
@@ -341,18 +341,16 @@ class GeoNetwork(Network):
         """
         if link_probability is not None and n_links is None:
             if silence_level <= 1:
-                print("Generating Erdos-Renyi random graph with " +
-                      str(n_nodes) + " nodes and probability " +
-                      str(link_probability) + "...")
+                print(f"Generating Erdos-Renyi random graph with {n_nodes} "
+                      f"nodes and probability {link_probability}...")
             graph = igraph.Graph.Erdos_Renyi(n=n_nodes, p=link_probability)
             # type=2 corresponds to returning the full adjacency matrix
             A = np.array(graph.get_adjacency(type=2).data)
 
         elif link_probability is None and n_links is not None:
             if silence_level <= 1:
-                print("Generating Erdos-Renyi random graph with " +
-                      str(n_nodes) + " nodes and " + str(n_links) +
-                      " links...")
+                print(f"Generating Erdos-Renyi random graph with {n_nodes} "
+                      f"nodes and {n_links} links...")
             graph = igraph.Graph.Erdos_Renyi(n=n_nodes, m=n_links)
             # type=2 corresponds to returning the full adjacency matrix
             A = np.array(graph.get_adjacency(type=2).data)
@@ -384,8 +382,8 @@ class GeoNetwork(Network):
         #  FIXME: Add example
 
         if silence_level <= 1:
-            print(f"Generating Barabasi-Albert random graph "
-                  "(n = {n_nodes}, m = {n_links})...")
+            print("Generating Barabasi-Albert random graph "
+                  f"(n = {n_nodes}, m = {n_links})...")
 
         graph = igraph.Graph.Barabasi(n_nodes, n_links)
 
@@ -942,8 +940,8 @@ class GeoNetwork(Network):
             print("Calculating area weighted connectivity...")
 
         if self.directed:
-            return (self.inarea_weighted_connectivity() +
-                    self.outarea_weighted_connectivity())
+            return (self.inarea_weighted_connectivity()
+                    + self.outarea_weighted_connectivity())
         else:
             return self.inarea_weighted_connectivity()
 
