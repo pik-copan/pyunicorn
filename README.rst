@@ -16,11 +16,11 @@ invariant)** network statistics as well as measures designed for analyzing
 **networks of interacting/interdependent networks**.
 
 Moreover, ``pyunicorn`` allows to easily **construct networks from uni- and
-multivariate time series data** (functional (climate) networks and recurrence
+multivariate time series and event data** (functional (climate) networks and recurrence
 networks). This involves linear and nonlinear measures of time series analysis
-for constructing functional networks from multivariate data as well as modern
-techniques of nonlinear analysis of single time series like recurrence
-quantification analysis (RQA) and recurrence network analysis.
+for constructing functional networks from multivariate data (e.g. Pearson correlation, mutual information, event synchronization and event coincidence analysis). ``pyunicorn`` also features modern
+techniques of nonlinear analysis of single and pairs of time series such as recurrence
+quantification analysis (RQA), recurrence network analysis and visibility graphs.
 
 Code
 ----
