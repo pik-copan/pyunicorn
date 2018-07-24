@@ -10,7 +10,7 @@ Physics by Jonathan F. Donges (donges@pik-potsdam.de) at University of Potsdam
 / Humboldt University Berlin and Potsdam Institute of Climate Impact Research
 (PIK),
 
-Copyright 2008-2017.
+Copyright 2008-2018.
 """
 
 import numpy as np

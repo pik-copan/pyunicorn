@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+# This file is part of pyunicorn.
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
+# URL: <http://www.pik-potsdam.de/members/donges/software>
+# License: BSD (3-clause)
+
+
 from setuptools import setup
 from setuptools.extension import Extension
 
