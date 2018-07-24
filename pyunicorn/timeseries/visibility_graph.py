@@ -21,6 +21,8 @@ from ._ext.numerics import _visibility_relations_missingvalues, \
     _visibility_relations_no_missingvalues, _visibility_relations_horizontal, \
     _visibility, _retarded_local_clustering, _advanced_local_clustering
 
+from .. import InteractingNetworks
+
 #
 #  Class definitions
 #

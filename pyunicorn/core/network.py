@@ -154,8 +154,8 @@ class Network(object):
     #  Definitions of internal methods
     #
 
-    def __init__(self, adjacency=None, edge_list=None, directed=False,
-                 node_weights=None, silence_level=0):
+    def __init__(self, adjacency=None, n_nodes=None, edge_list=None,
+                 directed=False, node_weights=None, silence_level=0):
         """
         Return a new directed or undirected Network object
         with given adjacency matrix and optional node weights.
@@ -165,6 +165,8 @@ class Network(object):
         :arg  adjacency: Adjacency matrix of the new network.  Entry [i,j]
             indicates whether node i links to node j.  Its diagonal must be
             zero.  Must be symmetric if directed=False.
+        :type n_nodes: int
+        :arg  n_nodes: Number of nodes, optional argument when using edge_list
         :type edge_list: array-like list of lists
         :arg  edge_list: Edge list of the new network.  Entries [i,0], [i,1]
             contain the end-nodes of an edge.
@@ -185,8 +187,12 @@ class Network(object):
         self.silence_level = silence_level
         """(int>=0) higher -> less progress info"""
 
-        self.N = 0
-        """(int>0) number of nodes"""
+        if n_nodes is None:
+            self.N = 0
+            """(int>0) number of nodes"""
+        else:
+            self.N = n_nodes
+
         self.n_links = 0
         """(int>0) number of links"""
         self.link_density = 0
@@ -215,7 +221,7 @@ class Network(object):
         if adjacency is not None:
             self._set_adjacency(adjacency)
         elif edge_list is not None:
-            self.set_edge_list(edge_list)
+            self.set_edge_list(edge_list, n_nodes)
         else:
             raise NetworkError("An adjacency matrix or edge list has to be \
                                given to initialize an instance of Network.")
@@ -452,7 +458,7 @@ class Network(object):
     def adjacency(self, adjacency):
         self._set_adjacency(adjacency)
 
-    def set_edge_list(self, edge_list):
+    def set_edge_list(self, edge_list, n_nodes=None):
         """
         Reset network from an edge list representation.
 
@@ -467,7 +473,11 @@ class Network(object):
         """
         #  Convert to Numpy array and get number of nodes
         edges = np.array(edge_list)
-        N = edges.max() + 1
+
+        if n_nodes is None:
+            N = edges.max() + 1
+        else:
+            N = n_nodes
 
         #  Symmetrize if undirected network
         if not self.directed:
@@ -779,7 +789,7 @@ class Network(object):
         else:
             return None
 
-        return Network(edge_list=edge_list, directed=False,
+        return Network(n_nodes=n_nodes, edge_list=edge_list, directed=False,
                        silence_level=silence_level)
 
     @staticmethod
