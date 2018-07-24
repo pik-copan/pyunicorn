@@ -688,8 +688,8 @@ class Grid:
         **Example:**
 
         >>> Grid.SmallTestGrid().region_indices(
-        ...     np.array([0.,0.,0.,11.,11.,11.,11.,0.]))
-        array([False,  True,  True, False, False, False])
+        ...     np.array([0.,0.,0.,11.,11.,11.,11.,0.])).astype(int)
+        array([0, 1, 1, 0, 0, 0])
 
         :type region: 1D Numpy array [n_polygon_nodes]
         :arg region: array of lon, lat, lon, lat, ...
