@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -37,7 +37,7 @@ cdef extern from "src_numerics.c":
     void _cross_correlation_max_fast(float *array, float *similarity_matrix,
             signed char *lag_matrix, int N, int tau_max, int corr_range)
     void _cross_correlation_all_fast(float *array, float *lagfuncs, int N,
-            int tau_max, int corr_range) 
+            int tau_max, int corr_range)
     void _get_nearest_neighbors_fast(float *array, int T, int dim_x, int dim_y,
             int k, int dim, int *k_xy, int *k_yz, int *k_z)
 
@@ -69,21 +69,21 @@ def _cross_correlation_max(
         int i,j,tau,k, argmax
 
     # loop over all node pairs, NOT symmetric due to time shifts!
-    for i in xrange(N):
-        for j in xrange(N):
+    for i in range(N):
+        for j in range(N):
             if i != j:
                 max = 0.0
                 argmax = 0
                 # loop over taus INCLUDING the last tau value
-                for tau in xrange(tau_max + 1):
+                for tau in range(tau_max + 1):
                     crossij = 0
                     # here the actual cross correlation is calculated
                     # assuming standardized arrays
-                    for k in xrange(corr_range):
+                    for k in range(corr_range):
                         crossij += array[tau,i,k] * array[tau_max,j,k]
                     # calculate max and argmax by comparing to
                     # previous value and storing max
-                    if abs(crossij) > abs(max): 
+                    if abs(crossij) > abs(max):
                         max = crossij
                         argmax = tau
                 similarity_matrix[i,j] = max/(float)(corr_range)
@@ -105,14 +105,14 @@ def _cross_correlation_all(
         int i, j, tau, k
         double crossij
     # loop over all node pairs, NOT symmetric due to time shifts!
-    for i in xrange(N):
-        for j in xrange(N):
+    for i in range(N):
+        for j in range(N):
             # loop over taus INCLUDING the last tau value
-            for tau in xrange(tau_max):
+            for tau in range(tau_max):
                 crossij = 0
                 # here the actual cross correlation is calculated
                 # assuming standardized arrays
-                for k in xrange(corr_range):
+                for k in range(corr_range):
                     crossij += array[tau,i,k] * array[tau_max,j,k]
 
                 lagfuncs[i,j,tau_max-tau] = crossij/(float)(corr_range)
@@ -123,7 +123,7 @@ def _cross_correlation_all(
 def _get_nearest_neighbors_cython(
         np.ndarray[float, ndim=1, mode='c'] array not None,
         int T, int dim_x, int dim_y, int k, int dim):
-    
+
     # Initialize
     cdef np.ndarray[INT32TYPE_t, ndim=1, mode='c'] k_xz = \
             np.zeros((T), dtype='int32')

@@ -1,6 +1,6 @@
 
 **Copyright**
-    |copy| 2008-2017 Jonathan F. Donges and pyunicorn authors.
+    |copy| 2008-2018 Jonathan F. Donges and pyunicorn authors.
 
 **License**
     BSD (3-clause)
@@ -35,16 +35,16 @@
       <mail@dreeg.org>`_ (supplied ``resistive_network`` and corresponding
       tests)
     - `Wolfram Barfuss <barfuss@pik-potsdam.de>`_
-    - Nils Harmening (cythonized weave.inline functions, extended test
-      framework)
+    - Nils Harmening (cythonized ``weave.inline`` functions, extended testing
+      framework, migrated from Python 2.7 to 3.6)
 
 **Related publications**
     See `Publications <docs/source/publications.rst>`_.
 
 **Dependencies**
-    - Python 2.7
-    - `Numpy <http://www.numpy.org/>`_ 1.10+
-    - `Scipy <http://www.scipy.org/>`_ 0.16+
+    - Python 3.6
+    - `Numpy <http://www.numpy.org/>`_ 1.12+
+    - `Scipy <http://www.scipy.org/>`_ 0.18+
     - `Matplotlib <http://matplotlib.org/>`_ 1.3+
     - `igraph, python-igraph <http://igraph.org/>`_ 0.7+
 

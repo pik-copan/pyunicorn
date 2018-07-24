@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -76,7 +76,13 @@ def testVectorization():
     """
     for taumax in [1, 5, 16]:
         length, N, eventprop = 100, 50, 0.2
-        eventmatrix = 1-(np.random.rand(length, N) > eventprop).astype(int)
+        # equal event counts (normalization requirement)
+        eventcount = int(length * eventprop)
+        eventmatrix = np.zeros((length, N), dtype=int)
+        for v in range(N):
+            fills = np.random.choice(np.arange(length), eventcount,
+                                     replace=False)
+            eventmatrix[fills, v] = 1
         ES = EventSynchronization(eventmatrix, taumax)
         assert np.allclose(UndirectedESyncMat(eventmatrix, taumax),
                            ES.directedES())

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -67,7 +67,7 @@ class PartialCorrelationClimateNetwork(TsonisClimateNetwork):
         :arg int silence_level: The inverse level of verbosity of the object.
         """
         if silence_level <= 1:
-            print "Generating a partial correlation climate network..."
+            print("Generating a partial correlation climate network...")
 
         #  Call constructor of parent class TsonisClimateNetwork
         TsonisClimateNetwork.__init__(self, data=data, threshold=threshold,
@@ -81,8 +81,8 @@ class PartialCorrelationClimateNetwork(TsonisClimateNetwork):
         """
         Return a string representation of PartialCorrelationClimateNetwork.
         """
-        return ('PartialCorrelationClimateNetwork:\n' +
-                TsonisClimateNetwork.__str__(self))
+        return ('PartialCorrelationClimateNetwork:\n'
+                f'{TsonisClimateNetwork.__str__(self)}')
 
     #
     #  Defines methods to calculate the correlation matrix
@@ -100,8 +100,8 @@ class PartialCorrelationClimateNetwork(TsonisClimateNetwork):
         :return: the partial correlation matrix at zero lag.
         """
         if self.silence_level <= 1:
-            print "Calculating partial correlation matrix at zero lag from \
-anomaly values..."
+            print("Calculating partial correlation matrix at zero lag from "
+                  "anomaly values...")
 
         #  Calculate the correlation matrix, cast to float64 for precise
         #  calculation of inverse matrix.
@@ -117,6 +117,6 @@ anomaly values..."
         diag = C_inv.diagonal()[:]
 
         #  Calculate matrix of normalizations
-        norm = np.sqrt(np.outer(diag, diag))
+        norm = np.sqrt(abs(np.outer(diag, diag)))
 
         return - C_inv / norm

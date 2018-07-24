@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -17,8 +17,7 @@ Provides classes for generating and analyzing complex climate networks.
 # array object and fast numerics
 import numpy as np
 
-from pyunicorn.climate._ext.numerics import \
-    _calculate_mutual_information_cython
+from ._ext.numerics import _calculate_mutual_information_cython
 
 #  Import progress bar for easy progress bar handling
 from ..utils import progressbar
@@ -79,7 +78,7 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         :arg int silence_level: The inverse level of verbosity of the object.
         """
         if silence_level <= 1:
-            print "Generating a mutual information climate network..."
+            print("Generating a mutual information climate network...")
         self.silence_level = silence_level
 
         #  Set instance variables
@@ -127,8 +126,8 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         :return: the mutual information matrix at zero lag.
         """
         if self.silence_level <= 1:
-            print "Calculating mutual information matrix at zero lag from \
-anomaly values using cython..."
+            print("Calculating mutual information matrix at zero lag from "
+                  "anomaly values using cython...")
 
         #  Normalize anomaly time series to zero mean and unit variance
         self.data.normalize_time_series_array(anomaly)
@@ -144,24 +143,15 @@ anomaly values using cython..."
 
         #  Rescale all time series to the interval [0,1],
         #  using the maximum range of the whole dataset.
-        scaling = float(1./(range_max - range_min))
+        scaling = 1./(range_max - range_min)
 
-        #  Create array to hold symbolic trajectories
-        symbolic = np.empty((N, n_samples), dtype='int64')
-        #  Initialize array to hold 1d-histograms of individual time series
-        hist = np.zeros((N, n_bins), dtype='int64')
-        #  Initialize array to hold 2d-histogram for one pair of time series
-        hist2d = np.zeros((n_bins, n_bins), dtype='int64')
-        #  Initialize mutual information array
-        mi = np.zeros((N, N), dtype='float32')
-
-        anomaly = anomaly.astype('float32').copy(order='c')
+        anomaly = anomaly.astype(np.float32).copy(order='c')
         mi = _calculate_mutual_information_cython(anomaly, n_samples, N,
                                                   n_bins, scaling,
                                                   range_min)
 
         if self.silence_level <= 1:
-            print "Done!"
+            print("Done!")
 
         return mi
 
@@ -180,8 +170,8 @@ anomaly values using cython..."
         :return: the mutual information matrix at zero lag.
         """
         if self.silence_level <= 1:
-            print "Calculating mutual information matrix at zero lag from \
-anomaly values..."
+            print("Calculating mutual information matrix at zero lag from "
+                  "anomaly values...")
 
         #  Define references to numpy functions for faster function calls
         histogram = np.histogram
@@ -205,7 +195,7 @@ anomaly values..."
         #  Calculate the histograms for each time series
         p = np.zeros((self.N, n_bins))
 
-        for i in xrange(self.N):
+        for i in range(self.N):
             p[i, :] = histogram(
                 anomaly[:, i], bins=n_bins, range=(range_min, range_max)
             )[0].astype("float64")
@@ -226,13 +216,13 @@ anomaly values..."
 
         #  Calculate only the lower half of the MI matrix, since MI is
         #  symmetric with respect to X and Y.
-        for i in xrange(self.N):
+        for i in range(self.N):
             #  Update progress bar every 10 steps
             if self.silence_level <= 1:
                 if (i % 10) == 0:
                     progress.update(i**2)
 
-            for j in xrange(i):
+            for j in range(i):
                 #  Calculate the joint probability distribution
                 pxy = histogram2d(
                     anomaly[:, i], anomaly[:, j], bins=n_bins,
@@ -288,29 +278,29 @@ anomaly values..."
         try:
             #  Try to load MI from file
             if self.silence_level <= 1:
-                print "Loading mutual information matrix from %s..." % \
-                    self.mi_file
+                print("Loading mutual information matrix from "
+                      f"{self.mi_file}...")
 
             with open(self.mi_file, 'r') as f:
                 mi = np.load(f)
                 #  Check if the dimensions of mutual_information correspond to
                 #  the grid.
                 if mi.shape != (self.N, self.N):
-                    print (self.mi_file +
-                           " in current directory has incorrect dimensions!")
+                    print(f"{self.mi_file} in current directory has "
+                          "incorrect dimensions!")
                     raise RuntimeError
 
         except (IOError, RuntimeError):
             if self.silence_level <= 1:
-                print "An error occured while loading data from %s." % \
-                    self.mi_file
-                print "Recalculating mutual information."
+                print("An error occured while loading data from "
+                      f"{self.mi_file}.")
+                print("Recalculating mutual information.")
 
             mi = self._cython_calculate_mutual_information(anomaly)
             if dump:
                 with open(self.mi_file, 'w') as f:
                     if self.silence_level <= 1:
-                        print "Storing in", self.mi_file
+                        print("Storing in", self.mi_file)
                     mi.dump(f)
 
         return mi

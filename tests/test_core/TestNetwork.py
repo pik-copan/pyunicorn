@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -11,7 +11,7 @@ Simple tests for the core Network class.
 """
 
 from functools import partial
-from itertools import imap, islice, product, repeat
+from itertools import islice, product, repeat
 from multiprocessing import Pool, cpu_count
 
 import numpy as np
@@ -53,14 +53,14 @@ def compareMeasures(orig, pnets, rev_perms, tasks):
 def comparePermutations(net, permutations, measures):
     pnets, rev_perms = zip(
         *((net.permuted_copy(p), p.argsort()) for p in
-          imap(np.random.permutation, repeat(net.N, permutations))))
-    tasks = list(product(measures, xrange(permutations)))
+          map(np.random.permutation, repeat(net.N, permutations))))
+    tasks = list(product(measures, range(permutations)))
     if not parallel:
         compareMeasures(net, pnets, rev_perms, tasks)
     else:
         pool, cores = Pool(), cpu_count()
         pool.map(partial(compareMeasures, net, pnets, rev_perms),
-                 (list(islice(tasks, c, None, cores)) for c in xrange(cores)))
+                 (list(islice(tasks, c, None, cores)) for c in range(cores)))
         pool.close()
         pool.join()
 
@@ -73,7 +73,7 @@ def compareNSI(net, nsi_measures):
             nsi_measure = nsi_measure[0]
         else:
             kwargs = {}
-        print nsi_measure
+        print(nsi_measure)
         for i, netc in enumerate(net_copies):
             # test for invariance of old nodes
             assert np.allclose(getattr(netc, nsi_measure)(**kwargs)[0:net.N],

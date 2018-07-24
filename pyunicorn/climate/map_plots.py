@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -22,15 +22,15 @@ import numpy as np
 try:
     import Ngl
 except ImportError:
-    print "climate: Package Ngl could not be loaded. Some functionality \
-in class MapPlots might not be available!"
+    print("climate: Package Ngl could not be loaded. Some functionality "
+          "in class MapPlots might not be available!")
 
 #
 #  Define class MapPlots
 #
 
 
-class MapPlots(object):
+class MapPlots:
 
     """
     Encapsulates map plotting functions.
@@ -194,7 +194,7 @@ class MapPlots(object):
         list of dictionaries. Stores the plots in the file indicated by
         filename in the current directory.
         """
-        for k in xrange(len(self.map_mult_data)):
+        for k in range(len(self.map_mult_data)):
             #  Set resources
             resources = self.resources
 

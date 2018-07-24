@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -126,6 +126,7 @@ class JointRecurrencePlot(RecurrencePlot):
             threshold=threshold[0] if threshold else 0,
             recurrence_rate=recurrence_rate, silence_level=silence_level)
 
+        self._distance_matrix_cached = False
         self.JR = None
         """The joint recurrence matrix."""
         self.N = 0
@@ -179,8 +180,8 @@ class JointRecurrencePlot(RecurrencePlot):
             #  threshold / recurrence rate
             if np.abs(lag) > x.shape[0]:
                 #  Lag must be smaller than size of recurrence plot
-                raise ValueError(
-                    "Delay value (lag) must not exceed length of time series!")
+                raise ValueError("Delay value (lag) must not exceed length of \
+                                 time series!")
             elif threshold is not None:
                 #  Calculate the recurrence matrix R using the radius of
                 #  neighborhood threshold
@@ -196,22 +197,22 @@ class JointRecurrencePlot(RecurrencePlot):
                 JointRecurrencePlot.\
                     set_fixed_recurrence_rate(self, recurrence_rate)
             else:
-                raise NameError(
-                    "Please give either threshold or recurrence_rate " +
-                    "to construct the joint recurrence plot!")
+                raise NameError("Please give either threshold or \
+                                recurrence_rate to construct the joint \
+                                recurrence plot!")
 
             #  No treatment of missing values yet!
             self.missing_values = False
 
         else:
-            raise ValueError(
-                "Both time series x and y need to have the same length!")
+            raise ValueError("Both time series x and y need to have the same \
+                             length!")
 
     def __str__(self):
         """
         Returns a string representation.
         """
-        return ('JointRecurrencePlot: time series shapes %s.\n' +
+        return ('JointRecurrencePlot: time series shapes %s.\n'
                 'Embedding dimension %i\nThreshold %s, %s metric') % (
                     self.x.shape, self.dim if self.dim else 0,
                     self.threshold, self.metric)
@@ -245,7 +246,7 @@ class JointRecurrencePlot(RecurrencePlot):
             separately.
         """
         if self.silence_level <= 1:
-            print "Calculating joint recurrence plot at fixed threshold..."
+            print("Calculating joint recurrence plot at fixed threshold...")
 
         #  Disable caching of distances in RecurrencePlot class
         self._distance_matrix_cached = False
@@ -301,8 +302,8 @@ class JointRecurrencePlot(RecurrencePlot):
             deviation of the time series. Give for both time series separately.
         """
         if self.silence_level <= 1:
-            print "Calculating recurrence plot at fixed threshold \
-in units of time series STD..."
+            print("Calculating recurrence plot at fixed threshold "
+                  "in units of time series STD...")
 
         #  Get absolute threshold
         threshold_x = threshold_std[0] * self.x.std()
@@ -324,8 +325,8 @@ in units of time series STD..."
             separately.
         """
         if self.silence_level <= 1:
-            print "Calculating joint recurrence plot at \
-fixed recurrence rate..."
+            print("Calculating joint recurrence plot at "
+                  "fixed recurrence rate...")
 
         #  Disable caching of distances in RecurrencePlot class
         self._distance_matrix_cached = False

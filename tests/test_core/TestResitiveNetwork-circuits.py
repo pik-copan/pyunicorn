@@ -103,7 +103,7 @@ def testParallelLessTrivial():
     # # s = ''
     # # for i,e in enumerate(ER):
     # #     s = s + "NW{:d} {:.3f}\t".format(i,e)
-    # # print "Effective resistances (0,2)\n %s" % (s)
+    # # print("Effective resistances (0,2)\n %s" % (s))
 
     assert abs(ER[0]/2-ER[1]) < .1E-6
     assert abs(ER[0]/3-ER[2]) < .1E-6
@@ -151,7 +151,7 @@ def testParallelLessTrivial():
     # s = ''
     # for i,e in enumerate(ER):
     #     s = s + "NW{:d} {:.3f}\t".format(i,e)
-    # print "Effective resistances (0,2)\n %s" % (s)
+    # print("Effective resistances (0,2)\n %s" % (s))
 
     # assert abs(ER[0]/2-ER[1]) < .1E-6
     # assert abs(ER[0]/3-ER[2]) < .1E-6
@@ -235,8 +235,8 @@ def testSerialTrivial():
     ER1 = rnw1.effective_resistance(0, 2)
     ER2 = rnw2.effective_resistance(0, 4)
 
-    print "Effective resistances (0,2)"
-    print "NW1 %.3f\tNW2 %.3f\t 2*NW1 = %.3f" % (ER1, ER2, 2*ER1)
+    print("Effective resistances (0,2)")
+    print("NW1 %.3f\tNW2 %.3f\t 2*NW1 = %.3f" % (ER1, ER2, 2*ER1))
 
     assert (ER1*2-ER2) < 1E-6
 
@@ -271,5 +271,5 @@ def testSerialRandom():
         # increment runs
         runs += 1
         # assertion
-        print ER1*2-ER2
+        print(ER1*2-ER2)
         assert (ER1*2-ER2) < 1E-6

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -18,7 +18,7 @@ import numpy as np
 from .. import cached_const
 
 
-class EventSynchronization(object):
+class EventSynchronization:
 
     """
     Contains methods to calculate event synchronization matrices from event
@@ -74,8 +74,8 @@ class EventSynchronization(object):
         """(dict) cache of re-usable computation results"""
 
         # Check for right input format
-        if len(np.unique(eventmatrix)) != 2 or not (np.unique(eventmatrix) ==
-                                                    np.array([0, 1])).all():
+        if len(np.unique(eventmatrix)) != 2 or not (
+                np.unique(eventmatrix) == np.array([0, 1])).all():
             raise ValueError("Eventmatrix not in correct format")
 
         # Print warning if number of events is not identical for all variables
@@ -104,8 +104,8 @@ class EventSynchronization(object):
         eventmatrix = self.__eventmatrix
         res = np.ones((self.__N, self.__N)) * np.inf
 
-        for i in xrange(0, self.__N):
-            for j in xrange(i+1, self.__N):
+        for i in range(0, self.__N):
+            for j in range(i+1, self.__N):
                 res[i, j], res[j, i] = self._EventSync(eventmatrix[:, i],
                                                        eventmatrix[:, j])
         return res
@@ -152,8 +152,8 @@ class EventSynchronization(object):
         if lx in [1, 2] or ly in [1, 2]:    # Too few events to calculate
             return 0., 0.
         # Array of distances
-        dstxy2 = 2 * (np.repeat(ex[:, 1:-1].T, ly-2, axis=1) -
-                      np.repeat(ey[:, 1:-1], lx-2, axis=0))
+        dstxy2 = 2 * (np.repeat(ex[:, 1:-1].T, ly-2, axis=1)
+                      - np.repeat(ey[:, 1:-1], lx-2, axis=0))
         # Dynamical delay
         diffx = np.diff(ex)
         diffy = np.diff(ey)

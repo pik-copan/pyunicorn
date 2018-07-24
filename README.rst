@@ -16,11 +16,14 @@ invariant)** network statistics as well as measures designed for analyzing
 **networks of interacting/interdependent networks**.
 
 Moreover, ``pyunicorn`` allows to easily **construct networks from uni- and
-multivariate time series data** (functional (climate) networks and recurrence
-networks). This involves linear and nonlinear measures of time series analysis
-for constructing functional networks from multivariate data as well as modern
-techniques of nonlinear analysis of single time series like recurrence
-quantification analysis (RQA) and recurrence network analysis.
+multivariate time series and event data** (functional (climate) networks and
+recurrence networks). This involves linear and nonlinear measures of time
+series analysis for constructing functional networks from multivariate data
+(e.g. Pearson correlation, mutual information, event synchronization and event
+coincidence analysis). ``pyunicorn`` also features modern techniques of
+nonlinear analysis of single and pairs of time series such as recurrence
+quantification analysis (RQA), recurrence network analysis and visibility
+graphs.
 
 Code
 ----
@@ -43,12 +46,14 @@ using ``Sphinx``::
 
 Dependencies
 ------------
-``pyunicorn`` relies on the following open source or freely available packages
-which have to be installed on your machine.
+``pyunicorn`` is written in Python 3.6. The software is quite flexible, we have
+it running on Linux and MacOSX machines, the institute's IBM iDataPlex cluster
+and even on Windows. It relies on the following open source or freely available
+packages which have to be installed on your machine.
 
 Required:
-  - `Numpy <http://www.numpy.org/>`_ 1.10+
-  - `Scipy <http://www.scipy.org/>`_ 0.16+
+  - `Numpy <http://www.numpy.org/>`_ 1.12+
+  - `Scipy <http://www.scipy.org/>`_ 0.18+
   - `igraph, python-igraph <http://igraph.org/>`_ 0.7+
 
 Optional *(used only in certain classes and methods)*:
@@ -61,11 +66,19 @@ Optional *(used only in certain classes and methods)*:
   - `mpi4py <https://bitbucket.org/mpi4py/mpi4py>`_ (for parallelizing costly
     computations)
   - `Sphinx <http://sphinx-doc.org/>`_ (for generating documentation)
-  - `Cython <http://cython.org/>`_ 0.21+ (for compiling code during
+  - `Cython <http://cython.org/>`_ 0.25+ (for compiling code during
     development)
 
-Installing
-----------
+Numpy, Scipy, Matplotlib, igraph and other packages should be available via a
+package management system on Linux or MacOSX. All packages can be downloaded,
+compiled and installed following the instructions on their homepages.
+
+An easy way to go may be a Python distribution like `Anaconda
+<https://store.continuum.io/cshop/anaconda/>`_ or `Enthought
+<http://www.enthought.com>`_ that already include many libraries.
+
+Installation
+------------
 **Stable release**
     Via the Python Package Index::
 

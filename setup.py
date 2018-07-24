@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+# This file is part of pyunicorn.
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
+# URL: <http://www.pik-potsdam.de/members/donges/software>
+# License: BSD (3-clause)
+
+
 from setuptools import setup
 from setuptools.extension import Extension
 
@@ -13,22 +19,22 @@ except ImportError:
 
 extensions = [
     Extension(
-        'pyunicorn.%s._ext.numerics' % (pkg),
-        sources=['pyunicorn/%s/_ext/numerics.%s' %
-                 (pkg, 'pyx' if CYTHON else 'c')],
+        f'pyunicorn.{pkg}._ext.numerics',
+        sources=[f"pyunicorn/{pkg}/_ext/{pre}numerics.{ext}" for pre, ext in
+                 [('', 'pyx') if CYTHON else ('', 'c')]],
         include_dirs=[np.get_include()],
         extra_compile_args=['-O3', '-std=c99'])
     for pkg in ['climate', 'core', 'funcnet', 'timeseries']]
 
 if CYTHON:
     extensions = cythonize(extensions, compiler_directives={
-            'language_level': 2, 'embedsignature': True,
+            'language_level': 3, 'embedsignature': True,
             'boundscheck': False, 'wraparound': False,
             'initializedcheck': False, 'nonecheck': False})
 
 setup(
     name='pyunicorn',
-    version='0.5.2',
+    version='0.6.0',
     description="Unified complex network and recurrence analysis toolbox",
     long_description="Advanced statistical analysis and modeling of \
 general and spatially embedded complex networks with applications to \
@@ -41,7 +47,7 @@ multivariate nonlinear time series analysis",
 nonlinear climate recurrence plot surrogates spatial model',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.6',
         'Operating System :: OS Independent',
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',

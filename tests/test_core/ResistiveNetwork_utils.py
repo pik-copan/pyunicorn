@@ -44,8 +44,8 @@ def parallelCopy(nw, a, b):
     """
 
     if sum(np.diag(nw)) > 0:
-        print "Graph has selfloops"
-        print "doesn't work yet"
+        print("Graph has selfloops")
+        print("doesn't work yet")
         raise NotImplementedError
 
         # at this point, have to copy the diagonal

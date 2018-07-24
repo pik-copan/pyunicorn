@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -27,9 +27,7 @@ Known Bugs
 
 """
 
-from .. import GeoNetwork
-from .. import Grid
-from .. import Network
+from ..core import GeoNetwork, Grid, Network
 
 from .climate_data import ClimateData
 from .climate_network import ClimateNetwork
@@ -43,7 +41,7 @@ from .partial_correlation import PartialCorrelationClimateNetwork
 from .rainfall import RainfallClimateNetwork
 from .spearman import SpearmanClimateNetwork
 from .tsonis import TsonisClimateNetwork
-from .eventsynchronization_climatenetwork import\
+from .eventsynchronization_climatenetwork import \
     EventSynchronizationClimateNetwork
 
 
@@ -52,4 +50,4 @@ from .eventsynchronization_climatenetwork import\
 #
 
 #  Mean earth radius in kilometers
-from .. import EARTH_RADIUS
+from ..core import EARTH_RADIUS

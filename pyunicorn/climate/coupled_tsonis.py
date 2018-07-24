@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -111,15 +111,15 @@ class CoupledTsonisClimateNetwork(CoupledClimateNetwork):
                                            node_weight_type=node_weight_type,
                                            silence_level=silence_level)
         else:
-            print "\nThe two observables (layers) have to have the same \
-number of temporal sampling points!\n"
+            print("\nThe two observables (layers) have to have the same "
+                  "number of temporal sampling points!\n")
 
     def __str__(self):
         """
         Return a string representation of CoupledClimateNetwork object.
         """
-        return ('CoupledTsonisClimateNetwork:\n' +
-                CoupledClimateNetwork.__str__(self))
+        return ('CoupledTsonisClimateNetwork:\n'
+                f'{CoupledClimateNetwork.__str__(self)}')
 
     #
     #  Defines methods to calculate the correlation matrix
@@ -141,8 +141,8 @@ number of temporal sampling points!\n"
         :return: the correlation matrix at zero lag.
         """
         if self.silence_level <= 1:
-            print "Calculating correlation matrix at zero lag from anomaly \
-values..."
+            print("Calculating correlation matrix at zero lag from anomaly "
+                  "values...")
 
         anomaly = np.concatenate((anomaly_1, anomaly_2), axis=1)
 

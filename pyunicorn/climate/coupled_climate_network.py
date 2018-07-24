@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -21,7 +21,7 @@ import numpy as np
 from .climate_network import ClimateNetwork
 
 #  Import grid for Grid class
-from .. import InteractingNetworks, GeoNetwork, Grid
+from ..core import InteractingNetworks, GeoNetwork, Grid
 
 
 #
@@ -130,8 +130,8 @@ class CoupledClimateNetwork(InteractingNetworks, ClimateNetwork):
                                     silence_level=silence_level)
             InteractingNetworks.__init__(self, self.adjacency)
         else:
-            print "The two observables (layers) have to have the same number \
-of temporal sampling points!"
+            print("The two observables (layers) have to have the same number "
+                  "of temporal sampling points!")
 
     def __str__(self):
         """

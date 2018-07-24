@@ -3,5 +3,5 @@ Development
 ===========
 
 .. include:: ../../README.rst
-    :start-after: ``sudo``.
+    :start-after: $> pip install -r requirements.txt --user -e .
     :end-before: Reference
