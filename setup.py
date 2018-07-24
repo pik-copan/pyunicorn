@@ -34,7 +34,7 @@ if CYTHON:
 
 setup(
     name='pyunicorn',
-    version='0.5.2',
+    version='0.6.0',
     description="Unified complex network and recurrence analysis toolbox",
     long_description="Advanced statistical analysis and modeling of \
 general and spatially embedded complex networks with applications to \
