@@ -3709,7 +3709,8 @@ class Network(object):
                                    for k in update_keys]
                 else:  # "neighbors"
                     update_vals = np.zeros(len(update_keys))
-                sp_Pi.update(zip(update_keys, update_vals))
+                update_rows, update_cols = zip(*update_keys)
+                sp_Pi[update_rows, update_cols] = update_vals
                 sp_Pi = sp_Pi.tocsc()
                 sp_Pi.eliminate_zeros()
 
