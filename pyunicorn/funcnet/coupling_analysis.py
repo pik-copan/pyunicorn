@@ -266,16 +266,16 @@ class CouplingAnalysis:
         >>> coup_ana = CouplingAnalysis(CouplingAnalysis.test_data())
         >>> similarity_matrix, lag_matrix = coup_ana.mutual_information(
         ...     tau_max=5, knn=10, estimator='knn')
-        >>> similarity_matrix, lag_matrix
-        (array([[ 4.65048742,  0.43874303,  0.46520019,  0.41257444],
-               [ 0.14704162,  4.65048742,  0.10645443,  0.16393046],
-               [ 0.24829103,  0.2125767 ,  4.65048742,  0.22044939],
-               [ 0.12093173,  0.19902836,  0.14530452,  4.65048742]],
-               dtype=float32),
+        >>> r(similarity_matrix)
+        array([[ 4.6505,  0.4387,  0.4652,  0.4126],
+               [ 0.147 ,  4.6505,  0.1065,  0.1639],
+               [ 0.2483,  0.2126,  4.6505,  0.2204],
+               [ 0.1209,  0.199 ,  0.1453,  4.6505]])
+        >>> lag_matrix
         array([[0, 4, 1, 2],
                [0, 0, 0, 0],
                [0, 2, 0, 1],
-               [0, 2, 0, 0]], dtype=int8))
+               [0, 2, 0, 0]], dtype=int8)
 
         :type tau_max: int [int>=0]
         :arg  tau_max: maximum lag of MI lag function.
