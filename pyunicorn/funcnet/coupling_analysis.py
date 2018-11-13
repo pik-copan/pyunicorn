@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -17,14 +17,15 @@ from scipy import special, linalg   # special math functions
 
 # import mpi                          # parallelized computations
 
-from .. import weave_inline          # C++ inline code
+from ._ext.numerics import _symmetrize_by_absmax, _cross_correlation_max, \
+    _cross_correlation_all, _get_nearest_neighbors_cython
 
 
 #
 #  Define class Coupling Analysis
 #
 
-class CouplingAnalysis(object):
+class CouplingAnalysis:
 
     """
     Contains methods to calculate coupling matrices from large arrays
@@ -72,7 +73,7 @@ class CouplingAnalysis(object):
         numpy.random.seed(42)
         noise = numpy.random.randn(1000, 4)
         data = noise
-        for t in xrange(2, 1000):
+        for t in range(2, 1000):
             data[t, 0] = 0.8 * data[t-1, 0] + noise[t, 0]
             data[t, 1] = 0.8 * data[t-1, 1] + 0.5 * data[t-2, 0] + noise[t, 1]
             data[t, 2] = 0.7 * data[t-1, 0] + noise[t, 2]
@@ -122,29 +123,8 @@ class CouplingAnalysis(object):
         """
 
         N = self.N
-
-        code = r"""
-        int i,j;
-        // loop over all node pairs
-        for (i = 0; i < N; i++) {
-            for (j = i+1; j < N; j++) {
-                // calculate max and argmax by comparing to
-                // previous value and storing max
-                if (fabs(similarity_matrix(i,j)) >
-                        fabs(similarity_matrix(j,i))) {
-                    similarity_matrix(j,i) = similarity_matrix(i,j);
-                    lag_matrix(j,i) = -lag_matrix(i,j);
-                }
-                else {
-                    similarity_matrix(i,j) = similarity_matrix(j,i);
-                    lag_matrix(i,j) = -lag_matrix(j,i);
-                }
-            }
-        }
-        """
-        weave_inline(locals(), code, ['similarity_matrix', 'lag_matrix', 'N'])
-
-        return similarity_matrix, lag_matrix
+        return _symmetrize_by_absmax(similarity_matrix.copy(order='c'),
+                                     lag_matrix.copy(order='c'), N)
 
     #
     #  Define methods to estimate similarity measures
@@ -201,19 +181,18 @@ class CouplingAnalysis(object):
 
         # Sanity checks
         if not isinstance(data, numpy.ndarray):
-            raise TypeError("data is of type %s, " % type(data) +
+            raise TypeError(f"data is of type {type(data)}, "
                             "must be numpy.ndarray")
         if N > T:
-            print("Warning: data.shape = %s," % str(data.shape) +
+            print(f"Warning: data.shape = {data.shape},"
                   " is it of shape (observations, variables) ?")
         if numpy.isnan(data).sum() != 0:
             raise ValueError("NaNs in the data")
         if tau_max < 0:
-            raise ValueError("tau_max = %d, " % (tau_max)
-                             + "but 0 <= tau_max")
+            raise ValueError("tau_max = %d, but 0 <= tau_max" % tau_max)
         if lag_mode not in ['max', 'all']:
-            raise ValueError("lag_mode = %s, " % (lag_mode)
-                             + "but must be one of 'max', 'all'")
+            raise ValueError("lag_mode = %s, but must be one of 'max', 'all'"
+                             % lag_mode)
 
         #  Normalize time series to zero mean and unit variance for all lags
         corr_range = T - tau_max
@@ -222,8 +201,8 @@ class CouplingAnalysis(object):
         for t in range(tau_max + 1):
             #  Remove mean value from time series at each node
             array[t] = numpy.fastCopyAndTranspose(
-                data[t:t+corr_range, :] -
-                data[t:t+corr_range, :].mean(axis=0).reshape(1, N))
+                data[t:t+corr_range, :]
+                - data[t:t+corr_range, :].mean(axis=0).reshape(1, N))
 
             #  Normalize the variance of anomalies to one
             array[t] /= array[t].std(axis=1).reshape(N, 1)
@@ -232,75 +211,14 @@ class CouplingAnalysis(object):
             array[t][numpy.isnan(array[t])] = 0
 
         if lag_mode == 'max':
-            similarity_matrix = numpy.ones((self.N, self.N), dtype='float32')
-            lag_matrix = numpy.zeros((self.N, self.N), dtype='int8')
-
-            code = r"""
-            int i,j,tau,k, argmax;
-            double crossij, max;
-            // loop over all node pairs, NOT symmetric due to time shifts!
-            for (i = 0; i < N; i++) {
-                for (j = 0; j < N; j++) {
-                    if( i != j){
-                        max = 0.0;
-                        argmax = 0;
-                        // loop over taus INCLUDING the last tau value
-                        for( tau = 0; tau < tau_max + 1; tau++) {
-                            crossij = 0;
-                            // here the actual cross correlation is calculated
-                            // assuming standardized arrays
-                            for ( k = 0; k < corr_range; k++) {
-                                crossij += array(tau, i, k) *
-                                           array(tau_max, j, k);
-                            }
-                            // calculate max and argmax by comparing to
-                            // previous value and storing max
-                            if (fabs(crossij) > fabs(max)) {
-                                max = crossij;
-                                argmax = tau;
-                            }
-                        }
-                        similarity_matrix(i,j) = max/(float)(corr_range);
-                        lag_matrix(i,j) = tau_max - argmax;
-                    }
-                }
-            }
-            """
-            weave_inline(locals(), code,
-                         ['array', 'similarity_matrix', 'lag_matrix', 'N',
-                          'tau_max', 'corr_range'])
-
-            return similarity_matrix, lag_matrix
+            return _cross_correlation_max(array.copy(order='c'), N, tau_max,
+                                          corr_range)
 
         elif lag_mode == 'all':
-
-            lagfuncs = numpy.zeros((self.N, self.N, tau_max+1),
-                                   dtype='float32')
-
-            code = r"""
-            int i,j,tau,k, argmax;
-            double crossij, max;
-            // loop over all node pairs, NOT symmetric due to time shifts!
-            for (i = 0; i < N; i++) {
-                for (j = 0; j < N; j++) {
-                    // loop over taus INCLUDING the last tau value
-                    for( tau = 0; tau < tau_max + 1; tau++) {
-                        crossij = 0;
-                        // here the actual cross correlation is calculated
-                        // assuming standardized arrays
-                        for ( k = 0; k < corr_range; k++) {
-                            crossij += array(tau, i, k) * array(tau_max, j, k);
-                        }
-                        lagfuncs(i,j,tau_max-tau) =
-                            crossij/(float)(corr_range);
-                    }
-                }
-            }
-            """
-            weave_inline(locals(), code,
-                         ['array', 'lagfuncs', 'N', 'tau_max', 'corr_range'])
-
-            return lagfuncs
+            return _cross_correlation_all(array.copy(order='c'), N, tau_max,
+                                          corr_range)
+        else:
+            return None
 
     def mutual_information(self, tau_max=0, estimator='knn',
                            knn=10, bins=6, lag_mode='max'):
@@ -348,16 +266,16 @@ class CouplingAnalysis(object):
         >>> coup_ana = CouplingAnalysis(CouplingAnalysis.test_data())
         >>> similarity_matrix, lag_matrix = coup_ana.mutual_information(
         ...     tau_max=5, knn=10, estimator='knn')
-        >>> similarity_matrix, lag_matrix
-        (array([[ 4.65048742,  0.43874303,  0.46520019,  0.41257444],
-               [ 0.14704162,  4.65048742,  0.10645443,  0.16393046],
-               [ 0.24829103,  0.2125767 ,  4.65048742,  0.22044939],
-               [ 0.12093173,  0.19902836,  0.14530452,  4.65048742]],
-               dtype=float32),
+        >>> r(similarity_matrix)
+        array([[ 4.6505,  0.4387,  0.4652,  0.4126],
+               [ 0.147 ,  4.6505,  0.1065,  0.1639],
+               [ 0.2483,  0.2126,  4.6505,  0.2204],
+               [ 0.1209,  0.199 ,  0.1453,  4.6505]])
+        >>> lag_matrix
         array([[0, 4, 1, 2],
                [0, 0, 0, 0],
                [0, 2, 0, 1],
-               [0, 2, 0, 0]], dtype=int8))
+               [0, 2, 0, 0]], dtype=int8)
 
         :type tau_max: int [int>=0]
         :arg  tau_max: maximum lag of MI lag function.
@@ -384,23 +302,22 @@ class CouplingAnalysis(object):
 
         # Sanity checks
         if not isinstance(data, numpy.ndarray):
-            raise TypeError("data is of type %s, " % type(data) +
+            raise TypeError(f"data is of type {type(data)}, "
                             "must be numpy.ndarray")
         if N > T:
-            print("Warning: data.shape = %s," % str(data.shape) +
+            print(f"Warning: data.shape = {data.shape},"
                   " is it of shape (observations, variables) ?")
         if T < 500:
-            print("Warning: T = %s ," % str(T) +
+            print(f"Warning: T = {T} ,"
                   " unreliable estimation using MI estimator")
         if numpy.isnan(data).sum() != 0:
             raise ValueError("NaNs in the data")
         if tau_max < 0:
-            raise ValueError("tau_max = %d, " % (tau_max)
-                             + "but 0 <= tau_max")
+            raise ValueError("tau_max = %d, but 0 <= tau_max" % tau_max)
         if estimator == 'knn':
             if knn > T/2. or knn < 1:
-                raise ValueError("knn = %s , " % str(knn) +
-                                 "should be between 1 and T/2")
+                raise ValueError("knn = %s, should be between 1 and T/2"
+                                 % str(knn))
 
         if lag_mode == 'max':
             similarity_matrix = numpy.ones((N, N), dtype='float32')
@@ -464,15 +381,15 @@ class CouplingAnalysis(object):
                         array -= array.mean(axis=1).reshape(dim, 1)
                         array /= array.std(axis=1).reshape(dim, 1)
                         if numpy.isnan(array).sum() != 0:
-                            raise ValueError("nans after standardizing, "
-                                             "possibly constant array!""")
+                            raise ValueError("nans after standardizing, \
+                                             possibly constant array!")
 
                         x = array[0, :]
                         y = array[1, :]
 
                         ixy_z = self._par_corr_to_cmi(
-                            numpy.dot(x, y) / numpy.sqrt(numpy.dot(x, x) *
-                                                         numpy.dot(y, y)))
+                            numpy.dot(x, y) / numpy.sqrt(
+                                numpy.dot(x, x) * numpy.dot(y, y)))
 
                     if lag_mode == 'max':
                         if ixy_z > maximum:
@@ -490,6 +407,8 @@ class CouplingAnalysis(object):
             return similarity_matrix, lag_matrix
         elif lag_mode == 'all':
             return lagfuncs
+        else:
+            return None
 
     def information_transfer(self, tau_max=0, estimator='knn',
                              knn=10, past=1, cond_mode='ity', lag_mode='max'):
@@ -582,23 +501,21 @@ class CouplingAnalysis(object):
 
         # Sanity checks
         if not isinstance(data, numpy.ndarray):
-            raise TypeError("data is of type %s, " % type(data) +
-                            "must be numpy.ndarray")
+            raise TypeError("data is of type %s, must be numpy.ndarray"
+                            % type(data))
         if N > T:
-            print("Warning: data.shape = %s," % str(data.shape) +
+            print(f"Warning: data.shape = {data.shape},"
                   " is it of shape (observations, variables) ?")
         if estimator == 'knn' and T < 500:
-            print("Warning: T = %s ," % str(T) +
+            print(f"Warning: T = {T} ,"
                   " unreliable estimation using knn-estimator")
         if numpy.isnan(data).sum() != 0:
             raise ValueError("NaNs in the data")
         if tau_max < 0:
-            raise ValueError("tau_max = %d, " % (tau_max)
-                             + "but 0 <= tau_max")
+            raise ValueError("tau_max = %d, but 0 <= tau_max" % tau_max)
         if estimator == 'knn':
             if knn > T/2. or knn < 1:
-                raise ValueError("knn = %s , " % str(knn) +
-                                 "should be between 1 and T/2")
+                raise ValueError(f"knn = {knn}, should be between 1 and T/2")
 
         if lag_mode == 'max':
             similarity_matrix = numpy.ones((N, N), dtype='float32')
@@ -649,8 +566,8 @@ class CouplingAnalysis(object):
                         array -= array.mean(axis=1).reshape(dim, 1)
                         array /= array.std(axis=1).reshape(dim, 1)
                         if numpy.isnan(array).sum() != 0:
-                            raise ValueError("nans after standardizing, "
-                                             "possibly constant array!""")
+                            raise ValueError("nans after standardizing, \
+                                             possibly constant array!")
 
                         x = array[0, :]
                         y = array[1, :]
@@ -665,8 +582,8 @@ class CouplingAnalysis(object):
                                            ortho_confounds)
 
                         ixy_z = self._par_corr_to_cmi(
-                            numpy.dot(x, y) / numpy.sqrt(numpy.dot(x, x) *
-                                                         numpy.dot(y, y)))
+                            numpy.dot(x, y) / numpy.sqrt(
+                                numpy.dot(x, x) * numpy.dot(y, y)))
 
                     if lag_mode == 'max':
                         if ixy_z > maximum:
@@ -689,6 +606,8 @@ class CouplingAnalysis(object):
             return similarity_matrix, lag_matrix
         elif lag_mode == 'all':
             return lagfuncs
+        else:
+            return None
 
     #
     #  Define helper methods
@@ -743,142 +662,21 @@ class CouplingAnalysis(object):
             # If the time series is constant, return nan rather than raising
             # Exception
             if numpy.isnan(array).sum() != 0:
-                raise ValueError("nans after standardizing, "
-                                 "possibly constant array!")
+                raise ValueError("nans after standardizing, possibly \
+                                 constant array!")
 
         # Add noise to destroy ties...
         array += 1E-10 * numpy.random.rand(array.shape[0], array.shape[1])
 
-        # Flatten for fast weave.inline access
+        # Flatten for fast cython access
         array = array.flatten()
 
         dim_x = int(numpy.where(xyz == 0)[0][-1] + 1)
         dim_y = int(numpy.where(xyz == 1)[0][-1] + 1 - dim_x)
         # dim_z = maxdim - dim_x - dim_y
 
-        # Initialize
-        k_xz = numpy.zeros(T, dtype='int32')
-        k_yz = numpy.zeros(T, dtype='int32')
-        k_z = numpy.zeros(T, dtype='int32')
-
-        code = """
-        int i, j, index=0, t, m, n, d, kxz, kyz, kz, indexfound[T];//
-        double  dz=0., dxyz=0., dx=0., dy=0., eps, epsmax;
-        double dist[T*dim], dxyzarray[k+1];
-
-        // Loop over time
-        for(i = 0; i < T; i++){
-
-            // Growing cube algorithm: Test if n = #(points in epsilon-
-            // environment of reference point i) > k
-            // Start with epsilon for which 95% of points are inside the cube
-            // for a multivariate Gaussian
-            // eps increased by 2 later, also the initial eps
-            eps = 1.*pow( float(k)/float(T), 1./dim);
-
-            // n counts the number of neighbors
-            n = 0;
-            while(n <= k){
-                // Increase cube size
-                eps *= 2.;
-                // Start with zero again
-                n = 0;
-                // Loop through all points
-                for(t = 0; t < T; t++){
-                    d = 0;
-                    while(fabs(array[d*T + i] - array[d*T + t] ) < eps
-                            && d < dim){
-                            d += 1;
-                    }
-                    // If all distances are within eps, the point t lies
-                    // within eps and n is incremented
-                    if(d == dim){
-                        indexfound[n] = t;
-                        n += 1;
-                    }
-                }
-            }
-
-            // Calculate distance to points only within epsilon environment
-            // according to maximum metric
-            for(j = 0; j < n; j++){
-                index = indexfound[j];
-
-                dxyz = 0.;
-                for(d = 0; d < dim; d++){
-                    dist[d*T + j] = fabs(array[d*T + i] - array[d*T + index]);
-                    dxyz = fmax( dist[d*T + j], dxyz);
-                }
-
-                // Use insertion sort
-                dxyzarray[j] = dxyz;
-                if ( j > 0 ){
-                    // only list of smallest k+1 distances need to be kept!
-                    m = fmin(k, j-1);
-                    while ( m >= 0 && dxyzarray[m] > dxyz ){
-                        dxyzarray[m+1] = dxyzarray[m];
-                        m -= 1;
-                    }
-                    dxyzarray[m+1] = dxyz;
-                }
-
-            }
-
-            // Epsilon of k-th nearest neighbor in joint space
-            epsmax = dxyzarray[k];
-
-            // Count neighbors within epsmax in subspaces, since the reference
-            // point is included, all neighbors are at least 1
-            kz = 0;
-            kxz = 0;
-            kyz = 0;
-            for(j = 0; j < T; j++){
-
-                // X-subspace
-                dx = fabs(array[0*T + i] - array[0*T + j]);
-                for(d = 1; d < dim_x; d++){
-                    dist[d*T + j] = fabs(array[d*T + i] - array[d*T + j]);
-                    dx = fmax( dist[d*T + j], dx);
-                }
-
-                // Y-subspace
-                dy = fabs(array[dim_x*T + i] - array[dim_x*T + j]);
-                for(d = dim_x; d < dim_x+dim_y; d++){
-                    dist[d*T + j] = fabs(array[d*T + i] - array[d*T + j]);
-                    dy = fmax( dist[d*T + j], dy);
-                }
-
-                // Z-subspace, if empty, dz stays 0
-                dz = 0.;
-                for(d = dim_x+dim_y; d < dim ; d++){
-                    dist[d*T + j] = fabs(array[d*T + i] - array[d*T + j]);
-                    dz = fmax( dist[d*T + j], dz);
-                }
-
-                // For no conditions, kz is counted up to T
-                if (dz < epsmax){
-                    kz += 1;
-                    if (dx < epsmax){
-                        kxz += 1;
-                    }
-                    if (dy < epsmax){
-                        kyz += 1;
-                    }
-                }
-            }
-            // Write to numpy arrays
-            k_xz[i] = kxz;
-            k_yz[i] = kyz;
-            k_z[i] = kz;
-
-        }
-        """
-        weave_inline(locals(), code,
-                     ['array', 'T', 'dim_x', 'dim_y', 'k', 'dim',
-                      'k_xz', 'k_yz', 'k_z'],
-                     blitz=False, headers=["<math.h>"])
-
-        return k_xz, k_yz, k_z
+        return _get_nearest_neighbors_cython(array.copy(order='c'), T, dim_x,
+                                             dim_y, k, dim)
 
     @staticmethod
     def _quantile_bin_array(array, bins=6):
@@ -910,8 +708,8 @@ class CouplingAnalysis(object):
         bins = edges.shape[1]
 
         # This gives the symbolic time series
-        symb_array = (array.reshape(dim, T, 1) >=
-                      edges.reshape(dim, 1, bins)).sum(axis=2) - 1
+        symb_array = (array.reshape(dim, T, 1)
+                      >= edges.reshape(dim, 1, bins)).sum(axis=2) - 1
 
         return symb_array
 
@@ -935,23 +733,23 @@ class CouplingAnalysis(object):
         # Needed because numpy.bincount cannot process longs
         assert isinstance(base**D, int)
         assert base**D*16./8./1024.**3 < 3., (
-            'Dimension exceeds 3 GB of necessary memory ' +
+            'Dimension exceeds 3 GB of necessary memory '
             '(change this code line if you got more...)')
         assert D*base**D < 2**65, (
-            'base = %d, D = %d: Histogram failed: ' +
+            'base = %d, D = %d: Histogram failed: '
             'dimension D*base**D exceeds int64 data type') % (base, D)
 
         flathist = numpy.zeros((base**D), dtype='int16')
         multisymb = numpy.zeros(T, dtype='int64')
 
-        for i in xrange(D):
+        for i in range(D):
             multisymb += symb_array[i, :]*base**i
 
         result = numpy.bincount(multisymb)
         flathist[:len(result)] += result
 
-        return flathist.reshape(tuple([base, base] +
-                                      [base for i in range(D-2)])).T
+        return flathist.reshape(tuple(
+            [base, base] + [base for i in range(D-2)])).T
 
     @staticmethod
     def create_plogp(T):

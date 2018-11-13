@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -15,7 +15,7 @@ analysis (RQA) and recurrence network analysis.
 # array object and fast numerics
 import numpy as np
 
-from .. import InteractingNetworks
+from ..core import InteractingNetworks
 from .recurrence_plot import RecurrencePlot
 from .cross_recurrence_plot import CrossRecurrencePlot
 
@@ -178,9 +178,9 @@ class InterSystemRecurrenceNetwork(InteractingNetworks):
                 #  Calculate the ISRN using a fixed recurrence rate
                 ISRM = self.set_fixed_recurrence_rate(recurrence_rate)
             else:
-                raise NameError(
-                    "Please give either threshold or recurrence_rate " +
-                    "to construct the joint recurrence plot!")
+                raise NameError("Please give either threshold or \
+                                recurrence_rate to construct the joint \
+                                recurrence plot!")
 
             InteractingNetworks.__init__(self, adjacency=ISRM, directed=False,
                                          silence_level=self.silence_level)
@@ -188,14 +188,14 @@ class InterSystemRecurrenceNetwork(InteractingNetworks):
             self.missing_values = False
 
         else:
-            raise ValueError(
-                "Both time series x and y need to have the same dimension!")
+            raise ValueError("Both time series x and y need to have the same \
+                             dimension!")
 
     def __str__(self):
         """
         Returns a string representation.
         """
-        return ('InterSystemRecurrenceNetwork: time series shapes %s, %s.\n' +
+        return ('InterSystemRecurrenceNetwork: time series shapes %s, %s.\n'
                 'Embedding dimension %i\nThreshold %s, %s metric.\n%s') % (
                     self.x.shape, self.y.shape, self.dim if self.dim else 0,
                     self.threshold, self.metric,
@@ -310,10 +310,7 @@ class InterSystemRecurrenceNetwork(InteractingNetworks):
 
         #  Set diagonal of ISRM to zero to avoid self-loops
         ISRM.flat[::self.N + 1] = 0
-
-        #  Initialize the underlying InteractingNetworks object
-        InteractingNetworks.__init__(self, adjacency=ISRM, directed=False,
-                                     silence_level=self.silence_level)
+        return ISRM
 
     #
     #  Methods to quantify inter system recurrence networks

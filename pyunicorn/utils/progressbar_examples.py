@@ -4,7 +4,7 @@
 import sys
 import time
 
-from progressbar import AnimatedMarker, Bar, BouncingBar, Counter, ETA, \
+from .progressbar import AnimatedMarker, Bar, BouncingBar, Counter, ETA, \
     FileTransferSpeed, FormatLabel, Percentage, ProgressBar, ReverseBar, \
     RotatingMarker, SimpleProgress, Timer
 
@@ -15,7 +15,7 @@ examples = []
 def example(fn):
     try:
         name = 'Example %d' % int(fn.__name__[7:])
-    except:
+    except NameError:
         name = fn.__name__
 
     def wrapped():

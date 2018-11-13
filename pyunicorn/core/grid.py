@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -15,8 +15,8 @@ multivariate data and generating time series surrogates.
 #  Import essential packages
 #
 
-#  Import cPickle for loading and saving Python objects
-import cPickle
+#  Import pickle for loading and saving Python objects
+import pickle
 
 #  array object and fast numerics
 import numpy as np
@@ -25,18 +25,18 @@ import numpy as np
 try:
     from matplotlib import path
 except ImportError:
-    print "An error occurred when importing matplotlib.path! \
-Some functionality in Grid class might not be available."
+    print("An error occurred when importing matplotlib.path! "
+          "Some functionality in Grid class might not be available.")
 
 #  Cythonized functions
-from .numerics import _cy_calculate_angular_distance, _euclidiean_distance
+from ._ext.numerics import _cy_calculate_angular_distance, _euclidiean_distance
 
 #
 #  Define class Grid
 #
 
 
-class Grid(object):
+class Grid:
 
     """
     Encapsulates a horizontal spatio-temporal grid on the sphere.
@@ -120,18 +120,18 @@ class Grid(object):
 
     def save(self, filename):
         """
-        Save the Grid object to a cPickle file.
+        Save the Grid object to a pickle file.
 
         :arg str filename: The name of the file where Grid object is stored
             (including ending).
         """
         try:
             f = open(filename, 'w')
-            cPickle.dump(self, f)
+            pickle.dump(self, f)
             f.close()
         except IOError:
-            print "An error occurred while saving Grid instance to \
-                   cPickle file", filename
+            print("An error occurred while saving Grid instance to "
+                  f"pickle file {filename}")
 
     def save_txt(self, filename):
         """
@@ -154,13 +154,13 @@ class Grid(object):
             np.savetxt(filename + "_lon.txt", lon_seq)
             np.savetxt(filename + "_time.txt", time_seq)
         except IOError:
-            print "An error occurred while saving Grid instance to \
-text files", filename
+            print("An error occurred while saving Grid instance to "
+                  f"text files {filename}")
 
     @staticmethod
     def Load(filename):
         """
-        Return a Grid object stored in a cPickle file.
+        Return a Grid object stored in a pickle file.
 
         :arg str filename: The name of the file where Grid object is stored
             (including ending).
@@ -169,13 +169,13 @@ text files", filename
         """
         try:
             f = open(filename, 'r')
-            grid = cPickle.load(f)
+            grid = pickle.load(f)
             f.close()
 
             return grid
         except IOError:
-            print "An error occurred while loading Grid instance from \
-cPickle file", filename
+            print("An error occurred while loading Grid instance from "
+                  f"pickle file {filename}")
 
     @staticmethod
     def LoadTXT(filename):
@@ -195,8 +195,8 @@ cPickle file", filename
             lon_seq = np.loadtxt(filename + "_lon.txt")
             time_seq = np.loadtxt(filename + "_time.txt")
         except IOError:
-            print "An error occurred while loading Grid instance from \
-text files", filename
+            print("An error occurred while loading Grid instance from "
+                  f"text files {filename}")
 
         return Grid(time_seq, lat_seq, lon_seq)
 
@@ -290,7 +290,7 @@ text files", filename
         lat_seq = np.empty(n)
         lon_seq = np.empty(n)
 
-        for i in xrange(n_lat):
+        for i in range(n_lat):
             lat_seq[i * n_lon:(i + 1) * n_lon] = lat_grid[i] * np.ones(n_lon)
             lon_seq[i * n_lon:(i + 1) * n_lon] = lon_grid
 
@@ -347,7 +347,7 @@ text files", filename
         """
         new_lon_grid = np.empty(self.N)
 
-        for i in xrange(self.N):
+        for i in range(self.N):
             if lon_seq[i] > 180.:
                 new_lon_grid[i] = lon_seq[i] - 360.
             else:
@@ -486,7 +486,7 @@ text files", filename
         :return: the angular great circle distance matrix (unit radians).
         """
         if self.silence_level <= 1:
-            print "Calculating angular great circle distance using Weave..."
+            print("Calculating angular great circle distance using Cython...")
 
         #  Get number of nodes
         N = self.N
@@ -567,7 +567,7 @@ text files", filename
 
         **Example:**
 
-        >>> print Grid.SmallTestGrid().print_boundaries()
+        >>> print(Grid.SmallTestGrid().print_boundaries())
                  time     lat     lon
            min    0.0    0.00    2.50
            max    9.0   25.00   15.00
@@ -582,8 +582,8 @@ text files", filename
         Pretty print the spatio-temporal grid boundaries.
         """
         return (
-            "         time     lat     lon" +
-            "\n   min {time_min:6.1f} {lat_min: 7.2f} {lon_min: 7.2f}" +
+            "         time     lat     lon"
+            "\n   min {time_min:6.1f} {lat_min: 7.2f} {lon_min: 7.2f}"
             "\n   max {time_max:6.1f} {lat_max: 7.2f} {lon_max: 7.2f}"
         ).format(**self.boundaries())
 
@@ -618,7 +618,7 @@ text files", filename
 
         **Example:**
 
-        >>> print Grid.SmallTestGrid().print_grid_size()
+        >>> print(Grid.SmallTestGrid().print_grid_size())
            space    time
                6      10
 
@@ -654,8 +654,8 @@ text files", filename
                  great circle distances.
         """
         if self.silence_level <= 1:
-            print "Calculating the geometric distance distribution of the \
-grid..."
+            print("Calculating the geometric distance distribution of the "
+                  "grid...")
 
         #  Get angular distance matrix
         D = self.angular_distance()
@@ -688,8 +688,8 @@ grid..."
         **Example:**
 
         >>> Grid.SmallTestGrid().region_indices(
-        ...     np.array([0.,0.,0.,11.,11.,11.,11.,0.]))
-        array([False,  True,  True, False, False, False], dtype=bool)
+        ...     np.array([0.,0.,0.,11.,11.,11.,11.,0.])).astype(int)
+        array([0, 1, 1, 0, 0, 0])
 
         :type region: 1D Numpy array [n_polygon_nodes]
         :arg region: array of lon, lat, lon, lat, ...
@@ -699,7 +699,7 @@ grid..."
         :return: bool array with True for nodes inside region
         """
         # Reshape Google Earth array  into (n,2) array
-        remapped_region = region.reshape(len(region)/2, 2)
+        remapped_region = region.reshape(len(region)//2, 2)
         # Remap from East-West to 360 degree map if the longitudes are [0, 360]
         if self._grid["lon"].min() >= 0:
             remapped_region[remapped_region[:, 0] < 0, 0] = \
@@ -725,3 +725,5 @@ grid..."
                              -171.0364908514962, -5.768616252424354,
                              -119.245702264066, -5.836385150138187,
                              -118.6402427933005, 7.019906838300821])
+        else:
+            return None

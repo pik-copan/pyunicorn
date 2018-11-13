@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -17,24 +17,23 @@ from math import factorial
 # array object and fast numerics
 import numpy as np
 
-# C++ inline code
-from .numerics import                                    \
-    _embed_time_series, _manhatten_distance_matrix, \
-    _euclidean_distance_matrix, _supremum_distance_matrix, \
+# Cython inline code
+from ._ext.numerics import _embed_time_series, _manhattan_distance_matrix_rp, \
+    _euclidean_distance_matrix_rp, _supremum_distance_matrix_rp, \
     _set_adaptive_neighborhood_size, _bootstrap_distance_matrix_manhatten, \
     _bootstrap_distance_matrix_euclidean, _bootstrap_distance_matrix_supremum,\
     _diagline_dist_norqa_missingvalues, _diagline_dist_norqa, \
     _diagline_dist_rqa_missingvalues, _diagline_dist_rqa, \
     _vertline_dist_norqa_missingvalues, _vertline_dist_norqa, \
     _vertline_dist_rqa_missingvalues, _vertline_dist_rqa, _rejection_sampling,\
-    _white_vertline_dist, _twins, _twin_surrogates
+    _white_vertline_dist, _twins_r, _twin_surrogates
 
 #
 #  Class definitions
 #
 
 
-class RecurrencePlot(object):
+class RecurrencePlot:
 
     """
     Class RecurrencePlot for generating and quantitatively analyzing
@@ -215,15 +214,15 @@ class RecurrencePlot(object):
                 RecurrencePlot.set_adaptive_neighborhood_size(
                     self, self.adaptive_neighborhood_size)
             else:
-                raise NameError(
-                    "Please give either threshold or recurrence_rate " +
-                    "to construct the recurrence plot!")
+                raise NameError("Please give either threshold or \
+                                recurrence_rate to construct the recurrence \
+                                plot!")
 
     def __str__(self):
         """
         Returns a string representation.
         """
-        return ('RecurrencePlot: time series shape %s.\n' +
+        return ('RecurrencePlot: time series shape %s.\n'
                 'Embedding dimension %i\nThreshold %s, %s metric') % (
                     self.time_series.shape, self.dim if self.dim else 0,
                     self.threshold, self.metric)
@@ -255,8 +254,9 @@ class RecurrencePlot(object):
         if not self.sparse_rqa:
             return self.R
         else:
-            print "Exception: Sequential RQA mode is enabled. \
-Recurrence matrix is not stored in memory."
+            print("Exception: Sequential RQA mode is enabled. "
+                  "Recurrence matrix is not stored in memory.")
+            return None
 
     def distance_matrix(self, embedding, metric):
         """
@@ -311,7 +311,7 @@ Recurrence matrix is not stored in memory."
         std = time_series.std(axis=0)
 
         #  Normalize all components separately
-        for i in xrange(dim):
+        for i in range(dim):
             time_series[:, i] -= mean[i]
             if std[i] != 0:
                 time_series[:, i] /= std[i]
@@ -362,14 +362,14 @@ Recurrence matrix is not stored in memory."
                     y0 = RecurrencePlot.legendre_coordinates(x, dim=2, t=t,
                                                              tau_w=tau_w)
                     tau_w = np.sqrt(3*x.var()/(y0[:, 1]**2).mean())
-                print "tau_w set to", tau_w
+                print("tau_w set to", tau_w)
             if tau_w is None:
                 p = dim
             else:
                 p = 1
                 while (t[2*p+1:] - t[:-(2*p+1)]).mean() < tau_w and p < N/4:
                     p += 1
-                print "p set to", p
+                print("p set to", p)
 
         m = 2*p + 1
         N1 = N - m + 1
@@ -439,12 +439,12 @@ Recurrence matrix is not stored in memory."
         :return: the manhattan distance matrix.
         """
         if self.silence_level <= 1:
-            print "Calculating the manhattan distance matrix..."
+            print("Calculating the manhattan distance matrix...")
 
         (n_time, dim) = embedding.shape
         distance = np.zeros((n_time, n_time), dtype="float32")
 
-        _manhatten_distance_matrix(n_time, dim, embedding, distance)
+        _manhattan_distance_matrix_rp(n_time, dim, embedding, distance)
         return distance
 
     def euclidean_distance_matrix(self, embedding):
@@ -458,12 +458,12 @@ Recurrence matrix is not stored in memory."
         :return: the euclidean distance matrix.
         """
         if self.silence_level <= 1:
-            print "Calculating the euclidean distance matrix..."
+            print("Calculating the euclidean distance matrix...")
 
         (n_time, dim) = embedding.shape
         distance = np.zeros((n_time, n_time), dtype="float32")
 
-        _euclidean_distance_matrix(n_time, dim, embedding, distance)
+        _euclidean_distance_matrix_rp(n_time, dim, embedding, distance)
         distance = np.sqrt(distance)
         return distance
 
@@ -478,12 +478,12 @@ Recurrence matrix is not stored in memory."
         :return: the supremum distance matrix.
         """
         if self.silence_level <= 1:
-            print "Calculating the supremum distance matrix..."
+            print("Calculating the supremum distance matrix...")
 
         (n_time, dim) = embedding.shape
         distance = np.zeros((n_time, n_time), dtype="float32")
 
-        _supremum_distance_matrix(n_time, dim, embedding, distance)
+        _supremum_distance_matrix_rp(n_time, dim, embedding, distance)
         return distance
 
     def set_fixed_threshold(self, threshold):
@@ -496,7 +496,7 @@ Recurrence matrix is not stored in memory."
         :arg number threshold: The recurrence threshold.
         """
         if self.silence_level <= 1:
-            print "Calculating recurrence plot at fixed threshold..."
+            print("Calculating recurrence plot at fixed threshold...")
 
         #  Get distance matrix, according to self.metric
         distance = RecurrencePlot.distance_matrix(
@@ -532,8 +532,8 @@ Recurrence matrix is not stored in memory."
             standard deviation of the time series.
         """
         if self.silence_level <= 1:
-            print "Calculating recurrence plot at fixed threshold in units of \
-time series STD..."
+            print("Calculating recurrence plot at fixed threshold in units of "
+                  "time series STD...")
 
         #  Get absolute threshold
         threshold = threshold_std * self.time_series.std()
@@ -551,7 +551,7 @@ time series STD..."
         :arg number recurrence_rate: The recurrence rate.
         """
         if self.silence_level <= 1:
-            print "Calculating recurrence plot at fixed recurrence rate..."
+            print("Calculating recurrence plot at fixed recurrence rate...")
 
         #  Get distance matrix, according to self.metric
         distance = self.distance_matrix(self.embedding, self.metric)
@@ -585,8 +585,8 @@ time series STD..."
         :arg number local_recurrence_rate: The local recurrence rate.
         """
         if self.silence_level <= 1:
-            print "Calculating recurrence plot at fixed \
-local recurrence rate..."
+            print("Calculating recurrence plot at fixed "
+                  "local recurrence rate...")
 
         #  Get distance matrix, according to self.metric
         distance = self.distance_matrix(self.embedding, self.metric)
@@ -597,7 +597,7 @@ local recurrence rate..."
         #  Initialize recurrence matrix
         recurrence = np.zeros((n_time, n_time), dtype="int8")
 
-        for i in xrange(n_time):
+        for i in range(n_time):
             #  Get threshold for state vector i to obtain fixed local
             #  recurrence rate
             local_threshold = self.threshold_from_recurrence_rate(
@@ -629,8 +629,8 @@ local recurrence rate..."
             processing by the algorithm. The standard order is :math:`1,...,N`.
         """
         if self.silence_level <= 1:
-            print "Calculating recurrence plot using the \
-adaptive neighborhood size algorithm..."
+            print("Calculating recurrence plot using the "
+                  "adaptive neighborhood size algorithm...")
 
         #  Get distance matrix, according to self.metric
         distance = self.distance_matrix(self.embedding, self.metric)
@@ -944,7 +944,7 @@ adaptive neighborhood size algorithm..."
         n_time = self.N
         lmax = 1
 
-        for i in xrange(1, n_time):
+        for i in range(1, n_time):
             if diagline[i] != 0:
                 lmax = i
 
@@ -980,7 +980,7 @@ adaptive neighborhood size algorithm..."
         #  the main diagonal)
         full_sum = (np.arange(n_time) * diagline).sum()
 
-        return partial_sum / float(full_sum)
+        return partial_sum / float(full_sum + 0.00000001)
 
     def average_diaglength(self, l_min=2, resampled_dist=None):
         """
@@ -1010,7 +1010,7 @@ adaptive neighborhood size algorithm..."
         #  Total number of diagonal lines of at least length l_min
         number_diagline = diagline[l_min:].sum()
 
-        return partial_sum / float(number_diagline)
+        return partial_sum / float(number_diagline + 0.00000001)
 
     def diag_entropy(self, l_min=2, resampled_dist=None):
         """
@@ -1039,7 +1039,7 @@ adaptive neighborhood size algorithm..."
 
         #  Normalized array of the number of all diagonal lines = probability
         #  of diagonal line length
-        diagnorm = diagline / float(diagline.sum())
+        diagnorm = diagline / float(diagline.sum() + 0.00000001)
 
         return -(diagnorm * np.log(diagnorm)).sum()
 
@@ -1145,7 +1145,7 @@ adaptive neighborhood size algorithm..."
         n_time = self.N
         vmax = 1
 
-        for i in xrange(1, n_time):
+        for i in range(1, n_time):
             if vertline[i] != 0:
                 vmax = i
 
@@ -1179,7 +1179,7 @@ adaptive neighborhood size algorithm..."
         #  Number of all recurrence points that form vertical lines
         full_sum = (np.arange(n_time) * vertline).sum()
 
-        return partial_sum / float(full_sum)
+        return partial_sum / float(full_sum + 0.00000001)
 
     def average_vertlength(self, v_min=2, resampled_dist=None):
         """
@@ -1210,7 +1210,7 @@ adaptive neighborhood size algorithm..."
         #  Total number of vertical lines of at least length v_min
         number_vertline = vertline[v_min:].sum()
 
-        return partial_sum / float(number_vertline)
+        return partial_sum / (float(number_vertline) + 0.00000001)
 
     def trapping_time(self, v_min=2, resampled_dist=None):
         """
@@ -1245,7 +1245,7 @@ adaptive neighborhood size algorithm..."
 
         #  Normalized array of the number of all vertical lines = probability
         #  of vertical line length
-        vertline_normed = vertline / float(vertline.sum())
+        vertline_normed = vertline / float(vertline.sum() + 0.00000001)
 
         return -(vertline_normed * np.log(vertline_normed)).sum()
 
@@ -1294,7 +1294,7 @@ adaptive neighborhood size algorithm..."
         N = self.N
         vmax = 1
 
-        for i in xrange(1, N):
+        for i in range(1, N):
             if white_vertline[i] != 0:
                 vmax = i
 
@@ -1323,7 +1323,7 @@ adaptive neighborhood size algorithm..."
         #  Total number of white vertical lines of at least length v_min
         number_white_vertline = white_vertline[w_min:].sum()
 
-        return partial_sum / float(number_white_vertline)
+        return partial_sum / float(number_white_vertline + 0.00000001)
 
     def mean_recurrence_time(self, w_min=1):
         """
@@ -1351,7 +1351,8 @@ adaptive neighborhood size algorithm..."
 
         #  Normalized array of the number of all vertical lines = probability
         #  of vertical line length
-        white_vertline_normed = white_vertline / float(white_vertline.sum())
+        white_vertline_normed = white_vertline / float(
+            white_vertline.sum() + 0.00000001)
 
         return -(white_vertline_normed * np.log(white_vertline_normed)).sum()
 
@@ -1375,7 +1376,7 @@ adaptive neighborhood size algorithm..."
             series.
         """
         if self.silence_level <= 1:
-            print "Finding twins based on recurrence matrix..."
+            print("Finding twins based on recurrence matrix...")
 
         #  Initialize
         twins = []
@@ -1386,7 +1387,7 @@ adaptive neighborhood size algorithm..."
         #  Get number of neighbors for each state vector
         nR = R.sum(axis=0)
 
-        _twins(min_dist, N, R, nR, twins)
+        _twins_r(min_dist, N, R, nR, twins)
         return twins
 
     def twin_surrogates(self, n_surrogates=1, min_dist=7):
@@ -1415,7 +1416,7 @@ adaptive neighborhood size algorithm..."
         #  1. Use the algorithm proposed in [*] to find twins
         #  2. Reconstruct one-dimensional twin surrogate time series
         if self.silence_level <= 1:
-            print "Generating twin surrogates..."
+            print("Generating twin surrogates...")
 
         #  Collect
         N = self.N

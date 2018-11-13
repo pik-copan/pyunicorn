@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -22,8 +22,8 @@ import numpy as np
 try:
     import netCDF4
 except ImportError:
-    print "pyunicorn: Package netCDF4 could not be loaded. Some \
-functionality in class Data might not be available!"
+    print("pyunicorn: Package netCDF4 could not be loaded. Some "
+          "functionality in class Data might not be available!")
 
 
 from .grid import Grid
@@ -33,7 +33,7 @@ from .grid import Grid
 #  Define class Data
 #
 
-class Data(object):
+class Data:
 
     """
     Encapsulates general spatio-temporal data.
@@ -105,7 +105,7 @@ class Data(object):
         if self.file_name:
             self.print_data_info()
 
-        return ('Data: %i grid points, %i measurements.\n' +
+        return ('Data: %i grid points, %i measurements.\n'
                 'Geographical boundaries:\n%s') % (
                     self.grid.N, self.grid.n_grid_points,
                     self.grid.print_boundaries())
@@ -230,7 +230,7 @@ class Data(object):
         #  Create time series
         ts = np.zeros((10, 6))
 
-        for i in xrange(6):
+        for i in range(6):
             ts[:, i] = np.sin(np.arange(10) * np.pi / 10. + i * np.pi / 2.)
 
         return Data(observable=ts, grid=Grid.SmallTestGrid(), silence_level=2)
@@ -263,7 +263,7 @@ class Data(object):
         :arg int silence_level: The inverse level of verbosity of the object.
         """
         if silence_level <= 1:
-            print "Reading NetCDF File and converting data to NumPy array..."
+            print("Reading NetCDF File and converting data to NumPy array...")
 
         # Initialize dictionary of results
         res = {}
@@ -302,9 +302,9 @@ class Data(object):
 
                 res["observable"] = observable[:, level, :, :].copy()
             else:
-                print "Regular NetCDF data sets with dimensions other than \
-3 (time, lat, lon) or 4 (time, level, lat, lon) are not \
-supported by Data class!"
+                print("Regular NetCDF data sets with dimensions other than "
+                      "3 (time, lat, lon) or 4 (time, level, lat, lon) are "
+                      "not supported by Data class!")
 
         elif file_type == "iNetCDF":
             # Create Grid instance
@@ -326,9 +326,9 @@ supported by Data class!"
 
                 res["observable"] = observable[:, level, :].copy()
             else:
-                print "Irregular NetCDF data sets with dimensions other than \
-2 (time, index) or 3 (time, level, index) are not \
-supported by Data class!"
+                print("Irregular NetCDF data sets with dimensions other than "
+                      "2 (time, index) or 3 (time, level, index) are not "
+                      "supported by Data class!")
 
         # Get length of raw data time axis
         n_time = res["observable"].shape[0]
@@ -372,20 +372,21 @@ supported by Data class!"
                                         silence_level)
         else:
             if silence_level <= 1:
-                print "This file type can currently not be read \
-by pyunicorn."
+                print("This file type can currently not be read "
+                      "by pyunicorn.")
+            return None
 
     def print_data_info(self):
         """Print information on the data encapsulated by the Data object."""
         # Open netCDF3 or netCDF4 file
         f = netCDF4.Dataset(self.file_name, "r")
-        print "File format:", f.file_format
-        print "Global attributes:"
+        print("File format:", f.file_format)
+        print("Global attributes:")
         for name in f.ncattrs():
-            print name + ":", getattr(f, name)
-        print "Variables (size):"
+            print(name + ":", getattr(f, name))
+        print("Variables (size):")
         for name, obj in f.variables.iteritems():
-            print "%s (%i)" % (name, len(obj))
+            print("%s (%i)" % (name, len(obj)))
         f.close()
 
     def observable(self):
@@ -580,8 +581,8 @@ by pyunicorn."
             array /= scale_factor
             scaled_array = array.astype('uint8')
         else:
-            print "Data type %s variable %s for rescaling array \
-not supported!" % var_type
+            print("Data type %s variable %s for rescaling array "
+                  "not supported!" % var_type)
             scale_factor = 1.
             add_offset = 0.
 
@@ -675,8 +676,8 @@ not supported!" % var_type
         #  individual time series.
         n = Data.next_power_2(n_time)
 
-        zeros_before = (n - n_time) / 2
-        zeros_after = (n - n_time) - (n - n_time) / 2
+        zeros_before = (n - n_time) // 2
+        zeros_after = (n - n_time) - (n - n_time) // 2
 
         before = np.zeros((zeros_before, n_nodes))
         after = np.zeros((zeros_after, n_nodes))
@@ -725,9 +726,8 @@ not supported!" % var_type
         decay_length = int(gamma * n_time / 2)
 
         #  Calculate decay and growth regions
-        growth_region = 0.5 * (
-            1 + np.cos(np.arange(decay_length) * np.pi /
-                       float(decay_length) + np.pi))
+        growth_region = 0.5 * (1 + np.cos(
+            np.arange(decay_length) * np.pi / float(decay_length) + np.pi))
         growth_region = np.tile(growth_region, (n_nodes, 1))
         growth_region = growth_region.transpose()
 

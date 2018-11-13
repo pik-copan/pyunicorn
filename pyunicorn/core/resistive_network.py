@@ -23,7 +23,6 @@ from GeoNetwork and provides most GeoNetwork's functions/properties.
 The class has the following instance variables::
 
     (bool) flagDebug     : flag for debugging mode
-    (bool) flagWeave     : flag for switching between python/C code parts
     (bool) flagComplex   : flag for complex input
     (ndarray) resistances: array of resistances (complex or real)
 
@@ -42,16 +41,15 @@ from scipy import sparse
 #  Import iGraph for high performance graph theory tools written in pure ANSI-C
 import igraph
 
+from ._ext.numerics import _vertex_current_flow_betweenness, \
+    _edge_current_flow_betweenness
+
 # Import things we inherit from
 from .geo_network import GeoNetwork
 from .grid import Grid
 
 # a network Error (use uncertain)
 # from .network import NetworkError
-
-# Weave for inline C
-from .network import weave_inline
-flagWeave = True
 
 
 class ResNetwork(GeoNetwork):
@@ -62,7 +60,7 @@ class ResNetwork(GeoNetwork):
 
     **Examples:**
 
-    >>> print ResNetwork.SmallTestNetwork()
+    >>> print(ResNetwork.SmallTestNetwork())
     ResNetwork:
     GeoNetwork:
     Network: undirected, 5 nodes, 5 links, link density 0.500.
@@ -111,7 +109,7 @@ class ResNetwork(GeoNetwork):
         #     these define the adjacency
         if adjacency is None:
             if silence_level < 2:
-                print "Using adjacency as definded by resistances"
+                print("Using adjacency as definded by resistances")
 
             adjacency = np.zeros(resistances.shape)
             adjacency[resistances != 0] = 1
@@ -120,7 +118,7 @@ class ResNetwork(GeoNetwork):
         #     an actual grid might not exist, so we fake one
         if grid is None:
             if silence_level < 2:
-                print "Using dummy grid"
+                print("Using dummy grid")
             grid = Grid(
                 time_seq=np.arange(10), lat_seq=np.absolute(
                     np.linspace(-90, 90, adjacency.shape[0])),
@@ -141,9 +139,6 @@ class ResNetwork(GeoNetwork):
         self.adm_graph = None
         self.sparse_R = None
         self.update_resistances(resistances)
-
-        # 3b) switch weave support internally as well
-        self.flagWeave = flagWeave
 
         # 4) cache
         self._effective_resistances = None
@@ -221,14 +216,14 @@ class ResNetwork(GeoNetwork):
         >>> res.flagComplex
         True
         >>> adm = res.get_admittance()
-        >>> print adm.real
+        >>> print(adm.real)
         [[ 0.      0.1     0.      0.      0.    ]
          [ 0.1     0.      0.0625  0.25    0.    ]
          [ 0.      0.0625  0.      0.0625  0.    ]
          [ 0.      0.25    0.0625  0.      0.05  ]
          [ 0.      0.      0.      0.05    0.    ]]
 
-        >>> print adm.imag
+        >>> print(adm.imag)
         [[ 0.     -0.2     0.      0.      0.    ]
          [-0.2     0.     -0.0625 -0.25    0.    ]
          [ 0.     -0.0625  0.     -0.0625  0.    ]
@@ -265,20 +260,20 @@ class ResNetwork(GeoNetwork):
 
         >>> # test network with given resistances
         >>> res = ResNetwork.SmallTestNetwork()
-        >>> print res.resistances
+        >>> print(res.resistances)
         [[ 0  2  0  0  0]
          [ 2  0  8  2  0]
          [ 0  8  0  8  0]
          [ 0  2  8  0 10]
          [ 0  0  0 10  0]]
         >>> # print admittance and admittance Laplacian
-        >>> print res.get_admittance()
+        >>> print(res.get_admittance())
         [[ 0.     0.5    0.     0.     0.   ]
          [ 0.5    0.     0.125  0.5    0.   ]
          [ 0.     0.125  0.     0.125  0.   ]
          [ 0.     0.5    0.125  0.     0.1  ]
          [ 0.     0.     0.     0.1    0.   ]]
-        >>> print res.admittance_lapacian()
+        >>> print(res.admittance_lapacian())
         [[ 0.5   -0.5    0.     0.     0.   ]
          [-0.5    1.125 -0.125 -0.5    0.   ]
          [ 0.    -0.125  0.25  -0.125  0.   ]
@@ -287,13 +282,13 @@ class ResNetwork(GeoNetwork):
         >>> # now update to unit resistance
         >>> res.update_resistances(res.adjacency)
         >>> # and check new admittance/admittance Laplacian
-        >>> print res.get_admittance()
+        >>> print(res.get_admittance())
         [[ 0.  1.  0.  0.  0.]
          [ 1.  0.  1.  1.  0.]
          [ 0.  1.  0.  1.  0.]
          [ 0.  1.  1.  0.  1.]
          [ 0.  0.  0.  1.  0.]]
-        >>> print res.admittance_lapacian()
+        >>> print(res.admittance_lapacian())
         [[ 1. -1.  0.  0.  0.]
          [-1.  3. -1. -1.  0.]
          [ 0. -1.  2. -1.  0.]
@@ -325,14 +320,14 @@ class ResNetwork(GeoNetwork):
 
         **Examples:**
 
-        >>> res = ResNetwork.SmallTestNetwork();print res.get_admittance()
+        >>> res = ResNetwork.SmallTestNetwork();print(res.get_admittance())
         [[ 0.     0.5    0.     0.     0.   ]
          [ 0.5    0.     0.125  0.5    0.   ]
          [ 0.     0.125  0.     0.125  0.   ]
          [ 0.     0.5    0.125  0.     0.1  ]
          [ 0.     0.     0.     0.1    0.   ]]
-        >>> print type(res.get_admittance())
-        <type 'numpy.ndarray'>
+        >>> print(type(res.get_admittance()))
+        <class 'numpy.ndarray'>
         """
         # a sparse matrix for the admittance values
         # we start w/ a lil_matrix, maybe convert that
@@ -352,8 +347,8 @@ class ResNetwork(GeoNetwork):
 
         # populate array
         for edge in edgeList:
-            # print "setting %d %d to %f" % (
-            #     edge[0], edge[1], 1./self.resistances[edge[0], edge[1]])
+            # print("setting %d %d to %f" % (
+            #     edge[0], edge[1], 1./self.resistances[edge[0], edge[1]]))
             self.sparse_Adm[edge[0], edge[1]] = \
                 1./self.resistances[edge[0], edge[1]]
 
@@ -370,14 +365,14 @@ class ResNetwork(GeoNetwork):
 
         **Examples:**
 
-        >>> res = ResNetwork.SmallTestNetwork();print res.get_admittance()
+        >>> res = ResNetwork.SmallTestNetwork();print(res.get_admittance())
         [[ 0.     0.5    0.     0.     0.   ]
          [ 0.5    0.     0.125  0.5    0.   ]
          [ 0.     0.125  0.     0.125  0.   ]
          [ 0.     0.5    0.125  0.     0.1  ]
          [ 0.     0.     0.     0.1    0.   ]]
-        >>> print type( res.get_admittance() )
-        <type 'numpy.ndarray'>
+        >>> print(type( res.get_admittance() ))
+        <class 'numpy.ndarray'>
         """
         return np.array(self.sparse_Adm.todense())
 
@@ -390,14 +385,14 @@ class ResNetwork(GeoNetwork):
 
         **Examples:**
 
-        >>> res = ResNetwork.SmallTestNetwork();print res.get_admittance()
+        >>> res = ResNetwork.SmallTestNetwork();print(res.get_admittance())
         [[ 0.     0.5    0.     0.     0.   ]
          [ 0.5    0.     0.125  0.5    0.   ]
          [ 0.     0.125  0.     0.125  0.   ]
          [ 0.     0.5    0.125  0.     0.1  ]
          [ 0.     0.     0.     0.1    0.   ]]
-        >>> print type( res.get_admittance() )
-        <type 'numpy.ndarray'>
+        >>> print(type( res.get_admittance() ))
+        <class 'numpy.ndarray'>
 
         """
         # a sparse matrix for the admittance values
@@ -417,7 +412,7 @@ class ResNetwork(GeoNetwork):
 
         **Examples:**
 
-        >>> res = ResNetwork.SmallTestNetwork();print res.get_R()
+        >>> res = ResNetwork.SmallTestNetwork();print(res.get_R())
         [[ 2.28444444  0.68444444 -0.56       -0.20444444 -2.20444444]
          [ 0.68444444  1.08444444 -0.16        0.19555556 -1.80444444]
          [-0.56       -0.16        3.04       -0.16       -2.16      ]
@@ -435,15 +430,14 @@ class ResNetwork(GeoNetwork):
 
         **Examples:**
 
-        >>> print ResNetwork.SmallTestNetwork().admittance_lapacian()
+        >>> print(ResNetwork.SmallTestNetwork().admittance_lapacian())
         [[ 0.5   -0.5    0.     0.     0.   ]
          [-0.5    1.125 -0.125 -0.5    0.   ]
          [ 0.    -0.125  0.25  -0.125  0.   ]
          [ 0.    -0.5   -0.125  0.725 -0.1  ]
          [ 0.     0.     0.    -0.1    0.1  ]]
-        >>> print type( ResNetwork.SmallTestNetwork().admittance_lapacian() )
-        <type 'numpy.ndarray'>
-
+        >>> print(type( ResNetwork.SmallTestNetwork().admittance_lapacian() ))
+        <class 'numpy.ndarray'>
          """
 
         return np.diag(sum(self.get_admittance())) - self.get_admittance()
@@ -458,10 +452,10 @@ class ResNetwork(GeoNetwork):
 
         **Examples:**
 
-        >>> print ResNetwork.SmallTestNetwork().admittive_degree()
+        >>> print(ResNetwork.SmallTestNetwork().admittive_degree())
         [ 0.5    1.125  0.25   0.725  0.1  ]
-        >>> print type( ResNetwork.SmallTestNetwork().admittive_degree())
-        <type 'numpy.ndarray'>
+        >>> print(type( ResNetwork.SmallTestNetwork().admittive_degree() ))
+        <class 'numpy.ndarray'>
         """
         return np.sum(self.get_admittance(), axis=0)
 
@@ -472,12 +466,11 @@ class ResNetwork(GeoNetwork):
 
         **Examples:**
 
-        >>> print ResNetwork.SmallTestNetwork().\
-                average_neighbors_admittive_degree()
+        >>> print(ResNetwork.SmallTestNetwork().\
+                average_neighbors_admittive_degree())
         [ 2.25  1.31111111  7.4  2.03448276  7.25  ]
-        >>> print type(ResNetwork.SmallTestNetwork().admittive_degree())
-        <type 'numpy.ndarray'>
-
+        >>> print(type(ResNetwork.SmallTestNetwork().admittive_degree()))
+        <class 'numpy.ndarray'>
         """
 
         # get the admittive degree (row sum)
@@ -504,12 +497,12 @@ class ResNetwork(GeoNetwork):
         # adjacency = self.adjacency
         # ANED = np.zeros(N)
         # ED = self.admittive_degree()
-        # for i in xrange(N):
+        # for i in range(N):
         #     sum = 0
-        #     for j in xrange(N):
+        #     for j in range(N):
         #         sum += adjacency[i][j]*ED[j]
         #     ANED[i] = sum/ED[i]
-        # # print ANED
+        # # print(ANED)
 
     def local_admittive_clustering(self):
         r"""
@@ -537,10 +530,10 @@ class ResNetwork(GeoNetwork):
         **Examples:**
 
         >>> res =  ResNetwork.SmallTestNetwork()
-        >>> print res.local_admittive_clustering()
+        >>> print(res.local_admittive_clustering())
         [ 0.  0.00694444  0.0625  0.01077586  0. ]
-        >>> print type(res.local_admittive_clustering())
-        <type 'numpy.ndarray'>
+        >>> print(type(res.local_admittive_clustering()))
+        <class 'numpy.ndarray'>
         """
 
         # needed vals: admittance matrix and admittiv_degree
@@ -558,10 +551,10 @@ class ResNetwork(GeoNetwork):
             ac = np.zeros(self.N)
 
         # TODO: Sweave me!
-        for i in xrange(self.N):
+        for i in range(self.N):
             dummy = 0
-            for j in xrange(self.N):
-                for k in xrange(self.N):
+            for j in range(self.N):
+                for k in range(self.N):
                     dummy += admittance[i][j]*admittance[i][k]*admittance[j][k]
             if d[i] == 1:
                 ac[i] = 0
@@ -580,10 +573,10 @@ class ResNetwork(GeoNetwork):
         **Examples:**
 
         >>> res =  ResNetwork.SmallTestNetwork()
-        >>> print "%.3f" % res.global_admittive_clustering()
+        >>> print("%.3f" % res.global_admittive_clustering())
         0.016
-        >>> print type(res.global_admittive_clustering())
-        <type 'numpy.float64'>
+        >>> print(type(res.global_admittive_clustering()))
+        <class 'numpy.float64'>
         """
 
         return self.local_admittive_clustering().mean()
@@ -605,15 +598,14 @@ class ResNetwork(GeoNetwork):
         **Examples:**
 
         >>> res = ResNetwork.SmallTestNetwork()
-        >>> print res.effective_resistance(1,1)
+        >>> print(res.effective_resistance(1,1))
         0.0
-        >>> print type( res.effective_resistance(1,1) )
-        <type 'float'>
-        >>> print "%.3f" % res.effective_resistance(1,2)
+        >>> print(type( res.effective_resistance(1,1) ))
+        <class 'float'>
+        >>> print("%.3f" % res.effective_resistance(1,2))
         4.444
-        >>> print type( res.effective_resistance(1,1) )
-        <type 'float'>
-
+        >>> print(type( res.effective_resistance(1,1) ))
+        <class 'float'>
         """
         # return def for self-loop
         if a == b:
@@ -638,11 +630,10 @@ class ResNetwork(GeoNetwork):
         **Examples:**
 
         >>> res = ResNetwork.SmallTestNetwork()
-        >>> print "%.5f" % res.average_effective_resistance()
+        >>> print("%.5f" % res.average_effective_resistance())
         7.28889
-        >>> print type( res.average_effective_resistance() )
-        <type 'numpy.float64'>
-
+        >>> print(type( res.average_effective_resistance() ))
+        <class 'numpy.float64'>
         """
 
         # since the NW is symmetric, we can only
@@ -652,8 +643,8 @@ class ResNetwork(GeoNetwork):
         # we also store a hidden, quick access var
         self._effective_resistances = np.array([])
 
-        for i in xrange(self.N):
-            for j in xrange(i):
+        for i in range(self.N):
+            for j in range(i):
                 self._effective_resistances = np.append(
                     self._effective_resistances,
                     self.effective_resistance(i, j))
@@ -669,23 +660,21 @@ class ResNetwork(GeoNetwork):
         **Examples:**
 
         >>> res = ResNetwork.SmallTestNetwork()
-        >>> print "%.3f" % res.diameter_effective_resistance()
+        >>> print("%.3f" % res.diameter_effective_resistance())
         Re-computing all effective resistances
         14.444
-        >>> print type(res.diameter_effective_resistance())
-        <type 'numpy.float64'>
-
+        >>> print(type(res.diameter_effective_resistance()))
+        <class 'numpy.float64'>
         >>> res = ResNetwork.SmallTestNetwork()
         >>> x = res.average_effective_resistance()
-        >>> print "%.3f" % res.diameter_effective_resistance()
+        >>> print("%.3f" % res.diameter_effective_resistance())
         14.444
-
         """
         # try to use pre-computed values
         if self._effective_resistances is not None:
             diameter = np.max(self._effective_resistances)
         else:
-            print "Re-computing all effective resistances"
+            print("Re-computing all effective resistances")
             self.average_effective_resistance()
             diameter = np.max(self._effective_resistances)
 
@@ -703,9 +692,9 @@ class ResNetwork(GeoNetwork):
         **Examples:**
 
         >>> res = ResNetwork.SmallTestNetwork()
-        >>> print "%.3f" % res.effective_resistance_closeness_centrality(0)
+        >>> print("%.3f" % res.effective_resistance_closeness_centrality(0))
         0.154
-        >>> print "%.3f" % res.effective_resistance_closeness_centrality(4)
+        >>> print("%.3f" % res.effective_resistance_closeness_centrality(4))
         0.080
         """
 
@@ -750,16 +739,17 @@ class ResNetwork(GeoNetwork):
         **Examples:**
 
         >>> res = ResNetwork.SmallTestNetwork()
-        >>> print "%.3f" % res.vertex_current_flow_betweenness(1)
+        >>> print("%.3f" % res.vertex_current_flow_betweenness(1))
         0.389
-        >>> print "%.3f" % res.vertex_current_flow_betweenness(2)
+        >>> print("%.3f" % res.vertex_current_flow_betweenness(2))
         0.044
         """
-        # switch the implementation according to weave support
-        if self.flagWeave and not self.flagComplex:
-            return self._vertex_current_flow_betweenness_weave(i)
-        else:
-            return self._vertex_current_flow_betweenness_python(i)
+        # set params
+        Is = It = np.float(1.0)
+        return _vertex_current_flow_betweenness(
+            np.int(self.N), Is, It,
+            self.get_admittance().astype('float32').copy(order='c'),
+            self.get_R().astype('float32').copy(order='c'), i)
 
     def edge_current_flow_betweenness(self):
         """The electrial version of Newmann's edge betweeness
@@ -769,178 +759,29 @@ class ResNetwork(GeoNetwork):
         **Examples:**
 
         >>> res = ResNetwork.SmallTestNetwork()
-        >>> print res.edge_current_flow_betweenness()
-        [[ 0.          0.4         0.          0.          0.        ]
-         [ 0.4         0.          0.24444444  0.53333333  0.        ]
-         [ 0.          0.24444444  0.          0.24444444  0.        ]
-         [ 0.          0.53333333  0.24444444  0.          0.4       ]
-         [ 0.          0.          0.          0.4         0.        ]]
+        >>> print(r(res.edge_current_flow_betweenness()))
+        [[ 0.      0.4     0.      0.      0.    ]
+         [ 0.4     0.      0.2444  0.5333  0.    ]
+         [ 0.      0.2444  0.      0.2444  0.    ]
+         [ 0.      0.5333  0.2444  0.      0.4   ]
+         [ 0.      0.      0.      0.4     0.    ]]
         >>> # update to unit resistances
         >>> res.update_resistances(res.adjacency)
-        >>> print res.edge_current_flow_betweenness()
-        [[ 0.          0.4         0.          0.          0.        ]
-         [ 0.4         0.          0.33333333  0.4         0.        ]
-         [ 0.          0.33333333  0.          0.33333333  0.        ]
-         [ 0.          0.4         0.33333333  0.          0.4       ]
-         [ 0.          0.          0.          0.4         0.        ]]
-        """
-        # switch the implementation according to weave support
-        if self.flagWeave and not self.flagComplex:
-            return self._edge_current_flow_betweenness_weave()
-        else:
-            return self._edge_current_flow_betweenness_python()
-
-###############################################################################
-# ##                       PRIVATE FUNCTIONS                               ## #
-###############################################################################
-    def _vertex_current_flow_betweenness_python(self, i):
-        """Python version of VCFB
-        """
-        # get required matrices
-        admittance = self.get_admittance()
-        R = self.get_R()
-
-        # set params
-        Is = It = np.float(1.0)
-
-        # alloc output
-        VCFB = np.float(0)
-
-        for t in xrange(self.N):
-            for s in xrange(t):
-                I = 0.0
-                if i == t or i == s:
-                    pass
-                else:
-                    for j in xrange(self.N):
-                        I += admittance[i][j] * np.abs(
-                            Is*(R[i][s]-R[j][s]) + It*(R[j][t]-R[i][t]))/2.
-                VCFB += 2.*I/(self.N*(self.N-1))
-
-        return VCFB
-
-    def _vertex_current_flow_betweenness_weave(self, i):
-        """C Version of VCFB
-        """
-        # get required matrices
-        admittance = self.get_admittance()
-        R = self.get_R()
-
-        # set params
-        Is = It = np.float(1.0)
-
-        # alloc output
-        VCFB = np.float(0.0)
-        N = np.int(self.N)
-
-        code = """
-            int t=0;
-            int s=0;
-            int j=0;
-            double I=0;
-            N = double(N);
-
-            for(t=0;t<N;t++){
-                for(s=0; s<t; s++){
-                    I = 0.0;
-                    if(i == t || i == s){
-                        continue;
-                    }
-                    else{
-                        for(j=0;j<N;j++){
-                            I += ADMITTANCE2(i,j)*\
-                            fabs( Is*(R2(i,s)-R2(j,s))+\
-                                  It*(R2(j,t)-R2(i,t)) \
-                                ) / 2.0;
-                        } // for  j
-                    }
-                    VCFB += 2.0*I/(N*(N-1));
-                } // for s
-            } // for t
-
-            return_val = VCFB;
-        """
-        VCFB = weave_inline(locals(), code,
-                            ['N', 'Is', 'It', 'admittance', 'R', 'i', 'VCFB'],
-                            blitz=False, headers=["<math.h>"])
-        return VCFB
-
-    def _edge_current_flow_betweenness_python(self):
-        """
-        Python version of ECFB
+        >>> print(r(res.edge_current_flow_betweenness()))
+        [[ 0.      0.4     0.      0.      0.    ]
+         [ 0.4     0.      0.3333  0.4     0.    ]
+         [ 0.      0.3333  0.      0.3333  0.    ]
+         [ 0.      0.4     0.3333  0.      0.4   ]
+         [ 0.      0.      0.      0.4     0.    ]]
         """
         # set currents
         Is = It = np.float(1)
 
-        # alloc output
-        if self.flagComplex:
-            dtype = complex
-        else:
-            dtype = float
+        return _edge_current_flow_betweenness(
+            np.int(self.N), Is, It,
+            self.get_admittance().astype('float32').copy(order='c'),
+            self.get_R().astype('float32').copy(order='c'))
 
-        ECFB = np.zeros([self.N, self.N], dtype=dtype)
-
-        # the usual
-        admittance = self.get_admittance()
-        R = self.get_R()
-
-        for i in xrange(self.N):
-            for j in xrange(self.N):
-                I = 0
-                for t in xrange(self.N):
-                    for s in xrange(t):
-                        I += admittance[i][j] * np.abs(
-                            Is*(R[i][s]-R[j][s])+It*(R[j][t]-R[i][t]))
-
-                # Lets try to compute the in
-                ECFB[i][j] = 2*I/(self.N*(self.N-1))
-
-        return ECFB
-
-    def _edge_current_flow_betweenness_weave(self):
-        """
-        Weave/C version of ECFB
-        """
-        # set currents
-        Is = It = np.float(1)
-
-        # alloc output
-        ECFB = np.zeros([self.N, self.N])
-
-        # the usual
-        admittance = self.get_admittance()
-        R = self.get_R()
-
-        N = np.int(self.N)
-        code = """
-            int i=0;
-            int j=0;
-            int t=0;
-            int s=0;
-            double I = 0.0;
-
-            N = double(N);
-            for(i=0; i<N; i++){
-                for(j=0;j<N;j++){
-                    I = 0.0;
-                    for(t=0;t<N;t++){
-                        for(s=0; s<t; s++){
-                            I += ADMITTANCE2(i,j)*\
-                                 fabs(  Is*(R2(i,s)-R2(j,s))+\
-                                        It*(R2(j,t)-R2(i,t)) \
-                                    );
-                        } //for s
-                    } // for t
-                    ECFB2(i,j) += 2.*I/(N*(N-1));
-                } // for j
-            } // for i
-
-            return_val = ECFB;
-        """
-        weave_inline(locals(), code,
-                     ['N', 'Is', 'It', 'admittance', 'R', 'ECFB'],
-                     blitz=False, headers=["<math.h>"])
-        return ECFB
 
 ###############################################################################
 # ##                       FUNCTIONS ATTIC                                 ## #
@@ -958,7 +799,7 @@ class ResNetwork(GeoNetwork):
     #     R = self.get_R()
 
     #     t = R[a,a] - R[a,b] - R[b,a] + R[b,b]
-    #     print "the t is %f + %fi " % (t.real,t.imag)
+    #     print("the t is %f + %fi " % (t.real,t.imag))
     #     # construct a vector that is all zero except for
     #     # the source (a) and the sink (b)
     #     # if self.flagComplex:

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -22,7 +22,7 @@ import numpy
 #  Define class CouplingAnalysisPurePython
 #
 
-class CouplingAnalysisPurePython(object):
+class CouplingAnalysisPurePython:
 
     """
     Contains methods to calculate coupling matrices from large arrays
@@ -80,7 +80,7 @@ class CouplingAnalysisPurePython(object):
             self.dataarray = numpy.fastCopyAndTranspose(dataarray)
 
         else:
-            print "irregular array shape..."
+            print("irregular array shape...")
             self.dataarray = numpy.fastCopyAndTranspose(dataarray)
 
         #  factorials below 10 in a list for permutation patterns
@@ -180,7 +180,7 @@ class CouplingAnalysisPurePython(object):
         if fourier:
             array = self.correlatedNoiseSurrogates(array)
         else:
-            for i in xrange(self.N):
+            for i in range(self.N):
                 numpy.random.shuffle(array[i])
 
         sample_array = numpy.zeros((1, self.N, corr_range), dtype="float32")
@@ -263,15 +263,15 @@ class CouplingAnalysisPurePython(object):
             corrmat = numpy.zeros((2, self.N, self.N), dtype='float32')
 
         # loop over all node pairs, NOT symmetric due to time shifts!
-        for i in xrange(self.N-only_tri):
-            for j in xrange((i+1)*only_tri, self.N):
+        for i in range(self.N-only_tri):
+            for j in range((i+1)*only_tri, self.N):
 
                 if mode == 2:
                     maxcross = 0.0
                     argmax = 0
 
                 # loop over taus INCLUDING the last tau value
-                for t in xrange(2*tau_max+1):
+                for t in range(2*tau_max+1):
 
                     # here the actual cross correlation is calculated
                     crossij = (array[tau_max, i, :] * array[t, j, :]).mean()
@@ -374,8 +374,8 @@ class CouplingAnalysisPurePython(object):
 
             # This gives the symbolic time series
             symbolic_array[t] = \
-                (array.reshape(self.N, corr_range, 1) >=
-                 edges.reshape(self.N, 1, bins)).sum(axis=2) - 1
+                (array.reshape(self.N, corr_range, 1)
+                 >= edges.reshape(self.N, 1, bins)).sum(axis=2) - 1
 
         return self._calculate_mi(symbolic_array, corr_range=corr_range,
                                   bins=bins, tau_max=tau_max,
@@ -456,7 +456,7 @@ class CouplingAnalysisPurePython(object):
         if fourier:
             array = self.correlatedNoiseSurrogates(array)
         else:
-            for i in xrange(self.N):
+            for i in range(self.N):
                 numpy.random.shuffle(array[i])
 
         # get the bin quantile steps
@@ -472,8 +472,8 @@ class CouplingAnalysisPurePython(object):
 
         # This gives the symbolic time series
         symbolic_array[0] = \
-            (array.reshape(self.N, corr_range, 1) >=
-             edges.reshape(self.N, 1, bins)).sum(axis=2) - 1
+            (array.reshape(self.N, corr_range, 1)
+             >= edges.reshape(self.N, 1, bins)).sum(axis=2) - 1
 
         res = self._calculate_mi(symbolic_array, corr_range=corr_range,
                                  bins=bins, tau_max=0, lag_mode='all')
@@ -532,8 +532,8 @@ class CouplingAnalysisPurePython(object):
 
             # This gives the symbolic time series
             symbolic_array[t] = \
-                (array.reshape(self.N, sample_range, 1) >=
-                 edges.reshape(self.N, 1, bins)).sum(axis=2) - 1
+                (array.reshape(self.N, sample_range, 1)
+                 >= edges.reshape(self.N, 1, bins)).sum(axis=2) - 1
 
         return self._calculate_mi(symbolic_array, corr_range=sample_range,
                                   bins=bins, tau_max=tau_max,
@@ -566,12 +566,12 @@ class CouplingAnalysisPurePython(object):
 
         # Precalculation of the log
         gfunc = numpy.zeros(corr_range+1)
-        for t in xrange(1, corr_range + 1):
+        for t in range(1, corr_range + 1):
             gfunc[t] = t*numpy.log(t)
 
         # loop over all node pairs, NOT symmetric due to time shifts!
-        for i in xrange(self.N-only_tri):
-            for j in xrange((i+1)*only_tri, self.N):
+        for i in range(self.N-only_tri):
+            for j in range((i+1)*only_tri, self.N):
 
                 if mode == 2:
                     maxcross = 0.0
@@ -579,11 +579,11 @@ class CouplingAnalysisPurePython(object):
 
                 # loop over taus from -tau_max to tau_max INCLUDING the last
                 # tau value
-                for t in xrange(2*tau_max + 1):
+                for t in range(2*tau_max + 1):
                     tau = t - tau_max
 
                     # here the joint probability distribution is calculated
-                    for k in xrange(corr_range):
+                    for k in range(corr_range):
                         indexi = array[tau_max, i, k]
                         indexj = array[t, j, k]
                         hist2D[indexi, indexj] += 1
@@ -591,8 +591,8 @@ class CouplingAnalysisPurePython(object):
                     # here the joint entropy is calculated by summing over all
                     # pattern combinations
                     jointent = 0.0
-                    for l in xrange(bins):
-                        for m in xrange(bins):
+                    for l in range(bins):
+                        for m in range(bins):
                             jointent -= gfunc[hist2D[l, m]]
                             hist2D[l, m] = 0
 

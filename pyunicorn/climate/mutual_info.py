@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -17,21 +17,17 @@ Provides classes for generating and analyzing complex climate networks.
 # array object and fast numerics
 import numpy as np
 
+from ._ext.numerics import _calculate_mutual_information_cython
+
 #  Import progress bar for easy progress bar handling
 from ..utils import progressbar
-# C++ inline code
-from .. import weave_inline
 #  Import cnNetwork for Network base class
 from .climate_network import ClimateNetwork
-
-
-LONG_TYPE = np.int64
-DOUBLE_TYPE = np.float32
-
 
 #
 #  Define class MutualInfoClimateNetwork
 #
+
 
 class MutualInfoClimateNetwork(ClimateNetwork):
 
@@ -82,7 +78,7 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         :arg int silence_level: The inverse level of verbosity of the object.
         """
         if silence_level <= 1:
-            print "Generating a mutual information climate network..."
+            print("Generating a mutual information climate network...")
         self.silence_level = silence_level
 
         #  Set instance variables
@@ -113,31 +109,11 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         """
         return 'MutualInfoClimateNetwork:\n' + ClimateNetwork.__str__(self)
 
-    #
-    #  Defines methods to calculate the mutual information matrix
-    #
-
-    def eval_weave_calculate_mutual_information(self, anomaly):
-        """
-        Compare the fast and slow weave code to calculate mutual information.
-
-        :type anomaly: 2D Numpy array (time, index)
-        :arg anomaly: The anomaly time series.
-
-        :rtype: tuple of two 2D Numpy arrays (index, index)
-        :return: the mutual information matrices from fast and slow algorithm.
-        """
-        mi_fast = self._weave_calculate_mutual_information(anomaly, fast=True)
-        mi_slow = self._weave_calculate_mutual_information(anomaly, fast=False)
-
-        return (mi_fast, mi_slow)
-
-    def _weave_calculate_mutual_information(self, anomaly, n_bins=32,
-                                            fast=True):
+    def _cython_calculate_mutual_information(self, anomaly, n_bins=32):
         """
         Calculate the mutual information matrix at zero lag.
 
-        The weave code is adopted from the Tisean 3.0.1 mutual.c module.
+        The cython code is adopted from the Tisean 3.0.1 mutual.c module.
 
         :type anomaly: 2D Numpy array (time, index)
         :arg anomaly: The anomaly time series.
@@ -150,8 +126,8 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         :return: the mutual information matrix at zero lag.
         """
         if self.silence_level <= 1:
-            print "Calculating mutual information matrix at zero lag from \
-anomaly values using Weave..."
+            print("Calculating mutual information matrix at zero lag from "
+                  "anomaly values using cython...")
 
         #  Normalize anomaly time series to zero mean and unit variance
         self.data.normalize_time_series_array(anomaly)
@@ -167,272 +143,15 @@ anomaly values using Weave..."
 
         #  Rescale all time series to the interval [0,1],
         #  using the maximum range of the whole dataset.
-        scaling = float(1. / (range_max - range_min))
+        scaling = 1./(range_max - range_min)
 
-        #  Create array to hold symbolic trajectories
-        symbolic = np.empty(anomaly.shape, dtype=LONG_TYPE)
-
-        #  Initialize array to hold 1d-histograms of individual time series
-        hist = np.zeros((N, n_bins), dtype=LONG_TYPE)
-
-        #  Initialize array to hold 2d-histogram for one pair of time series
-        hist2d = np.zeros((n_bins, n_bins), dtype=LONG_TYPE)
-
-        #  Initialize mutual information array
-        mi = np.zeros((N, N), dtype=DOUBLE_TYPE)
-
-        code = r"""
-        int i, j, k, l, m;
-        int symbol, symbol_i, symbol_j;
-        double norm, rescaled, hpl, hpm, plm;
-
-        //  Calculate histogram norm
-        norm = 1.0 / n_samples;
-
-        for (i = 0; i < N; i++) {
-            for (k = 0; k < n_samples; k++) {
-
-                //  Calculate symbolic trajectories for each time series,
-                //  where the symbols are bins.
-                rescaled = scaling * (anomaly(i,k) - range_min);
-
-                if (rescaled < 1.0) {
-                    symbolic(i,k) = rescaled * n_bins;
-                }
-                else {
-                    symbolic(i,k) = n_bins - 1;
-                }
-
-                //  Calculate 1d-histograms for single time series
-                symbol = symbolic(i,k);
-                hist(i,symbol) += 1;
-            }
-        }
-
-        for (i = 0; i < N; i++) {
-            for (j = 0; j <= i; j++) {
-
-                //  The case i = j is not of interest here!
-                if (i != j) {
-                    //  Calculate 2d-histogram for one pair of time series
-                    //  (i,j).
-                    for (k = 0; k < n_samples; k++) {
-                        symbol_i = symbolic(i,k);
-                        symbol_j = symbolic(j,k);
-                        hist2d(symbol_i,symbol_j) += 1;
-                    }
-
-                    //  Calculate mutual information for one pair of time
-                    //  series (i,j).
-                    for (l = 0; l < n_bins; l++) {
-                        hpl = hist(i,l) * norm;
-                        if (hpl > 0.0) {
-                            for (m = 0; m < n_bins; m++) {
-                                hpm = hist(j,m) * norm;
-                                if (hpm > 0.0) {
-                                    plm = hist2d(l,m) * norm;
-                                    if (plm > 0.0) {
-                                        mi(i,j) += plm * log(plm/hpm/hpl);
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    //  Symmetrize MI
-                    mi(j,i) = mi(i,j);
-
-                    //  Reset hist2d to zero in all bins
-                    for (l = 0; l < n_bins; l++) {
-                        for (m = 0; m < n_bins; m++) {
-                            hist2d(l,m) = 0;
-                        }
-                    }
-                }
-            }
-        }
-        """
-
-        # anomaly must be a contiguous Numpy array for this code to work
-        # correctly! All the other arrays are generated from scratch in this
-        # method and are guaranteed to be contiguous by Numpy.
-        fastCode = r"""
-        long i, j, k, l, m, in_bins, jn_bins, ln_bins, in_samples, jn_samples,
-             in_nodes;
-        double norm, rescaled, hpl, hpm, plm;
-
-        double *p_anomaly;
-        float *p_mi, *p_mi2;
-        long *p_symbolic, *p_symbolic1, *p_symbolic2, *p_hist, *p_hist1,
-             *p_hist2, *p_hist2d;
-
-        //  Calculate histogram norm
-        norm = 1.0 / n_samples;
-
-        //  Initialize in_samples, in_bins
-        in_samples = in_bins = 0;
-
-        for (i = 0; i < N; i++) {
-
-            //  Set pointer to anomaly(i,0)
-            p_anomaly = anomaly + in_samples;
-            //  Set pointer to symbolic(i,0)
-            p_symbolic = symbolic + in_samples;
-
-            for (k = 0; k < n_samples; k++) {
-
-                //  Rescale sample into interval [0,1]
-                rescaled = scaling * (*p_anomaly - range_min);
-
-                //  Calculate symbolic trajectories for each time series,
-                //  where the symbols are bin numbers.
-                if (rescaled < 1.0) {
-                    *p_symbolic = rescaled * n_bins;
-                }
-                else {
-                    *p_symbolic = n_bins - 1;
-                }
-
-                //  Calculate 1d-histograms for single time series
-                //  Set pointer to hist(i, *p_symbolic)
-                p_hist = hist + in_bins + *p_symbolic;
-                (*p_hist)++;
-
-                //  Set pointer to anomaly(k+1,i)
-                p_anomaly++;
-                //  Set pointer to symbolic(k+1,i)
-                p_symbolic++;
-            }
-            in_samples += n_samples;
-            in_bins += n_bins;
-        }
-
-        //  Initialize in_samples, in_bins, in_nodes
-        in_samples = in_bins = in_nodes = 0;
-
-        for (i = 0; i < N; i++) {
-
-            //  Set pointer to mi(i,0)
-            p_mi = mi + in_nodes;
-            //  Set pointer to mi(0,i)
-            p_mi2 = mi + i;
-
-            //  Initialize jn_samples, jn_bins
-            jn_samples = jn_bins = 0;
-
-            for (j = 0; j <= i; j++) {
-
-                //  Don't do anything for i = j, this case is not of
-                //  interest here!
-                if (i != j) {
-
-                    //  Set pointer to symbolic(i,0)
-                    p_symbolic1 = symbolic + in_samples;
-                    //  Set pointer to symbolic(j,0)
-                    p_symbolic2 = symbolic + jn_samples;
-
-                    //  Calculate 2d-histogram for one pair of time series
-                    //  (i,j).
-                    for (k = 0; k < n_samples; k++) {
-
-                        //  Set pointer to hist2d(*p_symbolic1, *p_symbolic2)
-                        p_hist2d = hist2d + (*p_symbolic1)*n_bins
-                                   + *p_symbolic2;
-
-                        (*p_hist2d)++;
-
-                        //  Set pointer to symbolic(i,k+1)
-                        p_symbolic1++;
-                        //  Set pointer to symbolic(j,k+1)
-                        p_symbolic2++;
-                    }
-
-                    //  Calculate mutual information for one pair of time
-                    //  series (i,j).
-
-                    //  Set pointer to hist(i,0)
-                    p_hist1 = hist + in_bins;
-
-                    //  Initialize ln_bins
-                    ln_bins = 0;
-
-                    for (l = 0; l < n_bins; l++) {
-
-                        //  Set pointer to hist(j,0)
-                        p_hist2 = hist + jn_bins;
-                        //  Set pointer to hist2d(l,0)
-                        p_hist2d = hist2d + ln_bins;
-
-                        hpl = (*p_hist1) * norm;
-
-                        if (hpl > 0.0) {
-                            for (m = 0; m < n_bins; m++) {
-
-                                hpm = (*p_hist2) * norm;
-
-                                if (hpm > 0.0) {
-                                    plm = (*p_hist2d) * norm;
-                                    if (plm > 0.0) {
-                                        *p_mi += plm * log(plm/hpm/hpl);
-                                    }
-                                }
-
-                                //  Set pointer to hist(j,m+1)
-                                p_hist2++;
-                                //  Set pointer to hist2d(l,m+1)
-                                p_hist2d++;
-                            }
-                        }
-                        //  Set pointer to hist(i,l+1)
-                        p_hist1++;
-
-                        ln_bins += n_bins;
-                    }
-
-                    //  Symmetrize MI
-                    *p_mi2 = *p_mi;
-
-                    //  Initialize ln_bins
-                    ln_bins = 0;
-
-                    //  Reset hist2d to zero in all bins
-                    for (l = 0; l < n_bins; l++) {
-
-                        //  Set pointer to hist2d(l,0)
-                        p_hist2d = hist2d + ln_bins;
-
-                        for (m = 0; m < n_bins; m++) {
-                            *p_hist2d = 0;
-
-                            //  Set pointer to hist2d(l,m+1)
-                            p_hist2d++;
-                        }
-                        ln_bins += n_bins;
-                    }
-                }
-                //  Set pointer to mi(i,j+1)
-                p_mi++;
-                //  Set pointer to mi(j+1,i)
-                p_mi2 += N;
-
-                jn_samples += n_samples;
-                jn_bins += n_bins;
-            }
-            in_samples += n_samples;
-            in_bins += n_bins;
-            in_nodes += N;
-        }
-        """
-        args = ['anomaly', 'n_samples', 'N', 'n_bins', 'scaling', 'range_min',
-                'symbolic', 'hist', 'hist2d', 'mi']
-
-        if fast:
-            weave_inline(locals(), fastCode, args, blitz=False)
-        else:
-            weave_inline(locals(), code, args)
+        anomaly = anomaly.astype(np.float32).copy(order='c')
+        mi = _calculate_mutual_information_cython(anomaly, n_samples, N,
+                                                  n_bins, scaling,
+                                                  range_min)
 
         if self.silence_level <= 1:
-            print "Done!"
+            print("Done!")
 
         return mi
 
@@ -451,8 +170,8 @@ anomaly values using Weave..."
         :return: the mutual information matrix at zero lag.
         """
         if self.silence_level <= 1:
-            print "Calculating mutual information matrix at zero lag from \
-anomaly values..."
+            print("Calculating mutual information matrix at zero lag from "
+                  "anomaly values...")
 
         #  Define references to numpy functions for faster function calls
         histogram = np.histogram
@@ -476,7 +195,7 @@ anomaly values..."
         #  Calculate the histograms for each time series
         p = np.zeros((self.N, n_bins))
 
-        for i in xrange(self.N):
+        for i in range(self.N):
             p[i, :] = histogram(
                 anomaly[:, i], bins=n_bins, range=(range_min, range_max)
             )[0].astype("float64")
@@ -497,13 +216,13 @@ anomaly values..."
 
         #  Calculate only the lower half of the MI matrix, since MI is
         #  symmetric with respect to X and Y.
-        for i in xrange(self.N):
+        for i in range(self.N):
             #  Update progress bar every 10 steps
             if self.silence_level <= 1:
                 if (i % 10) == 0:
                     progress.update(i**2)
 
-            for j in xrange(i):
+            for j in range(i):
                 #  Calculate the joint probability distribution
                 pxy = histogram2d(
                     anomaly[:, i], anomaly[:, j], bins=n_bins,
@@ -539,7 +258,7 @@ anomaly values..."
         :rtype: 2D Numpy array (index, index)
         :return: the mutual information matrix at zero lag.
         """
-        return self._weave_calculate_mutual_information(anomaly)
+        return self._cython_calculate_mutual_information(anomaly)
 
     def mutual_information(self, anomaly=None, dump=True):
         """
@@ -559,29 +278,29 @@ anomaly values..."
         try:
             #  Try to load MI from file
             if self.silence_level <= 1:
-                print "Loading mutual information matrix from %s..." % \
-                    self.mi_file
+                print("Loading mutual information matrix from "
+                      f"{self.mi_file}...")
 
             with open(self.mi_file, 'r') as f:
                 mi = np.load(f)
                 #  Check if the dimensions of mutual_information correspond to
                 #  the grid.
                 if mi.shape != (self.N, self.N):
-                    print (self.mi_file +
-                           " in current directory has incorrect dimensions!")
+                    print(f"{self.mi_file} in current directory has "
+                          "incorrect dimensions!")
                     raise RuntimeError
 
         except (IOError, RuntimeError):
             if self.silence_level <= 1:
-                print "An error occured while loading data from %s." % \
-                    self.mi_file
-                print "Recalculating mutual information."
+                print("An error occured while loading data from "
+                      f"{self.mi_file}.")
+                print("Recalculating mutual information.")
 
-            mi = self._weave_calculate_mutual_information(anomaly)
+            mi = self._cython_calculate_mutual_information(anomaly)
             if dump:
                 with open(self.mi_file, 'w') as f:
                     if self.silence_level <= 1:
-                        print "Storing in", self.mi_file
+                        print("Storing in", self.mi_file)
                     mi.dump(f)
 
         return mi

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -32,8 +32,7 @@ Known Bugs
 #  Import classes
 #
 
-from .network import Network, NetworkError, nz_coords, weave_inline, \
-    cached_const
+from .network import Network, NetworkError, nz_coords, cached_const
 from .geo_network import GeoNetwork
 from .grid import Grid
 from .data import Data

@@ -13,7 +13,7 @@ def master():
     s = 0
     for i in range(0, n):
         s += mpi.get_next_result()
-    print s/n
+    print(s/n)
     mpi.info()
 
 mpi.run()

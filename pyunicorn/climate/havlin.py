@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -78,7 +78,7 @@ class HavlinClimateNetwork(ClimateNetwork):
         :arg int silence_level: The inverse level of verbosity of the object.
         """
         if silence_level <= 1:
-            print "Generating a Havlin climate network..."
+            print("Generating a Havlin climate network...")
         self.silence_level = silence_level
 
         #  Set instance variables
@@ -103,9 +103,10 @@ class HavlinClimateNetwork(ClimateNetwork):
         """
         Return a string version of the instance of HavlinClimateNetwork.
         """
-        return ('HavlinClimateNetwork:\n%s\nMaximum delay used for ' +
-                'correlation strength estimation: %s') % (
-                    ClimateNetwork.__str__(self), self.get_max_delay())
+        return (f'HavlinClimateNetwork:\n'
+                '{ClimateNetwork.__str__(self)}\n'
+                'Maximum delay used for correlation strength estimation: '
+                '{self.get_max_delay()}')
 
     def clear_cache(self, irreversible=False):
         """
@@ -146,8 +147,8 @@ class HavlinClimateNetwork(ClimateNetwork):
         :return: the correlation strength and maximum lag matrices.
         """
         if self.silence_level <= 1:
-            print "Calculating correlation strength matrix \
-following [Yamasaki2008]_..."
+            print("Calculating correlation strength matrix "
+                  "following [Yamasaki2008]_...")
 
         #  Initialize
         N = self.N
@@ -172,7 +173,7 @@ following [Yamasaki2008]_..."
         #  Calculate the inverse Fourier transform of all time series
         ifft = np.fft.ifft(anomaly, axis=0)
 
-        for i in xrange(N):
+        for i in range(N):
             #  Update progress bar every 10 steps
             if self.silence_level <= 1:
                 if (i % 10) == 0:
@@ -252,8 +253,8 @@ following [Yamasaki2008]_..."
         try:
             return self._similarity_measure
         except AttributeError:
-            print "Correlation strength matrix was deleted earlier and \
-cannot be retrieved."
+            print("Correlation strength matrix was deleted earlier and "
+                  "cannot be retrieved.")
 
     def correlation_lag(self):
         """
@@ -265,8 +266,8 @@ cannot be retrieved."
         try:
             return self._correlation_lag
         except AttributeError:
-            print "Lag matrix was deleted earlier and \
-cannot be retrieved."
+            print("Lag matrix was deleted earlier and "
+                  "cannot be retrieved.")
 
     #
     #  Methods to calculate weighted network measures

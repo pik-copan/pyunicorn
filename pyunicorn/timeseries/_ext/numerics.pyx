@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
-
 
 cimport cython
 from cpython cimport bool
@@ -16,6 +15,7 @@ import numpy as np
 cimport numpy as np
 import numpy.random as rd
 import random
+from datetime import datetime
 
 randint = rd.randint
 
@@ -40,16 +40,81 @@ ctypedef np.float64_t FLOAT64TYPE_t
 
 cdef extern from "stdlib.h":
     double drand48()
-
-cdef extern from "stdlib.h":
     double srand48()
 
 cdef extern from "time.h":
     double time()
 
 
-# surrogates ==================================================================
+cdef extern from "src_numerics.c":
+    void _manhattan_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
+        double *x_embedded, double *y_embedded, float *distance)
+    void _euclidean_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
+        double *x_embedded, double *y_embedded, float *distance)
+    void _supremum_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
+        float *x_embedded, float *y_embedded, float *distance)
+    void _test_pearson_correlation_fast(double *original_data,
+        double *surrogates, float *correlation, int n_time, int N, double norm)
+    void _test_mutual_information_fast(int N, int n_time, int n_bins,
+        double scaling, double range_min, double *original_data,
+        double *surrogates, int *symbolic_original, int *symbolic_surrogates,
+        int *hist_original, int *hist_surrogates, int * hist2d, float *mi)
 
+
+# cross_recurrence_plot =======================================================
+
+def _manhattan_distance_matrix_crp(
+    int ntime_x, int ntime_y, int dim,
+    np.ndarray[double, ndim=2, mode='c'] x_embedded not None,
+    np.ndarray[double, ndim=2, mode='c'] y_embedded not None):
+
+    cdef np.ndarray[float, ndim=2, mode='c'] distance = \
+        np.zeros((ntime_x, ntime_y), dtype="float32")
+
+    _manhattan_distance_matrix_fast(
+        ntime_x, ntime_y, dim,
+        <double*> np.PyArray_DATA(x_embedded),
+        <double*> np.PyArray_DATA(y_embedded),
+        <float*> np.PyArray_DATA(distance))
+
+    return distance
+
+
+def _euclidean_distance_matrix_crp(
+    int ntime_x, int ntime_y, int dim,
+    np.ndarray[double, ndim=2, mode='c'] x_embedded not None,
+    np.ndarray[double, ndim=2, mode='c'] y_embedded not None):
+
+    cdef np.ndarray[float, ndim=2, mode='c'] distance = \
+        np.zeros((ntime_x, ntime_y), dtype="float32")
+
+    _euclidean_distance_matrix_fast(
+        ntime_x, ntime_y, dim,
+        <double*> np.PyArray_DATA(x_embedded),
+        <double*> np.PyArray_DATA(y_embedded),
+        <float*> np.PyArray_DATA(distance))
+
+    return distance
+
+
+def _supremum_distance_matrix_crp(
+    int ntime_x, int ntime_y, int dim,
+    np.ndarray[float, ndim=2, mode='c'] x_embedded not None,
+    np.ndarray[float, ndim=2, mode='c'] y_embedded not None):
+
+    cdef np.ndarray[float, ndim=2, mode='c'] distance = \
+        np.zeros((ntime_x, ntime_y), dtype="float32")
+
+    _supremum_distance_matrix_fast(
+        ntime_x, ntime_y, dim,
+        <float*> np.PyArray_DATA(x_embedded),
+        <float*> np.PyArray_DATA(y_embedded),
+        <float*> np.PyArray_DATA(distance))
+
+    return distance
+
+
+# surrogates ==================================================================
 
 def _embed_time_series_array(
     int N, int n_time, int dimension, int delay,
@@ -67,10 +132,10 @@ def _embed_time_series_array(
     # Calculate the length of the embedded time series
     len_embedded = n_time - max_delay
 
-    for i in xrange(N):
-        for j in xrange(dimension):
+    for i in range(N):
+        for j in range(dimension):
             index = j*delay
-            for k in xrange(len_embedded):
+            for k in range(len_embedded):
                 embedding[i, k, j] = time_series_array[i, index]
                 index += 1
 
@@ -84,10 +149,10 @@ def _recurrence_plot(
         int j, k, l
         double diff
 
-    for j in xrange(n_time):
+    for j in range(n_time):
         # Ignore the main diagonal, since every sample is neighbor of itself
-        for k in xrange(j):
-            for l in xrange(dimension):
+        for k in range(j):
+            for l in range(dimension):
                 # Use supremum norm
                 diff = embedding[j, l] - embedding[k, l]
 
@@ -99,7 +164,7 @@ def _recurrence_plot(
                     break
 
 
-def _twins(
+def _twins_s(
     int N, int n_time, int dimension, float threshold, int min_dist,
     np.ndarray[FLOATTYPE_t, ndim=3] embedding_array,
     np.ndarray[FLOATTYPE_t, ndim=2] R, np.ndarray[FLOATTYPE_t, ndim=1] nR,
@@ -109,20 +174,20 @@ def _twins(
         int i, j, k, l
         double diff
 
-    for i in xrange(N):
+    for i in range(N):
         # Initialize the recurrence matrix R and nR
 
-        for j in xrange(n_time):
-            for k in xrange(j+1):
+        for j in range(n_time):
+            for k in range(j+1):
                 R[j, k] = R[k, j] = 1
             nR[j] = n_time
 
         # Calculate the recurrence matrix for time series i
 
-        for j in xrange(n_time):
+        for j in range(n_time):
             # Ignore main diagonal, since every sample is neighbor of itself
-            for k in xrange(j):
-                for l in xrange(dimension):
+            for k in range(j):
+                for l in range(dimension):
                     # Use maximum norm
                     diff = embedding_array[i, j, l] - embedding_array[i, k, l]
 
@@ -142,7 +207,7 @@ def _twins(
 
         # Find all twins in the recurrence matrix
 
-        for j in xrange(n_time):
+        for j in range(n_time):
             twins_i = twins[i]
             twins_i.append([])
             twins_ij = twins_i[j]
@@ -150,7 +215,7 @@ def _twins(
             # Respect a minimal temporal spacing between twins to avoid false
             # twins due to the higher
             # sample density in phase space along the trajectory
-            for k in xrange(j-min_dist):
+            for k in range(j-min_dist):
                 # Continue only if both samples have the same number of
                 # neighbors and more than jsut one neighbor (themselves)
                 if nR[j] == nR[k] and nR[j] != 1:
@@ -171,6 +236,7 @@ def _twins(
                             # Leave the while loop
                             break
 
+
 # recurrence plot==============================================================
 
 def _embed_time_series(
@@ -190,14 +256,13 @@ def _embed_time_series(
     # Calculate the length of the embedded time series
     len_embedded = n_time - max_delay
 
-    for j in xrange(dim):
+    for j in range(dim):
         index = j * tau
-        for k in xrange(len_embedded):
+        for k in range(len_embedded):
             embedding[k, j] = time_series[index]
             index += 1
 
-
-def _manhatten_distance_matrix(
+def _manhattan_distance_matrix_rp(
     int n_time, int dim, np.ndarray[FLOAT32TYPE_t, ndim=2] embedding,
     np.ndarray[FLOAT32TYPE_t, ndim=2] distance):
 
@@ -205,18 +270,19 @@ def _manhatten_distance_matrix(
         int j, k, l
         float sum
 
-    # Calculate the manhatten distance matrix
-    for j in xrange(n_time):
+    # Calculate the manhattan distance matrix
+    for j in range(n_time):
         # Ignore the main diagonal, since every samle is neighbor of itself
-        for k in xrange(j):
+        for k in range(j):
             sum = 0
-            for l in xrange(dim):
+            for l in range(dim):
                 # use manhattan norm
                 sum += abs(embedding[j, l] - embedding[k, l])
 
             distance[j, k] = distance[k, j] = sum
 
-def _euclidean_distance_matrix(
+
+def _euclidean_distance_matrix_rp(
     int n_time, int dim, np.ndarray[FLOAT32TYPE_t, ndim=2] embedding,
     np.ndarray[FLOAT32TYPE_t, ndim=2] distance):
 
@@ -225,17 +291,18 @@ def _euclidean_distance_matrix(
         float sum, diff
 
     # Calculate the eucliadean distance matrix
-    for j in xrange(n_time):
+    for j in range(n_time):
         # Ignore the main diagonal, since every sample is neighbor of itself
-        for k in xrange(j):
+        for k in range(j):
             sum = 0
-            for l in xrange(dim):
+            for l in range(dim):
                 # Use euclidean norm
                 diff = abs(embedding[j, l] - embedding[k, l])
                 sum += diff * diff
             distance[j, k] = distance[k, j] = sum
 
-def _supremum_distance_matrix(
+
+def _supremum_distance_matrix_rp(
     int n_time, int dim, np.ndarray[FLOAT32TYPE_t, ndim=2] embedding,
     np.ndarray[FLOAT32TYPE_t, ndim=2] distance):
 
@@ -245,11 +312,11 @@ def _supremum_distance_matrix(
 
 
     # Calculate the eucliadean distance matrix
-    for j in xrange(n_time):
+    for j in range(n_time):
         # Ignore the main diagonal, since every sample is neighbor of itself
-        for k in xrange(j):
+        for k in range(j):
             temp_diff = diff = 0
-            for l in xrange(dim):
+            for l in range(dim):
                 # Use supremum norm
                 temp_diff = abs(embedding[j, l] - embedding[k, l])
                 if temp_diff > diff:
@@ -267,8 +334,8 @@ def _set_adaptive_neighborhood_size(
     cdef:
         int i, j, k, l
 
-    for i in xrange(adaptive_neighborhood_size):
-        for j in xrange(n_time):
+    for i in range(adaptive_neighborhood_size):
+        for j in range(n_time):
             # Get the node index to be processed
             l = order[j]
 
@@ -291,10 +358,10 @@ def _bootstrap_distance_matrix_manhatten(
         np.ndarray[INTTYPE_t, ndim=2] jk = rd.randint(n_time, size=(2,M))
         float sum, diff
 
-    for i in xrange(M):
+    for i in range(M):
         #Compute their distance
         sum = 0
-        for l in xrange(dim):
+        for l in range(dim):
             # Use manhatten norm
             sum += abs(embedding[jk[0, i], l] - embedding[jk[1, i], l])
 
@@ -310,10 +377,10 @@ def _bootstrap_distance_matrix_euclidean(
         np.ndarray[INTTYPE_t, ndim=2] jk = rd.randint(n_time, size=(2,M))
         float sum, diff
 
-    for i in xrange(M):
+    for i in range(M):
         #Compute their distance
         sum = 0
-        for l in xrange(dim):
+        for l in range(dim):
             # Use manhatten norm
             diff = abs(embedding[jk[0, i], l] - embedding[jk[1, i], l])
             sum += diff * diff
@@ -330,10 +397,10 @@ def _bootstrap_distance_matrix_supremum(
         np.ndarray[INTTYPE_t, ndim=2] jk = rd.randint(n_time, size=(2,M))
         float temp_diff, diff
 
-    for i in xrange(M):
+    for i in range(M):
         #Compute their distance
         temp_diff = diff = 0
-        for l in xrange(dim):
+        for l in range(dim):
             # Use supremum norm
             temp_diff = abs(embedding[jk[0, i], l] - embedding[jk[1, i], l])
 
@@ -352,14 +419,14 @@ def _diagline_dist_norqa_missingvalues(
         int i, j, k = 0
         BOOLTYPE_t missing_flag = False
 
-    for i in xrange(n_time):
+    for i in range(n_time):
         if k != 0 and not missing_flag:
             diagline[k] += 1
             k = 0
 
         missing_flag = False
 
-        for j in xrange(i+1):
+        for j in range(i+1):
             # Check if curren tpoint in RP belongs to a mising value
             if mv_indices[n_time-1-i+j] or mv_indices[j]:
                 missing_flag = True
@@ -386,11 +453,11 @@ def _diagline_dist_norqa(
     cdef:
         int i, j, k = 0
 
-    for i in xrange(n_time):
+    for i in range(n_time):
         if k != 0:
             diagline[k] += 1
             k = 0
-        for j in xrange(i+1):
+        for j in range(i+1):
             if recmat[n_time-1-i+j, j] == 1:
                 k += 1
             elif k != 0:
@@ -408,17 +475,17 @@ def _diagline_dist_rqa_missingvalues(
         float temp_diff, diff
         BOOLTYPE_t missing_flag = False
 
-    for i in xrange(n_time):
+    for i in range(n_time):
         if k != 0 and not missing_flag:
             diagline[k] += 1
             k = 0
 
         missing_flag = False
 
-        for j in xrange(i+1):
+        for j in range(i+1):
             # Compute supreumum distance between state vectors
             temp_diff = diff = 0
-            for l in xrange(dim):
+            for l in range(dim):
                 # Use supremum norm
                 temp_diff = abs(embedding[j, l] - embedding[n_time-1-i+j, l])
                 if temp_diff > diff:
@@ -452,15 +519,15 @@ def _diagline_dist_rqa(
         int i, j, k = 0, l
         float temp_diff, diff
 
-    for i in xrange(n_time):
+    for i in range(n_time):
         if k != 0:
             diagline[k] += 1
             k = 0
 
-        for j in xrange(i+1):
+        for j in range(i+1):
             # Compute supremum distance between state vectors
             temp_diff = diff = 0
-            for l in xrange(dim):
+            for l in range(dim):
                 # Use supremum norm
                 temp_diff = abs(embedding[j, l] - embedding[n_time-1-i+j, l])
                 if temp_diff > diff:
@@ -498,14 +565,14 @@ def _vertline_dist_norqa_missingvalues(
         int i, j, k = 0
         BOOLTYPE_t missing_flag = False
 
-    for i in xrange(n_time):
+    for i in range(n_time):
         if (k != 0 and not missing_flag):
             vertline[k] += 1
             k = 0
 
         missing_flag = False
 
-        for j in xrange(n_time):
+        for j in range(n_time):
             # check if current point in RP belongs to a missing value
             if mv_indices[i] or mv_indices[j]:
                 missing_flag = True
@@ -520,18 +587,19 @@ def _vertline_dist_norqa_missingvalues(
                     vertline[k] += 1
                     k = 0
 
+
 def _vertline_dist_norqa(
     int n_time, np.ndarray[INT32TYPE_t, ndim=1] vertline,
     np.ndarray[INT8TYPE_t, ndim=2] recmat):
 
     cdef int i, j, k = 0
 
-    for i in xrange(n_time):
+    for i in range(n_time):
         if k != 0:
             vertline[k] += 1
             k = 0
 
-        for j in xrange(n_time):
+        for j in range(n_time):
             if recmat[i, j] != 0:
                 k += 1
             elif k != 0:
@@ -549,17 +617,17 @@ def _vertline_dist_rqa_missingvalues(
         float temp_diff, diff
         BOOLTYPE_t missing_flag = False
 
-    for i in xrange(n_time):
+    for i in range(n_time):
         if k != 0 and not missing_flag:
             vertline[k] += 1
             k = 0
 
         missing_flag = False
 
-        for j in xrange(n_time):
+        for j in range(n_time):
             # Compute supremum distance between state vectors
             temp_diff = diff = 0
-            for l in xrange(dim):
+            for l in range(dim):
                 # Use supremum norm
                 temp_diff = abs(embedding[i, l] - embedding[j, l])
 
@@ -581,6 +649,7 @@ def _vertline_dist_rqa_missingvalues(
                     vertline[k] += 1
                     k = 0
 
+
 def _vertline_dist_rqa(
     int n_time, np.ndarray[INT32TYPE_t, ndim=1] vertline,
     np.ndarray[FLOAT32TYPE_t, ndim=2] embedding, float eps, int dim):
@@ -589,15 +658,15 @@ def _vertline_dist_rqa(
         int i, j, k = 0, l
         float temp_diff, diff
 
-    for i in xrange(n_time):
+    for i in range(n_time):
         if k != 0:
             vertline[k] += 1
             k = 0
 
-        for j in xrange(n_time):
+        for j in range(n_time):
             # Compute supremum distance between state vectors
             temp_diff = diff = 0
-            for l in xrange(dim):
+            for l in range(dim):
                 # Use supremum norm
                 temp_diff = abs(embedding[i, l] - embedding[j, l])
 
@@ -618,19 +687,20 @@ def _white_vertline_dist(
 
     cdef int i, j, k = 0
 
-    for i in xrange(n_time):
+    for i in range(n_time):
         if k != 0:
             white_vertline[k] += 1
             k = 0
 
-        for j in xrange(n_time):
+        for j in range(n_time):
             if R[i, j] == 0:
                 k += 1
             elif k != 0:
                 white_vertline[k] += 1
                 k = 0
 
-def _twins(
+
+def _twins_r(
     int min_dist, int N, np.ndarray[INT8TYPE_t, ndim=2] R,
     np.ndarray[INTTYPE_t, ndim=1] nR, twins):
 
@@ -638,14 +708,14 @@ def _twins(
 
     twins.append([])
 
-    for j in xrange(N):
+    for j in range(N):
         twins.append([])
         twins_j = twins[j]
 
         # Respect a minimal temporal spacing between twins to avoid false
         # twins du to th higher sample density in phase space along the
         # trajectory
-        for k in xrange(j - min_dist):
+        for k in range(j - min_dist):
             # Continue only if both samples have the same number of
             # neighbors and more than just one neighbor (themselves)
             if nR[j] == nR[k] and nR[j] != 1:
@@ -666,33 +736,33 @@ def _twins(
                         break
 
 
-def _twin_surrogates(
-    int n_surrogates, int N, int dim, twins,
-    np.ndarray[FLOAT32TYPE_t, ndim=2] embedding,
-    np.ndarray[FLOATTYPE_t, ndim=3] surrogates):
+def _twin_surrogates(int n_surrogates, int N, twins,
+                     np.ndarray[FLOATTYPE_t, ndim=2] original_data):
 
     cdef int i, j, k, l, new_k, n_twins, rand
+    cdef np.ndarray[FLOATTYPE_t, ndim=2] surrogates = np.empty((n_surrogates,N))
 
     # Initialize random number generator
-    # srand48(time(0)) -> does not work in cython somehow ?!?!?
+    #random.seed(datetime.now())
+    for i in range(n_surrogates):
+        # Get the twin list for time series i
+        twins_i = twins[i]
 
-    for i in xrange(n_surrogates):
         # Randomly choose a starting point in the original trajectory
-        k = int(floor(drand48() * N))
+        k = int(floor(random.random() * N))
 
         j = 0
 
         while j < N:
             # Assign state vector of surrogate trajectory
-            for l in xrange(dim):
-                surrogates[i, j, l] = embedding[k, l]
+            surrogates[i,j] = original_data[i,k]
 
             # Get the list of twins of state vector k in the original time
             # series
-            twins_k = twins[k]
+            twins_ik = twins_i[k]
 
             # Get the number of twins of k
-            n_twins = len(twins_k)
+            n_twins = len(twins_ik)
 
             # If k has no twins, go to the next sample k+1, If k has twins at
             # m, choose among m+1 and k+1 with equal probability
@@ -700,27 +770,93 @@ def _twin_surrogates(
                 k += 1
             else:
                 # Generate a random integer between 0 and n_twins
-                rand = int(floor(drand48() * (n_twins + 1)))
+                rand = int(floor(random.random() * (n_twins + 1)))
 
                 # If rand = n_twings go to smple k+1, otherwise jump to the
                 # future of one of the twins
                 if rand == n_twins:
                     k += 1
                 else:
-                    k = twins_k[rand]
+                    k = twins_ik[rand]
                     k += 1
 
             # If the new k >= n_time, choose a new random starting point in the
             # original time series
             if k >= N:
                 while True:
-                    new_k = int(floor(drand48() * N))
+                    new_k = int(floor(random.random() * N))
                     if new_k != k:
                         break
 
                 k = new_k
 
             j += 1
+
+    return surrogates
+
+
+def _test_pearson_correlation(
+    np.ndarray[double, ndim=2, mode='c'] original_data not None,
+    np.ndarray[double, ndim=2, mode='c'] surrogates not None,
+    int N, int n_time):
+
+    cdef double norm = 1.0 / float(n_time)
+
+    #  Initialize Pearson correlation matrix
+    cdef np.ndarray[float, ndim=2, mode='c'] correlation = np.zeros((N, N),
+            dtype="float32")
+
+    _test_pearson_correlation_fast(
+        <double*> np.PyArray_DATA(original_data),
+        <double*> np.PyArray_DATA(surrogates),
+        <float*> np.PyArray_DATA(correlation),
+        n_time, N, norm)
+
+    return correlation
+
+
+def _test_mutual_information(
+    np.ndarray[double, ndim=2, mode='c'] original_data not None,
+    np.ndarray[double, ndim=2, mode='c'] surrogates not None,
+    int N, int n_time, int n_bins):
+
+    cdef:
+        #  Get common range for all histograms
+        double range_min = np.min((original_data.min(), surrogates.min()))
+        double range_max = np.max((original_data.max(), surrogates.max()))
+        #  Rescale all time series to the interval [0,1], using the maximum
+        #  range of the whole dataset
+        double scaling = 1. / (range_max - range_min)
+        #  Create arrays to hold symbolic trajectories
+        np.ndarray[int, ndim=2, mode='c'] symbolic_original = \
+            np.empty((N, n_time), dtype="int32")
+        np.ndarray[int, ndim=2, mode='c'] symbolic_surrogates = \
+            np.empty((N, n_time), dtype="int32")
+        #  Initialize array to hold 1d-histograms of individual time series
+        np.ndarray[int, ndim=2, mode='c'] hist_original = \
+            np.zeros((N, n_bins), dtype="int32")
+        np.ndarray[int, ndim=2, mode='c'] hist_surrogates = \
+            np.zeros((N, n_bins), dtype="int32")
+        #  Initialize array to hold 2d-histogram for one pair of time series
+        np.ndarray[int, ndim=2, mode='c'] hist2d = \
+            np.zeros((n_bins, n_bins), dtype="int32")
+        #  Initialize mutual information array
+        np.ndarray[float, ndim=2, mode='c'] mi = np.zeros((N, N),
+                dtype="float32")
+
+    _test_mutual_information_fast(
+            N, n_time, n_bins, scaling, range_min,
+            <double*> np.PyArray_DATA(original_data),
+            <double*> np.PyArray_DATA(surrogates),
+            <int*> np.PyArray_DATA(symbolic_original),
+            <int*> np.PyArray_DATA(symbolic_surrogates),
+            <int*> np.PyArray_DATA(hist_original),
+            <int*> np.PyArray_DATA(hist_surrogates),
+            <int*> np.PyArray_DATA(hist2d),
+            <float*> np.PyArray_DATA(mi))
+
+    return mi
+
 
 # visibitly graph =============================================================
 
@@ -737,8 +873,8 @@ def _visibility_relations_missingvalues(
         int i, j, k
         float test
 
-    for i in xrange(N-2):
-        for j in xrange(i+2, N):
+    for i in range(N-2):
+        for j in range(i+2, N):
             k = i + 1
 
             test = (x[j] - x[i]) / (t[j] - t[i])
@@ -751,7 +887,7 @@ def _visibility_relations_missingvalues(
                 A[i, j] = A[j, i] = 1
 
     # Add trivial connections of subsequent observations in time series
-    for i in xrange(N-1):
+    for i in range(N-1):
         if not mv_indices[i] and not mv_indices[i+1]:
             A[i, i+1] = A[i+1, i] = 1
 
@@ -764,8 +900,8 @@ def _visibility_relations_no_missingvalues(
         int i, j, k
         float test
 
-    for i in xrange(N-2):
-        for j in xrange(i+2, N):
+    for i in range(N-2):
+        for j in range(i+2, N):
             k = i + 1
 
             test = (x[j] - x[i]) / (t[j] - t[i])
@@ -777,7 +913,7 @@ def _visibility_relations_no_missingvalues(
                 A[i, j] = A[j, i] = 1
 
     # Add trivial connections of subsequent observations in time series
-    for i in xrange(N-1):
+    for i in range(N-1):
         A[i, i+1] = A[i+1, i] = 1
 
 
@@ -789,8 +925,8 @@ def _visibility_relations_horizontal(
         int i, j, k
         float minimum
 
-    for i in xrange(N-2):
-        for j in xrange(i+2, N):
+    for i in range(N-2):
+        for j in range(i+2, N):
             k = i + 1
             minimum = min(x[i], x[j])
 
@@ -801,8 +937,33 @@ def _visibility_relations_horizontal(
                 A[i, j] = A[j, i] = 1
 
     # Add trivial connections of subsequent observations in time series
-    for i in xrange(N-1):
+    for i in range(N-1):
         A[i, i+1] = A[i+1, i] = 1
+
+
+def _visibility(
+        np.ndarray[FLOAT32TYPE_t, ndim=1] time,
+        np.ndarray[FLOAT32TYPE_t, ndim=1] val, int node1, int node2):
+
+    cdef:
+        int i, j, k
+        np.ndarray[BOOLTYPE_t, ndim=1] test
+
+    i = min(node1,node2)
+    j = max(node1,node2)
+
+    """
+    testfun = lambda k: np.less((val[k]-val[i])/(time[k]-time[i]),
+                                (val[j]-val[i])/(time[j]-time[i]))
+    test = np.bool(np.sum(~np.array(map(testfun, range(i+1,j)))))
+    return np.invert(test)
+    """
+    test = np.zeros((j-(i+1)), dtype=np.uint8)
+    for k in range(i+1,j):
+        test[k-(i+1)] = np.less((val[k]-val[i])/(time[k]-time[i]),
+                            (val[j]-val[i])/(time[j]-time[i]))
+    return np.invert(np.bool(np.sum(test)))
+
 
 def _retarded_local_clustering(
     int N, np.ndarray[INT16TYPE_t, ndim=2] A,
@@ -814,19 +975,20 @@ def _retarded_local_clustering(
         long counter
 
     # Loop over all nodes
-    for i in xrange(N):
+    for i in range(N):
         # Check if i has right degree larger than 1
         if norm[i] != 0:
             # Reset counter
             counter = 0
 
             # Loop over unique pairs of nodes in the past of i
-            for j in xrange(i):
-                for k in xrange(j):
+            for j in range(i):
+                for k in range(j):
                     if A[i, j] == 1 and A[j, k] == 1 and A[k, i] == 1:
                         counter += 1
 
             retarded_clustering[i] = counter / norm[i]
+
 
 def _advanced_local_clustering(
     int N, np.ndarray[INT16TYPE_t, ndim=2] A,
@@ -838,15 +1000,15 @@ def _advanced_local_clustering(
         long counter
 
     # Loop over all nodes
-    for i in xrange(N-2):
+    for i in range(N-2):
         # Check if i has right degree larger than 1
         if norm[i] != 0:
             # Reset counter
             counter = 0
 
             # Loop over unique pairs of nodes in the future of i
-            for j in xrange(i+1, N):
-                for k in xrange(i+1, j):
+            for j in range(i+1, N):
+                for k in range(i+1, j):
                     if A[i, j] == 1 and A[j, k] == 1 and A[k, i] == 1:
                         counter += 1
 

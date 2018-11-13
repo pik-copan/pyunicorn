@@ -1,7 +1,7 @@
 #! /usr/bin/env python2
 
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -11,6 +11,10 @@ Configure `py.test` fixtures.
 
 import numpy as np
 import pytest
+from pyunicorn import legacy
+
+
+legacy.set_legacy_mode()
 
 
 def _i():
@@ -50,7 +54,7 @@ def rr(obj, decimals=4):
     """
     Force arrays in stubborn scientific notation into a few digits.
     """
-    print np.vectorize('%.4g'.__mod__)(r(obj, decimals=decimals))
+    print(np.vectorize('%.4g'.__mod__)(r(obj, decimals=decimals)))
 
 
 @pytest.fixture(autouse=True)

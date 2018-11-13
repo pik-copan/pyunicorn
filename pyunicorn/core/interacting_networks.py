@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -15,12 +15,12 @@ multivariate data and generating time series surrogates.
 import numpy as np
 from numpy import random
 
-#  Import Network base class and Cython code
+from ._ext.numerics import _randomlySetCrossLinks, _randomlyRewireCrossLinks, \
+    _cross_transitivity, _nsi_cross_transitivity, _cross_local_clustering, \
+    _nsi_cross_local_clustering
+
+#  Import Network base class
 from .network import Network, NetworkError
-from .numerics import                                    \
-    _randomlySetCrossLinks, _randomlyRewireCrossLinks,   \
-    _cross_transitivity, _nsi_cross_transitivity,        \
-    _cross_local_clustering, _nsi_cross_local_clustering
 
 
 #
@@ -177,15 +177,15 @@ class InteractingNetworks(Network):
         #  determine number of cross links
         if cross_link_density is not None:
             number_cross_links = int(cross_link_density * (N1 * N2))
-            print "Setting number of cross links according to \
-chosen link density."
+            print("Setting number of cross links according to "
+                  "chosen link density.")
         elif cross_link_density is None and number_cross_links is None:
             number_cross_links = int(cross_A.sum())
-            print "Creating a null model for the given interacting networks."
+            print("Creating a null model for the given interacting networks.")
         #  else: take the explicitly chosen number of cross links
         if number_cross_links > (N1 * N2):
-            print "The number of cross links exceeds maximum."
-            print "Setting link density of initial interacting network."
+            print("The number of cross links exceeds maximum.")
+            print("Setting link density of initial interacting network.")
             number_cross_links = int(cross_A.sum())
 
         #  retrieve adjacency matrix of the full interacting network
@@ -239,16 +239,16 @@ chosen link density."
         #  determine number of cross links
         if cross_link_density is not None:
             number_cross_links = int(cross_link_density * (N1 * N2))
-            print "Setting number of cross links according to chosen \
-                  link density."
+            print("Setting number of cross links according to chosen \
+                  link density.")
         elif cross_link_density is None and number_cross_links is None:
             number_cross_links = int(sum(cross_A.values()))
-            print "Creating a null model for the given interacting networks."
+            print("Creating a null model for the given interacting networks.")
         #  else: take the explicitly chosen number of cross links
 
         if number_cross_links > (N1 * N2):
-            print "The number of cross links exceeds maximum."
-            print "Setting link density of initial interacting network."
+            print("The number of cross links exceeds maximum.")
+            print("Setting link density of initial interacting network.")
             number_cross_links = int(sum(cross_A.values()))
 
         #  retrieve adjacency matrix of the full interacting network
@@ -311,18 +311,18 @@ chosen link density."
         rewiring):
 
         >>> net = InteractingNetworks.SmallTestNetwork()
-        >>> print "Degree:", net.degree()
+        >>> print("Degree:", net.degree())
         Degree: [3 3 2 2 3 1]
-        >>> print "Cross degree:", net.cross_degree(
-        ...     node_list1=[0,3,5], node_list2=[1,2,4])
+        >>> print("Cross degree:", net.cross_degree(
+        ...     node_list1=[0,3,5], node_list2=[1,2,4]))
         Cross degree: [1 1 0]
         >>> rewired_net = net.RandomlyRewireCrossLinks(
         ...     network=net, node_list1=[0,3,5],
         ...     node_list2=[1,2,4], swaps=10.)
-        >>> print "Degree:", rewired_net.degree()
+        >>> print("Degree:", rewired_net.degree())
         Degree: [3 3 2 2 3 1]
-        >>> print "Cross degree:", rewired_net.cross_degree(
-        ...     node_list1=[0,3,5], node_list2=[1,2,4])
+        >>> print("Cross degree:", rewired_net.cross_degree(
+        ...     node_list1=[0,3,5], node_list2=[1,2,4]))
         Cross degree: [1 1 0]
 
         :type network: :class:`InteractingNetworks` instance
@@ -450,8 +450,8 @@ chosen link density."
 
         Examples:
 
-        >>> print InteractingNetworks.SmallTestNetwork().\
-                cross_adjacency_sparse([1,2,4], [0,3,5])
+        >>> print(InteractingNetworks.SmallTestNetwork().\
+                cross_adjacency_sparse([1,2,4], [0,3,5]))
         [[0 1 0] [0 0 0] [1 0 0]]
 
         :arg [int] node_list1: list of node indices describing the first
@@ -635,7 +635,7 @@ chosen link density."
         if self.directed:
             return n_links
         else:
-            return n_links / 2
+            return n_links // 2
 
     def cross_link_density(self, node_list1, node_list2):
         """
@@ -1014,9 +1014,9 @@ chosen link density."
         """
         if self.directed:
             return (self.cross_indegree(node_list1, node_list2,
-                                        link_attribute) +
-                    self.cross_outdegree(node_list1, node_list2,
-                                         link_attribute))
+                                        link_attribute)
+                    + self.cross_outdegree(node_list1, node_list2,
+                                           link_attribute))
         else:
             return self.cross_outdegree(node_list1, node_list2,
                                         link_attribute)
@@ -1101,8 +1101,8 @@ chosen link density."
         :return: the internal degree sequence.
         """
         if self.directed:
-            return (self.internal_indegree(node_list, link_attribute) +
-                    self.internal_outdegree(node_list, link_attribute))
+            return (self.internal_indegree(node_list, link_attribute)
+                    + self.internal_outdegree(node_list, link_attribute))
         else:
             return self.internal_outdegree(node_list, link_attribute)
 
@@ -1434,8 +1434,8 @@ chosen link density."
         :rtype: 1D array [node index]
         :return: the n.s.i. cross-degree for layer 1.
         """
-        cross_A = (self.adjacency +
-                   np.eye(self.N))[node_list1, :][:, node_list2]
+        cross_A = (self.adjacency
+                   + np.eye(self.N))[node_list1, :][:, node_list2]
         return (cross_A * self.node_weights[node_list2]).sum(axis=1)
 
     def nsi_cross_mean_degree(self, node_list1, node_list2):
@@ -1447,9 +1447,9 @@ chosen link density."
         >>> InteractingNetworks.SmallTestNetwork().\
                 nsi_cross_mean_degree([0,1,2],[3,4,5])
         2.5
-        >>> InteractingNetworks.SmallTestNetwork().\
-                nsi_cross_mean_degree([0,2,5],[1,4])
-        0.94999999999999996
+        >>> r(InteractingNetworks.SmallTestNetwork().\
+                nsi_cross_mean_degree([0,2,5],[1,4]))
+        0.95
 
         :arg [int] node_list1: list of node indices describing the subnetwork 1
         :arg [int] node_list2: list of node indices describing the subnetwork 2
@@ -1566,9 +1566,9 @@ chosen link density."
 
         **Examples:**
 
-        >>> InteractingNetworks.SmallTestNetwork().\
-                nsi_cross_global_clustering([0,1,2],[3,4,5])
-        0.66878664680862498
+        >>> r(InteractingNetworks.SmallTestNetwork().\
+                nsi_cross_global_clustering([0,1,2],[3,4,5]))
+        0.6688
 
         :arg [int] node_list1: list of node indices describing the subnetwork 1
         :arg [int] node_list2: list of node indices describing the subnetwork 2
@@ -1608,14 +1608,14 @@ chosen link density."
 
         **Examples:**
 
-        >>> InteractingNetworks.SmallTestNetwork().\
-                nsi_cross_betweenness([0,4,5],[1,3])
-        array([ 6.53333333,  1.2       ,  0.        ,
-                0.67692308,  0.67692308,  0.        ])
-        >>> InteractingNetworks.SmallTestNetwork().\
-                nsi_cross_betweenness([0,1],[2,3,4,5])
-        array([ 2.13333333,  0.        ,  0.        ,
-                0.49230769,  0.92087912,  0.        ])
+        >>> r(InteractingNetworks.SmallTestNetwork().\
+                nsi_cross_betweenness([0,4,5],[1,3]))
+        array([ 6.5333,  1.2   ,  0.    ,
+                0.6769,  0.6769,  0.    ])
+        >>> r(InteractingNetworks.SmallTestNetwork().\
+                nsi_cross_betweenness([0,1],[2,3,4,5]))
+        array([ 2.1333,  0.    ,  0.    ,
+                0.4923,  0.9209,  0.    ])
 
         :arg [int] node_list1: list of node indices describing the first
             subnetwork

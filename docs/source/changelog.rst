@@ -5,9 +5,11 @@ Changelog
 A summary of major changes made in each release of ``pyunicorn``:
 
 **0.6.0**
+ - Migrated from Python 2.7 to Python 3.6.
+ - Completed transition from ``Weave`` to ``Cython``.
 
 **0.5.2**
- - Update test suite and ``Travis CI``.
+ - Updated test suite and ``Travis CI``.
 
 **0.5.1**
  - Added reference to pyunicorn description paper published in the

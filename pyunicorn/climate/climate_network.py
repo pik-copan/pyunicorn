@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -21,7 +21,7 @@ import numpy as np
 import igraph
 
 #  Import GeoNetwork and Grid classes
-from .. import GeoNetwork, Grid
+from ..core import GeoNetwork, Grid
 from ..core.network import cached_const
 
 
@@ -91,8 +91,8 @@ class ClimateNetwork(GeoNetwork):
         elif link_density is not None:
             self.set_link_density(link_density)
         else:
-            print "Either threshold or link_density have to be prescribed \
-for network construction!"
+            print("Either threshold or link_density have to be prescribed "
+                  "for network construction!")
         GeoNetwork.__init__(self, adjacency=self.adjacency, grid=self.grid,
                             directed=self.directed,
                             node_weight_type=self.node_weight_type,
@@ -104,7 +104,7 @@ for network construction!"
 
         **Example:**
 
-        >>> print ClimateNetwork.SmallTestNetwork()
+        >>> print(ClimateNetwork.SmallTestNetwork())
         ClimateNetwork:
         GeoNetwork:
         Network: undirected, 6 nodes, 7 links, link density 0.467.
@@ -115,7 +115,7 @@ for network construction!"
         Threshold: 0.5
         Local connections filtered out: False
         """
-        return ('ClimateNetwork:\n%s\nThreshold: %s\n' +
+        return ('ClimateNetwork:\n%s\nThreshold: %s\n'
                 'Local connections filtered out: %s') % (
                     GeoNetwork.__str__(self), self.threshold(),
                     self.non_local())
@@ -338,7 +338,7 @@ for network construction!"
         :return: the network's link density in dependence on threshold.
         """
         if self.silence_level <= 1:
-            print "Calculate the link density function..."
+            print("Calculate the link density function...")
 
         #  Get the histogram of the correlation measure
         (hist, threshold) = np.histogram(self.similarity_measure(),
@@ -351,7 +351,7 @@ for network construction!"
         link_density_function = np.empty(n_bins)
 
         #  Calculate the link density function
-        for i in xrange(n_bins):
+        for i in range(n_bins):
             link_density_function[i] = hist[:i].sum()
 
         return (link_density_function, threshold)
@@ -420,7 +420,7 @@ for network construction!"
         :return: the network's adjacency matrix.
         """
         if self.silence_level <= 1:
-            print "Extracting network adjacency matrix by thresholding..."
+            print("Extracting network adjacency matrix by thresholding...")
 
         N = similarity_measure.shape[0]
         A = np.zeros((N, N), dtype="int8")
@@ -475,8 +475,8 @@ for network construction!"
         :return: the network's adjacency matrix.
         """
         if self.silence_level <= 1:
-            print "Extracting network adjacency matrix removing local \
-connections..."
+            print("Extracting network adjacency matrix removing local "
+                  "connections...")
 
         #  This function provides a smooth transition of distance weight
         #  centered around distance d_min.
@@ -503,8 +503,8 @@ connections..."
         try:
             return self._similarity_measure
         except AttributeError:
-            print "The similarity matrix was deleted earlier and cannot be \
-returned."
+            print("The similarity matrix was deleted earlier and cannot be "
+                  "returned.")
 
     def non_local(self):
         """

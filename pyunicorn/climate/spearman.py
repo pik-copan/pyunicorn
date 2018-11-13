@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -74,7 +74,7 @@ class SpearmanClimateNetwork(TsonisClimateNetwork):
         """
 
         if silence_level <= 1:
-            print "Generating a Spearman climate network..."
+            print("Generating a Spearman climate network...")
 
         #  Call constructor of parent class TsonisClimateNetwork
         TsonisClimateNetwork.__init__(self, data=data, threshold=threshold,
@@ -88,8 +88,8 @@ class SpearmanClimateNetwork(TsonisClimateNetwork):
         """
         Returns a string representation of SpearmanClimateNetwork.
         """
-        return ('SpearmanClimateNetwork:\n' +
-                TsonisClimateNetwork.__str__(self))
+        return ('SpearmanClimateNetwork:\n'
+                f'{TsonisClimateNetwork.__str__(self)}')
 
     #
     #  Defines methods to calculate the correlation matrix
@@ -125,8 +125,8 @@ class SpearmanClimateNetwork(TsonisClimateNetwork):
         :return: the Spearman's rho matrix at zero lag.
         """
         if self.silence_level <= 1:
-            print "Calculating Spearman Rho matrix at zero lag from anomaly \
-values..."
+            print("Calculating Spearman Rho matrix at zero lag from anomaly "
+                  "values...")
 
         #  Convert anomaly time series to time series of ranks
         ranks = self.rank_time_series(anomaly)

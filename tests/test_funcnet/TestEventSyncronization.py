@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -40,15 +40,8 @@ def NonVecEventSync(es1, es2, taumax):
                 continue
 
             # finding the dynamical delay tau
-            tmp = ex[m+1] - ex[m]
-            if tmp > ex[m] - ex[m-1]:
-                tmp = ex[m] - ex[m-1]
-            tau = ey[n+1] - ey[n]
-            if tau > ey[n] - ey[n-1]:
-                tau = ey[n] - ey[n-1]
-            if tau > tmp:
-                tau = tmp
-            tau = tau / 2
+            tau = min([ex[m+1] - ex[m], ex[m] - ex[m-1], 
+                       ey[n+1] - ey[n], ey[n] - ey[n-1]]) / 2
 
             if dst > 0 and dst <= tau:
                 count += 1
@@ -76,7 +69,13 @@ def testVectorization():
     """
     for taumax in [1, 5, 16]:
         length, N, eventprop = 100, 50, 0.2
-        eventmatrix = 1-(np.random.rand(length, N) > eventprop).astype(int)
+        # equal event counts (normalization requirement)
+        eventcount = int(length * eventprop)
+        eventmatrix = np.zeros((length, N), dtype=int)
+        for v in range(N):
+            fills = np.random.choice(np.arange(length), eventcount,
+                                     replace=False)
+            eventmatrix[fills, v] = 1
         ES = EventSynchronization(eventmatrix, taumax)
         assert np.allclose(UndirectedESyncMat(eventmatrix, taumax),
-                           ES.directedES())
+                           ES.directedES(legacy=True))

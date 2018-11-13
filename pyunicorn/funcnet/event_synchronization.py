@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2017 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2018 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 
@@ -18,7 +18,7 @@ import numpy as np
 from .. import cached_const
 
 
-class EventSynchronization(object):
+class EventSynchronization:
 
     """
     Contains methods to calculate event synchronization matrices from event
@@ -74,8 +74,8 @@ class EventSynchronization(object):
         """(dict) cache of re-usable computation results"""
 
         # Check for right input format
-        if len(np.unique(eventmatrix)) != 2 or not (np.unique(eventmatrix) ==
-                                                    np.array([0, 1])).all():
+        if len(np.unique(eventmatrix)) != 2 or not (
+                np.unique(eventmatrix) == np.array([0, 1])).all():
             raise ValueError("Eventmatrix not in correct format")
 
         # Print warning if number of events is not identical for all variables
@@ -95,19 +95,20 @@ class EventSynchronization(object):
     #
 
     @cached_const('base', 'directedES')
-    def directedES(self):
+    def directedES(self, legacy=False):
         """
         Returns the NxN matrix of the directed event synchronization measure.
-        The entry [i, j] denotes the directed event synchrnoization from
+        The entry [i, j] denotes the directed event synchronization from
         variable j to variable i.
         """
         eventmatrix = self.__eventmatrix
         res = np.ones((self.__N, self.__N)) * np.inf
 
-        for i in xrange(0, self.__N):
-            for j in xrange(i+1, self.__N):
+        for i in range(0, self.__N):
+            for j in range(i+1, self.__N):
                 res[i, j], res[j, i] = self._EventSync(eventmatrix[:, i],
-                                                       eventmatrix[:, j])
+                                                       eventmatrix[:, j],
+                                                       legacy)
         return res
 
     def symmetricES(self):
@@ -192,7 +193,7 @@ class EventSynchronization(object):
         return (np.float32(prec12)/(l1-n11), np.float32(trig12)/(l2-n22),
                 np.float32(prec21)/(l2-n21), np.float32(trig21)/(l1-n12))
 
-    def _EventSync(self, EventSeriesX, EventSeriesY):
+    def _EventSync(self, EventSeriesX, EventSeriesY, legacy=False):
         """
         Calculates the directed event synchronization from two event series X
         and Y.
@@ -217,8 +218,8 @@ class EventSynchronization(object):
         if lx in [1, 2] or ly in [1, 2]:    # Too few events to calculate
             return 0., 0.
         # Array of distances
-        dstxy2 = 2 * (np.repeat(ex[:, 1:-1].T, ly-2, axis=1) -
-                      np.repeat(ey[:, 1:-1], lx-2, axis=0))
+        dstxy2 = 2 * (np.repeat(ex[:, 1:-1].T, ly-2, axis=1)
+                      - np.repeat(ey[:, 1:-1], lx-2, axis=0))
         # Dynamical delay
         diffx = np.diff(ex)
         diffy = np.diff(ey)
@@ -229,7 +230,26 @@ class EventSynchronization(object):
         tau2 = np.minimum(tau2, 2 * self.taumax)
         # Count equal time events and synchronised events
         eqtime = 0.5 * (dstxy2.size - np.count_nonzero(dstxy2))
-        countxy = np.sum((dstxy2 > 0) * (dstxy2 <= tau2)) + eqtime
-        countyx = np.sum((dstxy2 < 0) * (dstxy2 >= -tau2)) + eqtime
+        # Calculate boolean matrices of coincidences
+        Axy = (dstxy2 > 0) * (dstxy2 <= tau2)
+        Ayx = (dstxy2 < 0) * (dstxy2 >= -tau2)
+
+        # Calculate counting quantities and subtract half of double countings
+        countxy = np.sum(Axy) + eqtime
+        countyx = np.sum(Ayx) + eqtime
+
+        if not legacy:
+            countxydouble = countyxdouble = 0
+            # Loop over coincidences and determine number of double counts
+            # by checking at least one event of the pair is also coincided
+            # in other direction
+            for i, j in np.transpose(np.where(Axy)):
+                countxydouble += np.any(Ayx[i, :]) or np.any(Ayx[:, j])
+            for i, j in np.transpose(np.where(Ayx)):
+                countyxdouble += np.any(Axy[i, :]) or np.any(Axy[:, j])
+
+            countxy = countxy - 0.5 * countxydouble
+            countyx = countyx - 0.5 * countyxdouble
+
         norm = np.sqrt((lx-2) * (ly-2))
         return countxy / norm, countyx / norm
