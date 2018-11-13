@@ -95,7 +95,7 @@ class EventSynchronization:
     #
 
     @cached_const('base', 'directedES')
-    def directedES(self):
+    def directedES(self, legacy=False):
         """
         Returns the NxN matrix of the directed event synchronization measure.
         The entry [i, j] denotes the directed event synchronization from
@@ -107,7 +107,8 @@ class EventSynchronization:
         for i in range(0, self.__N):
             for j in range(i+1, self.__N):
                 res[i, j], res[j, i] = self._EventSync(eventmatrix[:, i],
-                                                       eventmatrix[:, j])
+                                                       eventmatrix[:, j],
+                                                       legacy)
         return res
 
     def symmetricES(self):
@@ -127,7 +128,7 @@ class EventSynchronization:
         directed = self.directedES()
         return directed - directed.T
 
-    def _EventSync(self, EventSeriesX, EventSeriesY):
+    def _EventSync(self, EventSeriesX, EventSeriesY, legacy=False):
         """
         Calculates the directed event synchronization from two event series X
         and Y.
@@ -165,20 +166,25 @@ class EventSynchronization:
         # Count equal time events and synchronised events
         eqtime = 0.5 * (dstxy2.size - np.count_nonzero(dstxy2))
         # Calculate boolean matrices of coincidences
-        Axy = (dstxy2 > 0) * ( dstxy2 <= tau2)
-        Ayx = (dstxy2 < 0) * (-dstxy2 <= tau2)
-        # Loop over coincidences and determine number of double counts
-        # by checking at least one event of the pair is also coincided
-        # in other direction
-        countxydouble = countyxdouble = 0
-        """
-        for i, j in np.transpose(np.where(Axy)):
-            countxydouble += np.any(Ayx[i, :]) or np.any(Ayx[:, j])
-        for i, j in np.transpose(np.where(Ayx)):
-            countyxdouble += np.any(Axy[i, :]) or np.any(Axy[:, j])
-        """
+        Axy = (dstxy2 > 0) * (dstxy2 <= tau2)
+        Ayx = (dstxy2 < 0) * (dstxy2 >= -tau2)
+
         # Calculate counting quantities and subtract half of double countings
-        countxy = np.sum(Axy) + eqtime - 0.5 * countxydouble
-        countyx = np.sum(Ayx) + eqtime - 0.5 * countyxdouble
+        countxy = np.sum(Axy) + eqtime
+        countyx = np.sum(Ayx) + eqtime
+
+        if not legacy:
+            countxydouble = countyxdouble = 0
+            # Loop over coincidences and determine number of double counts
+            # by checking at least one event of the pair is also coincided
+            # in other direction
+            for i, j in np.transpose(np.where(Axy)):
+                countxydouble += np.any(Ayx[i, :]) or np.any(Ayx[:, j])
+            for i, j in np.transpose(np.where(Ayx)):
+                countyxdouble += np.any(Axy[i, :]) or np.any(Axy[:, j])
+
+            countxy = countxy - 0.5 * countxydouble
+            countyx = countyx - 0.5 * countyxdouble
+
         norm = np.sqrt((lx-2) * (ly-2))
         return countxy / norm, countyx / norm

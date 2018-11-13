@@ -78,4 +78,4 @@ def testVectorization():
             eventmatrix[fills, v] = 1
         ES = EventSynchronization(eventmatrix, taumax)
         assert np.allclose(UndirectedESyncMat(eventmatrix, taumax),
-                           ES.directedES())
+                           ES.directedES(legacy=True))
