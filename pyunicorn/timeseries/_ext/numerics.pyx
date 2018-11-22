@@ -241,7 +241,7 @@ def _twins_s(
 
 def _embed_time_series(
     int n_time, int dim, int tau,
-    np.ndarray[FLOAT32TYPE_t, ndim=1] time_series,
+    np.ndarray[FLOAT32TYPE_t, ndim=2] time_series,
     np.ndarray[FLOAT32TYPE_t, ndim=2] embedding):
     """
     >>> 42 == 42

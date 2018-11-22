@@ -421,6 +421,10 @@ class RecurrencePlot:
         n_time = time_series.shape[0]
         embedding = np.empty((n_time - (dim - 1) * tau, dim), dtype="float32")
 
+        # Reshape time series if it is one dimensional
+        if time_series.ndim == 1:
+            time_series.shape = (time_series.shape[0], -1)
+
         _embed_time_series(n_time, dim, tau, time_series, embedding)
         return embedding
 
