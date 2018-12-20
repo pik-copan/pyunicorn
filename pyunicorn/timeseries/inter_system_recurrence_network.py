@@ -125,7 +125,7 @@ class InterSystemRecurrenceNetwork(InteractingNetworks):
         tau = kwds.get("tau")
 
         #  Check for consistency
-        if dim is None and self.x.shape[1] == self.y.shape[1]:
+        if self.x.shape[1] == self.y.shape[1]:
             #  Set silence_level
             self.silence_level = silence_level
             """The inverse level of verbosity of the object."""
@@ -153,7 +153,7 @@ class InterSystemRecurrenceNetwork(InteractingNetworks):
 
             #  Embed time series if required
             self.dim = dim
-            if dim is not None and tau is not None:
+            if dim is not None and tau is not None and self.x.shape[1] == 1:
                 self.x_embedded = \
                     RecurrencePlot.embed_time_series(self.x, dim, tau[0])
                 """The embedded time series x."""
