@@ -278,7 +278,7 @@ class Data:
         time = f.variables[dimension_names["time"]][:].astype("float32")
 
         # Get number of dimensions of data
-        n_dim = np.rank(observable)
+        n_dim = observable.ndim
 
         # Distinguish between regular and irregular grids
         if file_type == "NetCDF":
@@ -385,7 +385,7 @@ class Data:
         for name in f.ncattrs():
             print(name + ":", getattr(f, name))
         print("Variables (size):")
-        for name, obj in f.variables.iteritems():
+        for name, obj in f.variables.items():
             print("%s (%i)" % (name, len(obj)))
         f.close()
 
