@@ -15,7 +15,7 @@ Copyright 2008-2018.
 
 import numpy as np
 
-from pyunicorn import CouplingAnalysis
+from pyunicorn.funcnet.coupling_analysis import CouplingAnalysis
 from pyunicorn import climate
 
 #
@@ -94,10 +94,10 @@ map_plots = climate.MapPlots(data.grid, DATA_SOURCE)
 #
 
 #  Get array of anomaly time series
-anomalies = data.get_anomaly()
+anomalies = data.anomaly()
 
 #  Get data grid
-grid = data.grid()
+grid = data.grid
 
 #  Create CouplingAnalysis object
 ca = CouplingAnalysis(anomalies)
@@ -108,7 +108,7 @@ ca = CouplingAnalysis(anomalies)
 # similarity_matrix = \
 #     np.abs(ca.get_cross_correlation(tau_max=LAG, lag_mode='all')[0, :, :])
 similarity_matrix = \
-    ca.get_mutual_information(bins=16, tau_max=LAG, lag_mode='all')[0, :, :]
+    ca.mutual_information(bins=16, tau_max=LAG, lag_mode='all')[0, :, :]
 
 #  This matrix is not symmetric in general. To create an undirected climate
 #  network, symmetrization is necessary! This point is critical in interpreting
