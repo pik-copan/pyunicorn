@@ -269,5 +269,5 @@ def testSerialRandom():
             nw2, silence_level=3).effective_resistance(0, len(nw2)-1)
 
         # assertion
-        print(ER1*2-ER2)
+        # print(ER1*2-ER2)
         assert (ER1*2-ER2) < 1E-6
