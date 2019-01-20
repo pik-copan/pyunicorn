@@ -14,7 +14,8 @@ env:
 addons:
     apt:
         packages:
-            - igraph
+            - libigraph0v5
+            - libigraph0-dev
 
 before_install:
     # current python packages via miniconda
