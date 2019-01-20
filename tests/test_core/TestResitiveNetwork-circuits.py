@@ -13,7 +13,7 @@ import networkx as nx
 
 
 from pyunicorn import ResNetwork
-from .ResistiveNetwork_utils import *
+from .ResistiveNetwork_utils import makeNW, parallelCopy, serialCopy, nx2nw
 
 debug = 0
 """ Test for basic sanity, parallel and serial circiuts
@@ -94,7 +94,6 @@ def testParallelLessTrivial():
     nws.append(makeNW(idI, idJ, [1]*len(idI)))
 
     ER = []
-    Gs = []
     for nw in nws:
         rnw = ResNetwork(nw)
         ER.append(rnw.effective_resistance(0, 4))
@@ -213,7 +212,6 @@ def testSerialTrivial():
     val = [1, 1]
 
     nw1 = np.zeros((3, 3))
-    G1 = nx.DiGraph()
     for i, j, v in zip(idI, idJ, val):
         nw1[i, j] = v
         nw1[j, i] = v
@@ -247,8 +245,8 @@ def testSerialRandom():
 
     N = 10
     p = .7
-    runs = 0
-    while runs < 50:
+    runs = 50
+    for run in range(0, runs):
 
         # a random graph
         G = nx.fast_gnp_random_graph(N, p)
@@ -256,6 +254,8 @@ def testSerialRandom():
             nx.shortest_path(G, source=0, target=N-1)
         except RuntimeError:
             continue
+        except nx.NetworkXNoPath:
+            pass
         # convert to plain ndarray
         nw1 = nx2nw(G)
 
@@ -268,8 +268,6 @@ def testSerialRandom():
         ER2 = ResNetwork(
             nw2, silence_level=3).effective_resistance(0, len(nw2)-1)
 
-        # increment runs
-        runs += 1
         # assertion
-        print(ER1*2-ER2)
+        # print(ER1*2-ER2)
         assert (ER1*2-ER2) < 1E-6

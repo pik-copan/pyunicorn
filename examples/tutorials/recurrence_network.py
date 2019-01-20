@@ -14,8 +14,6 @@ Copyright 2008-2018.
 
 # array object and fast numerics
 import numpy as np
-# C++ inline code
-import weave
 
 # plotting facilities
 import pylab
@@ -26,7 +24,6 @@ from pyunicorn.timeseries import RecurrencePlot, RecurrenceNetwork
 #
 #  Functions
 #
-
 def logistic_map(x0, r, T):
     """
     Returns a time series of length T using the logistic map
@@ -35,27 +32,15 @@ def logistic_map(x0, r, T):
     INPUT: x0 - Initial condition, 0 <= x0 <= 1
             r - Bifurcation parameter, 0 <= r <= 4
             T - length of the desired time series
+    TODO: Cythonize
     """
     #  Initialize the time series array
     timeSeries = np.empty(T)
 
-    r = float(r)
-
-    code = r"""
-    int i;
-    double xn;
-
-    // Set initial condition
-    timeSeries(0) = x0;
-
-    for (i = 1; i < T; i++) {
-        xn = timeSeries(i-1);
-        timeSeries(i) = r * xn * (1 - xn);
-    }
-    """
-    args = ['x0', 'r', 'T', 'timeSeries']
-    weave.inline(code, arg_names=args, type_converters=weave.converters.blitz,
-                 compiler='gcc', extra_compile_args=['-O3'])
+    timeSeries[0] = x0
+    for i in range(1, len(timeSeries)):
+        xn = timeSeries[i-1]
+        timeSeries[i] = r * xn * (1 - xn)
 
     return timeSeries
 
@@ -96,13 +81,11 @@ METRIC = "supremum"
 #
 #  Main script
 #
-
 #  Create a time series using the logistic map
 time_series = logistic_map(x0, r, T)
 
 #  Print the time series
 print(time_series)
-
 #  Plot the time series
 pylab.plot(time_series, "r")
 #  You can include LaTex labels...

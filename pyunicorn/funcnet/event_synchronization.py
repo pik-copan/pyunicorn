@@ -98,7 +98,7 @@ class EventSynchronization:
     def directedES(self):
         """
         Returns the NxN matrix of the directed event synchronization measure.
-        The entry [i, j] denotes the directed event synchrnoization from
+        The entry [i, j] denotes the directed event synchronization from
         variable j to variable i.
         """
         eventmatrix = self.__eventmatrix
@@ -138,7 +138,6 @@ class EventSynchronization:
         :arg EventSeriesY: Event series containing '0's and '1's
         :rtype: list
         :return: [Event synchronization XY, Event synchronization YX]
-
         """
 
         # Get time indices (type boolean or simple '0's and '1's)
@@ -163,8 +162,25 @@ class EventSynchronization:
                           np.repeat(diffymin, lx-2, axis=0))
         tau2 = np.minimum(tau2, 2 * self.taumax)
         # Count equal time events and synchronised events
-        eqtime = 0.5 * (dstxy2.size - np.count_nonzero(dstxy2))
-        countxy = np.sum((dstxy2 > 0) * (dstxy2 <= tau2)) + eqtime
-        countyx = np.sum((dstxy2 < 0) * (dstxy2 >= -tau2)) + eqtime
+        eqtime = dstxy2.size - np.count_nonzero(dstxy2)
+
+        # Calculate boolean matrices of coincidences
+        Axy = (dstxy2 > 0) * (dstxy2 <= tau2)
+        Ayx = (dstxy2 < 0) * (dstxy2 >= -tau2)
+
+        # Loop over coincidences and determine number of double counts
+        # by checking at least one event of the pair is also coincided
+        # in other direction
+        countxydouble = countyxdouble = 0
+
+        for i, j in np.transpose(np.where(Axy)):
+            countxydouble += np.any(Ayx[i, :]) or np.any(Ayx[:, j])
+        for i, j in np.transpose(np.where(Ayx)):
+            countyxdouble += np.any(Axy[i, :]) or np.any(Axy[:, j])
+
+        # Calculate counting quantities and subtract half of double countings
+        countxy = np.sum(Axy) + 0.5 * eqtime - 0.5 * countxydouble
+        countyx = np.sum(Ayx) + 0.5 * eqtime - 0.5 * countyxdouble
+
         norm = np.sqrt((lx-2) * (ly-2))
         return countxy / norm, countyx / norm

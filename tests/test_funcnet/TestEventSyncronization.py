@@ -21,39 +21,48 @@ def NonVecEventSync(es1, es2, taumax):
     :arg es1: Event series containing '0's and '1's
     :type es2: 1D Numpy array
     :arg es2: Event series containing '0's and '1's
-    :float return: Event synchronization es2 to es1
+    :rtype: list
+    :return: [Event synchronization XY, Event synchronization YX]
     """
     ex = np.arange(len(es1))[es1 == 1]
     ey = np.arange(len(es2))[es2 == 1]
     lx = len(ex)
     ly = len(ey)
 
-    count = 0
+    Axy = np.zeros((lx,ly), dtype=bool)
+    Ayx = np.zeros((lx,ly), dtype=bool)
+    eqtime = np.zeros((lx,ly), dtype=bool)
     for m in range(1, lx-1):
         for n in range(1, ly-1):
-            dst = ex[m] - ey[n]
-
-            if abs(dst) > taumax:
+            dstxy = ex[m] - ey[n]
+            
+            if abs(dstxy) > taumax:
                 continue
-            elif dst == 0:
-                count += 0.5
-                continue
-
             # finding the dynamical delay tau
-            tmp = ex[m+1] - ex[m]
-            if tmp > ex[m] - ex[m-1]:
-                tmp = ex[m] - ex[m-1]
-            tau = ey[n+1] - ey[n]
-            if tau > ey[n] - ey[n-1]:
-                tau = ey[n] - ey[n-1]
-            if tau > tmp:
-                tau = tmp
-            tau = tau / 2
+            tau = min([ex[m+1] - ex[m], ex[m] - ex[m-1], 
+                       ey[n+1] - ey[n], ey[n] - ey[n-1]] ) / 2
 
-            if dst > 0 and dst <= tau:
-                count += 1
+            if dstxy > 0 and dstxy <= tau:
+                Axy[m,n] = True
+            if dstxy < 0 and dstxy >= -tau:
+                Ayx[m,n] = True
+            elif dstxy == 0:
+                eqtime[m,n] = True
 
-    return count / np.sqrt((lx-2) * (ly-2))
+    # Loop over coincidences and determine number of double counts
+    # by checking at least one event of the pair is also coincided
+    #in other direction
+    countxydouble = countyxdouble = 0
+
+    for i, j in np.transpose(np.where(Axy)):
+        countxydouble += np.any(Ayx[i, :]) or np.any(Ayx[:, j])
+    for i, j in np.transpose(np.where(Ayx)):
+        countyxdouble += np.any(Axy[i, :]) or np.any(Axy[:, j])
+
+    countxy = np.sum(Axy) + 0.5*np.sum(eqtime) - 0.5*countxydouble
+    countyx = np.sum(Ayx) + 0.5*np.sum(eqtime) - 0.5*countyxdouble
+    norm = np.sqrt((lx-2) * (ly-2))
+    return countxy / norm, countyx / norm
 
 
 def UndirectedESyncMat(eventmatrix, taumax):
@@ -61,11 +70,10 @@ def UndirectedESyncMat(eventmatrix, taumax):
     res = np.ones((N, N)) * np.inf
 
     for i in np.arange(0, N):
-        for j in np.arange(0, N):
-            if i == j:
-                continue
-            res[i, j] = NonVecEventSync(eventmatrix[:, i], eventmatrix[:, j],
-                                        taumax)
+        for j in np.arange(i+1, N):
+            res[i, j], res[j, i] = NonVecEventSync(eventmatrix[:, i], 
+                                                   eventmatrix[:, j],
+                                                   taumax)
     return res
 
 
