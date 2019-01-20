@@ -3709,7 +3709,8 @@ class Network(object):
                                    for k in update_keys]
                 else:  # "neighbors"
                     update_vals = np.zeros(len(update_keys))
-                sp_Pi.update(zip(update_keys, update_vals))
+                update_rows, update_cols = zip(*update_keys)
+                sp_Pi[update_rows, update_cols] = update_vals
                 sp_Pi = sp_Pi.tocsc()
                 sp_Pi.eliminate_zeros()
 
@@ -4610,7 +4611,7 @@ class Network(object):
         """
         if alpha is None:
             alpha = 1.0 / self.degree().mean()
-        return matfuncs.expm2(
+        return matfuncs.expm(
             np.log(2.0) * (alpha * self.adjacency
                            - np.identity(self.N))).sum(axis=0).flatten()
 
@@ -4628,7 +4629,7 @@ class Network(object):
         if alpha is None:
             alpha = self.total_node_weight / k.dot(w)
         # print(alpha)
-        return (matfuncs.expm2(
+        return (matfuncs.expm(
             np.log(2.0)*(Aplus * alpha * w - sp.identity(N))).dot(Aplus)
             * w.reshape((N, 1))).sum(axis=0)
 
