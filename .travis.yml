@@ -1,38 +1,22 @@
 language: python
 python:
-    - 3.6
+    - 3.7
 
 sudo: false
-dist: trusty
+dist: xenial
 matrix:
     fast_finish: true
 env:
-    global:
-        # possibly different versions in the future
-        - IGRAPH=0.7.1
     matrix:
-        - NUMPY=1.12 SCIPY=0.18 CYTHON=0.25
-        - NUMPY=1.13 SCIPY=0.19 CYTHON=0.26
         - NUMPY=1.14 SCIPY=1.0 CYTHON=0.27
+        - NUMPY=1.15 SCIPY=1.1 CYTHON=0.28
+        - NUMPY=1.16 SCIPY=1.2 CYTHON=0.29
 addons:
     apt:
         packages:
-            - libatlas-dev
-            - libatlas-base-dev
-            - liblapack-dev
-            - gfortran
-cache:
-    directories:
-        - $HOME/igraph
+            - igraph
 
 before_install:
-    # no igraph (>=0.7) package available for Ubuntu 14.04 LTS
-    - bash tools/install-igraph.sh
-    - export PATH="$HOME/igraph:$PATH"
-    - export PKG_CONFIG_PATH="$HOME/igraph/lib/pkgconfig:$PKG_CONFIG_PATH"
-    - export LD_LIBRARY_PATH="$HOME/igraph/lib:$LD_LIBRARY_PATH"
-    - ls -R $HOME/igraph
-
     # current python packages via miniconda
     - export MINICONDA="3"
     - travis_retry wget http://repo.continuum.io/miniconda/Miniconda$MINICONDA-latest-Linux-x86_64.sh -O miniconda.sh
