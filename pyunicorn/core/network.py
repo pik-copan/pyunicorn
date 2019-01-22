@@ -1412,7 +1412,7 @@ class Network:
         :return: A list of relative bin frequencies, a list of estimated
                  statistical errors, and a list of lower bin boundaries.
         """
-        hist = np.histogram(values, bins=n_bins, range=interval, normed=False)
+        hist = np.histogram(values, bins=n_bins, range=interval, density=False)
         frequencies = hist[0].astype('float64')
         bin_starts = hist[1][:-1]
 

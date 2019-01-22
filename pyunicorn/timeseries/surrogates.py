@@ -640,7 +640,7 @@ class Surrogates:
 
         correlation_measure = np.abs(test_function(original_data,
                                                    original_data))
-        (hist, lbb) = np.histogram(correlation_measure, n_bins, normed=True)
+        (hist, lbb) = np.histogram(correlation_measure, n_bins, density=True)
         #  Normalize
         hist /= hist.sum()
 
