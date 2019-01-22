@@ -374,7 +374,7 @@ class ResNetwork(GeoNetwork):
         >>> print(type( res.get_admittance() ))
         <class 'numpy.ndarray'>
         """
-        return np.array(self.sparse_Adm.todense())
+        return self.sparse_Adm.toarray()
 
     def update_R(self):
         """Updates R, the pseudo inverse of the admittance Laplacian
@@ -419,7 +419,7 @@ class ResNetwork(GeoNetwork):
          [-0.20444444  0.19555556 -0.16        1.08444444 -0.91555556]
          [-2.20444444 -1.80444444 -2.16       -0.91555556  7.08444444]]
         """
-        return np.array(self.sparse_R.todense())
+        return self.sparse_R.toarray()
 
     def admittance_lapacian(self):
         """

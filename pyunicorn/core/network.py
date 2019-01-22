@@ -1689,8 +1689,8 @@ class Network:
         if key is None:
             return (self.sp_A * self.sp_A).diagonal()
         else:
-            w = np.matrix(self.link_attribute(key))
-            return (w * w).diagonal()
+            w = self.link_attribute(key)
+            return (w @ w).diagonal()
 
     @cached_var('nsi_degree', 'n.s.i. degree')
     def nsi_degree_uncorr(self, key=None):
@@ -1709,8 +1709,8 @@ class Network:
             if key is None:
                 return self.sp_Aplus() * self.node_weights
             else:
-                w = np.matrix(self.link_attribute(key))
-                return (self.node_weights * w).A.squeeze()
+                w = self.link_attribute(key)
+                return (self.node_weights @ w).squeeze()
 
     def sp_nsi_diag_k(self):
         """Sparse diagonal matrix of n.s.i. degrees"""
@@ -1794,8 +1794,8 @@ class Network:
         if key is None:
             return self.node_weights * self.sp_Aplus()
         else:
-            w = np.matrix(self.link_attribute(key))
-            return (np.matrix(self.node_weights) * w).A.squeeze()
+            w = self.link_attribute(key)
+            return (self.node_weights @ w).squeeze()
 
     @cached_var('nsi_outdegree')
     def nsi_outdegree(self, key=None):
@@ -1826,8 +1826,8 @@ class Network:
         if key is None:
             return self.sp_Aplus() * self.node_weights
         else:
-            w = np.matrix(self.link_attribute(key))
-            return (w * np.matrix(self.node_weights).T).T.A.squeeze()
+            w = self.link_attribute(key)
+            return (w @ self.node_weights.transpose()).transpose().squeeze()
 
     @cached_const('base', 'degree df', 'the degree frequency distribution')
     def degree_distribution(self):
