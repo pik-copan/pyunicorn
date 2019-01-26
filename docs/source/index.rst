@@ -4,7 +4,7 @@ Introduction
 
 .. include:: ../../README.rst
     :start-after: =========
-    :end-before: Code
+    :end-before: Reference
 
 For example, to generate a recurrence network with 1000 nodes from a sinusoidal
 signal and compute its network transitivity you simply need to type
@@ -17,5 +17,5 @@ complex networks.
 ``pyunicorn`` is **fast** because all costly computations are performed in
 compiled C, C++ and Fortran code. It can handle **large networks** through the
 use of sparse data structures. The package can be used interactively, from any
-python script and even for parallel computations on large cluster
+Python script and even for parallel computations on large cluster
 architectures.

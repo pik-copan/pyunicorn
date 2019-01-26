@@ -3,7 +3,7 @@ Contact
 =======
 
 .. include:: ../../README.rst
-    :start-after: Not implemented yet.
+    :start-after: ---------
     :end-before: License
 
 .. include:: ../../CONTRIBUTIONS.rst

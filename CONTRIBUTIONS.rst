@@ -42,10 +42,11 @@
     See `Publications <docs/source/publications.rst>`_.
 
 **Dependencies**
-    - Python 3.6
-    - `Numpy <http://www.numpy.org/>`_ 1.12+
-    - `Scipy <http://www.scipy.org/>`_ 0.18+
-    - `Matplotlib <http://matplotlib.org/>`_ 1.3+
+    - Python 3.7
+    - `Numpy <http://www.numpy.org/>`_ 1.14+
+    - `Scipy <http://www.scipy.org/>`_ 1.0+
+    - `Cython <http://cython.org/>`_ 0.27+
+    - `Matplotlib <http://matplotlib.org/>`_ 2.0+
     - `igraph, python-igraph <http://igraph.org/>`_ 0.7+
 
 **Included**
@@ -55,4 +56,4 @@
   - A lot - See current product backlog.
 
 **Known Bugs**:
-  - ...
+  - See GitHub issues list.
