@@ -55,7 +55,7 @@ master_doc = 'sitemap'
 
 # General information about the project.
 project = u'pyunicorn'
-copyright = u'2008-2018, Jonathan F. Donges and pyunicorn authors'
+copyright = u'2008-2019, Jonathan F. Donges and pyunicorn authors'
 author = u'Jonathan F. Donges'
 
 # The version info for the project you're documenting, acts as replacement for
