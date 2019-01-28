@@ -34,9 +34,10 @@
     - `Paul Schultz <pschultz@pik-potsdam.de>`_, `Stefan Schinkel
       <mail@dreeg.org>`_ (supplied ``resistive_network`` and corresponding
       tests)
-    - `Wolfram Barfuss <barfuss@pik-potsdam.de>`_
+    - `Wolfram Barfuss <barfuss@pik-potsdam.de>`_ (package extensions and maintenance)
     - Nils Harmening (cythonized ``weave.inline`` functions, extended testing
       framework, migrated from Python 2.7 to 3.6)
+    - Jonathan Kröncke (extending test framework, package extensions and maintenance)
 
 **Related publications**
     See `Publications <docs/source/publications.rst>`_.
