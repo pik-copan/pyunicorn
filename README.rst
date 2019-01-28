@@ -41,6 +41,10 @@ following reference:**
     `Preprint: arxiv.org:1507.01571 [physics.data-an].
     <http://arxiv.org/abs/1507.01571>`_
 
+Reference
+---------
+The development of ``pyunicorn`` has been supported by various funding sources, notably the German Federal Ministry for Education and Research (project COSYCC2), the Leibniz Association (projects ECONS and DominoES), the German National Academic Foundation, and the Stordalen Foundation via the Planetary Boundary Research Network (PB.net) among others.
+
 License
 -------
 ``pyunicorn`` is `BSD-licensed <LICENSE.txt>`_ (3 clause).
