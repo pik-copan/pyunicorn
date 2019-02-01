@@ -43,7 +43,18 @@ following reference:**
 
 Funding
 -------
-The development of ``pyunicorn`` has been supported by various funding sources, notably the German Federal Ministry for Education and Research (project COSYCC2), the Leibniz Association (projects ECONS and DominoES), the German National Academic Foundation, and the Stordalen Foundation via the Planetary Boundary Research Network (PB.net) among others.
+
+The development of ``pyunicorn`` has been supported by various funding sources,
+notably the `German Federal Ministry for Education and Research
+<https://www.bmbf.de/en/index.html>`_ (projects `GOTHAM
+<http://belmont-gotham.org/>`_ and `CoSy-CC2 <http://cosy.pik-potsdam.de/>`_),
+the `Leibniz Association <https://www.leibniz-gemeinschaft.de/en/home/>`_
+(projects `ECONS <http://econs.pik-potsdam.de/>`_ and `DominoES
+<https://www.pik-potsdam.de/research/projects/activities/dominoes>`_), the
+`German National Academic Foundation <https://www.studienstiftung.de/en/>`_,
+and the `Stordalen Foundation <http://www.stordalenfoundation.no/>`_ via the
+`Planetary Boundary Research Network <http://www.pb-net.org>`_ (PB.net) among
+others.
 
 License
 -------
@@ -93,13 +104,14 @@ Optional *(used only in certain classes and methods)*:
   - `Cython <http://cython.org/>`_ 0.27+ (for compiling code during
     development)
 
-Numpy, Scipy, Matplotlib, igraph and other packages should be available via a
-package management system on Linux or MacOSX. All packages can be downloaded,
-compiled and installed following the instructions on their homepages.
+``Numpy``, ``Scipy``, ``Matplotlib``, ``igraph`` and other packages should be
+available via a package management system on Linux or MacOSX. All packages can
+be downloaded, compiled and installed following the instructions on their
+homepages.
 
 An easy way to go may be a Python distribution like `Anaconda
-<https://store.continuum.io/cshop/anaconda/>`_ or `Enthought
-<http://www.enthought.com>`_ that already include many libraries.
+<https://www.anaconda.com/distribution/>`_ that already includes many
+libraries.
 
 Installation
 ------------
