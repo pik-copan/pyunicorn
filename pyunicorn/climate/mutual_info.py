@@ -20,7 +20,8 @@ import numpy as np
 from ._ext.numerics import _calculate_mutual_information_cython
 
 #  Import progress bar for easy progress bar handling
-from ..utils import progressbar
+# from ..utils import progressbar
+
 #  Import cnNetwork for Network base class
 from .climate_network import ClimateNetwork
 
@@ -211,16 +212,16 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         H = - (p * log(p)).sum(axis=1)
 
         #  Initialize progress bar
-        if self.silence_level <= 1:
-            progress = progressbar.ProgressBar(maxval=self.N**2).start()
+        # if self.silence_level <= 1:
+        #     progress = progressbar.ProgressBar(maxval=self.N**2).start()
 
         #  Calculate only the lower half of the MI matrix, since MI is
         #  symmetric with respect to X and Y.
         for i in range(self.N):
             #  Update progress bar every 10 steps
-            if self.silence_level <= 1:
-                if (i % 10) == 0:
-                    progress.update(i**2)
+            # if self.silence_level <= 1:
+            #     if (i % 10) == 0:
+            #         progress.update(i**2)
 
             for j in range(i):
                 #  Calculate the joint probability distribution
@@ -240,8 +241,8 @@ class MutualInfoClimateNetwork(ClimateNetwork):
                 mi.itemset((i, j), H.item(i) + H.item(j) - HXY)
                 mi.itemset((j, i), mi.item((i, j)))
 
-        if self.silence_level <= 1:
-            progress.finish()
+        # if self.silence_level <= 1:
+        #     progress.finish()
 
         return mi
 
