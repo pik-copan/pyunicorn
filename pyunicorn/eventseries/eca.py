@@ -7,7 +7,7 @@
 # License: BSD (3-clause)
 
 """
-Function for Event Coincidence Analysis.
+Provides functionality for event series analysis.
 """
 
 import numpy as np
