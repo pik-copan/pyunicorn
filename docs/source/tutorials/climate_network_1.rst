@@ -15,4 +15,6 @@ You can use ``PyNgl`` for plotting the results on maps
 results as well as the grid information in text files which can be used for
 plotting in your favorite software.
 
+This tutorial is also available as an ipython notebook.
+
 .. literalinclude:: ../../../examples/tutorials/climate_network.py
