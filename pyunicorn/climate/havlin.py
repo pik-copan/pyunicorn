@@ -18,7 +18,7 @@ Provides classes for generating and analyzing complex climate networks.
 import numpy as np
 
 #  Import progress bar for easy progress bar handling
-from ..utils import progressbar
+# from ..utils import progressbar
 
 #  Import cnNetwork for Network base class
 from .climate_network import ClimateNetwork
@@ -167,17 +167,17 @@ class HavlinClimateNetwork(ClimateNetwork):
         max_lag_matrix = np.empty((N, N))
 
         #  Initialize progress bar
-        if self.silence_level <= 1:
-            progress = progressbar.ProgressBar(maxval=N).start()
+        # if self.silence_level <= 1:
+        #     progress = progressbar.ProgressBar(maxval=N).start()
 
         #  Calculate the inverse Fourier transform of all time series
         ifft = np.fft.ifft(anomaly, axis=0)
 
         for i in range(N):
             #  Update progress bar every 10 steps
-            if self.silence_level <= 1:
-                if (i % 10) == 0:
-                    progress.update(i)
+            # if self.silence_level <= 1:
+            #    if (i % 10) == 0:
+            #        progress.update(i)
 
             #  Calculate the cross correlation function of node i to all other
             #  nodes which is not normalized yet.
@@ -204,8 +204,8 @@ class HavlinClimateNetwork(ClimateNetwork):
             #  Store time delays at maximum cross correlation
             max_lag_matrix[i, :] = cc_one_to_all.argmax(axis=0) - max_delay
 
-        if self.silence_level <= 1:
-            progress.finish()
+        # if self.silence_level <= 1:
+        #     progress.finish()
 
         return (correlation_strength, max_lag_matrix)
 

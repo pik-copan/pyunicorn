@@ -20,7 +20,7 @@ from ._ext.numerics import _embed_time_series_array, _recurrence_plot, \
     _test_mutual_information
 
 # easy progress bar handling
-from ..utils import progressbar
+# from ..utils import progressbar
 
 
 #
@@ -640,7 +640,7 @@ class Surrogates:
 
         correlation_measure = np.abs(test_function(original_data,
                                                    original_data))
-        (hist, lbb) = np.histogram(correlation_measure, n_bins, normed=True)
+        (hist, lbb) = np.histogram(correlation_measure, n_bins, density=True)
         #  Normalize
         hist /= hist.sum()
 
@@ -698,13 +698,13 @@ class Surrogates:
         density_estimate = np.zeros(n_bins)
 
         #  Initialize progress bar
-        if self.silence_level <= 2:
-            progress = progressbar.ProgressBar(maxval=realizations).start()
+        # if self.silence_level <= 2:
+        #    progress = progressbar.ProgressBar(maxval=realizations).start()
 
         for i in range(realizations):
             #  Update progress bar
-            if self.silence_level <= 2:
-                progress.update(i)
+            # if self.silence_level <= 2:
+            #     progress.update(i)
 
             #  Get the surrogate
             #  Mean and variance are conserved by all surrogates
@@ -731,8 +731,8 @@ class Surrogates:
             #  but you never know...)
             del surrogates, correlation_measure_test
 
-        if self.silence_level <= 2:
-            progress.finish()
+        # if self.silence_level <= 2:
+        #     progress.finish()
 
         #  Normalize density estimate
         density_estimate /= density_estimate.sum()

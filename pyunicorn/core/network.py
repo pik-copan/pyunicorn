@@ -48,11 +48,11 @@ from ._ext.numerics import _local_cliquishness_4thorder, \
 
 # Progressbar breaks Network import on python 3.
 # TODO: Use progressbar3?
-if sys.version < '3':
-    has_progressbar = True
-    from ..utils import progressbar     # easy progress bar handling
-else:
-    has_progressbar = False
+# if sys.version < '3':
+#     has_progressbar = True
+#     from ..utils import progressbar     # easy progress bar handling
+# else:
+#     has_progressbar = False
 
 
 def nz_coords(matrix):
@@ -1011,8 +1011,8 @@ class Network:
                     i += 1
                     cum += link_prob[i]
                 return i
-            if has_progressbar:
-                progress = progressbar.ProgressBar(maxval=N).start()
+            # if has_progressbar:
+            #    progress = progressbar.ProgressBar(maxval=N).start()
             for j in range(n_initials, N):
                 # add node j with unit weight:
                 link_prob[j] = kstar[j] = w[j] = 1
@@ -1074,11 +1074,11 @@ class Network:
                     link_prob[j2] = w[j2] * kstar[j2]**preferential_exponent
                     total_link_prob += link_prob[i] + link_prob[j2]
                 # print(total_link_prob, link_prob.sum())
-                if (j % 10) == 0 and has_progressbar:
-                    progress.update(j)
+                # if (j % 10) == 0 and has_progressbar:
+                #     progress.update(j)
 
-            if has_progressbar:
-                progress.finish()
+            # if has_progressbar:
+            #     progress.finish()
 
         else:
             link_target = []
@@ -1180,8 +1180,8 @@ class Network:
             return i
 
         this_N = n_initials
-        if has_progressbar:
-            progress = progressbar.ProgressBar(maxval=N).start()
+        # if has_progressbar:
+        #     progress = progressbar.ProgressBar(maxval=N).start()
         it = 0
         while this_N < N and it < n_increases:
             it += 1
@@ -1201,11 +1201,11 @@ class Network:
                 inc_prob[i] = w[i]**exponent
                 total_inc_prob += inc_prob[this_N] + inc_prob[i]
                 this_N += 1
-            if (this_N % 10) == 0 and has_progressbar:
-                progress.update(this_N)
+            # if (this_N % 10) == 0 and has_progressbar:
+            #     progress.update(this_N)
 
-        if has_progressbar:
-            progress.finish()
+        # if has_progressbar:
+        #     progress.finish()
         return w
 
     @staticmethod
@@ -1412,7 +1412,7 @@ class Network:
         :return: A list of relative bin frequencies, a list of estimated
                  statistical errors, and a list of lower bin boundaries.
         """
-        hist = np.histogram(values, bins=n_bins, range=interval, normed=False)
+        hist = np.histogram(values, bins=n_bins, range=interval, density=False)
         frequencies = hist[0].astype('float64')
         bin_starts = hist[1][:-1]
 
@@ -1689,8 +1689,8 @@ class Network:
         if key is None:
             return (self.sp_A * self.sp_A).diagonal()
         else:
-            w = np.matrix(self.link_attribute(key))
-            return (w * w).diagonal()
+            w = self.link_attribute(key)
+            return (w @ w).diagonal()
 
     @cached_var('nsi_degree', 'n.s.i. degree')
     def nsi_degree_uncorr(self, key=None):
@@ -1709,8 +1709,8 @@ class Network:
             if key is None:
                 return self.sp_Aplus() * self.node_weights
             else:
-                w = np.matrix(self.link_attribute(key))
-                return (self.node_weights * w).A.squeeze()
+                w = self.link_attribute(key)
+                return (self.node_weights @ w).squeeze()
 
     def sp_nsi_diag_k(self):
         """Sparse diagonal matrix of n.s.i. degrees"""
@@ -1794,8 +1794,8 @@ class Network:
         if key is None:
             return self.node_weights * self.sp_Aplus()
         else:
-            w = np.matrix(self.link_attribute(key))
-            return (np.matrix(self.node_weights) * w).A.squeeze()
+            w = self.link_attribute(key)
+            return (self.node_weights @ w).squeeze()
 
     @cached_var('nsi_outdegree')
     def nsi_outdegree(self, key=None):
@@ -1826,8 +1826,8 @@ class Network:
         if key is None:
             return self.sp_Aplus() * self.node_weights
         else:
-            w = np.matrix(self.link_attribute(key))
-            return (w * np.matrix(self.node_weights).T).T.A.squeeze()
+            w = self.link_attribute(key)
+            return (w @ self.node_weights.transpose()).transpose().squeeze()
 
     @cached_const('base', 'degree df', 'the degree frequency distribution')
     def degree_distribution(self):
@@ -4453,14 +4453,14 @@ class Network:
             print("Calculating (weighted) node vulnerabilities...")
 
         #  Initialize progress bar
-        if self.silence_level <= 1 and has_progressbar:
-            progress = progressbar.ProgressBar(maxval=self.N).start()
+        # if self.silence_level <= 1 and has_progressbar:
+        #     progress = progressbar.ProgressBar(maxval=self.N).start()
 
         for i in range(self.N):
             #  Update progress bar every 10 steps
-            if self.silence_level <= 1:
-                if (i % 10) == 0 and has_progressbar:
-                    progress.update(i)
+            # if self.silence_level <= 1:
+            #     if (i % 10) == 0 and has_progressbar:
+            #         progress.update(i)
 
             #  Remove vertex i from graph
             graph = self.graph - i
@@ -4480,8 +4480,8 @@ class Network:
             del graph, network
 
         #  Terminate progress bar
-        if self.silence_level <= 1 and has_progressbar:
-            progress.finish()
+        # if self.silence_level <= 1 and has_progressbar:
+        #     progress.finish()
 
         return vulnerability
 

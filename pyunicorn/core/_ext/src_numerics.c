@@ -247,7 +247,9 @@ void _do_nsi_hamming_clustering_fast(int n2, int nActiveIndices, float mind0,
     float *errors, float *result, int *mayJoin)  {
 
     
-    int i1, i2, i3, c3, newpart1, newpart2;
+    int i1, i2, i3, c3;
+    int newpart1=0;
+    int newpart2=0;
     double d, lw, mind=mind0, minwp=minwp0;
     for (i1=0; i1<nActiveIndices; i1++) {
         int c1 = theActiveIndices[i1];

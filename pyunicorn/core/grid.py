@@ -29,7 +29,7 @@ except ImportError:
           "Some functionality in Grid class might not be available.")
 
 #  Cythonized functions
-from ._ext.numerics import _cy_calculate_angular_distance, _euclidiean_distance
+from ._ext.numerics import _cy_calculate_angular_distance, _euclidean_distance
 
 #
 #  Define class Grid
@@ -549,7 +549,7 @@ class Grid:
         y = self.lat_sequence()
 
         distance = np.zeros((N, N), dtype="float32")
-        _euclidiean_distance(x, y, distance, N)
+        _euclidean_distance(x, y, distance, N)
 
         return distance
 
