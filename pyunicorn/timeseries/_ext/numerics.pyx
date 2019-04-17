@@ -169,7 +169,6 @@ def _twins_s(
     np.ndarray[FLOATTYPE_t, ndim=3] embedding_array,
     np.ndarray[FLOATTYPE_t, ndim=2] R, np.ndarray[FLOATTYPE_t, ndim=1] nR,
     twins):
-
     cdef:
         int i, j, k, l
         double diff
@@ -217,7 +216,7 @@ def _twins_s(
             # sample density in phase space along the trajectory
             for k in range(j-min_dist):
                 # Continue only if both samples have the same number of
-                # neighbors and more than jsut one neighbor (themselves)
+                # neighbors and more than just one neighbor (themselves)
                 if nR[j] == nR[k] and nR[j] != 1:
                     l = 0
 
@@ -735,19 +734,15 @@ def _twins_r(
 
                         break
 
-
 def _twin_surrogates(int n_surrogates, int N, twins,
                      np.ndarray[FLOATTYPE_t, ndim=2] original_data):
 
     cdef int i, j, k, l, new_k, n_twins, rand
     cdef np.ndarray[FLOATTYPE_t, ndim=2] surrogates = np.empty((n_surrogates,N))
 
-    # Initialize random number generator
-    #random.seed(datetime.now())
     for i in range(n_surrogates):
         # Get the twin list for time series i
         twins_i = twins[i]
-
         # Randomly choose a starting point in the original trajectory
         k = int(floor(random.random() * N))
 
@@ -756,14 +751,12 @@ def _twin_surrogates(int n_surrogates, int N, twins,
         while j < N:
             # Assign state vector of surrogate trajectory
             surrogates[i,j] = original_data[i,k]
-
             # Get the list of twins of state vector k in the original time
             # series
             twins_ik = twins_i[k]
 
             # Get the number of twins of k
             n_twins = len(twins_ik)
-
             # If k has no twins, go to the next sample k+1, If k has twins at
             # m, choose among m+1 and k+1 with equal probability
             if n_twins == 0:
@@ -793,7 +786,6 @@ def _twin_surrogates(int n_surrogates, int N, twins,
             j += 1
 
     return surrogates
-
 
 def _test_pearson_correlation(
     np.ndarray[double, ndim=2, mode='c'] original_data not None,

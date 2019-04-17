@@ -504,7 +504,9 @@ class Surrogates:
         #     methods.
         #  2. Use the algorithm proposed in [*] to find twins
         #  3. Reconstruct one-dimensional twin surrogate time series
+
         (N, n_time) = original_data.shape
+        n_time = n_time - (dimension-1)*delay
 
         #  Make sure that twins are calculated only once
         if self._twins_cached:
