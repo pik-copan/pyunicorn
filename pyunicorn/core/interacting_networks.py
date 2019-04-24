@@ -659,7 +659,7 @@ class InteractingNetworks(Network):
         N1, N2 = len(node_list1), len(node_list2)
         if self.directed:
             raise NetworkError("Not implemented yet...")
-        
+
         n_cl = self.number_cross_links(node_list1, node_list2)
         return float(n_cl) / (N1 * N2)
 
