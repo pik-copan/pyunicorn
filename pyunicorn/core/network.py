@@ -987,7 +987,7 @@ class Network:
         N = n_nodes
         w, A = np.zeros(N, dtype=int), sp.lil_matrix((N, N))
         nbs = [[] for i in range(N)]
-        inc_target = range(n_initials)
+        inc_target = list(range(n_initials))
 
         if nsi:
             kstar = np.zeros(N)
