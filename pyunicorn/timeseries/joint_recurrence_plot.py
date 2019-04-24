@@ -182,7 +182,7 @@ class JointRecurrencePlot(RecurrencePlot):
                 #  Lag must be smaller than size of recurrence plot
                 raise ValueError("Delay value (lag) must not exceed length of \
                                  time series!")
-            elif threshold is not None:
+            if threshold is not None:
                 #  Calculate the recurrence matrix R using the radius of
                 #  neighborhood threshold
                 JointRecurrencePlot.set_fixed_threshold(self, threshold)

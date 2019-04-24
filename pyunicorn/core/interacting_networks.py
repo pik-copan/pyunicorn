@@ -612,8 +612,8 @@ class InteractingNetworks(Network):
         """
         if self.directed:
             raise NetworkError("Not implemented yet...")
-        else:
-            return self.cross_adjacency(node_list1, node_list2).sum()
+
+        return self.cross_adjacency(node_list1, node_list2).sum()
 
     def number_internal_links(self, node_list):
         """
@@ -659,9 +659,9 @@ class InteractingNetworks(Network):
         N1, N2 = len(node_list1), len(node_list2)
         if self.directed:
             raise NetworkError("Not implemented yet...")
-        else:
-            n_cl = self.number_cross_links(node_list1, node_list2)
-            return float(n_cl) / (N1 * N2)
+        
+        n_cl = self.number_cross_links(node_list1, node_list2)
+        return float(n_cl) / (N1 * N2)
 
     def internal_link_density(self, node_list):
         """

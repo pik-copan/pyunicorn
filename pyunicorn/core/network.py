@@ -2435,10 +2435,10 @@ class Network:
         if order in [0, 1, 2]:
             raise NetworkError("Higher order transitivity is not defined for \
                                orders 0, 1 and 2.")
-        elif order == 3:
+        if order == 3:
             return self.transitivity()
 
-        elif order == 4:
+        if order == 4:
             #  Gathering
             # N = self.N
             # A = self.adjacency
@@ -2463,11 +2463,11 @@ class Network:
             else:
                 return 0.
 
-        elif order > 4:
+        if order > 4:
             raise NotImplementedError("Higher order transitivity is not yet \
                                       implemented for orders larger than 4.")
-        else:
-            raise ValueError("Order has to be a positive integer.")
+
+        raise ValueError("Order has to be a positive integer.")
 
     def local_cliquishness(self, order):
         """
@@ -2498,22 +2498,22 @@ class Network:
             raise NetworkError("Local cliquishness is not defined for orders \
                                0, 1 and 2.")
 
-        elif order == 3:
+        if order == 3:
             return self.local_clustering()
 
-        elif order == 4:
+        if order == 4:
             return _local_cliquishness_4thorder(self.N,
                                                 self.adjacency.astype(int),
                                                 self.degree())
-        elif order == 5:
+        if order == 5:
             return _local_cliquishness_5thorder(self.N,
                                                 self.adjacency.astype(int),
                                                 self.degree())
-        elif order > 5:
+        if order > 5:
             raise NotImplementedError("Local cliquishness is not yet \
                                       implemented for orders larger than 5.")
-        else:
-            raise ValueError("Order has to be a positive integer.")
+
+        raise ValueError("Order has to be a positive integer.")
 
     @staticmethod
     def weighted_local_clustering(weighted_A):
