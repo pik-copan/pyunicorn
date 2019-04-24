@@ -46,13 +46,7 @@ from ._ext.numerics import _local_cliquishness_4thorder, \
     _newman_betweenness_badly_cython, _do_nsi_clustering_I, \
     _do_nsi_clustering_II, _do_nsi_hamming_clustering
 
-# Progressbar breaks Network import on python 3.
-# TODO: Use progressbar3?
-# if sys.version < '3':
-#     has_progressbar = True
-#     from ..utils import progressbar     # easy progress bar handling
-# else:
-#     has_progressbar = False
+from ..utils import progressbar     # easy progress bar handling
 
 
 def nz_coords(matrix):
@@ -1011,8 +1005,8 @@ class Network:
                     i += 1
                     cum += link_prob[i]
                 return i
-            # if has_progressbar:
-            #    progress = progressbar.ProgressBar(maxval=N).start()
+
+            progress = progressbar.ProgressBar(maxval=N).start()
             for j in range(n_initials, N):
                 # add node j with unit weight:
                 link_prob[j] = kstar[j] = w[j] = 1
@@ -1074,11 +1068,11 @@ class Network:
                     link_prob[j2] = w[j2] * kstar[j2]**preferential_exponent
                     total_link_prob += link_prob[i] + link_prob[j2]
                 # print(total_link_prob, link_prob.sum())
-                # if (j % 10) == 0 and has_progressbar:
-                #     progress.update(j)
 
-            # if has_progressbar:
-            #     progress.finish()
+                if j % 10:
+                    progress.update(j)
+
+            progress.finish()
 
         else:
             link_target = []
@@ -1180,8 +1174,7 @@ class Network:
             return i
 
         this_N = n_initials
-        # if has_progressbar:
-        #     progress = progressbar.ProgressBar(maxval=N).start()
+        progress = progressbar.ProgressBar(maxval=N).start()
         it = 0
         while this_N < N and it < n_increases:
             it += 1
@@ -1201,11 +1194,10 @@ class Network:
                 inc_prob[i] = w[i]**exponent
                 total_inc_prob += inc_prob[this_N] + inc_prob[i]
                 this_N += 1
-            # if (this_N % 10) == 0 and has_progressbar:
-            #     progress.update(this_N)
+            if this_N % 10:
+                progress.update(this_N)
 
-        # if has_progressbar:
-        #     progress.finish()
+        progress.finish()
         return w
 
     @staticmethod
@@ -4453,14 +4445,14 @@ class Network:
             print("Calculating (weighted) node vulnerabilities...")
 
         #  Initialize progress bar
-        # if self.silence_level <= 1 and has_progressbar:
-        #     progress = progressbar.ProgressBar(maxval=self.N).start()
+        if self.silence_level <= 1:
+            progress = progressbar.ProgressBar(maxval=self.N).start()
 
         for i in range(self.N):
-            #  Update progress bar every 10 steps
-            # if self.silence_level <= 1:
-            #     if (i % 10) == 0 and has_progressbar:
-            #         progress.update(i)
+            # Update progress bar every 10 steps
+            if self.silence_level <= 1:
+                if (i % 10) == 0:
+                    progress.update(i)
 
             #  Remove vertex i from graph
             graph = self.graph - i
@@ -4480,8 +4472,8 @@ class Network:
             del graph, network
 
         #  Terminate progress bar
-        # if self.silence_level <= 1 and has_progressbar:
-        #     progress.finish()
+        if self.silence_level <= 1:
+            progress.finish()
 
         return vulnerability
 
