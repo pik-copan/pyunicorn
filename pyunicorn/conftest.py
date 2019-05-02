@@ -11,10 +11,6 @@ Configure `py.test` fixtures.
 
 import numpy as np
 import pytest
-from pyunicorn import legacy
-
-
-legacy.set_legacy_mode()
 
 
 def _i():
