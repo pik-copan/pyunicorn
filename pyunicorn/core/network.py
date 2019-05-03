@@ -3067,7 +3067,7 @@ class Network:
 
         return np.abs(np.array(self.graph.betweenness(nobigint=no_big_int)))
 
-    @cached_const('base', 'inter btw', 'interregional betweenness')
+    # @cached_const('base', 'inter btw', 'interregional betweenness')
     def interregional_betweenness(self, sources=None, targets=None):
         """
         For each node, return its interregional betweenness for given sets
@@ -3104,7 +3104,7 @@ class Network:
         return self.nsi_betweenness(sources=sources, targets=targets,
                                     aw=0, silent=1)
 
-    @cached_const('nsi', 'inter btw', 'n.s.i. interregional betweenness')
+    # @cached_const('nsi', 'inter btw', 'n.s.i. interregional betweenness')
     def nsi_interregional_betweenness(self, sources, targets):
         """
         For each node, return its n.s.i. interregional betweenness for given
