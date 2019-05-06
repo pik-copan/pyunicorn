@@ -34,9 +34,9 @@ def test_SmallTestNetwork():
     assert np.allclose(res, exp, atol=1e-04)
 
 def test_link_density_function():
-    res = ClimateNetwork.SmallTestNetwork().link_density_function(3)
-    exp = (np.array([0.0, 0.3889, 0.6111]),
-           np.array([0.1, 0.4, 0.7, 1.], dtype=np.float32))
+    res = ClimateNetwork.SmallTestNetwork().link_density_function(5)
+    exp = (np.array([0., 0.2778, 0.4444, 0.6111, 0.7222]),
+           np.array([0.1, 0.28, 0.46, 0.64, 0.82, 1.]))
 
     assert np.allclose(res[0], exp[0], atol=1e-04)
     assert np.allclose(res[1], exp[1], atol=1e-04)
