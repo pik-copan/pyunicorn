@@ -1498,7 +1498,7 @@ class InteractingNetworks(Network):
         """
         nodes1 = np.array(node_list1, dtype=int)
         nodes2 = np.array(node_list2, dtype=int)
-        nsi_cc = np.zeros_like(nodes1, dtype=np.float)
+        nsi_cc = np.zeros(nodes1.shape, dtype=np.float)
         _nsi_cross_local_clustering(
             self.adjacency + np.eye(self.N, dtype=int),
             nsi_cc, nodes1, nodes2, self.node_weights)
