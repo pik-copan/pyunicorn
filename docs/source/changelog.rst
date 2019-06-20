@@ -4,6 +4,11 @@ Changelog
 
 A summary of major changes made in each release of ``pyunicorn``:
 
+**0.6.1**
+ - Fixed some bugs and compatibility issues.
+ - Improved test framework.
+ - Added pyunicorn description paper reference to all code files.
+
 **0.6.0**
  - Migrated from Python 2.7 to Python 3.7.
  - Completed transition from ``Weave`` to ``Cython``.
