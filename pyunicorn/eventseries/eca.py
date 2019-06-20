@@ -5,6 +5,15 @@
 # Copyright (C) 2008--2019 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
+#
+# Please acknowledge and cite the use of this software and its authors
+# when results are used in publications or published elsewhere.
+#
+# You can use the following reference:
+# J.F. Donges, J. Heitzig, B. Beronov, M. Wiedermann, J. Runge, Q.-Y. Feng,
+# L. Tupikina, V. Stolbova, R.V. Donner, N. Marwan, H.A. Dijkstra,
+# and J. Kurths, "Unified functional network and nonlinear time series analysis
+# for complex systems science: The pyunicorn package"
 
 """
 Provides functionality for event series analysis.
@@ -60,19 +69,19 @@ def ECA(EventSeriesX, EventSeriesY, delT, tau=0, ts1=None, ts2=None):
     dst = (np.array([e1]*l2).T - np.array([e2]*l1))
     # Count coincidences with array slicing
     prec12 = np.count_nonzero(np.any(((dst - tau >= 0)
-                              * (dst - tau <= delT))[n11:, :],
-                              axis=1))
+                                      * (dst - tau <= delT))[n11:, :],
+                                     axis=1))
     trig12 = np.count_nonzero(np.any(((dst - tau >= 0)
-                              * (dst - tau <= delT))
-                              [:, :dst.shape[1]-n22],
-                              axis=0))
+                                      * (dst - tau <= delT))
+                                     [:, :dst.shape[1]-n22],
+                                     axis=0))
     prec21 = np.count_nonzero(np.any(((-dst - tau >= 0)
-                              * (-dst - tau <= delT))[:, n21:],
-                              axis=0))
+                                      * (-dst - tau <= delT))[:, n21:],
+                                     axis=0))
     trig21 = np.count_nonzero(np.any(((-dst - tau >= 0)
-                              * (-dst - tau <= delT))
-                              [:dst.shape[0]-n12, :],
-                              axis=1))
+                                      * (-dst - tau <= delT))
+                                     [:dst.shape[0]-n12, :],
+                                     axis=1))
     # Normalisation and output
     return (np.float32(prec12)/(l1-n11), np.float32(trig12)/(l2-n22),
             np.float32(prec21)/(l2-n21), np.float32(trig21)/(l1-n12))

@@ -4,6 +4,15 @@
 # Copyright (C) 2008--2019 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
+#
+# Please acknowledge and cite the use of this software and its authors
+# when results are used in publications or published elsewhere.
+#
+# You can use the following reference:
+# J.F. Donges, J. Heitzig, B. Beronov, M. Wiedermann, J. Runge, Q.-Y. Feng,
+# L. Tupikina, V. Stolbova, R.V. Donner, N. Marwan, H.A. Dijkstra,
+# and J. Kurths, "Unified functional network and nonlinear time series analysis
+# for complex systems science: The pyunicorn package"
 
 cimport cython
 from cpython cimport bool
@@ -48,9 +57,9 @@ cdef extern from "time.h":
 
 cdef extern from "src_numerics.c":
     void _manhattan_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
-        double *x_embedded, double *y_embedded, float *distance)
+        double *x_embedded, double *y_embedded, double *distance)
     void _euclidean_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
-        double *x_embedded, double *y_embedded, float *distance)
+        double *x_embedded, double *y_embedded, double *distance)
     void _supremum_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
         float *x_embedded, float *y_embedded, float *distance)
     void _test_pearson_correlation_fast(double *original_data,
@@ -68,14 +77,14 @@ def _manhattan_distance_matrix_crp(
     np.ndarray[double, ndim=2, mode='c'] x_embedded not None,
     np.ndarray[double, ndim=2, mode='c'] y_embedded not None):
 
-    cdef np.ndarray[float, ndim=2, mode='c'] distance = \
-        np.zeros((ntime_x, ntime_y), dtype="float32")
+    cdef np.ndarray[double, ndim=2, mode='c'] distance = \
+        np.zeros((ntime_x, ntime_y), dtype="double")
 
     _manhattan_distance_matrix_fast(
         ntime_x, ntime_y, dim,
         <double*> np.PyArray_DATA(x_embedded),
         <double*> np.PyArray_DATA(y_embedded),
-        <float*> np.PyArray_DATA(distance))
+        <double*> np.PyArray_DATA(distance))
 
     return distance
 
@@ -85,14 +94,14 @@ def _euclidean_distance_matrix_crp(
     np.ndarray[double, ndim=2, mode='c'] x_embedded not None,
     np.ndarray[double, ndim=2, mode='c'] y_embedded not None):
 
-    cdef np.ndarray[float, ndim=2, mode='c'] distance = \
-        np.zeros((ntime_x, ntime_y), dtype="float32")
+    cdef np.ndarray[double, ndim=2, mode='c'] distance = \
+        np.zeros((ntime_x, ntime_y), dtype="double")
 
     _euclidean_distance_matrix_fast(
         ntime_x, ntime_y, dim,
         <double*> np.PyArray_DATA(x_embedded),
         <double*> np.PyArray_DATA(y_embedded),
-        <float*> np.PyArray_DATA(distance))
+        <double*> np.PyArray_DATA(distance))
 
     return distance
 
@@ -169,7 +178,6 @@ def _twins_s(
     np.ndarray[FLOATTYPE_t, ndim=3] embedding_array,
     np.ndarray[FLOATTYPE_t, ndim=2] R, np.ndarray[FLOATTYPE_t, ndim=1] nR,
     twins):
-
     cdef:
         int i, j, k, l
         double diff
@@ -217,7 +225,7 @@ def _twins_s(
             # sample density in phase space along the trajectory
             for k in range(j-min_dist):
                 # Continue only if both samples have the same number of
-                # neighbors and more than jsut one neighbor (themselves)
+                # neighbors and more than just one neighbor (themselves)
                 if nR[j] == nR[k] and nR[j] != 1:
                     l = 0
 
@@ -735,19 +743,15 @@ def _twins_r(
 
                         break
 
-
 def _twin_surrogates(int n_surrogates, int N, twins,
                      np.ndarray[FLOATTYPE_t, ndim=2] original_data):
 
     cdef int i, j, k, l, new_k, n_twins, rand
     cdef np.ndarray[FLOATTYPE_t, ndim=2] surrogates = np.empty((n_surrogates,N))
 
-    # Initialize random number generator
-    #random.seed(datetime.now())
     for i in range(n_surrogates):
         # Get the twin list for time series i
         twins_i = twins[i]
-
         # Randomly choose a starting point in the original trajectory
         k = int(floor(random.random() * N))
 
@@ -756,14 +760,12 @@ def _twin_surrogates(int n_surrogates, int N, twins,
         while j < N:
             # Assign state vector of surrogate trajectory
             surrogates[i,j] = original_data[i,k]
-
             # Get the list of twins of state vector k in the original time
             # series
             twins_ik = twins_i[k]
 
             # Get the number of twins of k
             n_twins = len(twins_ik)
-
             # If k has no twins, go to the next sample k+1, If k has twins at
             # m, choose among m+1 and k+1 with equal probability
             if n_twins == 0:
@@ -793,7 +795,6 @@ def _twin_surrogates(int n_surrogates, int N, twins,
             j += 1
 
     return surrogates
-
 
 def _test_pearson_correlation(
     np.ndarray[double, ndim=2, mode='c'] original_data not None,

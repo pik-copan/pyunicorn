@@ -4,6 +4,8 @@ pyunicorn
 
 .. image:: https://travis-ci.org/pik-copan/pyunicorn.svg?branch=master
     :target: https://travis-ci.org/pik-copan/pyunicorn
+.. image:: https://codecov.io/gh/jkroenke/pyunicorn/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/jkroenke/pyunicorn
 
 
 ``pyunicorn`` (**Uni**\ fied **Co**\ mplex Network and **R**\ ecurre\ **N**\ ce

@@ -5,6 +5,15 @@
 # Copyright (C) 2008--2019 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
+#
+# Please acknowledge and cite the use of this software and its authors
+# when results are used in publications or published elsewhere.
+#
+# You can use the following reference:
+# J.F. Donges, J. Heitzig, B. Beronov, M. Wiedermann, J. Runge, Q.-Y. Feng,
+# L. Tupikina, V. Stolbova, R.V. Donner, N. Marwan, H.A. Dijkstra,
+# and J. Kurths, "Unified functional network and nonlinear time series analysis
+# for complex systems science: The pyunicorn package"
 
 """
 Provides classes for analyzing spatially embedded complex networks, handling
@@ -46,13 +55,7 @@ from ._ext.numerics import _local_cliquishness_4thorder, \
     _newman_betweenness_badly_cython, _do_nsi_clustering_I, \
     _do_nsi_clustering_II, _do_nsi_hamming_clustering
 
-# Progressbar breaks Network import on python 3.
-# TODO: Use progressbar3?
-# if sys.version < '3':
-#     has_progressbar = True
-#     from ..utils import progressbar     # easy progress bar handling
-# else:
-#     has_progressbar = False
+from ..utils import progressbar     # easy progress bar handling
 
 
 def nz_coords(matrix):
@@ -993,7 +996,7 @@ class Network:
         N = n_nodes
         w, A = np.zeros(N, dtype=int), sp.lil_matrix((N, N))
         nbs = [[] for i in range(N)]
-        inc_target = range(n_initials)
+        inc_target = list(range(n_initials))
 
         if nsi:
             kstar = np.zeros(N)
@@ -1011,8 +1014,8 @@ class Network:
                     i += 1
                     cum += link_prob[i]
                 return i
-            # if has_progressbar:
-            #    progress = progressbar.ProgressBar(maxval=N).start()
+
+            progress = progressbar.ProgressBar(maxval=N).start()
             for j in range(n_initials, N):
                 # add node j with unit weight:
                 link_prob[j] = kstar[j] = w[j] = 1
@@ -1074,11 +1077,11 @@ class Network:
                     link_prob[j2] = w[j2] * kstar[j2]**preferential_exponent
                     total_link_prob += link_prob[i] + link_prob[j2]
                 # print(total_link_prob, link_prob.sum())
-                # if (j % 10) == 0 and has_progressbar:
-                #     progress.update(j)
 
-            # if has_progressbar:
-            #     progress.finish()
+                if j % 10:
+                    progress.update(j)
+
+            progress.finish()
 
         else:
             link_target = []
@@ -1180,8 +1183,7 @@ class Network:
             return i
 
         this_N = n_initials
-        # if has_progressbar:
-        #     progress = progressbar.ProgressBar(maxval=N).start()
+        progress = progressbar.ProgressBar(maxval=N).start()
         it = 0
         while this_N < N and it < n_increases:
             it += 1
@@ -1201,11 +1203,10 @@ class Network:
                 inc_prob[i] = w[i]**exponent
                 total_inc_prob += inc_prob[this_N] + inc_prob[i]
                 this_N += 1
-            # if (this_N % 10) == 0 and has_progressbar:
-            #     progress.update(this_N)
+            if this_N % 10:
+                progress.update(this_N)
 
-        # if has_progressbar:
-        #     progress.finish()
+        progress.finish()
         return w
 
     @staticmethod
@@ -2443,10 +2444,10 @@ class Network:
         if order in [0, 1, 2]:
             raise NetworkError("Higher order transitivity is not defined for \
                                orders 0, 1 and 2.")
-        elif order == 3:
+        if order == 3:
             return self.transitivity()
 
-        elif order == 4:
+        if order == 4:
             #  Gathering
             # N = self.N
             # A = self.adjacency
@@ -2471,11 +2472,11 @@ class Network:
             else:
                 return 0.
 
-        elif order > 4:
+        if order > 4:
             raise NotImplementedError("Higher order transitivity is not yet \
                                       implemented for orders larger than 4.")
-        else:
-            raise ValueError("Order has to be a positive integer.")
+
+        raise ValueError("Order has to be a positive integer.")
 
     def local_cliquishness(self, order):
         """
@@ -2506,22 +2507,22 @@ class Network:
             raise NetworkError("Local cliquishness is not defined for orders \
                                0, 1 and 2.")
 
-        elif order == 3:
+        if order == 3:
             return self.local_clustering()
 
-        elif order == 4:
+        if order == 4:
             return _local_cliquishness_4thorder(self.N,
                                                 self.adjacency.astype(int),
                                                 self.degree())
-        elif order == 5:
+        if order == 5:
             return _local_cliquishness_5thorder(self.N,
                                                 self.adjacency.astype(int),
                                                 self.degree())
-        elif order > 5:
+        if order > 5:
             raise NotImplementedError("Local cliquishness is not yet \
                                       implemented for orders larger than 5.")
-        else:
-            raise ValueError("Order has to be a positive integer.")
+
+        raise ValueError("Order has to be a positive integer.")
 
     @staticmethod
     def weighted_local_clustering(weighted_A):
@@ -3075,7 +3076,7 @@ class Network:
 
         return np.abs(np.array(self.graph.betweenness(nobigint=no_big_int)))
 
-    @cached_const('base', 'inter btw', 'interregional betweenness')
+    # @cached_const('base', 'inter btw', 'interregional betweenness')
     def interregional_betweenness(self, sources=None, targets=None):
         """
         For each node, return its interregional betweenness for given sets
@@ -3112,7 +3113,7 @@ class Network:
         return self.nsi_betweenness(sources=sources, targets=targets,
                                     aw=0, silent=1)
 
-    @cached_const('nsi', 'inter btw', 'n.s.i. interregional betweenness')
+    # @cached_const('nsi', 'inter btw', 'n.s.i. interregional betweenness')
     def nsi_interregional_betweenness(self, sources, targets):
         """
         For each node, return its n.s.i. interregional betweenness for given
@@ -4453,14 +4454,14 @@ class Network:
             print("Calculating (weighted) node vulnerabilities...")
 
         #  Initialize progress bar
-        # if self.silence_level <= 1 and has_progressbar:
-        #     progress = progressbar.ProgressBar(maxval=self.N).start()
+        if self.silence_level <= 1:
+            progress = progressbar.ProgressBar(maxval=self.N).start()
 
         for i in range(self.N):
-            #  Update progress bar every 10 steps
-            # if self.silence_level <= 1:
-            #     if (i % 10) == 0 and has_progressbar:
-            #         progress.update(i)
+            # Update progress bar every 10 steps
+            if self.silence_level <= 1:
+                if (i % 10) == 0:
+                    progress.update(i)
 
             #  Remove vertex i from graph
             graph = self.graph - i
@@ -4480,8 +4481,8 @@ class Network:
             del graph, network
 
         #  Terminate progress bar
-        # if self.silence_level <= 1 and has_progressbar:
-        #     progress.finish()
+        if self.silence_level <= 1:
+            progress.finish()
 
         return vulnerability
 

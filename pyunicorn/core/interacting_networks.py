@@ -5,6 +5,15 @@
 # Copyright (C) 2008--2019 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
+#
+# Please acknowledge and cite the use of this software and its authors
+# when results are used in publications or published elsewhere.
+#
+# You can use the following reference:
+# J.F. Donges, J. Heitzig, B. Beronov, M. Wiedermann, J. Runge, Q.-Y. Feng,
+# L. Tupikina, V. Stolbova, R.V. Donner, N. Marwan, H.A. Dijkstra,
+# and J. Kurths, "Unified functional network and nonlinear time series analysis
+# for complex systems science: The pyunicorn package"
 
 """
 Provides classes for analyzing spatially embedded complex networks, handling
@@ -612,8 +621,8 @@ class InteractingNetworks(Network):
         """
         if self.directed:
             raise NetworkError("Not implemented yet...")
-        else:
-            return self.cross_adjacency(node_list1, node_list2).sum()
+
+        return self.cross_adjacency(node_list1, node_list2).sum()
 
     def number_internal_links(self, node_list):
         """
@@ -659,9 +668,9 @@ class InteractingNetworks(Network):
         N1, N2 = len(node_list1), len(node_list2)
         if self.directed:
             raise NetworkError("Not implemented yet...")
-        else:
-            n_cl = self.number_cross_links(node_list1, node_list2)
-            return float(n_cl) / (N1 * N2)
+
+        n_cl = self.number_cross_links(node_list1, node_list2)
+        return float(n_cl) / (N1 * N2)
 
     def internal_link_density(self, node_list):
         """
@@ -764,16 +773,14 @@ class InteractingNetworks(Network):
 
         Examples:
 
-        >>> InteractingNetworks.SmallTestNetwork().cross_global_clustering(
-        ...                                                   [0,3,5], [1,2,4])
+        >>> InteractingNetworks.SmallTestNetwork().\
+                cross_global_clustering_sparse([0,3,5], [1,2,4])
         0.0
-
-        >>> InteractingNetworks.SmallTestNetwork().cross_global_clustering(
-        ...                                                       [2], [1,3,4])
+        >>> InteractingNetworks.SmallTestNetwork().\
+                cross_global_clustering_sparse([2], [1,3,4])
         1.0
-
-        >>> InteractingNetworks.SmallTestNetwork().cross_global_clustering(
-        ...                                                       [3,4], [1,2])
+        >>> InteractingNetworks.SmallTestNetwork().\
+                cross_global_clustering_sparse([3,4], [1,2])
         0.5
 
         :arg [int] node_list1: list of node indices describing the first
@@ -1375,7 +1382,7 @@ class InteractingNetworks(Network):
         >>> _i()
         >>> InteractingNetworks.SmallTestNetwork().\
                 cross_betweenness([2], [3,5])
-        #array([ 1.,  1.,  0.,  0.,  1.,  0.])
+        array([ 1.,  1.,  0.,  0.,  1.,  0.])
         >>> InteractingNetworks.SmallTestNetwork().\
                 cross_betweenness(range(0,6), range(0,6))
         array([ 9.,  3.,  0.,  2.,  6.,  0.])
@@ -1500,7 +1507,7 @@ class InteractingNetworks(Network):
         """
         nodes1 = np.array(node_list1, dtype=int)
         nodes2 = np.array(node_list2, dtype=int)
-        nsi_cc = np.zeros_like(nodes1, dtype=np.float)
+        nsi_cc = np.zeros(nodes1.shape, dtype=np.float)
         _nsi_cross_local_clustering(
             self.adjacency + np.eye(self.N, dtype=int),
             nsi_cc, nodes1, nodes2, self.node_weights)

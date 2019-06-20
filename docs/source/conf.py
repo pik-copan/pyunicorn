@@ -98,7 +98,7 @@ suppress_warnings = ['image.nonlocal_uri']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinxdoc'
+html_theme = 'classic'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -113,7 +113,7 @@ html_static_path = ['_static']
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = '_static/logo.png'
+# html_logo = '_static/logo.png'
 
 # Custom sidebar templates, maps document names to template names.
 html_sidebars = {

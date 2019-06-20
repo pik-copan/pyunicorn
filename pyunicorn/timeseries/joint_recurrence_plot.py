@@ -5,6 +5,15 @@
 # Copyright (C) 2008--2019 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
+#
+# Please acknowledge and cite the use of this software and its authors
+# when results are used in publications or published elsewhere.
+#
+# You can use the following reference:
+# J.F. Donges, J. Heitzig, B. Beronov, M. Wiedermann, J. Runge, Q.-Y. Feng,
+# L. Tupikina, V. Stolbova, R.V. Donner, N. Marwan, H.A. Dijkstra,
+# and J. Kurths, "Unified functional network and nonlinear time series analysis
+# for complex systems science: The pyunicorn package"
 
 """
 Provides classes for the analysis of dynamical systems and time series based
@@ -182,7 +191,7 @@ class JointRecurrencePlot(RecurrencePlot):
                 #  Lag must be smaller than size of recurrence plot
                 raise ValueError("Delay value (lag) must not exceed length of \
                                  time series!")
-            elif threshold is not None:
+            if threshold is not None:
                 #  Calculate the recurrence matrix R using the radius of
                 #  neighborhood threshold
                 JointRecurrencePlot.set_fixed_threshold(self, threshold)

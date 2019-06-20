@@ -5,6 +5,15 @@
 # Copyright (C) 2008--2019 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
+#
+# Please acknowledge and cite the use of this software and its authors
+# when results are used in publications or published elsewhere.
+#
+# You can use the following reference:
+# J.F. Donges, J. Heitzig, B. Beronov, M. Wiedermann, J. Runge, Q.-Y. Feng,
+# L. Tupikina, V. Stolbova, R.V. Donner, N. Marwan, H.A. Dijkstra,
+# and J. Kurths, "Unified functional network and nonlinear time series analysis
+# for complex systems science: The pyunicorn package"
 
 """
 Provides classes for generating and analyzing complex climate networks.
@@ -20,7 +29,7 @@ import numpy as np
 from ._ext.numerics import _calculate_mutual_information_cython
 
 #  Import progress bar for easy progress bar handling
-# from ..utils import progressbar
+from ..utils import progressbar
 
 #  Import cnNetwork for Network base class
 from .climate_network import ClimateNetwork
@@ -211,17 +220,17 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         #  Compute the information entropies of each time series
         H = - (p * log(p)).sum(axis=1)
 
-        #  Initialize progress bar
-        # if self.silence_level <= 1:
-        #     progress = progressbar.ProgressBar(maxval=self.N**2).start()
+        # Initialize progress bar
+        if self.silence_level <= 1:
+            progress = progressbar.ProgressBar(maxval=self.N**2).start()
 
         #  Calculate only the lower half of the MI matrix, since MI is
         #  symmetric with respect to X and Y.
         for i in range(self.N):
-            #  Update progress bar every 10 steps
-            # if self.silence_level <= 1:
-            #     if (i % 10) == 0:
-            #         progress.update(i**2)
+            # Update progress bar every 10 steps
+            if self.silence_level <= 1:
+                if (i % 10) == 0:
+                    progress.update(i**2)
 
             for j in range(i):
                 #  Calculate the joint probability distribution
@@ -241,8 +250,8 @@ class MutualInfoClimateNetwork(ClimateNetwork):
                 mi.itemset((i, j), H.item(i) + H.item(j) - HXY)
                 mi.itemset((j, i), mi.item((i, j)))
 
-        # if self.silence_level <= 1:
-        #     progress.finish()
+        if self.silence_level <= 1:
+            progress.finish()
 
         return mi
 

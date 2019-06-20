@@ -5,6 +5,15 @@
 # Copyright (C) 2008--2019 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
+#
+# Please acknowledge and cite the use of this software and its authors
+# when results are used in publications or published elsewhere.
+#
+# You can use the following reference:
+# J.F. Donges, J. Heitzig, B. Beronov, M. Wiedermann, J. Runge, Q.-Y. Feng,
+# L. Tupikina, V. Stolbova, R.V. Donner, N. Marwan, H.A. Dijkstra,
+# and J. Kurths, "Unified functional network and nonlinear time series analysis
+# for complex systems science: The pyunicorn package"
 
 """
 Provides classes for analyzing spatially embedded complex networks, handling
@@ -20,7 +29,7 @@ from ._ext.numerics import _embed_time_series_array, _recurrence_plot, \
     _test_mutual_information
 
 # easy progress bar handling
-# from ..utils import progressbar
+from ..utils import progressbar
 
 
 #
@@ -504,7 +513,9 @@ class Surrogates:
         #     methods.
         #  2. Use the algorithm proposed in [*] to find twins
         #  3. Reconstruct one-dimensional twin surrogate time series
+
         (N, n_time) = original_data.shape
+        n_time = n_time - (dimension-1)*delay
 
         #  Make sure that twins are calculated only once
         if self._twins_cached:
@@ -698,13 +709,13 @@ class Surrogates:
         density_estimate = np.zeros(n_bins)
 
         #  Initialize progress bar
-        # if self.silence_level <= 2:
-        #    progress = progressbar.ProgressBar(maxval=realizations).start()
+        if self.silence_level <= 2:
+            progress = progressbar.ProgressBar(maxval=realizations).start()
 
         for i in range(realizations):
             #  Update progress bar
-            # if self.silence_level <= 2:
-            #     progress.update(i)
+            if self.silence_level <= 2:
+                progress.update(i)
 
             #  Get the surrogate
             #  Mean and variance are conserved by all surrogates
@@ -731,8 +742,8 @@ class Surrogates:
             #  but you never know...)
             del surrogates, correlation_measure_test
 
-        # if self.silence_level <= 2:
-        #     progress.finish()
+        if self.silence_level <= 2:
+            progress.finish()
 
         #  Normalize density estimate
         density_estimate /= density_estimate.sum()

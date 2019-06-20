@@ -5,6 +5,15 @@
 # Copyright (C) 2008--2019 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
+#
+# Please acknowledge and cite the use of this software and its authors
+# when results are used in publications or published elsewhere.
+#
+# You can use the following reference:
+# J.F. Donges, J. Heitzig, B. Beronov, M. Wiedermann, J. Runge, Q.-Y. Feng,
+# L. Tupikina, V. Stolbova, R.V. Donner, N. Marwan, H.A. Dijkstra,
+# and J. Kurths, "Unified functional network and nonlinear time series analysis
+# for complex systems science: The pyunicorn package"
 
 """
 Provides classes for the analysis of dynamical systems and time series based
@@ -191,14 +200,11 @@ class CrossRecurrencePlot(RecurrencePlot):
         """
         #  Return distance matrix according to chosen metric:
         if metric == "manhattan":
-            return self.manhattan_distance_matrix(x_embedded.astype('float32'),
-                                                  y_embedded.astype('float32'))
+            return self.manhattan_distance_matrix(x_embedded, y_embedded)
         elif metric == "euclidean":
-            return self.euclidean_distance_matrix(x_embedded.astype('float32'),
-                                                  y_embedded.astype('float32'))
+            return self.euclidean_distance_matrix(x_embedded, y_embedded)
         elif metric == "supremum":
-            return self.supremum_distance_matrix(x_embedded.astype('float32'),
-                                                 y_embedded.astype('float32'))
+            return self.supremum_distance_matrix(x_embedded, y_embedded)
         else:
             return None
 
@@ -223,9 +229,10 @@ class CrossRecurrencePlot(RecurrencePlot):
         ntime_x = x_embedded.shape[0]
         ntime_y = y_embedded.shape[0]
         dim = x_embedded.shape[1]
+        x_embedded = x_embedded.astype('double').copy(order='c')
+        y_embedded = y_embedded.astype('double').copy(order='c')
         return _manhattan_distance_matrix_crp(ntime_x, ntime_y, dim,
-                                              x_embedded.copy(order='c'),
-                                              y_embedded.copy(order='c'))
+                                              x_embedded, y_embedded)
 
     def euclidean_distance_matrix(self, x_embedded, y_embedded):
         """
@@ -244,9 +251,10 @@ class CrossRecurrencePlot(RecurrencePlot):
         ntime_x = x_embedded.shape[0]
         ntime_y = y_embedded.shape[0]
         dim = x_embedded.shape[1]
+        x_embedded = x_embedded.astype('double').copy(order='c')
+        y_embedded = y_embedded.astype('double').copy(order='c')
         return _euclidean_distance_matrix_crp(ntime_x, ntime_y, dim,
-                                              x_embedded.copy(order='c'),
-                                              y_embedded.copy(order='c'))
+                                              x_embedded, y_embedded)
 
     def supremum_distance_matrix(self, x_embedded, y_embedded):
         """
@@ -285,7 +293,7 @@ class CrossRecurrencePlot(RecurrencePlot):
         #  Get distance matrix, according to self.metric
         distance = self.distance_matrix(self.x_embedded, self.y_embedded,
                                         self.metric)
-
+        print(distance)
         #  Get length of time series x and y
         (N, M) = distance.shape
 

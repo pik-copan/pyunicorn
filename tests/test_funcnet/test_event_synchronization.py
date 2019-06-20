@@ -1,10 +1,18 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2019 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
+#
+# Please acknowledge and cite the use of this software and its authors
+# when results are used in publications or published elsewhere.
+#
+# You can use the following reference:
+# J.F. Donges, J. Heitzig, B. Beronov, M. Wiedermann, J. Runge, Q.-Y. Feng,
+# L. Tupikina, V. Stolbova, R.V. Donner, N. Marwan, H.A. Dijkstra,
+# and J. Kurths, "Unified functional network and nonlinear time series analysis
+# for complex systems science: The pyunicorn package"
 
 """
 Simple tests for the funcnet EventSynchronization class.
@@ -29,25 +37,27 @@ def NonVecEventSync(es1, es2, taumax):
     lx = len(ex)
     ly = len(ey)
 
-    Axy = np.zeros((lx,ly), dtype=bool)
-    Ayx = np.zeros((lx,ly), dtype=bool)
-    eqtime = np.zeros((lx,ly), dtype=bool)
+    Axy = np.zeros((lx, ly), dtype=bool)
+    Ayx = np.zeros((lx, ly), dtype=bool)
+    eqtime = np.zeros((lx, ly), dtype=bool)
     for m in range(1, lx-1):
         for n in range(1, ly-1):
             dstxy = ex[m] - ey[n]
-            
+
             if abs(dstxy) > taumax:
                 continue
             # finding the dynamical delay tau
-            tau = min([ex[m+1] - ex[m], ex[m] - ex[m-1], 
-                       ey[n+1] - ey[n], ey[n] - ey[n-1]] ) / 2
+            tau = min([ex[m+1] - ex[m], ex[m] - ex[m-1],
+                       ey[n+1] - ey[n], ey[n] - ey[n-1]]) / 2
 
-            if dstxy > 0 and dstxy <= tau:
-                Axy[m,n] = True
-            if dstxy < 0 and dstxy >= -tau:
-                Ayx[m,n] = True
+            if dstxy > 0:
+                if dstxy <= tau:
+                    Axy[m, n] = True
+            if dstxy < 0:
+                if dstxy >= -tau:
+                    Ayx[m, n] = True
             elif dstxy == 0:
-                eqtime[m,n] = True
+                eqtime[m, n] = True
 
     # Loop over coincidences and determine number of double counts
     # by checking at least one event of the pair is also coincided
@@ -71,7 +81,7 @@ def UndirectedESyncMat(eventmatrix, taumax):
 
     for i in np.arange(0, N):
         for j in np.arange(i+1, N):
-            res[i, j], res[j, i] = NonVecEventSync(eventmatrix[:, i], 
+            res[i, j], res[j, i] = NonVecEventSync(eventmatrix[:, i],
                                                    eventmatrix[:, j],
                                                    taumax)
     return res
