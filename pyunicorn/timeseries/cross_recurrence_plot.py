@@ -200,11 +200,14 @@ class CrossRecurrencePlot(RecurrencePlot):
         """
         #  Return distance matrix according to chosen metric:
         if metric == "manhattan":
-            return self.manhattan_distance_matrix(x_embedded, y_embedded)
+            return self._manhattan_distance_matrix(x_embedded.astype('double'),
+                                                   y_embedded.astype('double'))
         elif metric == "euclidean":
-            return self.euclidean_distance_matrix(x_embedded, y_embedded)
+            return self._euclidean_distance_matrix(x_embedded.astype('double'),
+                                                   y_embedded.astype('double'))
         elif metric == "supremum":
-            return self.supremum_distance_matrix(x_embedded, y_embedded)
+            return self._supremum_distance_matrix(x_embedded.astype('float32'),
+                                                  y_embedded.astype('float32'))
         else:
             return None
 
@@ -212,7 +215,7 @@ class CrossRecurrencePlot(RecurrencePlot):
     #  Calculate recurrence plot
     #
 
-    def manhattan_distance_matrix(self, x_embedded, y_embedded):
+    def _manhattan_distance_matrix(self, x_embedded, y_embedded):
         """
         Return the manhattan distance matrix from two (embedded) time series.
 
@@ -229,12 +232,11 @@ class CrossRecurrencePlot(RecurrencePlot):
         ntime_x = x_embedded.shape[0]
         ntime_y = y_embedded.shape[0]
         dim = x_embedded.shape[1]
-        x_embedded = x_embedded.astype('double').copy(order='c')
-        y_embedded = y_embedded.astype('double').copy(order='c')
+
         return _manhattan_distance_matrix_crp(ntime_x, ntime_y, dim,
                                               x_embedded, y_embedded)
 
-    def euclidean_distance_matrix(self, x_embedded, y_embedded):
+    def _euclidean_distance_matrix(self, x_embedded, y_embedded):
         """
         Return the euclidean distance matrix from two (embedded) time series.
 
@@ -251,12 +253,11 @@ class CrossRecurrencePlot(RecurrencePlot):
         ntime_x = x_embedded.shape[0]
         ntime_y = y_embedded.shape[0]
         dim = x_embedded.shape[1]
-        x_embedded = x_embedded.astype('double').copy(order='c')
-        y_embedded = y_embedded.astype('double').copy(order='c')
+
         return _euclidean_distance_matrix_crp(ntime_x, ntime_y, dim,
                                               x_embedded, y_embedded)
 
-    def supremum_distance_matrix(self, x_embedded, y_embedded):
+    def _supremum_distance_matrix(self, x_embedded, y_embedded):
         """
         Return the supremum distance matrix from two (embedded) time series.
 
@@ -273,8 +274,7 @@ class CrossRecurrencePlot(RecurrencePlot):
         ntime_x = x_embedded.shape[0]
         ntime_y = y_embedded.shape[0]
         dim = x_embedded.shape[1]
-        x_embedded = x_embedded.astype('float32').copy(order='c')
-        y_embedded = y_embedded.astype('float32').copy(order='c')
+
         return _supremum_distance_matrix_crp(ntime_x, ntime_y, dim, x_embedded,
                                              y_embedded)
 

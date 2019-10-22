@@ -11,12 +11,13 @@
 // cross_recurrence_plot ======================================================
 
 void _manhattan_distance_matrix_fast(int ntime_x, int ntime_y, int dim, 
-    double *x_embedded, double *y_embedded, double *distance)  {
+    double *x_embedded, double *y_embedded, float *distance)  {
 
+    float sum;
     //  Calculate the manhattan distance matrix
     for (int j = 0; j < ntime_x; j++) {
         for (int k = 0; k < ntime_y; k++) {
-            double sum = 0;
+            sum = 0;
             for (int l = 0; l < dim; l++) {
                 //  Use manhattan norm
                 sum += fabs(x_embedded[j*ntime_x+l] - y_embedded[k*ntime_y+l]);
@@ -28,16 +29,17 @@ void _manhattan_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
 
 
 void _euclidean_distance_matrix_fast(int ntime_x, int ntime_y, int dim, 
-    double *x_embedded, double *y_embedded, double *distance)  {
+    double *x_embedded, double *y_embedded, float *distance)  {
 
+    float sum, diff;
     //  Calculate the euclidean distance matrix
     for (int j = 0; j < ntime_x; j++) {
         for (int k = 0; k < ntime_y; k++) {
-            double sum = 0;
+            sum = 0;
             for (int l = 0; l < dim; l++) {
                 //  Use euclidean norm
-                double diff = fabs(x_embedded[j*ntime_x+l] - 
-                    y_embedded[k*ntime_y+l]);
+                diff = fabs(x_embedded[j*ntime_x+l] - 
+                            y_embedded[k*ntime_y+l]);
                 sum += diff * diff;
             }
             distance[j*ntime_x+k] = sqrt(sum);
