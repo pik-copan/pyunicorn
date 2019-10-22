@@ -17,15 +17,25 @@ import numpy as np
 
 from pyunicorn import climate
 
-
+# Test if Ngl package is installed
+try:
+    import Ngl
+    ngl_flag = True
+except ImportError:
+    ngl_flag = False
 #
 #  Settings
 #
 
 #  Related to data
 
-#  Path and filename of NetCDF file containing climate data
-DATA_FILENAME = "../../../Daten/Reanalysis/NCEP-NCAR/air.mon.mean.nc"
+#  Download the data set from the link that is printed below and copy it to the 
+#  directory of this script or change the path to the location of the data set
+LINK = "\nData available at: https://www.esrl.noaa.gov/psd/repository/" + \
+       "entry/show?entryid=0def76a0-9b32-47a4-8bc3-c4977c67ed95"
+print(LINK)
+
+DATA_FILENAME = "./air.mon.mean.nc"
 
 #  Type of data file ("NetCDF" indicates a NetCDF file with data on a regular
 #  lat-lon grid, "iNetCDF" allows for arbitrary grids - > see documentation).
@@ -86,10 +96,8 @@ print(data)
 #
 #  Create a MapPlots object to manage 2D-plotting on the sphere
 #
-
-#  Comment this if you are not using pyngl for plotting!!!
-map_plots = climate.MapPlots(data.grid, DATA_SOURCE)
-
+if ngl_flag:
+    map_plots = climate.MapPlots(data.grid, DATA_SOURCE)
 #
 #  Generate climate network using various procedures
 #
@@ -150,26 +158,27 @@ np.savetxt("degree.txt", degree)
 #  Plotting
 #
 
-#  Comment everything below if you are not using pyngl for plotting!
-
 #  Add network measures to the plotting queue
-map_plots.add_dataset("Degree", degree)
-map_plots.add_dataset("Closeness", closeness)
-map_plots.add_dataset("Betweenness (log10)", np.log10(betweenness + 1))
-map_plots.add_dataset("Clustering", clustering)
-map_plots.add_dataset("Average link distance", ald)
-map_plots.add_dataset("Maximum link distance", mld)
+if ngl_flag:
+    map_plots.add_dataset("Degree", degree)
+    map_plots.add_dataset("Closeness", closeness)
+    map_plots.add_dataset("Betweenness (log10)", np.log10(betweenness + 1))
+    map_plots.add_dataset("Clustering", clustering)
+    map_plots.add_dataset("Average link distance", ald)
+    map_plots.add_dataset("Maximum link distance", mld)
 
-#  Change the map projection
-map_plots.resources.mpProjection = "Robinson"
-map_plots.resources.mpCenterLonF = 0
+    #  Change the map projection
+    map_plots.resources.mpProjection = "Robinson"
+    map_plots.resources.mpCenterLonF = 0
 
-#  Change the levels of contouring
-map_plots.resources.cnLevelSelectionMode = "EqualSpacedLevels"
-map_plots.resources.cnMaxLevelCount = 20
+    #  Change the levels of contouring
+    map_plots.resources.cnLevelSelectionMode = "EqualSpacedLevels"
+    map_plots.resources.cnMaxLevelCount = 20
 
-# map_plots.resources.cnRasterSmoothingOn = True
-# map_plots.resources.cnFillMode = "AreaFill"
+    # map_plots.resources.cnRasterSmoothingOn = True
+    # map_plots.resources.cnFillMode = "AreaFill"
 
-map_plots.generate_map_plots(file_name="climate_network_measures",
-                             title_on=False, labels_on=True)
+    map_plots.generate_map_plots(file_name="climate_network_measures",
+                                 title_on=False, labels_on=True)
+else:
+    print("\nPlots can only be created when Ngl package is installed!")
