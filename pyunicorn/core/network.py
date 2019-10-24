@@ -5182,12 +5182,12 @@ class Network:
 
             results = _do_nsi_hamming_clustering(
                 n2, nActiveIndices, mind0, minwp0, lastunited, part1,
-                part2, distances.copy(mode='c'),
-                theActiveIndices.copy(mode='c'),
-                linkedWeights.copy(mode='c'),
-                weightProducts.copy(mode='c'),
-                errors.copy(mode='c'), result.copy(mode='c'),
-                mayJoin.copy(mode='c'))
+                part2, distances.copy(order='c'),
+                theActiveIndices.copy(order='c'),
+                linkedWeights.copy(order='c'),
+                weightProducts.copy(order='c'),
+                errors.copy(order='c'), result.copy(order='c'),
+                mayJoin.copy(order='c'))
 
             mind = result[0]
             part1 = int(result[1])

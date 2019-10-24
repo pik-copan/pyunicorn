@@ -29,7 +29,7 @@ except ImportError:
 
 #  Related to data
 
-#  Download the data set from the link that is printed below and copy it to the 
+#  Download the data set from the link that is printed below and copy it to the
 #  directory of this script or change the path to the location of the data set
 LINK = "\nData available at: https://www.esrl.noaa.gov/psd/repository/" + \
        "entry/show?entryid=0def76a0-9b32-47a4-8bc3-c4977c67ed95"

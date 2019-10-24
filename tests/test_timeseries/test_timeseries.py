@@ -45,28 +45,79 @@ def create_test_data():
 # cross_recurrence_plot
 # -----------------------------------------------------------------------------
 
+def testCrossRecurrencePlot():
+    tdata = create_test_data()
+    CrossRecurrencePlot(x=tdata, y=tdata, threshold=0.2)
+
+def testDistanceMatrix():
+    tdata = create_test_data()
+    crp = CrossRecurrencePlot(x=tdata, y=tdata, threshold=1.0)
+    crp.distance_matrix(tdata.T, tdata.T, metric='manhattan')
+
 def testManhattanDistanceMatrix():
     tdata = create_test_data()
     n_index, n_times = tdata.shape
-    c = CrossRecurrencePlot(x=tdata, y=tdata, threshold=1.0)
-    manh_dist = c.manhattan_distance_matrix(tdata.T, tdata.T)
+    crp = CrossRecurrencePlot(x=tdata, y=tdata, threshold=1.0)
+    manh_dist_1 = crp.manhattan_distance_matrix(tdata.T, tdata.T)
+    manh_dist_2 = crp.manhattan_distance_matrix(tdata.T, tdata.T)
+    assert np.allclose(manh_dist_1, manh_dist_2, atol=1e-04)
 
 def testEuclideanDistanceMatrix():
     tdata = create_test_data()
     n_index, n_times = tdata.shape
-    c = CrossRecurrencePlot(x=tdata, y=tdata, threshold=1.0)
-    eucl_dist = c.euclidean_distance_matrix(tdata.T, tdata.T)
+    crp = CrossRecurrencePlot(x=tdata, y=tdata, threshold=1.0)
+    eucl_dist_1 = crp.euclidean_distance_matrix(tdata.T, tdata.T)
+    eucl_dist_2 = crp.euclidean_distance_matrix(tdata.T, tdata.T)
+    assert np.allclose(eucl_dist_1, eucl_dist_2, atol=1e-04)
 
 def testSupremumDistanceMatrix():
     tdata = create_test_data()
     n_index, n_times = tdata.shape
-    c = CrossRecurrencePlot(x=tdata, y=tdata, threshold=1.0)
-    supr_dist = c.supremum_distance_matrix(tdata.T, tdata.T)
+    crp = CrossRecurrencePlot(x=tdata, y=tdata, threshold=1.0)
+    supr_dist_1 = crp.supremum_distance_matrix(tdata.T, tdata.T)
+    supr_dist_2 = crp.supremum_distance_matrix(tdata.T, tdata.T)
+    assert np.allclose(supr_dist_1, supr_dist_2, atol=1e-04)
 
 
 # -----------------------------------------------------------------------------
 # surrogates
 # -----------------------------------------------------------------------------
+
+def testNormalizeTimeSeriesArray():
+    ts = Surrogates.SmallTestData().original_data
+    Surrogates.SmallTestData().normalize_time_series_array(ts)
+    res = ts.mean(axis=1)
+    exp = np.array([0., 0., 0., 0., 0., 0.])
+    assert np.allclose(res, exp, atol=1e-04)
+
+    res = ts.std(axis=1)
+    exp = np.array([1., 1., 1., 1., 1., 1.])
+    assert np.allclose(res, exp, atol=1e-04)
+
+def testEmbedTimeSeriesArray():
+    ts = Surrogates.SmallTestData().original_data
+    res = Surrogates.SmallTestData().embed_time_series_array(
+        time_series_array=ts, dimension=3, delay=2)[0, :6, :]
+    exp = np.array([[0., 0.61464833, 1.14988147],
+                    [0.31244015, 0.89680225, 1.3660254],
+                    [0.61464833, 1.14988147, 1.53884177],
+                    [0.89680225, 1.3660254, 1.6636525],
+                    [1.14988147, 1.53884177, 1.73766672],
+                    [1.3660254, 1.6636525, 1.76007351]])
+    assert np.allclose(res, exp, atol=1e-04)
+
+def testWhiteNoiseSurrogates():
+    ts = Surrogates.SmallTestData().original_data
+    surrogates = Surrogates.SmallTestData().white_noise_surrogates(ts)
+
+    assert(np.allclose(np.histogram(ts[0, :])[0],
+                       np.histogram(surrogates[0, :])[0]))
+
+def testCorrelatedNoiseSurrogates():
+    ts = Surrogates.SmallTestData().original_data
+    surrogates = Surrogates.SmallTestData().correlated_noise_surrogates(ts)
+    assert np.allclose(np.abs(np.fft.fft(ts, axis=1))[0, 1:10],
+                       np.abs(np.fft.fft(surrogates, axis=1))[0, 1:10])
 
 def testTwinSurrogates():
     tdata = create_test_data()
@@ -79,7 +130,7 @@ def testTwinSurrogates():
     assert (corrcoef >= -1.0).all() and (corrcoef <= 1.0).all()
 
 
-def test_TestPearsonCorrelation():
+def testPearsonCorrelation():
     tdata = create_test_data()
     n_index, n_times = tdata.shape
     norm = 1.0 / float(n_times)
@@ -92,7 +143,7 @@ def test_TestPearsonCorrelation():
     assert_array_almost_equal(c, corrcoef, decimal=5)
 
 
-def test_TestMutualInformation():
+def testMutualInformation():
     tdata = create_test_data()
     test_mi = Surrogates.test_mutual_information(tdata[:1], tdata[-1:],
                                                  n_bins=32)
