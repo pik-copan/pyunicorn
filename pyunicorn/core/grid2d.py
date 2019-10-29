@@ -35,7 +35,7 @@ except ImportError:
           "Some functionality in Grid2D class might not be available.")
 
 #  Cythonized functions
-from ._ext.numerics import _cy_calculate_angular_distance, _euclidean_distance
+from ._ext.numerics import _cy_calculate_angular_distance
 
 #  Grid base class
 from .grid import Grid
@@ -78,19 +78,6 @@ class Grid2D(Grid):
         """
         Grid.__init__(self, time_seq, np.vstack((lat_seq, lon_seq)),
                       silence_level)
-
-        #  Set basic dictionaries
-        self._grid = {"time": time_seq.astype("float32"),
-                      "lat": lat_seq.astype("float32"),
-                      "lon": lon_seq.astype("float32")}
-        self._grid_size = {"time": len(time_seq),
-                           "space": len(lat_seq)}
-        self._boundaries = {"time_min": time_seq.min(),
-                            "time_max": time_seq.max(),
-                            "lat_min": lat_seq.min(),
-                            "lat_max": lat_seq.max(),
-                            "lon_min": lon_seq.min(),
-                            "lon_max": lon_seq.max()}
 
         #  Cache
         self._angular_distance = None
@@ -263,7 +250,7 @@ class Grid2D(Grid):
         :rtype: 1D Numpy array [index]
         :return: the sequence of latitudes for all nodes.
         """
-        return self._grid["lat"]
+        return self.sequence(0)
 
     def lon_sequence(self):
         """
@@ -277,7 +264,7 @@ class Grid2D(Grid):
         :rtype: 1D Numpy array [index]
         :return: the sequence of longitudes for all nodes.
         """
-        return self._grid["lon"]
+        return self.sequence(1)
 
     def convert_lon_coordinates(self, lon_seq):
         """
@@ -309,25 +296,6 @@ class Grid2D(Grid):
 
         return new_lon_grid
 
-    def node_coordinates(self, index):
-        """
-        Return the geographical latitude and longitude of node ``index``.
-
-        **Example:**
-
-        >>> Grid2D.SmallTestGrid().node_coordinates(3)
-        (15.0, 10.0)
-
-        :type index: number (int)
-        :arg index: The node index as used in node sequences.
-
-        :rtype: tuple of number (float)
-        :return: the node's latitude and longitude coordinates.
-        """
-        lat_node = self.lat_sequence()[index]
-        lon_node = self.lon_sequence()[index]
-        return (lat_node, lon_node)
-
     def node_number(self, lat_node, lon_node):
         """
         Return the index of the closest node given geographical coordinates.
@@ -346,7 +314,7 @@ class Grid2D(Grid):
         :rtype: number (int)
         :return: the closest node's index.
         """
-        #  Get sequences of cosLat, sinLat, cosLon and sinLon for all nodes
+        # Get sequences of cosLat, sinLat, cosLon and sinLon for all nodes
         cos_lat = self.cos_lat()
         sin_lat = self.sin_lat()
         cos_lon = self.cos_lon()
@@ -484,40 +452,32 @@ class Grid2D(Grid):
 
         return self._angular_distance
 
-    def euclidean_distance(self):
-        """
-        Return the euclidean distance matrix between grid points.
-
-        So far assumes that the given latitude and longitude coordinates are
-        planar, euclidean coordinates. Approximates great circle distance well
-        for points with a separation much smaller than the Earth's radius.
-
-        :rtype: 2D Numpy array [index, index]
-        :return: the euclidean distance matrix.
-        """
-        #  Get number of nodes
-        N = self.N
-
-        #  Get sequences of coordinates
-        x = self.lon_sequence()
-        y = self.lat_sequence()
-
-        distance = np.zeros((N, N), dtype="float32")
-        _euclidean_distance(x, y, distance, N)
-
-        return distance
-
     def boundaries(self):
         """
         Return the spatio-temporal grid boundaries.
 
         Structure of the returned dictionary:
-          - self._boundaries = {"time_min": time_seq.min(),
-                                "time_max": time_seq.max(),
-                                "lat_min": lat_seq.min(),
-                                "lat_max": lat_seq.max(),
-                                "lon_min": lon_seq.min(),
-                                "lon_max": lon_seq.max()}
+          - boundaries = {"time_min": self._boundaries["time_min"],
+                          "time_max": self._boundaries["time_max"],
+                          "lat_min": self._boundaries["space_min"][0],
+                          "lat_max": self._boundaries["space_max"][1],
+                          "lon_min": self._boundaries["space_min"][0],
+                          "lon_max": self._boundaries["space_max"][1]}
+
+        :rtype: dictionary
+        :return: the spatio-temporal grid boundaries.
+        """
+        boundaries = {"time_min": self._boundaries["time_min"],
+                      "time_max": self._boundaries["time_max"],
+                      "lat_min": self._boundaries["space_min"][0],
+                      "lat_max": self._boundaries["space_max"][0],
+                      "lon_min": self._boundaries["space_min"][1],
+                      "lon_max": self._boundaries["space_max"][1]}
+        return boundaries
+
+    def print_boundaries(self):
+        """
+        Pretty print the spatio-temporal grid boundaries.
 
         **Example:**
 
@@ -526,14 +486,8 @@ class Grid2D(Grid):
            min    0.0    0.00    2.50
            max    9.0   25.00   15.00
 
-        :rtype: dictionary
-        :return: the spatio-temporal grid boundaries.
-        """
-        return self._boundaries
-
-    def print_boundaries(self):
-        """
-        Pretty print the spatio-temporal grid boundaries.
+        :rtype: string
+        :return: printable string for the spatio-temporal grid boundaries
         """
         return (
             "         time     lat     lon"
@@ -546,47 +500,24 @@ class Grid2D(Grid):
         Return the grid's spatio-temporal sampling points.
 
         Structure of the returned dictionary:
-          - self._grid = {"time": time_seq.astype("float32"),
-                          "lat": lat_seq.astype("float32"),
-                          "lon": lon_seq.astype("float32")}
+          - grid = {"time": self._grid["time"],
+                    "lat": self._grid["space"][0],
+                    "lon": self._grid["space"][1]}
 
         **Examples:**
 
-        >>> Grid2D.SmallTestGrid().grid()["lat"]
+        >>> Grid.SmallTestGrid().grid()["space"][0]
         array([  0.,   5.,  10.,  15.,  20.,  25.], dtype=float32)
-        >>> Grid2D.SmallTestGrid().grid()["lon"][5]
+        >>> Grid.SmallTestGrid().grid()["space"][0][5]
         15.0
 
         :rtype: dictionary
         :return: the grid's spatio-temporal sampling points.
         """
-        return self._grid
-
-    def grid_size(self):
-        """
-        Return the sizes of the grid's spatial and temporal dimensions.
-
-        Structure of the returned dictionary:
-          - self._grid_size = {"time": len(time_seq),
-                               "space": len(lat_seq)}
-
-        **Example:**
-
-        >>> print(Grid2D.SmallTestGrid().print_grid_size())
-           space    time
-               6      10
-
-        :rtype: dictionary
-        :return: the sizes of the grid's spatial and temporal dimensions.
-        """
-        return self._grid_size
-
-    def print_grid_size(self):
-        """
-        Pretty print the sizes of the grid's spatial and temporal dimensions.
-        """
-        return "     space    time\n   {space:7} {time:7}".format(
-            **self.grid_size())
+        grid = {"time": self._grid["time"],
+                "lat": self._grid["space"][0],
+                "lon": self._grid["space"][1]}
+        return grid
 
     def geometric_distance_distribution(self, n_bins):
         """
@@ -655,11 +586,12 @@ class Grid2D(Grid):
         # Reshape Google Earth array  into (n,2) array
         remapped_region = region.reshape(len(region)//2, 2)
         # Remap from East-West to 360 degree map if the longitudes are [0, 360]
-        if self._grid["lon"].min() >= 0:
+        if self._grid["space"][1].min() >= 0:
             remapped_region[remapped_region[:, 0] < 0, 0] = \
                 360 + remapped_region[remapped_region[:, 0] < 0, 0]
 
-        lat_lon_map = np.column_stack((self._grid["lon"], self._grid["lat"]))
+        lat_lon_map = np.column_stack((self._grid["space"][1],
+                                       self._grid["space"][0]))
 
         return path.Path(remapped_region).contains_points(lat_lon_map)
 

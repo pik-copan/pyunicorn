@@ -928,17 +928,20 @@ def _cy_calculate_angular_distance(
             cosangdist[i, j] = cosangdist[j, i] = expr
 
 
-def _euclidean_distance(
-    np.ndarray[FLOAT32TYPE_t, ndim=1] x, np.ndarray[FLOAT32TYPE_t, ndim=1] y,
-    np.ndarray[FLOAT32TYPE_t, ndim=2] distance, unsigned int N):
+def _cy_calculate_euclidean_distance(
+    np.ndarray[FLOAT32TYPE_t, ndim=2] x,
+    np.ndarray[FLOAT32TYPE_t, ndim=2] distance,
+    unsigned int N_dim, unsigned int N_nodes):
 
     cdef:
-        unsigned int i,j
+        unsigned int i,j,k
         FLOAT32TYPE_t expr
 
-    for i in range(N):
+    for i in range(N_nodes):
         for j in range(i+1):
-            expr = (x[i]-x[j])**2 + (y[i]-y[j])**2
+            expr = 0
+            for k in range(N_dim):
+                expr += (x[k, i]-x[k, j])**2
             distance[i, j] = distance[j, i] = expr**(0.5)
 
 
