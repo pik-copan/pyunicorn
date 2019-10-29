@@ -64,7 +64,7 @@ class ClimateData(Data):
         :type observable: 2D array [time, index]
         :arg observable: The array of time series to be represented by the
             :class:`.Data` instance.
-        :type grid: :class:`.Grid` instance
+        :type grid: :class:`.Grid2D` instance
         :arg grid: The Grid representing the spatial coordinates associated to
             the time series and their temporal sampling.
         :arg int time_cycle: The annual cycle length of the data (units of
@@ -520,7 +520,7 @@ class ClimateData(Data):
         Set the view on the whole data set.
 
         Select the full data set and creates a data array as well as
-        a corresponding Grid object to access this window from outside.
+        a corresponding Grid2D object to access this window from outside.
 
         **Example** (Set smaller window and subsequently restore global
         window):

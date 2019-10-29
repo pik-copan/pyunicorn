@@ -29,8 +29,8 @@ import numpy as np
 #  Import iGraph for high performance graph theory tools written in pure ANSI-C
 import igraph
 
-#  Import GeoNetwork and Grid classes
-from ..core import GeoNetwork, Grid
+#  Import GeoNetwork and Grid2D classes
+from ..core import GeoNetwork, Grid2D
 from ..core.network import cached_const
 
 
@@ -67,8 +67,9 @@ class ClimateNetwork(GeoNetwork):
           - "surface" (cos lat)
           - "irrigation" (cos**2 lat)
 
-        :type grid: :class:`.Grid`
-        :arg  grid: The Grid object describing the network's spatial embedding.
+        :type grid: :class:`.Grid2D`
+        :arg  grid: The Grid2D object describing the network's spatial
+            embedding.
         :type similarity_measure: 2D array [index, index]
         :arg similarity_measure: The similarity measure for all pairs of nodes.
         :arg float threshold: The threshold of similarity measure, above which
@@ -191,8 +192,8 @@ class ClimateNetwork(GeoNetwork):
 
         :arg str filename_network:  The name of the file where the Network
             object is to be stored.
-        :arg str filename_grid:  The name of the file where the Grid object is
-            to be stored (including ending).
+        :arg str filename_grid:  The name of the file where the Grid2D object
+            is to be stored (including ending).
         :arg str filename_similarity_measure:  The name of the file where the
             similarity measure matrix is to be stored.
         :arg str fileformat: the format of the file (if one wants to override
@@ -239,8 +240,8 @@ class ClimateNetwork(GeoNetwork):
 
         :arg str filename_network:  The name of the file where the Network
             object is to be stored.
-        :arg str filename_grid:  The name of the file where the Grid object is
-            to be stored (including ending).
+        :arg str filename_grid:  The name of the file where the Grid2D object
+            is to be stored (including ending).
         :arg str filename_similarity_measure:  The name of the file where the
             similarity measure matrix is to be stored.
         :arg str fileformat: the format of the file (if known in advance)
@@ -253,8 +254,8 @@ class ClimateNetwork(GeoNetwork):
             pickled format).
         :return: :class:`ClimateNetwork` instance.
         """
-        #  Load Grid object
-        grid = Grid.Load(filename_grid)
+        #  Load Grid2D object
+        grid = Grid2D.Load(filename_grid)
 
         #  Load similarity measure
         similarity_measure = np.load(filename_similarity_measure)
@@ -311,7 +312,7 @@ class ClimateNetwork(GeoNetwork):
 
         :rtype: :class:`.Network` instance
         """
-        return ClimateNetwork(grid=Grid.SmallTestGrid(),
+        return ClimateNetwork(grid=Grid2D.SmallTestGrid(),
                               similarity_measure=np.array(
                                   [[1.0, 0.1, 0.2, 0.6, 0.7, 0.55],
                                    [0.1, 1.0, 0.55, 0.9, 1.0, 0.3],

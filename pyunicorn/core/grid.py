@@ -35,20 +35,20 @@ try:
     from matplotlib import path
 except ImportError:
     print("An error occurred when importing matplotlib.path! "
-          "Some functionality in Grid class might not be available.")
+          "Some functionality in Grid2D class might not be available.")
 
 #  Cythonized functions
 from ._ext.numerics import _cy_calculate_angular_distance, _euclidean_distance
 
 #
-#  Define class Grid
+#  Define class Grid2D
 #
 
-
-class Grid:
+class Grid2D:
 
     """
-    Encapsulates a horizontal spatio-temporal grid on the sphere.
+    Encapsulates a horizontal two-dimensional spatio-temporal grid on the 
+    sphere.
 
     The spatial grid points can be arbitrarily distributed, which is useful
     for representing station data or geodesic grids.
@@ -109,7 +109,7 @@ class Grid:
         """
         Return a string representation of the Grid object.
         """
-        return 'Grid: %i grid points, %i timesteps.' % (
+        return 'Grid2D: %i grid points, %i timesteps.' % (
             self._grid_size['space'], self._grid_size['time'])
 
     def clear_cache(self):
@@ -207,7 +207,7 @@ class Grid:
             print("An error occurred while loading Grid instance from "
                   f"text files {filename}")
 
-        return Grid(time_seq, lat_seq, lon_seq)
+        return Grid2D(time_seq, lat_seq, lon_seq)
 
     #
     #  Alternative constructors and Grid generation methods
@@ -219,13 +219,13 @@ class Grid:
         Return test grid of 6 spatial grid points with 10 temporal sampling
         points each.
 
-        :rtype: Grid instance
-        :return: a Grid instance for testing purposes.
+        :rtype: Grid2D instance
+        :return: a Grid2D instance for testing purposes.
         """
-        return Grid(time_seq=np.arange(10),
-                    lat_seq=np.array([0, 5, 10, 15, 20, 25]),
-                    lon_seq=np.array([2.5, 5., 7.5, 10., 12.5, 15.]),
-                    silence_level=2)
+        return Grid2D(time_seq=np.arange(10),
+                      lat_seq=np.array([0, 5, 10, 15, 20, 25]),
+                      lon_seq=np.array([2.5, 5., 7.5, 10., 12.5, 15.]),
+                      silence_level=2)
 
     @staticmethod
     def RegularGrid(time_seq, lat_grid, lon_grid, silence_level=0):
@@ -234,11 +234,11 @@ class Grid:
 
         **Examples:**
 
-        >>> Grid.RegularGrid(
-        ...     time_seq=np.arange(2), lat_grid=np.array([0.,5.]),
-        ...     lon_grid=np.array([1.,2.]), silence_level=2).lat_sequence()
+        >>> Grid2D.RegularGrid(
+        ...      time_seq=np.arange(2), lat_grid=np.array([0.,5.]),
+        ...      lon_grid=np.array([1.,2.]), silence_level=2).lat_sequence()
         array([ 0.,  0.,  5.,  5.], dtype=float32)
-        >>> Grid.RegularGrid(
+        >>> Grid2D.RegularGrid(
         ...     time_seq=np.arange(2), lat_grid=np.array([0.,5.]),
         ...     lon_grid=np.array([1.,2.]), silence_level=2).lon_sequence()
         array([ 1.,  2.,  1.,  2.], dtype=float32)
@@ -255,15 +255,15 @@ class Grid:
         :type silence_level: number (int)
         :arg silence_level: The inverse level of verbosity of the object.
 
-        :rtype: Grid object
+        :rtype: Grid2D object
         :return: :class:`Grid` instance.
         """
         #  Generate sequence of latitudes and longitudes for all nodes
-        lat_seq, lon_seq = Grid.coord_sequence_from_rect_grid(lat_grid,
-                                                              lon_grid)
+        lat_seq, lon_seq = Grid2D.coord_sequence_from_rect_grid(lat_grid,
+                                                                lon_grid)
 
         #  Return instance of Grid
-        return Grid(time_seq, lat_seq, lon_seq, silence_level)
+        return Grid2D(time_seq, lat_seq, lon_seq, silence_level)
 
     #
     #  Definitions of grid related functions
@@ -277,7 +277,7 @@ class Grid:
 
         **Example:**
 
-        >>> Grid.coord_sequence_from_rect_grid(
+        >>> Grid2D.coord_sequence_from_rect_grid(
         ...     lat_grid=np.array([0.,5.]), lon_grid=np.array([1.,2.]))
         (array([ 0.,  0.,  5.,  5.]), array([ 1.,  2.,  1.,  2.]))
 
@@ -312,7 +312,7 @@ class Grid:
 
         **Example:**
 
-        >>> Grid.SmallTestGrid().lat_sequence()
+        >>> Grid2D.SmallTestGrid().lat_sequence()
         array([  0.,   5.,  10.,  15.,  20.,  25.], dtype=float32)
 
         :rtype: 1D Numpy array [index]
@@ -326,7 +326,7 @@ class Grid:
 
         **Example:**
 
-        >>> Grid.SmallTestGrid().lon_sequence()
+        >>> Grid2D.SmallTestGrid().lon_sequence()
         array([  2.5,   5. ,   7.5,  10. ,  12.5,  15. ], dtype=float32)
 
         :rtype: 1D Numpy array [index]
@@ -344,7 +344,7 @@ class Grid:
 
         **Example:**
 
-        >>> Grid.SmallTestGrid().convert_lon_coordinates(
+        >>> Grid2D.SmallTestGrid().convert_lon_coordinates(
         ...     np.array([10.,350.,20.,340.,170.,190.]))
         array([  10.,  -10.,   20.,  -20.,  170., -170.])
 
@@ -370,7 +370,7 @@ class Grid:
 
         **Example:**
 
-        >>> Grid.SmallTestGrid().node_coordinates(3)
+        >>> Grid2D.SmallTestGrid().node_coordinates(3)
         (15.0, 10.0)
 
         :type index: number (int)
@@ -389,7 +389,7 @@ class Grid:
 
         **Example:**
 
-        >>> Grid.SmallTestGrid().node_number(lat_node=14., lon_node=9.)
+        >>> Grid2D.SmallTestGrid().node_number(lat_node=14., lon_node=9.)
         3
 
         :type lat_node: number (float)
@@ -434,7 +434,7 @@ class Grid:
 
         **Example:**
 
-        >>> r(Grid.SmallTestGrid().cos_lat()[:2])
+        >>> r(Grid2D.SmallTestGrid().cos_lat()[:2])
         array([ 1. , 0.9962])
 
         :rtype: 1D Numpy array [index]
@@ -448,7 +448,7 @@ class Grid:
 
         **Example:**
 
-        >>> r(Grid.SmallTestGrid().sin_lat()[:2])
+        >>> r(Grid2D.SmallTestGrid().sin_lat()[:2])
         array([ 0. , 0.0872])
 
         :rtype: 1D Numpy array [index]
@@ -462,7 +462,7 @@ class Grid:
 
         **Example:**
 
-        >>> r(Grid.SmallTestGrid().cos_lon()[:2])
+        >>> r(Grid2D.SmallTestGrid().cos_lon()[:2])
         array([ 0.999 , 0.9962])
 
         :rtype: 1D Numpy array [index]
@@ -476,7 +476,7 @@ class Grid:
 
         **Example:**
 
-        >>> r(Grid.SmallTestGrid().sin_lon()[:2])
+        >>> r(Grid2D.SmallTestGrid().sin_lon()[:2])
         array([ 0.0436, 0.0872])
 
         :rtype: 1D Numpy array [index]
@@ -522,7 +522,7 @@ class Grid:
 
         **Example:**
 
-        >>> rr(Grid.SmallTestGrid().angular_distance(), 2)
+        >>> rr(Grid2D.SmallTestGrid().angular_distance(), 2)
         [['0'    '0.1'  '0.19' '0.29' '0.39' '0.48']
          ['0.1'  '0'    '0.1'  '0.19' '0.29' '0.39']
          ['0.19' '0.1'  '0'    '0.1'  '0.19' '0.29']
@@ -576,7 +576,7 @@ class Grid:
 
         **Example:**
 
-        >>> print(Grid.SmallTestGrid().print_boundaries())
+        >>> print(Grid2D.SmallTestGrid().print_boundaries())
                  time     lat     lon
            min    0.0    0.00    2.50
            max    9.0   25.00   15.00
@@ -607,9 +607,9 @@ class Grid:
 
         **Examples:**
 
-        >>> Grid.SmallTestGrid().grid()["lat"]
+        >>> Grid2D.SmallTestGrid().grid()["lat"]
         array([  0.,   5.,  10.,  15.,  20.,  25.], dtype=float32)
-        >>> Grid.SmallTestGrid().grid()["lon"][5]
+        >>> Grid2D.SmallTestGrid().grid()["lon"][5]
         15.0
 
         :rtype: dictionary
@@ -627,7 +627,7 @@ class Grid:
 
         **Example:**
 
-        >>> print(Grid.SmallTestGrid().print_grid_size())
+        >>> print(Grid2D.SmallTestGrid().print_grid_size())
            space    time
                6      10
 
@@ -650,9 +650,9 @@ class Grid:
 
         **Examples:**
 
-        >>> r(Grid.SmallTestGrid().geometric_distance_distribution(3)[0])
+        >>> r(Grid2D.SmallTestGrid().geometric_distance_distribution(3)[0])
         array([ 0.3333, 0.4667, 0.2 ])
-        >>> r(Grid.SmallTestGrid().geometric_distance_distribution(3)[1])
+        >>> r(Grid2D.SmallTestGrid().geometric_distance_distribution(3)[1])
         array([ 0. , 0.1616, 0.3231, 0.4847])
 
         :type n_bins: number (int)
@@ -696,7 +696,7 @@ class Grid:
 
         **Example:**
 
-        >>> Grid.SmallTestGrid().region_indices(
+        >>> Grid2D.SmallTestGrid().region_indices(
         ...     np.array([0.,0.,0.,11.,11.,11.,11.,0.])).astype(int)
         array([0, 1, 1, 0, 0, 0])
 

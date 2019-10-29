@@ -29,8 +29,8 @@ import numpy as np
 #  Import climate_network for ClimateNetwork class
 from .climate_network import ClimateNetwork
 
-#  Import grid for Grid class
-from ..core import InteractingNetworks, GeoNetwork, Grid
+#  Import grid for Grid2D class
+from ..core import InteractingNetworks, GeoNetwork, Grid2D
 
 
 #
@@ -73,11 +73,11 @@ class CoupledClimateNetwork(InteractingNetworks, ClimateNetwork):
           - "surface" (cos lat)
           - "irrigation" (cos**2 lat)
 
-        :type grid_1: :class:`.Grid`
-        :arg  grid_1: The Grid object describing the first layer's spatial
+        :type grid_1: :class:`.Grid2D`
+        :arg  grid_1: The Grid2D object describing the first layer's spatial
             embedding.
-        :type grid_2: :class:`.Grid`
-        :arg  grid_2: The Grid object describing the second layer's spatial
+        :type grid_2: :class:`.Grid2D`
+        :arg  grid_2: The Grid2D object describing the second layer's spatial
             embedding.
         :type similarity_measure: 2D array [index, index]
         :arg similarity_measure: The similarity measure for all pairs of nodes.
@@ -94,10 +94,10 @@ class CoupledClimateNetwork(InteractingNetworks, ClimateNetwork):
         """
         #  Store single grids
         self.grid_1 = grid_1
-        """(Grid) - The Grid object describing the first layer's spatial
+        """(Grid) - The Grid2D object describing the first layer's spatial
                     embedding."""
         self.grid_2 = grid_2
-        """(Grid) - The Grid object describing the second layer's spatial
+        """(Grid) - The Grid2D object describing the second layer's spatial
                     embedding."""
 
         #  Construct grid object describing both layers
@@ -110,8 +110,8 @@ class CoupledClimateNetwork(InteractingNetworks, ClimateNetwork):
         lon_2 = grid_2.grid()["lon"]
 
         if len(time_1) == len(time_2):
-            grid = Grid(time_1, np.concatenate((lat_1, lat_2)),
-                        np.concatenate((lon_1, lon_2)))
+            grid = Grid2D(time_1, np.concatenate((lat_1, lat_2)),
+                          np.concatenate((lon_1, lon_2)))
             #  Set total number of nodes
             self.N = grid.N
             """(number (int)) - The total number of nodes in both layers."""

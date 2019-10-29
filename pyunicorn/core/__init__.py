@@ -43,7 +43,7 @@ Known Bugs
 
 from .network import Network, NetworkError, nz_coords, cached_const
 from .geo_network import GeoNetwork
-from .grid import Grid
+from .grid import Grid2D
 from .data import Data
 from .interacting_networks import InteractingNetworks
 from .netcdf_dictionary import NetCDFDictionary

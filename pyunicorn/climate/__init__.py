@@ -36,7 +36,7 @@ Known Bugs
 
 """
 
-from ..core import GeoNetwork, Grid, Network
+from ..core import GeoNetwork, Grid2D, Network
 
 from .climate_data import ClimateData
 from .climate_network import ClimateNetwork

@@ -35,7 +35,7 @@ except ImportError:
           "functionality in class Data might not be available!")
 
 
-from .grid import Grid
+from .grid import Grid2D
 
 
 #
@@ -70,7 +70,7 @@ class Data:
         :type observable: 2D array [time, index]
         :arg observable: The array of time series to be represented by the
             :class:`Data` instance.
-        :type grid: :class:`.Grid` instance
+        :type grid: :class:`.Grid2D` instance
         :arg grid: The Grid representing the spatial coordinates associated to
             the time series and their temporal sampling.
         :arg str observable_name: A short name for the observable.
@@ -84,7 +84,7 @@ class Data:
         self._full_observable = observable
         self._full_grid = grid
         self.grid = None
-        """The :class:`.Grid` object associated with the data."""
+        """The :class:`.Grid2D` object associated with the data."""
 
         self.observable_name = observable_name
         """(str) - The short name of the observable within
@@ -242,7 +242,8 @@ class Data:
         for i in range(6):
             ts[:, i] = np.sin(np.arange(10) * np.pi / 10. + i * np.pi / 2.)
 
-        return Data(observable=ts, grid=Grid.SmallTestGrid(), silence_level=2)
+        return Data(observable=ts, grid=Grid2D.SmallTestGrid(),
+                    silence_level=2)
 
     #
     #  Defines methods to load data from files and display related information
@@ -291,11 +292,11 @@ class Data:
 
         # Distinguish between regular and irregular grids
         if file_type == "NetCDF":
-            # Create Grid instance
+            # Create Grid2D instance
             lat_grid = f.variables[dimension_names["lat"]][:].astype("float32")
             lon_grid = f.variables[dimension_names["lon"]][:].astype("float32")
-            res["grid"] = Grid.RegularGrid(time, lat_grid, lon_grid,
-                                           silence_level)
+            res["grid"] = Grid2D.RegularGrid(time, lat_grid, lon_grid,
+                                             silence_level)
 
             # If 3D data set (time, lat, lon), select whole data set
             if n_dim == 3:
@@ -316,10 +317,10 @@ class Data:
                       "not supported by Data class!")
 
         elif file_type == "iNetCDF":
-            # Create Grid instance
+            # Create Grid2D instance
             lat_seq = f.variables["grid_center_lat"][:].astype("float32")
             lon_seq = f.variables["grid_center_lon"][:].astype("float32")
-            res["grid"] = Grid(time, lat_seq, lon_seq, silence_level)
+            res["grid"] = Grid2D(time, lat_seq, lon_seq, silence_level)
 
             # If 2D data set (time, index), select whole data set
             if n_dim == 2:
@@ -357,7 +358,7 @@ class Data:
     def _load_data(cls, file_name, file_type, observable_name,
                    dimension_names, vertical_level=None, silence_level=0):
         """
-        Load data into a Numpy array and create a corresponding Grid object.
+        Load data into a Numpy array and create a corresponding Grid2D object.
 
         Supported file types ``file_type`` are:
           - "NetCDF" for regular (rectangular) grids
@@ -438,7 +439,7 @@ class Data:
         """
         Select a rectangular spatio-temporal region from the data set.
 
-        Create a data array as well as a corresponding Grid object to access
+        Create a data array as well as a corresponding Grid2D object to access
         this window.
 
         The time axis of the underlying raw data is assumed to be ordered and
@@ -510,14 +511,14 @@ class Data:
 
         self._observable = \
             self._full_observable[time_indices, :][:, space_indices]
-        self.grid = Grid(time, lat_seq, lon_seq, self.silence_level)
+        self.grid = Grid2D(time, lat_seq, lon_seq, self.silence_level)
 
     def set_global_window(self):
         """
         Set the view on the whole data set.
 
         Select the full data set and creates a data array as well as
-        a corresponding Grid object to access this window from outside.
+        a corresponding Grid2D object to access this window from outside.
 
         **Example** (Set smaller window and subsequently restore global
         window):
