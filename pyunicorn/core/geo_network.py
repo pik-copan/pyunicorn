@@ -31,7 +31,7 @@ from ._ext.numerics import _randomly_rewire_geomodel_I, \
         _randomly_rewire_geomodel_II, _randomly_rewire_geomodel_III
 
 from .network import Network, cached_const
-from .grid import Grid2D
+from .grid2d import Grid2D
 
 
 #

@@ -20,7 +20,7 @@ Simple tests for the GeoNetwork class.
 import numpy as np
 
 from pyunicorn.core.geo_network import GeoNetwork
-from pyunicorn.core.grid import Grid2D
+from pyunicorn.core.grid2d import Grid2D
 
 def test_ErdosRenyi(capsys):
     print(GeoNetwork.ErdosRenyi(grid=Grid2D.SmallTestGrid(),

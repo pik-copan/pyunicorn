@@ -19,7 +19,7 @@ Simple tests for the Grid2D class.
 """
 import numpy as np
 
-from pyunicorn.core.grid import Grid2D
+from pyunicorn.core.grid2d import Grid2D
 
 
 def test_RegularGrid():

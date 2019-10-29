@@ -35,7 +35,7 @@ except ImportError:
           "functionality in class Data might not be available!")
 
 
-from .grid import Grid2D
+from .grid2d import Grid2D
 
 
 #

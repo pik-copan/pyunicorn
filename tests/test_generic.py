@@ -43,6 +43,7 @@ def simple_instances():
     return [
         core.Network.SmallTestNetwork(),
         core.Grid2D.SmallTestGrid(),
+        core.Grid.SmallTestGrid(),
         core.GeoNetwork.SmallTestNetwork(),
         core.InteractingNetworks.SmallTestNetwork(),
         core.ResNetwork.SmallTestNetwork(),

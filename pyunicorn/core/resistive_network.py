@@ -46,7 +46,7 @@ from ._ext.numerics import _vertex_current_flow_betweenness, \
 
 # Import things we inherit from
 from .geo_network import GeoNetwork
-from .grid import Grid2D
+from .grid2d import Grid2D
 
 # a network Error (use uncertain)
 # from .network import NetworkError
