@@ -20,10 +20,10 @@ Simple tests for the GeoNetwork class.
 import numpy as np
 
 from pyunicorn.core.geo_network import GeoNetwork
-from pyunicorn.core.grid2d import Grid2D
+from pyunicorn.core.geo_grid import GeoGrid
 
 def test_ErdosRenyi(capsys):
-    print(GeoNetwork.ErdosRenyi(grid=Grid2D.SmallTestGrid(),
+    print(GeoNetwork.ErdosRenyi(grid=GeoGrid.SmallTestGrid(),
                                 n_nodes=6, n_links=5))
     out, err = capsys.readouterr()
     out_ref = "Generating Erdos-Renyi random graph with 6 nodes and 5 " + \
@@ -40,7 +40,7 @@ def test_ConfigurationModel():
     n = 0
     while n != 7:
         net = GeoNetwork.ConfigurationModel(
-            grid=Grid2D.SmallTestGrid(),
+            grid=GeoGrid.SmallTestGrid(),
             degrees=GeoNetwork.SmallTestNetwork().degree(),
             silence_level=2)
         n = net.n_links

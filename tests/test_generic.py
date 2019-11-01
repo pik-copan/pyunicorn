@@ -42,9 +42,9 @@ def simple_instances():
     ec = climate.EventSynchronizationClimateNetwork.SmallTestData()
     return [
         core.Network.SmallTestNetwork(),
-        core.Grid2D.SmallTestGrid(),
         core.Grid.SmallTestGrid(),
         core.SpatialNetwork.SmallTestNetwork(),
+        core.GeoGrid.SmallTestGrid(),
         core.GeoNetwork.SmallTestNetwork(),
         core.InteractingNetworks.SmallTestNetwork(),
         core.ResNetwork.SmallTestNetwork(),

@@ -20,7 +20,7 @@ Provides class for analyzing spatially embedded complex networks.
 """
 
 from .network import Network
-from .grid2d import Grid
+from .grid import Grid
 
 
 #

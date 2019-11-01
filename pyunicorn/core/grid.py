@@ -289,6 +289,16 @@ class Grid:
         """
         return tuple(self._grid["space"][:, index])
 
+    def distance(self):
+        """
+        Calculate and return the standard distance matrix of the corresponding
+        grid type
+
+        :rtype: 2D Numpy array [index, index]
+        :return: the distance matrix.
+        """
+        return self.euclidean_distance()
+
     def _calculate_euclidean_distance(self):
         """
         Calculate and return the euclidean great circle distance matrix.
@@ -325,7 +335,7 @@ class Grid:
          [27.95 22.36 16.77 11.18  5.59  0.  ]]
 
         :rtype: 2D Numpy array [index, index]
-        :return: the angular great circle distance matrix.
+        :return: the euclidean distance matrix.
         """
         if not self._euclidean_distance_cached:
             self._euclidean_distance = self._calculate_euclidean_distance()

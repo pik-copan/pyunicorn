@@ -1,8 +1,8 @@
 
-core.grid2d
-===========
+core.spatial_network
+====================
 
-.. automodule:: pyunicorn.core.grid2d
+.. automodule:: pyunicorn.core.spatial_network
     :synopsis: spatially embedded complex networks, multivariate data,
                time series surrogates
     :members:

@@ -31,7 +31,7 @@ from ._ext.numerics import _randomly_rewire_geomodel_I, \
 
 from .network import cached_const
 from .spatial_network import SpatialNetwork
-from .grid2d import Grid2D
+from .geo_grid import GeoGrid
 
 
 #
@@ -59,8 +59,8 @@ class GeoNetwork(SpatialNetwork):
         """
         Initialize an instance of GeoNetwork.
 
-        :type grid: :class:`.Grid2D`
-        :arg grid: The Grid2D object describing the network's spatial
+        :type grid: :class:`.GeoGrid`
+        :arg grid: The GeoGrid object describing the network's spatial
             embedding.
         :type adjacency: 2D array (int8) [index, index]
         :arg adjacency: The network's adjacency matrix.
@@ -79,7 +79,8 @@ class GeoNetwork(SpatialNetwork):
           - "irrigation" (cos² lat)
         """
         self.grid = grid
-        """(Grid) - Grid2D object describing the network's spatial embedding"""
+        """(Grid) - GeoGrid object describing the network's spatial
+        embedding"""
 
         #  Call constructor of parent class Network
         SpatialNetwork.__init__(self, grid=grid, adjacency=adjacency,
@@ -166,7 +167,7 @@ class GeoNetwork(SpatialNetwork):
 
         :arg str filename_network:  The name of the file where the Network
             object is to be stored.
-        :arg str filename_grid:  The name of the file where the Grid2D object
+        :arg str filename_grid:  The name of the file where the GeoGrid object
             is to be stored (including ending).
         :arg str fileformat: the format of the file (if one wants to override
             the format determined from the filename extension, or the filename
@@ -243,7 +244,7 @@ class GeoNetwork(SpatialNetwork):
 
         :arg str filename_network:  The name of the file where the Network
             object is to be stored.
-        :arg str filename_grid:  The name of the file where the Grid2D object
+        :arg str filename_grid:  The name of the file where the GeoGrid object
             is to be stored (including ending).
         :arg str fileformat: the format of the file (if known in advance)
           ``None`` means auto-detection. Possible values are: ``"ncol"`` (NCOL
@@ -258,7 +259,7 @@ class GeoNetwork(SpatialNetwork):
         :return: :class:`GeoNetwork` instance.
         """
         #  Load Grid object
-        grid = Grid2D.Load(filename_grid)
+        grid = GeoGrid.Load(filename_grid)
 
         #  Load to igraph Graph object
         graph = igraph.Graph.Read(f=filename_network, format=fileformat,
@@ -295,7 +296,7 @@ class GeoNetwork(SpatialNetwork):
         Return a 6-node undirected geographically embedded test network.
 
         The test network consists of the SmallTestNetwork of the Network class
-        with node coordinates given by the SmallTestGrid of the Grid2D class.
+        with node coordinates given by the SmallTestGrid of the GeoGrid class.
 
         The network looks like this::
 
@@ -308,7 +309,7 @@ class GeoNetwork(SpatialNetwork):
         """
         return GeoNetwork(adjacency=SpatialNetwork.SmallTestNetwork()
                           .adjacency,
-                          grid=Grid2D.SmallTestGrid(),
+                          grid=GeoGrid.SmallTestGrid(),
                           directed=False, node_weight_type="surface",
                           silence_level=2)
 
@@ -323,7 +324,7 @@ class GeoNetwork(SpatialNetwork):
         **Example:**
 
         >>> print(GeoNetwork.ErdosRenyi(
-        ...     grid=Grid2D.SmallTestGrid(), n_nodes=6, n_links=5))
+        ...     grid=GeoGrid.SmallTestGrid(), n_nodes=6, n_links=5))
         Generating Erdos-Renyi random graph with 6 nodes and 5 links...
         Setting area weights according to type surface...
         GeoNetwork:
@@ -333,9 +334,9 @@ class GeoNetwork(SpatialNetwork):
            min    0.0    0.00    2.50
            max    9.0   25.00   15.00
 
-        :type grid: :class:`.Grid2D` object
-        :arg grid: The :class:`.Grid2D` object describing the network's spatial
-            embedding.
+        :type grid: :class:`.GeoGrid` object
+        :arg grid: The :class:`.GeoGrid` object describing the network's
+            spatial embedding.
         :type n_nodes: number > 0 (int)
         :arg  n_nodes: Number of nodes.
         :type link_probability: number from 0 to 1 (float), or None
@@ -382,8 +383,8 @@ class GeoNetwork(SpatialNetwork):
         :arg int n_nodes: The number of nodes.
         :arg int n_links: The number of links of the node that is added at each
             step of the growth process.
-        :type grid: Grid2D object
-        :arg grid: The Grid2D object describing the network's spatial
+        :type grid: GeoGrid object
+        :arg grid: The GeoGrid object describing the network's spatial
             embedding.
         :arg str node_weight_type: The type of geographical node weight to be
             used (see :meth:`set_node_weight_type`).
@@ -437,7 +438,7 @@ class GeoNetwork(SpatialNetwork):
         >>> n = 0
         >>> while n != 7:
         ...     net = GeoNetwork.ConfigurationModel(
-        ...         grid=Grid2D.SmallTestGrid(),
+        ...         grid=GeoGrid.SmallTestGrid(),
         ...         degrees=GeoNetwork.SmallTestNetwork().degree(),
         ...         silence_level=2)
         ...     n = net.n_links
@@ -446,8 +447,8 @@ class GeoNetwork(SpatialNetwork):
 
         :type degrees: 1D array [index]
         :arg degrees: The original degree sequence.
-        :type grid: Grid2D object
-        :arg grid: The Grid2D object describing the network's spatial
+        :type grid: GeoGrid object
+        :arg grid: The GeoGrid object describing the network's spatial
             embedding.
         :arg str node_weight_type: The type of geographical node weight to be
             used (see :meth:`set_node_weight_type`).
@@ -1644,8 +1645,7 @@ class GeoNetwork(SpatialNetwork):
         if self.silence_level <= 1:
             print("Calculating local Tsonis clustering coefficients...")
 
-        tsonis_clustering = np.zeros(self.N)
-        return tsonis_clustering
+        raise NotImplementedError("Method is not implemented yet!")
 
     def local_geographical_clustering(self):
         """
