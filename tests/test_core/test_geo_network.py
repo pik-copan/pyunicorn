@@ -28,7 +28,7 @@ def test_ErdosRenyi(capsys):
     out, err = capsys.readouterr()
     out_ref = "Generating Erdos-Renyi random graph with 6 nodes and 5 " + \
               "links...\nSetting area weights according to type surface " + \
-              "...\nGeoNetwork:\n" + \
+              "...\nGeoNetwork:\nSpatialNetwork:\n" + \
               "Network: undirected, 6 nodes, 5 links, " + \
               "link density 0.333.\nGeographical boundaries:\n" + \
               "         time     lat     lon\n" + \

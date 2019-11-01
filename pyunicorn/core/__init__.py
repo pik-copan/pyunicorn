@@ -42,6 +42,7 @@ Known Bugs
 #
 
 from .network import Network, NetworkError, nz_coords, cached_const
+from .spatial_network import SpatialNetwork
 from .geo_network import GeoNetwork
 from .grid import Grid
 from .grid2d import Grid2D

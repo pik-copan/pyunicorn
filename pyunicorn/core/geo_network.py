@@ -16,8 +16,7 @@
 # for complex systems science: The pyunicorn package"
 
 """
-Provides classes for analyzing spatially embedded complex networks, handling
-multivariate data and generating time series surrogates.
+Provides class for analyzing complex network embedded on a spherical surface.
 """
 
 # array object and fast numerics
@@ -30,15 +29,16 @@ import igraph
 from ._ext.numerics import _randomly_rewire_geomodel_I, \
         _randomly_rewire_geomodel_II, _randomly_rewire_geomodel_III
 
-from .network import Network, cached_const
+from .network import cached_const
+from .spatial_network import SpatialNetwork
 from .grid2d import Grid2D
 
 
 #
-#  Define class ClimateNetwork
+#  Define class GeoNetwork
 #
 
-class GeoNetwork(Network):
+class GeoNetwork(SpatialNetwork):
 
     """
     Encapsulates a network embedded on a spherical surface.
@@ -82,8 +82,9 @@ class GeoNetwork(Network):
         """(Grid) - Grid2D object describing the network's spatial embedding"""
 
         #  Call constructor of parent class Network
-        Network.__init__(self, adjacency=adjacency, edge_list=edge_list,
-                         directed=directed, silence_level=silence_level)
+        SpatialNetwork.__init__(self, grid=grid, adjacency=adjacency,
+                                edge_list=edge_list, directed=directed,
+                                silence_level=silence_level)
 
         #  Set area weights
         self.set_node_weight_type(node_weight_type)
@@ -97,7 +98,7 @@ class GeoNetwork(Network):
         """
         Return a string representation of the GeoNetwork object.
         """
-        return (f'GeoNetwork:\n{Network.__str__(self)}\n'
+        return (f'GeoNetwork:\n{SpatialNetwork.__str__(self)}\n'
                 f'Geographical boundaries:\n{self.grid.print_boundaries()}')
 
     def clear_cache(self):
@@ -107,8 +108,7 @@ class GeoNetwork(Network):
         Is reversible, since all cached information can be recalculated from
         basic data.
         """
-        Network.clear_cache(self)
-        self.grid.clear_cache()
+        SpatialNetwork.clear_cache(self)
 
     def set_node_weight_type(self, node_weight_type):
         """
@@ -180,8 +180,8 @@ class GeoNetwork(Network):
             pickled format), ``"svg"`` (Scalable Vector Graphics).
         """
         #  Store network
-        Network.save(self, filename=filename_network, fileformat=fileformat,
-                     *args, **kwds)
+        SpatialNetwork.save(self, filename=filename_network,
+                            fileformat=fileformat, *args, **kwds)
 
         #  Store grid
         if filename_grid is not None:
@@ -306,7 +306,8 @@ class GeoNetwork(Network):
         :rtype: GeoNetwork instance
         :return: an instance of GeoNetwork for testing purposes.
         """
-        return GeoNetwork(adjacency=Network.SmallTestNetwork().adjacency,
+        return GeoNetwork(adjacency=SpatialNetwork.SmallTestNetwork()
+                          .adjacency,
                           grid=Grid2D.SmallTestGrid(),
                           directed=False, node_weight_type="surface",
                           silence_level=2)

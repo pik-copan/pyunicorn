@@ -132,7 +132,7 @@ class Grid2D(Grid):
     @staticmethod
     def LoadTXT(filename):
         """
-        Return a GridD object stored in text files.
+        Return a Grid2D object stored in text files.
 
         The latitude, longitude and time sequences are loaded from three
         separate text files.

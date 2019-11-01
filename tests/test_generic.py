@@ -44,6 +44,7 @@ def simple_instances():
         core.Network.SmallTestNetwork(),
         core.Grid2D.SmallTestGrid(),
         core.Grid.SmallTestGrid(),
+        core.SpatialNetwork.SmallTestNetwork(),
         core.GeoNetwork.SmallTestNetwork(),
         core.InteractingNetworks.SmallTestNetwork(),
         core.ResNetwork.SmallTestNetwork(),

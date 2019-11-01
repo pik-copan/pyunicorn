@@ -28,6 +28,7 @@ def test_str(capsys):
     out_ref = "TsonisClimateNetwork:\n" + \
               "ClimateNetwork:\n" + \
               "GeoNetwork:\n" + \
+              "SpatialNetwork:\n" + \
               "Network: undirected, 6 nodes, 6 links, link density 0.400." + \
               "\nGeographical boundaries:\n" + \
               "         time     lat     lon\n" + \

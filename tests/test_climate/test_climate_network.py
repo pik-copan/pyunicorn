@@ -26,6 +26,7 @@ def test_str(capsys):
     out, err = capsys.readouterr()
     out_ref = "ClimateNetwork:\n" + \
               "GeoNetwork:\n" + \
+              "SpatialNetwork:\n" + \
               "Network: undirected, 6 nodes, 7 links, link density 0.467." + \
               "\nGeographical boundaries:\n" + \
               "         time     lat     lon\n" + \
