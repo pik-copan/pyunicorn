@@ -20,6 +20,7 @@ Simple tests for the GeoNetwork class.
 import numpy as np
 
 from pyunicorn.core.geo_network import GeoNetwork
+from pyunicorn.core.spatial_network import SpatialNetwork
 from pyunicorn.core.geo_grid import GeoGrid
 
 def test_ErdosRenyi(capsys):
@@ -50,7 +51,7 @@ def test_ConfigurationModel():
 
 def test_randomly_rewire_geomodel_I():
     net = GeoNetwork.SmallTestNetwork()
-    net.randomly_rewire_geomodel_I(distance_matrix=net.grid.angular_distance(),
+    net.randomly_rewire_geomodel_I(distance_matrix=net.grid.distance(),
                                    iterations=100, inaccuracy=1.0)
     res = net.degree()
     exp = np.array([3, 3, 2, 2, 3, 1])
@@ -78,14 +79,20 @@ def test_geographical_cumulative_distribution():
     assert np.allclose(res, exp, atol=1e-04)
 
 def test_link_distance_distribution():
-    net = GeoNetwork.SmallTestNetwork()
+    """Check consistency of link distance distribution on spherical grid with
+    distribution on euclidean grid"""
+    net = SpatialNetwork.SmallTestNetwork()
+    geo_net = GeoNetwork.SmallTestNetwork()
 
-    res = net.link_distance_distribution(n_bins=4, geometry_corrected=False)[0]
-    exp = np.array([0.14285714, 0.28571429, 0.28571429, 0.28571429])
+    res = geo_net.link_distance_distribution(n_bins=4,
+                                             geometry_corrected=False,
+                                             grid_type="spherical")[0]
+    exp = net.link_distance_distribution(n_bins=4, geometry_corrected=False)[0]
     assert np.allclose(res, exp, atol=1e-04)
 
-    res = net.link_distance_distribution(n_bins=4, geometry_corrected=True)[0]
-    exp = np.array([0.09836066, 0.24590164, 0.32786885, 0.32786885])
+    res = geo_net.link_distance_distribution(n_bins=4, geometry_corrected=True,
+                                             grid_type="spherical")[0]
+    exp = net.link_distance_distribution(n_bins=4, geometry_corrected=True)[0]
     assert np.allclose(res, exp, atol=1e-04)
 
 def test_area_weighted_connectivity():

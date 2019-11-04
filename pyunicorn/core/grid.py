@@ -301,7 +301,7 @@ class Grid:
 
     def _calculate_euclidean_distance(self):
         """
-        Calculate and return the euclidean great circle distance matrix.
+        Calculate and return the euclidean distance matrix.
 
         :rtype: 2D Numpy array [index, index]
         :return: the euclidean distance matrix.
@@ -403,3 +403,44 @@ class Grid:
         """
         return "     space    time\n   {space:7} {time:7}".format(
             **self.grid_size())
+
+    def geometric_distance_distribution(self, n_bins):
+        """
+        Return the distribution of distances between all pairs of grid points.
+
+        **Examples:**
+
+        >>> Grid.SmallTestGrid().geometric_distance_distribution(3)[0].round(2)
+        array([0.33, 0.47, 0.2 ])
+        >>> Grid.SmallTestGrid().geometric_distance_distribution(3)[1].round(2)
+        array([ 0.  ,  9.32, 18.63, 27.95], dtype=float32)
+
+        :type n_bins: number (int)
+        :arg n_bins: The number of histogram bins.
+
+        :rtype: tuple of two 1D Numpy arrays [bin]
+        :return: the normalized histogram and lower bin boundaries of
+            distances.
+        """
+        if self.silence_level <= 1:
+            print("Calculating the geometric distance distribution of the "
+                  "grid...")
+
+        #  Get angular distance matrix
+        D = self.distance()
+
+        #  Determine range for link distance histograms
+        max_range = D.max()
+        interval = (0, max_range)
+
+        #  Calculate geometry related factor of distributions to divide it out
+        (dist, lbb) = np.histogram(a=D, bins=n_bins, range=interval)
+        #  Subtract self.N from first bin because of spurious links with zero
+        #  distance on the diagonal of the angular distance matrix
+        dist[0] -= self.N
+
+        #  Normalize distribution
+        dist = dist.astype("float")
+        dist /= dist.sum()
+
+        return (dist, lbb)

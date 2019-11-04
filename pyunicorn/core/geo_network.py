@@ -26,9 +26,6 @@ from numpy import random
 # high performance graph theory tools written in pure ANSI-C
 import igraph
 
-from ._ext.numerics import _randomly_rewire_geomodel_I, \
-        _randomly_rewire_geomodel_II, _randomly_rewire_geomodel_III
-
 from .network import cached_const
 from .spatial_network import SpatialNetwork
 from .geo_grid import GeoGrid
@@ -479,223 +476,6 @@ class GeoNetwork(SpatialNetwork):
     #  Graph randomization methods
     #
 
-    #  TODO: Experimental code!
-    def randomly_rewire_geomodel_I(self, distance_matrix, iterations,
-                                   inaccuracy):
-        """
-        Randomly rewire the current network in place using geographical
-        model I.
-
-        Geographical model I preserves the degree sequence (exactly) and the
-        link distance distribution :math:`p(l)` (approximately).
-
-        A higher ``inaccuracy`` in the conservation of :math:`p(l)` will lead
-        to
-
-          - less deterministic links in the network and, hence,
-          - more degrees of freedom for the random graph and
-          - a shorter runtime of the algorithm, since more pairs of nodes
-            eligible for rewiring can be found.
-
-        **Example** (The degree sequence should be the same after rewiring):
-
-        >>> _i()
-        >>> net = GeoNetwork.SmallTestNetwork()
-        >>> net.randomly_rewire_geomodel_I(
-        ...     distance_matrix=net.grid.angular_distance(),
-        ...     iterations=100, inaccuracy=1.0)
-        #
-        >>> net.degree()
-        array([3, 3, 2, 2, 3, 1])
-
-        :type distance_matrix: 2D Numpy array [index, index]
-        :arg distance_matrix: Suitable distance matrix between nodes.
-
-        :type iterations: number (int)
-        :arg iterations: The number of rewirings to be performed.
-
-        :type inaccuracy: number (float)
-        :arg inaccuracy: The inaccuracy with which to conserve :math:`p(l)`.
-        """
-        if self.silence_level <= 1:
-            print("Randomly rewiring given graph, preserving the degree "
-                  "sequence and link distance distribution...")
-        #  Get number of nodes
-        N = self.N
-        #  Get number of links
-        E = self.n_links
-        #  Collect adjacency and distance matrices
-        A = self.adjacency.copy(order='c')
-        D = distance_matrix.astype("float32").copy(order='c')
-        #  Get degree sequence
-        # degree = self.degree()
-
-        #  Define for brevity
-        eps = float(inaccuracy)
-
-        # iterations = int(iterations)
-
-        #  Get edge list
-        edges = np.array(self.graph.get_edgelist()).copy(order='c')
-
-        #  Initialize list of neighbors
-        # neighbors = np.zeros((N, degree.max()))
-
-        _randomly_rewire_geomodel_I(iterations, eps, A, D, E, N, edges)
-
-        #  Update all other properties of GeoNetwork
-        self.adjacency = A
-
-    #  TODO: Experimental code!
-    def randomly_rewire_geomodel_II(self, distance_matrix,
-                                    iterations, inaccuracy):
-        """
-        Randomly rewire the current network in place using geographical
-        model II.
-
-        Geographical model II preserves the degree sequence :math:`k_v`
-        (exactly), the link distance distribution :math:`p(l)` (approximately),
-        and the average link distance sequence :math:`<l>_v` (approximately).
-
-        A higher ``inaccuracy`` in the conservation of :math:`p(l)` and
-        :math:`<l>_v` will lead to:
-
-          - less deterministic links in the network and, hence,
-          - more degrees of freedom for the random graph and
-          - a shorter runtime of the algorithm, since more pairs of nodes
-            eligible for rewiring can be found.
-
-        :type distance_matrix: 2D Numpy array [index, index]
-        :arg distance_matrix: Suitable distance matrix between nodes.
-
-        :type iterations: number (int)
-        :arg iterations: The number of rewirings to be performed.
-
-        :type inaccuracy: number (float)
-        :arg inaccuracy: The inaccuracy with which to conserve :math:`p(l)`.
-        """
-        #  FIXME: Add example
-        if self.silence_level <= 1:
-            print("Randomly rewiring given graph, preserving the degree "
-                  "sequence, link distance distribution and average link "
-                  "distance sequence...")
-
-        #  Get number of nodes
-        N = int(self.N)
-        #  Get number of links
-        E = int(self.n_links)
-        #  Collect adjacency and distance matrices
-        A = self.adjacency.copy(order='c')
-        D = distance_matrix.astype("float32").copy(order='c')
-
-        #  Define for brevity
-        eps = float(inaccuracy)
-
-        #  Get edge list
-        edges = np.array(self.graph.get_edgelist()).copy(order='c')
-
-        _randomly_rewire_geomodel_II(iterations, eps, A, D, E, N, edges)
-
-        #  Update all other properties of GeoNetwork
-        self.adjacency = A
-
-    #  TODO: Experimental code!
-    def randomly_rewire_geomodel_III(self, distance_matrix,
-                                     iterations, inaccuracy):
-        """
-        Randomly rewire the current network in place using geographical
-        model III.
-
-        Geographical model III preserves the degree sequence :math:`k_v`
-        (exactly), the link distance distribution :math:`p(l)` (approximately),
-        and the average link distance sequence :math:`<l>_v` (approximately).
-        Moreover, degree-degree correlations are also conserved exactly.
-
-        A higher ``inaccuracy`` in the conservation of :math:`p(l)` and
-        :math:`<l>_v` will lead to:
-
-          - less deterministic links in the network and, hence,
-          - more degrees of freedom for the random graph and
-          - a shorter runtime of the algorithm, since more pairs of nodes
-            eligible for rewiring can be found.
-
-        :type distance_matrix: 2D Numpy array [index, index]
-        :arg distance_matrix: Suitable distance matrix between nodes.
-
-        :type iterations: number (int)
-        :arg iterations: The number of rewirings to be performed.
-
-        :type inaccuracy: number (float)
-        :arg inaccuracy: The inaccuracy with which to conserve :math:`p(l)`.
-        """
-        #  FIXME: Add example
-        if self.silence_level <= 1:
-            print("Randomly rewiring given graph, preserving the degree "
-                  "sequence, degree-degree correlations, link distance "
-                  "distribution and average link distance sequence...")
-
-        #  Get number of nodes
-        N = int(self.N)
-        #  Get number of links
-        E = int(self.n_links)
-        #  Collect adjacency and distance matrices
-        A = self.adjacency.copy(order='c')
-        D = distance_matrix.astype("float32").copy(order='c')
-        #  Get degree sequence
-        degree = self.degree().copy(order='c')
-
-        #  Define for brevity
-        eps = float(inaccuracy)
-
-        #  Get edge list
-        edges = np.array(self.graph.get_edgelist()).copy(order='c')
-
-        _randomly_rewire_geomodel_III(iterations, eps, A, D, E, N, edges,
-                                      degree)
-
-        #  Update all other properties of GeoNetwork
-        self.adjacency = A
-
-    def set_random_links_by_distance(self, a, b):
-        """
-        Reassign links independently with
-        link probability = :math:`exp(a + b*angular distance)`.
-
-        .. note::
-           Modifies network in place, creates an undirected network!
-
-        **Example** (Repeat until a network with 5 links is created):
-
-        >>> net = GeoNetwork.SmallTestNetwork()
-        >>> while (net.n_links != 5):
-        ...     net.set_random_links_by_distance(a=0., b=-4.)
-        >>> net.n_links
-        5
-
-        :type a: number (float)
-        :arg a: The a parameter.
-
-        :type b: number (float)
-        :arg b: The b parameter.
-        """
-        #  Get angular distance matrix
-        D = self.grid.angular_distance()
-        #  Calculate link probabilities
-        p = np.exp(a + b * D)
-
-        #  Generate random numbers
-        P = random.random(D.shape)
-        #  Symmetrize
-        P = 0.5 * (P + P.transpose())
-
-        #  Create new adjacency matrix
-        A = (p >= P).astype("int8")
-        #  Set diagonal to zero - no self-loops!
-        np.fill_diagonal(A, 0)
-
-        #  Set new adjacency matrix
-        self.adjacency = A
-
     #  FIXME: Check this method and implement in C++ via Cython for speed.
     #  FIXME: Also improve documentation.
     #  FIXME: Add example
@@ -873,62 +653,6 @@ class GeoNetwork(SpatialNetwork):
         for i in range(n_bins):
             cumu_dist[i] = dist[i:].sum()
         return (cumu_dist, error, lbb)
-
-    #
-    #  Get link distance distribution
-    #
-
-    def link_distance_distribution(self, n_bins, grid_type="spherical",
-                                   geometry_corrected=False):
-        """
-        Return the normalized link distance distribution.
-
-        Correct for the geometry of the embedding space by default.
-
-        **Examples:**
-
-        >>> GeoNetwork.SmallTestNetwork().link_distance_distribution(
-        ...     n_bins=4, geometry_corrected=False)[0]
-        array([ 0.14285714,  0.28571429,  0.28571429,  0.28571429])
-        >>> GeoNetwork.SmallTestNetwork().link_distance_distribution(
-        ...     n_bins=4, geometry_corrected=True)[0]
-        array([ 0.09836066,  0.24590164,  0.32786885,  0.32786885])
-
-        :arg int n_bins: The number of bins for histogram.
-        :arg str grid_type: Type of grid, used for distance calculation, can
-            take values "euclidean" and "spherical".
-        :arg bool geometry_corrected: Toggles correction for grid geometry.
-        :rtype: tuple of three 1D arrays [bin]
-        :return: the link distance distribution, statistical error,
-                 and lower bin boundaries.
-        """
-        if self.silence_level <= 1:
-            print("Calculating link distance distribution...")
-
-        #  Collect matrices
-        A = self.adjacency
-        if grid_type == "spherical":
-            D = self.grid.angular_distance()
-        elif grid_type == "euclidean":
-            D = self.grid.euclidean_distance()
-
-        #  Determine range for link distance histograms
-        interval = (0, D.max())
-
-        #  Get link distance distribution
-        (dist, error, lbb) = self._histogram(D[A == 1], n_bins=n_bins,
-                                             interval=interval)
-
-        if geometry_corrected:
-            geometric_ld_dist = \
-                self.grid.geometric_distance_distribution(n_bins)[0]
-            # Divide out the geometrical factor of the distribution
-            dist /= geometric_ld_dist
-
-        #  Normalize the distribution
-        dist /= dist.sum()
-
-        return (dist, error, lbb)
 
     #
     #  Area weighted connectivity (AWC) related measures
@@ -1837,6 +1561,7 @@ class GeoNetwork(SpatialNetwork):
             partial_boundary = [i]
             partial_shape = [lam*pos[i] + lam1*pos[o]]
             partial_fullshape = [0.49*pos[i] + 0.51*pos[o]]
+            print(partial_shape)
             steps = [(i, o)]
             for it in range(N):  # at most this many steps we need
                 nbi = self.grid_neighbours[i]
@@ -1870,7 +1595,7 @@ class GeoNetwork(SpatialNetwork):
             off = length/2
             for it in range(length):
                 pos1 = partial_shape[it]
-                pos2 = partial_shape[(it+off) % length]
+                pos2 = partial_shape[int((it+off) % length)]
                 latlon_shape.append(self.cartesian2latlon(pos1))
                 d2 = ((pos2-pos1)**2).sum()
                 if d2 < mind2:
