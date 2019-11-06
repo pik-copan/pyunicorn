@@ -337,6 +337,68 @@ class SpatialNetwork(Network):
         #  Set new adjacency matrix
         self.adjacency = A
 
+    #  FIXME: Check this method and implement in C++ via Cython for speed.
+    #  FIXME: Also improve documentation.
+    #  FIXME: Add example
+    def shuffled_by_distance_copy(self):
+        """
+        Return a copy of the network where all links in each node-distance
+        class have been randomly re-assigned.
+
+        In other words, the result is a random network in which the link
+        probability only depends on the nodes' distance and is the same as in
+        the original network.
+
+        :rtype: GeoNetwork
+        :return: the distance shuffled copy.
+        """
+        N = self.N
+        A = self.adjacency
+        D = self.grid.distance()
+
+        #  Count pairs and links by distance
+        n_pairs_by_dist = {}
+        n_links_by_dist = {}
+        for j in range(0, N):
+            print(j)
+            for i in range(0, j):
+                d = D[i, j]
+                try:
+                    n_pairs_by_dist[d] += 1
+                except KeyError:
+                    n_pairs_by_dist[d] = 1
+                if A[i, j]:
+                    try:
+                        n_links_by_dist[d] += 1
+                    except KeyError:
+                        n_links_by_dist[d] = 1
+
+        #  Determine link probabilities
+        p_by_dist = {}
+        for d in n_pairs_by_dist:
+            try:
+                p_by_dist[d] = n_links_by_dist[d] * 1.0 / n_pairs_by_dist[d]
+            except KeyError:
+                p_by_dist[d] = 0.0
+            print(d, p_by_dist[d])
+        del n_links_by_dist, n_pairs_by_dist
+
+        #  Link new pairs with respective probability
+        A_new = np.zeros((N, N))
+        for j in range(0, N):
+            print("new ", j)
+            for i in range(0, j):
+                d = D[i, j]
+                if p_by_dist[d] >= np.random.random():
+                    A_new[i, j] = A_new[j, i] = 1
+                    print(i, j, d, p_by_dist[d])
+
+        #  Create new Network object based on A_new
+        net = SpatialNetwork(adjacency=A_new, grid=self.grid,
+                             directed=self.directed,
+                             silence_level=self.silence_level)
+
+        return net
     #
     #  Get link distance distribution
     #

@@ -259,6 +259,10 @@ def test_ConfigurationModel():
     net = Network.Model("Configuration", degrees=[3 for _ in range(0, 1000)])
     assert int(round(net.degree().mean())) == 3
 
+def test_WattsStrogatz():
+    net = Network.Model("WattsStrogatz", N=100, k=2, p=0.1)
+    assert int(round(net.degree().mean())) == 4
+
 def test_randomly_rewire(capsys):
     net = Network.SmallTestNetwork()
     net.randomly_rewire(iterations=10)

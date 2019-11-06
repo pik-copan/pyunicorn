@@ -341,7 +341,7 @@ class GeoNetwork(SpatialNetwork):
         """
         N = self.N
         A = self.adjacency
-        D = self.grid.angular_distance()
+        D = self.grid.distance()
 
         #  Count pairs and links by distance
         n_pairs_by_dist = {}
