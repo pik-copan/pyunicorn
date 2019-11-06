@@ -244,7 +244,7 @@ def test_set_node_weights(capsys):
     assert np.allclose(net.node_weights, nw_ref)
 
 def test_ErdosRenyi(capsys):
-    print(Network.ErdosRenyi(n_nodes=10, n_links=18))
+    print(Network.Model("ErdosRenyi", n_nodes=10, n_links=18))
     out, err = capsys.readouterr()
     out_ref = "Generating Erdos-Renyi random graph with 10 " + \
               "nodes and 18 links...\n" + \
@@ -252,11 +252,11 @@ def test_ErdosRenyi(capsys):
     assert out == out_ref
 
 def test_BarabasiAlbert_igraph():
-    net = Network.BarabasiAlbert_igraph(n_nodes=100, n_links_each=1)
+    net = Network.Model("BarabasiAlbert_igraph", n_nodes=100, n_links_each=1)
     assert np.allclose(net.link_density, 0.02)
 
 def test_ConfigurationModel():
-    net = Network.ConfigurationModel([3 for _ in range(0, 1000)])
+    net = Network.Model("Configuration", degrees=[3 for _ in range(0, 1000)])
     assert int(round(net.degree().mean())) == 3
 
 def test_randomly_rewire(capsys):

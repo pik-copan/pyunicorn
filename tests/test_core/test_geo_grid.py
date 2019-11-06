@@ -15,7 +15,7 @@
 # and J. Kurths, "Unified functional network and nonlinear time series analysis
 # for complex systems science: The pyunicorn package"
 """
-Simple tests for the Grid and GeoGrid classes.
+Simple tests for the GeoGrid class.
 """
 import numpy as np
 

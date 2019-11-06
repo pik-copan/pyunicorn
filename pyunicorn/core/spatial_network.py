@@ -107,6 +107,15 @@ class SpatialNetwork(Network):
                               grid=Grid.SmallTestGrid(),
                               directed=False, silence_level=2)
 
+    @staticmethod
+    def Model(network_model, grid, **kwargs):
+        """
+        Return a new model graph generated with the specified network model
+        and embedded on the specified spatial grid
+        """
+        A = getattr(SpatialNetwork, network_model)(**kwargs)
+        return SpatialNetwork(grid, A)
+
     #
     #  Graph randomization methods
     #
