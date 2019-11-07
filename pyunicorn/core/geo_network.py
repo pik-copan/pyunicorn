@@ -848,7 +848,6 @@ class GeoNetwork(SpatialNetwork):
             #  network to correct for geometrical biases, particularly in
             #  regional networks.
             ald_correction = D.mean(axis=1)
-            # aldCorrection = angularDistance.max(axis=1)
 
             #  Correct average link distance
             average_link_distance /= ald_correction

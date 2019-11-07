@@ -31,6 +31,10 @@ except ImportError:
 
 __version__ = '0.6.1'
 
+# Write version number to version.py
+fp = open("pyunicorn/version.py","w+")
+fp.write("__version__ = '" + __version__ + "'")
+
 # -----------------------------------------------------------------------------
 
 

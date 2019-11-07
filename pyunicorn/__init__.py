@@ -40,7 +40,7 @@ To Do
 import os
 import sys
 
-from setup import __version__
+from .version import __version__
 
 from .utils import mpi
 from .core import *
