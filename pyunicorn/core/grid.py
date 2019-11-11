@@ -113,7 +113,7 @@ class Grid:
             (including ending).
         """
         try:
-            f = open(filename, 'w')
+            f = open(filename, 'wb')
             pickle.dump(self, f)
             f.close()
         except IOError:
@@ -131,7 +131,7 @@ class Grid:
         :return: :class:`Grid` instance.
         """
         try:
-            f = open(filename, 'r')
+            f = open(filename, 'rb')
             grid = pickle.load(f)
             f.close()
 

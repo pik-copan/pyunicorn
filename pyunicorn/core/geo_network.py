@@ -26,7 +26,6 @@ from numpy import random
 # high performance graph theory tools written in pure ANSI-C
 import igraph
 
-from .network import cached_const
 from .spatial_network import SpatialNetwork
 from .geo_grid import GeoGrid
 
@@ -75,6 +74,9 @@ class GeoNetwork(SpatialNetwork):
           - "surface" (cos lat)
           - "irrigation" (cos² lat)
         """
+        if grid.__class__.__name__ != "GeoGrid":
+            raise TypeError("GeoNetwork can only be created with GeoGrid!")
+
         self.grid = grid
         """(Grid) - GeoGrid object describing the network's spatial
         embedding"""
@@ -140,50 +142,70 @@ class GeoNetwork(SpatialNetwork):
     #  Load and save GeoNetwork object
     #
 
-    def save(self, filename_network, filename_grid=None, fileformat=None,
-             *args, **kwds):
+    @staticmethod
+    def Load(filename_network, filename_grid, fileformat=None,
+             silence_level=0, *args, **kwds):
         """
-        Save the GeoNetwork object to files.
+        Return a GeoNetwork object stored in files.
 
-        Unified writing function for graphs. Relies on and partially extends
+        Unified reading function for graphs. Relies on and partially extends
         the corresponding igraph function. Refer to igraph documentation for
-        further details on the various writer methods for different formats.
+        further details on the various reader methods for different formats.
 
         This method tries to identify the format of the graph given in
-        the first parameter (based on extension) and calls the corresponding
-        writer method.
+        the first parameter and calls the corresponding reader method.
 
-        Existing node and link attributes/weights are also stored depending
+        Existing node and link attributes/weights are also restored depending
         on the chosen file format. E.g., the formats GraphML and gzipped
         GraphML are able to store both node and link weights.
 
-        The grid is not stored if the corresponding filename is None.
-
-        The remaining arguments are passed to the writer method without
+        The remaining arguments are passed to the reader method without
         any changes.
 
         :arg str filename_network:  The name of the file where the Network
             object is to be stored.
         :arg str filename_grid:  The name of the file where the GeoGrid object
             is to be stored (including ending).
-        :arg str fileformat: the format of the file (if one wants to override
-            the format determined from the filename extension, or the filename
-            itself is a stream). ``None`` means auto-detection.  Possible
-            values are: ``"ncol"`` (NCOL format), ``"lgl"`` (LGL format),
-            ``"graphml"``, ``"graphmlz"`` (GraphML and gzipped GraphML format),
-            ``"gml"`` (GML format), ``"dot"``, ``"graphviz"`` (DOT format, used
-            by GraphViz), ``"net"``, ``"pajek"`` (Pajek format), ``"dimacs"``
-            (DIMACS format), ``"edgelist"``, ``"edges"`` or ``"edge"`` (edge
-            list), ``"adjacency"`` (adjacency matrix), ``"pickle"`` (Python
-            pickled format), ``"svg"`` (Scalable Vector Graphics).
+        :arg str fileformat: the format of the file (if known in advance)
+          ``None`` means auto-detection. Possible values are: ``"ncol"`` (NCOL
+          format), ``"lgl"`` (LGL format), ``"graphml"``, ``"graphmlz"``
+          (GraphML and gzipped GraphML format), ``"gml"`` (GML format),
+          ``"net"``, ``"pajek"`` (Pajek format), ``"dimacs"`` (DIMACS format),
+          ``"edgelist"``, ``"edges"`` or ``"edge"`` (edge list),
+          ``"adjacency"`` (adjacency matrix), ``"pickle"`` (Python pickled
+          format).
+        :arg int silence_level: The inverse level of verbosity of the object.
+        :rtype: SpatialNetwork object
+        :return: :class:`GeolNetwork` instance.
         """
-        #  Store network
-        SpatialNetwork.save(self, filename=filename_network,
-                            fileformat=fileformat, *args, **kwds)
+        #  Load Grid object
+        grid = GeoGrid.Load(filename_grid)
+        print(grid.__class__)
 
-        #  Store grid
-        if filename_grid is not None:
-            self.grid.save(filename=filename_grid)
+        #  Load to igraph Graph object
+        graph = igraph.Graph.Read(f=filename_network, format=fileformat,
+                                  *args, **kwds)
+
+        #  Extract adjacency matrix
+        A = np.array(graph.get_adjacency(type=2).data)
+
+        #  Create GeoNetwork instance
+        net = GeoNetwork(adjacency=A, grid=grid,
+                         directed=graph.is_directed())
+
+        #  Extract node weights
+        if "node_weight_nsi" in graph.vs.attribute_names():
+            node_weights = \
+                np.array(graph.vs.get_attribute_values("node_weight_nsi"))
+            net.node_weights = node_weights
+
+        #  Overwrite igraph Graph object in Network instance to restore link
+        #  attributes/weights
+        net.graph = graph
+        #  Restore link attributes/weights
+        net.clear_paths_cache()
+
+        return net
 
     def save_for_cgv(self, filename, fileformat="graphml"):
         """
@@ -219,70 +241,6 @@ class GeoNetwork(SpatialNetwork):
             print("ERROR: the chosen format is not supported by save_for_cgv "
                   "for use with the CGV software.")
 
-    @staticmethod
-    def Load(filename_network, filename_grid, fileformat=None,
-             silence_level=0, *args, **kwds):
-        """
-        Return a GeoNetwork object stored in files.
-
-        Unified reading function for graphs. Relies on and partially extends
-        the corresponding igraph function. Refer to igraph documentation for
-        further details on the various reader methods for different formats.
-
-        This method tries to identify the format of the graph given in
-        the first parameter and calls the corresponding reader method.
-
-        Existing node and link attributes/weights are also restored depending
-        on the chosen file format. E.g., the formats GraphML and gzipped
-        GraphML are able to store both node and link weights.
-
-        The remaining arguments are passed to the reader method without
-        any changes.
-
-        :arg str filename_network:  The name of the file where the Network
-            object is to be stored.
-        :arg str filename_grid:  The name of the file where the GeoGrid object
-            is to be stored (including ending).
-        :arg str fileformat: the format of the file (if known in advance)
-          ``None`` means auto-detection. Possible values are: ``"ncol"`` (NCOL
-          format), ``"lgl"`` (LGL format), ``"graphml"``, ``"graphmlz"``
-          (GraphML and gzipped GraphML format), ``"gml"`` (GML format),
-          ``"net"``, ``"pajek"`` (Pajek format), ``"dimacs"`` (DIMACS format),
-          ``"edgelist"``, ``"edges"`` or ``"edge"`` (edge list),
-          ``"adjacency"`` (adjacency matrix), ``"pickle"`` (Python pickled
-          format).
-        :arg int silence_level: The inverse level of verbosity of the object.
-        :rtype: GeoNetwork object
-        :return: :class:`GeoNetwork` instance.
-        """
-        #  Load Grid object
-        grid = GeoGrid.Load(filename_grid)
-
-        #  Load to igraph Graph object
-        graph = igraph.Graph.Read(f=filename_network, format=fileformat,
-                                  *args, **kwds)
-
-        #  Extract adjacency matrix
-        A = np.array(graph.get_adjacency(type=2).data)
-
-        #  Create GeoNetwork instance
-        net = GeoNetwork(adjacency=A, grid=grid, directed=graph.is_directed(),
-                         node_weight_type=None)
-
-        #  Extract node weights
-        if "node_weight_nsi" in graph.vs.attribute_names():
-            node_weights = \
-                np.array(graph.vs.get_attribute_values("node_weight_nsi"))
-            net.node_weights = node_weights
-
-        #  Overwrite igraph Graph object in Network instance to restore link
-        #  attributes/weights
-        net.graph = graph
-        #  Restore link attributes/weights
-        net.clear_paths_cache()
-
-        return net
-
     #
     #  Graph generation methods
     #
@@ -304,9 +262,9 @@ class GeoNetwork(SpatialNetwork):
         :rtype: GeoNetwork instance
         :return: an instance of GeoNetwork for testing purposes.
         """
-        return GeoNetwork(adjacency=SpatialNetwork.SmallTestNetwork()
+        return GeoNetwork(grid=GeoGrid.SmallTestGrid(),
+                          adjacency=SpatialNetwork.SmallTestNetwork()
                           .adjacency,
-                          grid=GeoGrid.SmallTestGrid(),
                           directed=False, node_weight_type="surface",
                           silence_level=2)
 
@@ -809,130 +767,6 @@ class GeoNetwork(SpatialNetwork):
     #  Distance related measures
     #
 
-    #  (Un)directed average link distances
-
-    #  TODO: Discuss geometry correction with Jobst.
-    def _calculate_general_average_link_distance(self, adjacency, degrees,
-                                                 geometry_corrected=False):
-        """
-        Return general average link distances (:math:`ALD`).
-
-        This general method is called to calculate undirected average link
-        distance, average in-link distance and average out-link distance.
-
-        The resulting sequence can optionally be corrected for biases in
-        average link distance arising due to the grid geometry. E.g., for
-        regional networks, nodes on the boundaries may have a bias towards
-        larger values of :math:`ALD`, while nodes in the center have a bias
-        towards smaller values of :math:`ALD`.
-
-        :type adjacency: 2D array [index, index]
-        :arg adjacency: The adjacency matrix.
-        :type degrees: 1D array [index]
-        :arg degrees: The degree sequence.
-        :arg bool geometry_corrected: Toggles geometry correction.
-        :rtype: 1D array [index]
-        :return: the general average link distance sequence.
-        """
-        D = self.grid.angular_distance()
-        k = self.degree()
-
-        average_link_distance = np.zeros(self.N)
-
-        #  Normalize by degree, not by number of nodes!!!
-        average_link_distance[k != 0] = \
-            (D * adjacency).sum(axis=1)[k != 0] / k[k != 0]
-
-        if geometry_corrected:
-            #  Calculate the average link distance for a fully connected
-            #  network to correct for geometrical biases, particularly in
-            #  regional networks.
-            ald_correction = D.mean(axis=1)
-
-            #  Correct average link distance
-            average_link_distance /= ald_correction
-
-        return average_link_distance
-
-    def average_link_distance(self, geometry_corrected=False):
-        """
-        Return average link distances (undirected).
-
-        .. note::
-           Does not use directionality information.
-
-        **Examples:**
-
-        >>> r(GeoNetwork.SmallTestNetwork().\
-                average_link_distance(geometry_corrected=False))
-        array([ 0.3885, 0.1943, 0.1456, 0.2433, 0.2912, 0.4847])
-        >>> r(GeoNetwork.SmallTestNetwork().\
-                average_link_distance(geometry_corrected=True))[:-1]
-        array([ 1.5988, 1.0921, 1.0001, 1.6708, 1.6384])
-
-        :arg bool geometry_corrected: Toggles geometry correction.
-        :rtype: 1D array [index]
-        :return: the average link distance sequence (undirected).
-        """
-        if self.silence_level <= 1:
-            print("Calculating average link distance...")
-
-        A = self.undirected_adjacency().A
-        degree = self.degree()
-
-        return self._calculate_general_average_link_distance(
-            A, degree, geometry_corrected=geometry_corrected)
-
-    def inaverage_link_distance(self, geometry_corrected=False):
-        """
-        Return in-average link distances.
-
-        Return regular average link distance for undirected networks.
-
-        **Example:**
-
-        >>> r(GeoNetwork.SmallTestNetwork().\
-                inaverage_link_distance(geometry_corrected=False))
-        array([ 0.3885, 0.1943, 0.1456, 0.2433, 0.2912, 0.4847])
-
-        :arg bool geometry_corrected: Toggles geometry correction.
-        :rtype: 1D array [index]
-        :return: the in-average link distance sequence.
-        """
-        if self.silence_level <= 1:
-            print("Calculating in-average link distance...")
-
-        A = self.adjacency.T
-        in_degree = self.indegree()
-
-        return self._calculate_general_average_link_distance(
-            A, in_degree, geometry_corrected=geometry_corrected)
-
-    def outaverage_link_distance(self, geometry_corrected=False):
-        """
-        Return out-average link distances.
-
-        Return regular average link distance for undirected networks.
-
-        **Example:**
-
-        >>> r(GeoNetwork.SmallTestNetwork().\
-                outaverage_link_distance(geometry_corrected=False))
-        array([ 0.3885, 0.1943, 0.1456, 0.2433, 0.2912, 0.4847])
-
-        :arg bool geometry_corrected: Toggles geometry correction.
-        :rtype: 1D array [index]
-        :return: the out-average link distance sequence.
-        """
-        if self.silence_level <= 1:
-            print("Calculating out-average link distance...")
-
-        A = self.adjacency
-        out_degree = self.outdegree()
-
-        return self._calculate_general_average_link_distance(
-            A, out_degree, geometry_corrected=geometry_corrected)
-
     #  (Un)directed total link distances
 
     def total_link_distance(self, geometry_corrected=False):
@@ -1105,118 +939,9 @@ class GeoNetwork(SpatialNetwork):
         return self._calculate_general_connectivity_weighted_distance(
             A, outdegree)
 
-    def max_link_distance(self):
-        """
-        Return maximum angular geodesic link distances.
-
-        .. note::
-           Does not use directionality information.
-
-        **Example:**
-
-        >>> r(GeoNetwork.SmallTestNetwork().max_link_distance())
-        array([ 0.4847, 0.2911, 0.1938, 0.292 , 0.3887, 0.4847])
-
-        :rtype: 1D Numpy array [index]
-        :return: the maximum link distance sequence.
-        """
-        if self.silence_level <= 1:
-            print("Calculating maximum link distance...")
-
-        A = self.undirected_adjacency().A
-        D = self.grid.angular_distance()
-
-        maximum_link_distance = (D * A).max(axis=1)
-        return maximum_link_distance
-
-    #
-    #  Link weighted network measures
-    #
-
-    @cached_const('base', 'angular_distance')
-    def angular_distance(self):
-        """
-        Return the angular great circle distance matrix.
-        """
-        ad = self.grid.angular_distance()
-        self.set_link_attribute('angular_distance', ad)
-        return ad
-
-    def average_distance_weighted_path_length(self):
-        """
-        Return average distance weighted path length.
-
-        Returns the average path length link-weighted by the angular
-        great circle distance between nodes.
-
-        **Example:**
-
-        >>> r(GeoNetwork.SmallTestNetwork().\
-                average_distance_weighted_path_length())
-        0.4985
-
-        :rtype: number (float)
-        :return: the average distance weighted path length.
-        """
-        self.angular_distance()
-        return self.average_path_length('angular_distance')
-
-    def distance_weighted_closeness(self):
-        """
-        Return distance weighted closeness.
-
-        Returns the sequence of closeness centralities link-weighted by the
-        angular great circle distance between nodes.
-
-        **Example:**
-
-        >>> r(GeoNetwork.SmallTestNetwork().\
-                distance_weighted_closeness())
-        array([ 2.2378, 2.4501, 2.2396, 2.4501, 2.2396, 1.1982])
-
-        :rtype: 1D Numpy array [index]
-        :return: the distance weighted closeness sequence.
-        """
-        self.angular_distance()
-        return self.closeness('angular_distance')
-
-    def local_distance_weighted_vulnerability(self):
-        """
-        Return local distance weighted vulnerability.
-
-        Return the sequence of vulnerabilities link-weighted by
-        the angular great circle distance between nodes.
-
-        **Example:**
-
-        >>> r(GeoNetwork.SmallTestNetwork().\
-                local_distance_weighted_vulnerability())
-        array([ 0.0325, 0.3137, 0.2056, 0.028 , -0.0283, -0.288 ])
-
-        :rtype: 1D Numpy array [index]
-        :return: the local distance weighted vulnerability sequence.
-        """
-        self.angular_distance()
-        return self.local_vulnerability('angular_distance')
-
     #
     #  Clustering coefficients including geographical information
     #
-
-    #  TODO: Maybe implement this one day...
-    def local_tsonis_clustering(self):
-        """
-        Return local Tsonis clustering.
-
-        This measure of local clustering was introduced in [Tsonis2008a]_.
-
-        :rtype: 1D Numpy array (index)
-        :return: the local Tsonis clustering sequence.
-        """
-        if self.silence_level <= 1:
-            print("Calculating local Tsonis clustering coefficients...")
-
-        raise NotImplementedError("Method is not implemented yet!")
 
     def local_geographical_clustering(self):
         """
