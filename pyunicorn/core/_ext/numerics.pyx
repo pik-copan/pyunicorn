@@ -36,10 +36,6 @@ ctypedef np.float_t FLOATTYPE_t
 ctypedef np.float32_t FLOAT32TYPE_t
 ctypedef np.float64_t FLOAT64TYPE_t
 
-cdef extern from "stdlib.h":
-    double drand48()
-    double srand48()
-
 cdef extern from "time.h":
     double time()
 
