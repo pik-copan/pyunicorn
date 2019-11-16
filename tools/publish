@@ -47,7 +47,7 @@ repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"; cd $repo
     echo "Destination should be outside of repository." && exit 1
 
 # construct versioned archive name
-version="$(sed -n "s/^__version__ = '\([[:digit:]]\..*\)'$/\1/p" setup.py)"
+version="$(sed -n "s/^__version__ = '\([[:digit:]]\..*\)'$/\1/p" pyunicorn/_version.py)"
 [[ -z $version ]] && echo "Could not determine package version." && exit 2
 package="pyunicorn-"$version; archive=$package".tar.gz"
 [[ -z $dest ]] && dest="$(cd .. && pwd)"/$archive
