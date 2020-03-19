@@ -1011,6 +1011,28 @@ class InteractingNetworks(Network):
         return self._calculate_general_average_path_length(path_lengths,
                                                            internal=True)
 
+    def global_efficiency(self, node_list1, node_list2, link_attribute=None):
+        """
+        Return the global efficiency.
+
+        **Example:**
+
+        >>> r(InteractingNetworks.SmallTestNetwork().\
+                global_efficiency([0,5], [1,2,3,4]))
+        1.7143
+
+        :arg [int] node_list1: list of node indices describing the first
+            subnetwork
+        :arg [int] node_list2: list of node indices describing the second
+            subnetwork
+        :arg str link_attribute: Optional name of the link attribute to be used
+            as the links' length. If None, links have length 1. (Default: None)
+        :return float: the global efficiency.
+        """
+        local_efficiency = self.local_efficiency(node_list1, node_list2,
+                                                 link_attribute)
+        return 1/np.mean(local_efficiency)
+
     #
     #  Define local measures for interacting networks
     #
