@@ -1011,6 +1011,28 @@ class InteractingNetworks(Network):
         return self._calculate_general_average_path_length(path_lengths,
                                                            internal=True)
 
+    def average_cross_closeness(self, node_list1, node_list2,
+                                link_attribute=None):
+        """
+        Return the average cross closeness.
+
+        **Example:**
+
+        >>> r(InteractingNetworks.SmallTestNetwork().\
+                average_cross_closeness([0,5], [1,2,3,4]))
+        1.7143
+
+        :arg [int] node_list1: list of node indices describing the first
+            subnetwork
+        :arg [int] node_list2: list of node indices describing the second
+            subnetwork
+        :arg str link_attribute: Optional name of the link attribute to be used
+            as the links' length. If None, links have length 1. (Default: None)
+        :return float: the average cross closeness.
+        """
+        return np.mean(self.cross_closeness(node_list1, node_list2,
+                                            link_attribute))
+
     def global_efficiency(self, node_list1, node_list2, link_attribute=None):
         """
         Return the global efficiency.

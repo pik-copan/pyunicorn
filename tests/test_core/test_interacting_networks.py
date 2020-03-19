@@ -247,6 +247,13 @@ def test_internal_average_path_length():
     exp = 1.0
     assert np.isclose(res, exp, atol=1e-04)
 
+def test_average_cross_closeness():
+    net = InteractingNetworks.SmallTestNetwork()
+
+    res = net.average_cross_closeness([0, 5], [1, 2, 3, 4])
+    exp = 0.5333
+    assert np.isclose(res, exp, atol=1e-04)
+
 def test_global_efficiency():
     net = InteractingNetworks.SmallTestNetwork()
 
