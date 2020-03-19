@@ -646,6 +646,31 @@ class InteractingNetworks(Network):
         else:
             return n_links // 2
 
+    def cross_degree_density(self, node_list1, node_list2):
+        """
+        Return the density of degrees, i.e., the cross degree sequence of the
+        first subnetwork normalized to the number of nodes in the second
+        subnetwork
+
+        **Example:**
+
+        >>> InteractingNetworks.SmallTestNetwork().\
+                cross_degree_density([0,3,5], [1,2,4])
+        array([0.33333333, 0.33333333, 0.        ])
+
+        :arg [int] node_list1: list of node indices describing the first
+                               subnetwork
+
+        :arg [int] node_list2: list of node indices describing the second
+                               subnetwork
+
+        :rtype: 1D array [node index]
+        :return: the cross degree sequence.
+        """
+
+        N2 = len(node_list2)
+        return self.cross_degree(node_list1, node_list2) / N2
+
     def cross_link_density(self, node_list1, node_list2):
         """
         Return the density of links between two subnetworks.

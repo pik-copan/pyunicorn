@@ -126,6 +126,13 @@ def test_number_internal_links():
     exp = 3
     assert res == exp
 
+def test_cross_degree_density():
+    net = InteractingNetworks.SmallTestNetwork()
+
+    res = net.cross_degree_density([0, 3, 5], [1, 2, 4])
+    exp = np.array([0.33333333, 0.33333333, 0.])
+    assert np.allclose(res, exp, atol=1e-04)
+
 def test_cross_link_density():
     net = InteractingNetworks.SmallTestNetwork()
 
