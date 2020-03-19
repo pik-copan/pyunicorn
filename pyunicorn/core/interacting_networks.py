@@ -1445,6 +1445,29 @@ class InteractingNetworks(Network):
         return self.interregional_betweenness(sources=node_list,
                                               targets=node_list)
 
+    def local_efficiency(self, node_list1, node_list2, link_attribute=None):
+        """
+        Return the local efficiency sequence for an induced subnetwork.
+
+        **Example:**
+
+        >>> InteractingNetworks.SmallTestNetwork().\
+                local_efficiency([0,5], [1,2,3,4])
+        array([0.75      , 0.41666667])
+
+        :arg [int] node_list1: list of node indices describing the first
+            subnetwork
+        :arg [int] node_list2: list of node indices describing the second
+            subnetwork
+        :arg str link_attribute: Optional name of the link attribute to be used
+            as the links' length. If None, links have length 1. (Default: None)
+        :rtype: 1D arrays [index]
+        :return: the local efficiency sequence.
+        """
+        path_lengths = self.cross_path_lengths(node_list1, node_list2,
+                                               link_attribute)
+        return np.mean(1/path_lengths, axis=1)
+
     def nsi_cross_degree(self, node_list1, node_list2):
         """
         Return the n.s.i. cross-degree for a pair of induced subnetworks.

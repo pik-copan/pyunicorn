@@ -371,6 +371,13 @@ def test_internal_betweenness():
     exp = np.array([9., 3., 0., 2., 6., 0.])
     assert np.allclose(res, exp, atol=1e-04)
 
+def test_local_efficiency():
+    net = InteractingNetworks.SmallTestNetwork()
+
+    res = net.local_efficiency([0, 5], [1, 2, 3, 4])
+    exp = np.array([0.75, 0.41666667])
+    assert np.allclose(res, exp, atol=1e-04)
+
 def test_nsi_cross_degree():
     net = InteractingNetworks.SmallTestNetwork()
 
