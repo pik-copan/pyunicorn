@@ -624,6 +624,27 @@ class InteractingNetworks(Network):
 
         return self.cross_adjacency(node_list1, node_list2).sum()
 
+    def total_cross_degree(self, node_list1, node_list2):
+        """
+        Return the total cross degree of the two subnetworks.
+
+        **Examples:**
+
+        >>> InteractingNetworks.SmallTestNetwork().\
+                toal_cross_degree([0,3,5], [1,2,4])
+        1.0
+        >>> InteractingNetworks.SmallTestNetwork().\
+                total_cross_degree([0,5], [1,2,3,4]).round(4)
+        0.6667
+
+        :arg [int] node_list1: list of node indices describing the first
+            subnetwork
+        :arg [int] node_list2: list of node indices describing the second
+            subnetwork
+        :return int: the total cross degree.
+        """
+        return np.mean(self.cross_degree(node_list1, node_list2))
+
     def number_internal_links(self, node_list):
         """
         Return the number of links within an induced subnetwork.

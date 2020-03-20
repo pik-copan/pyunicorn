@@ -115,6 +115,17 @@ def test_number_cross_links():
     exp = 2
     assert res == exp
 
+def test_total_cross_degree():
+    net = InteractingNetworks.SmallTestNetwork()
+
+    res = net.total_cross_degree([0, 3, 5], [1, 2, 4])
+    exp = 0.6667
+    assert np.isclose(res, exp, atol=1e-04)
+
+    res = net.total_cross_degree([0, 5], [1, 2, 3, 4])
+    exp = 1.0
+    assert np.isclose(res, exp, atol=1e-04)
+
 def test_number_internal_links():
     net = InteractingNetworks.SmallTestNetwork()
 
