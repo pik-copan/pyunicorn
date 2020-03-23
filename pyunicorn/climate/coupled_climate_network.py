@@ -311,6 +311,17 @@ class CoupledClimateNetwork(InteractingNetworks, ClimateNetwork):
                                node_list2=self.nodes_2,
                                link_attribute=link_attribute)
 
+    def cross_link_distance(self):
+        """
+        Return cross link distance matrix.
+
+        Contains the distance between nodes from different layers.
+
+        :rtype: 2D array [index_1, index_2]
+        :return: the cross link distance matrix.
+        """
+        return self.distance()[self.nodes_1, :][:, self.nodes_2]
+
     #
     #  Define scalar coupled network statistics
     #
@@ -425,6 +436,21 @@ class CoupledClimateNetwork(InteractingNetworks, ClimateNetwork):
         ct_21 = InteractingNetworks.cross_transitivity(
             self, node_list1=self.nodes_2, node_list2=self.nodes_1)
         return (ct_12, ct_21)
+
+    def cross_average_link_distance(self):
+        """
+        Return the cross average link distance
+
+        The cross average link distance is the average link distance of each
+        node of the first subnetwork to the nodes of the second subnetwork
+        it is connected to.
+
+        :rtype: 1D Numpy array
+        :return: the cross average link distances
+        """
+        adj = self.cross_layer_adjacency()
+        cld = self.cross_link_distance()
+        return np.sum(adj*cld, axis=1) / np.sum(adj, axis=1)
 
     def cross_average_path_length(self, link_attribute=None):
         """
