@@ -441,6 +441,89 @@ class RecurrencePlot:
         _embed_time_series(n_time, dim, tau, time_series, embedding)
         return embedding
 
+    def permutation_entropy(self, normalize=True):
+        """
+        Returns the permutation entropy for an embedded time series.
+        An embedding of 3 <= embedding dimension <= 7 is recommended for this
+        method.
+
+        Reference: [Bandt2002]_
+
+        :rtype: double
+        :return: Permutation entropy of the embedded time series
+        """
+        if self.dim is None or self.tau is None:
+            raise ValueError("Permutation Entropy only works for "
+                             "one-dimensional embedded time series!")
+
+        # Calculate order from embedding
+        temp = self.embedding.argsort(axis=1)
+        ranks = temp.argsort(axis=1)
+
+        # Calculate probability distribution
+        P = np.unique(ranks, return_counts=True, axis=0)[1]
+        P = P / ranks.shape[0]
+
+        entropy = abs(-(P*np.log2(P)).sum())
+        if normalize:
+            entropy = entropy / np.log2(np.math.factorial(self.dim))
+
+        return entropy
+
+    def complexity_entropy(self):
+        """
+        Returns the complexity entropy for each dimension of the time series.
+
+        Reference: [Ribeiro2011]_
+
+        :rtype: double
+        :return: Complexity entropy of the embedded time series
+        """
+
+        if self.dim is None or self.tau is None:
+            raise ValueError("Complexity Entropy only works for "
+                             "one-dimensional embedded time series!")
+
+        # Calculate ranks from embedding
+        temp = self.embedding.argsort(axis=1)
+        ranks = temp.argsort(axis=1)
+
+        # Calculate probability distribution
+        P = np.unique(ranks, return_counts=True, axis=0)[1]
+        P = P / ranks.shape[0]
+
+        # Calculate factorial of embedding dimension
+        d_fac = np.math.factorial(self.dim)
+
+        # Calculate permutation entropy
+        S_P = abs(-(P*np.log2(P)).sum())
+
+        # Initialize unit probability distribution
+        P_e = np.ones(d_fac) / d_fac
+
+        # Calculate permutation entropy of unit probability distribution
+        S_Pe = abs(-(P_e*np.log2(P_e)).sum())
+
+        # Calculate combined probability distribution
+        P_comb = np.zeros(d_fac)
+        P_comb[:len(P)] = P
+        P_comb = (P_comb + P_e) / 2
+
+        # Calculate permutation entropy of combinded probability distribution
+        S_PPe = abs(-(P_comb*np.log2(P_comb)).sum())
+
+        # Calculation of maximum Q split into several steps for
+        # readability
+        Q_max = (d_fac + 1) / d_fac * np.log2(d_fac + 1)
+        Q_max = Q_max - 2*np.log2(2*d_fac) + np.log2(d_fac)
+        Q_max = - Q_max / 2
+
+        Q = (S_PPe - S_P/2 - S_Pe/2) / Q_max
+
+        complexity_entropy = Q * S_P / np.log2(d_fac)
+
+        return complexity_entropy
+
     #
     #  Calculate recurrence plot
     #
