@@ -437,20 +437,29 @@ class CoupledClimateNetwork(InteractingNetworks, ClimateNetwork):
             self, node_list1=self.nodes_2, node_list2=self.nodes_1)
         return (ct_12, ct_21)
 
-    def cross_average_link_distance(self):
+    def cross_average_link_distance(self, reverse=False):
         """
         Return the cross average link distance
 
         The cross average link distance is the average link distance of each
         node of the first subnetwork to the nodes of the second subnetwork
-        it is connected to.
+        it is connected to. If reverse is set to True, the method calculates
+        the average link distance of each node of the second subnetwork to the
+        nodes of the first subnetwork.
 
+        :arg bool reverse: Replace the subnetworks.
+            
         :rtype: 1D Numpy array
         :return: the cross average link distances
         """
+        if reverse:
+            ax = 0
+        else:
+            ax = 1
+
         adj = self.cross_layer_adjacency()
         cld = self.cross_link_distance()
-        return np.sum(adj*cld, axis=1) / np.sum(adj, axis=1)
+        return np.sum(adj*cld, axis=ax) / np.sum(adj, axis=ax)
 
     def cross_average_path_length(self, link_attribute=None):
         """
