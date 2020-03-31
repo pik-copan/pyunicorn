@@ -448,7 +448,7 @@ class CoupledClimateNetwork(InteractingNetworks, ClimateNetwork):
         nodes of the first subnetwork.
 
         :arg bool reverse: Replace the subnetworks.
-            
+
         :rtype: 1D Numpy array
         :return: the cross average link distances
         """

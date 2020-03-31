@@ -83,10 +83,10 @@ using ``Sphinx``::
 
 Dependencies
 ------------
-``pyunicorn`` is written in Python 3.7. The software is quite flexible, we have
-it running on Linux and MacOSX machines, the institute's IBM iDataPlex cluster
-and even on Windows. It relies on the following open source or freely available
-packages which have to be installed on your machine.
+``pyunicorn`` is written in Python 3.7. The software is written and tested
+on Linux. It should work on other systems but installation might be more complicated
+(see instructions below). ``pyunicorn`` relies on the following open source or freely
+available packages which have to be installed on your machine.
 
 Required:
   - `Numpy <http://www.numpy.org/>`_ 1.14+
@@ -117,23 +117,39 @@ libraries.
 
 Installation
 ------------
-**Stable release**
-    Via the Python Package Index::
+Before the installation of ``pyunicorn`` we recommend that you make sure that 
+the required dependencies are installed. Afterwards, the package can be installed 
+following the instructions below.
+
+**Linux**
+
+On Linux ``pyunicorn`` can simply be installed via the Python Package Index::
 
         $> pip install pyunicorn
 
-**Development version**
-    For a simple system-wide installation::
+**MacOSX**
 
-        $> pip install -r requirements.txt .
+We did not test the current version of pyunicorn with MacOSX. However, we would
+expect that the same installation procedure as for Linux systems might work
+as MacOSX is also UNIX based.
 
-    Depending on your system, you may need root privileges. On UNIX-based
-    operating systems (Linux, Mac OS X etc.) this is achieved with ``sudo``.
+**Windows**
 
-    For development, especially if you want to test ``pyunicorn`` from within
-    the source directory::
+Unfortunately,``pyunicorn`` does not work with the Microsoft Visual Studio
+C-Compiler but only with the GNU Compiler gcc. The following installation 
+procedure using `Anaconda <https://www.anaconda.com/distribution/>`_ was found
+to work on a Windows 10 machine:
+Open an Anaconda prompt and install the Minimalist GNU Compiler Toolchain by 
+typing::
 
-        $> pip install -r requirements.txt --user -e .
+    $> conda install libpython m2w64-toolchain -c msys2
+
+Download the zip-files of ``pyunicorn`` from the repository. Open the file
+pyunicorn/core/_ext/numerics.pyx and exchange "srand48()" with "srand()" and
+"drand48()" with "rand()". Finally, install ``pyunicorn`` with::
+
+    $> python setup.py install
+
 
 Test suite
 ----------
