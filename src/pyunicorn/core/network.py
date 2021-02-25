@@ -1928,7 +1928,7 @@ class Network:
         :arg str key: link attribute key [optional]
         """
         assert key is None, "nsi_bildegree is not implemented with key yet"
-        res = (self.sp_Aplus() * self.sp_Aplus()).diagonal() * self.node_weights
+        res = (self.sp_Aplus() * sp.diags(self.node_weights) * self.sp_Aplus()).diagonal() 
         if typical_weight is None:
             return res
         else:
