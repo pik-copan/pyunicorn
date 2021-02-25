@@ -40,7 +40,7 @@ To Do
 import os
 import sys
 
-from setup import __version__
+#from setup import __version__  # FIXME: this was commented out to avoid the "No module named 'setup'" error on import.
 
 from .utils import mpi
 from .core import *

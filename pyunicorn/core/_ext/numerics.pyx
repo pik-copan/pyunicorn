@@ -508,7 +508,7 @@ def _nsi_betweenness(
         #iterate through all neighbors l of i
         oi = offsets[i]
         for l_index in range(oi, oi+k[i]):
-            # if on a shortes j-l-path, register i as predecessor of l
+            # if on a shortest j-l-path, register i as predecessor of l
             l = flat_neighbors[l_index]
             dl = distances_to_j[l]
             if dl >= next_d:
