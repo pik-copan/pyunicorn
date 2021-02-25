@@ -104,6 +104,9 @@ def cached_var(cat, msg=None):
     """
     Cache result of decorated method in a variable subdict of
     :attr:`self.cache`, specified as first argument to the decorated method.
+    
+    FIXME: if decorated method's return value depends on arguments, 
+    this cached value might be wrong!!
     """
     def wrapper(func):
         @wraps(func)
@@ -1454,6 +1457,8 @@ class Network:
 
         :rtype: square array([[float]])
         """
+        if self.directed:
+            raise NotImplementedError("Not implemented for directed networks.")
         return (self.sp_nsi_diag_k() - self.sp_Aplus() * self.sp_diag_w()).A
 
     #
@@ -1767,7 +1772,7 @@ class Network:
             w = self.link_attribute(key)
             return (w @ w).diagonal()
 
-    @cached_var('nsi_degree', 'n.s.i. degree')
+#    @cached_var('nsi_degree', 'n.s.i. degree')
     def nsi_degree_uncorr(self, key=None):
         """
         For each node, return its uncorrected n.s.i. degree.
@@ -1840,8 +1845,8 @@ class Network:
         else:
             return self.nsi_degree_uncorr(key)/typical_weight - 1.0
 
-    @cached_var('nsi_indegree')
-    def nsi_indegree(self, key=None):
+#    @cached_var('nsi_indegree')
+    def nsi_indegree(self, key=None, typical_weight=None):
         """
         For each node, return its n.s.i. indegree
 
@@ -1867,13 +1872,17 @@ class Network:
         :arg str key: link attribute key [optional]
         """
         if key is None:
-            return self.node_weights * self.sp_Aplus()
+            res = self.node_weights * self.sp_Aplus()
         else:
             w = self.link_attribute(key)
-            return (self.node_weights @ w).squeeze()
+            res = (self.node_weights @ w).squeeze()
+        if typical_weight is None:
+            return res
+        else:
+            return res/typical_weight - 1.0
 
-    @cached_var('nsi_outdegree')
-    def nsi_outdegree(self, key=None):
+#    @cached_var('nsi_outdegree')
+    def nsi_outdegree(self, key=None, typical_weight=None):
         """
         For each node, return its n.s.i.outdegree
 
@@ -1899,10 +1908,32 @@ class Network:
         :arg str key: link attribute key [optional]
         """
         if key is None:
-            return self.sp_Aplus() * self.node_weights
+            res = self.sp_Aplus() * self.node_weights
         else:
             w = self.link_attribute(key)
-            return (w @ self.node_weights.transpose()).transpose().squeeze()
+            res = (w @ self.node_weights.transpose()).transpose().squeeze()
+        if typical_weight is None:
+            return res
+        else:
+            return res/typical_weight - 1.0
+
+#    @cached_var('nsi_outdegree')
+    def nsi_bildegree(self, key=None, typical_weight=None):
+        """
+        For each node, return its n.s.i.bilateraldegree
+
+        If a link attribute key is specified, return the associated nsi bilateral
+        strength
+
+        :arg str key: link attribute key [optional]
+        """
+        assert key is None, "nsi_bildegree is not implemented with key yet"
+        res = (self.sp_Aplus() * self.sp_Aplus()).diagonal() * self.node_weights
+        if typical_weight is None:
+            return res
+        else:
+            return res/typical_weight - 1.0
+
 
     @cached_const('base', 'degree df', 'the degree frequency distribution')
     def degree_distribution(self):
@@ -2009,8 +2040,8 @@ class Network:
         return self._cum_histogram(values=ko, n_bins=ko.max() + 1)[0]
 
     # FIXME: should rather return the weighted distribution!
-    @cached_const('nsi', 'degree hist', 'a n.s.i. degree frequency histogram')
-    def nsi_degree_histogram(self):
+#    @cached_const('nsi', 'degree hist', 'a n.s.i. degree frequency histogram')
+    def nsi_degree_histogram(self, typical_weight=None):
         """
         Return a frequency (!) histogram of n.s.i. degree.
 
@@ -2025,14 +2056,14 @@ class Network:
         :rtype:  tuple (list,list)
         :return: List of frequencies and list of lower bin bounds.
         """
-        nsi_k = self.nsi_degree()
+        nsi_k = self.nsi_degree(typical_weight=typical_weight)
         return self._histogram(values=nsi_k,
                                n_bins=int(nsi_k.max()/nsi_k.min()) + 1)
 
     # FIXME: should rather return the weighted distribution!
-    @cached_const('nsi', 'degree hist',
-                  'a cumulative n.s.i. degree frequency histogram')
-    def nsi_degree_cumulative_histogram(self):
+#    @cached_const('nsi', 'degree hist',
+#                  'a cumulative n.s.i. degree frequency histogram')
+    def nsi_degree_cumulative_histogram(self, typical_weight=None):
         """
         Return a cumulative frequency (!) histogram of n.s.i. degree.
 
@@ -2046,7 +2077,7 @@ class Network:
         :rtype:  tuple (list,list)
         :return: List of cumulative frequencies and list of lower bin bounds.
         """
-        nsi_k = self.nsi_degree()
+        nsi_k = self.nsi_degree(typical_weight=typical_weight)
         return self._cum_histogram(values=nsi_k,
                                    n_bins=int(nsi_k.max()/nsi_k.min()) + 1)
 
@@ -2123,6 +2154,7 @@ class Network:
         # A+ * (Dw * k) is faster than (A+ * Dw) * k
         nsi_k = self.nsi_degree()
         return self.sp_Aplus() * (self.sp_diag_w() * nsi_k) / nsi_k
+        # TODO: enable correction by typical_weight
 
     @cached_const('nsi', 'max nbr degree', "n.s.i. maximum neighbour degree")
     def nsi_max_neighbors_degree(self):
@@ -2152,6 +2184,7 @@ class Network:
         self.nsi_degree()
         # matrix with the degrees of nodes' neighbours as rows
         return (self.sp_Aplus() * self.sp_nsi_diag_k()).max(axis=1).T.A[0]
+        # TODO: enable correction by typical_weight
 
     #
     #   Measures of clustering, transitivity and cliquishness
@@ -2199,7 +2232,7 @@ class Network:
         """
         return self.local_clustering().mean()
 
-    def _motif_clustering_helper(self, t_func, T, key=None, nsi=False):
+    def _motif_clustering_helper(self, t_func, T, key=None, nsi=False, typical_weight=None, ksum=None):
         """
         Helper function to compute the local motif clustering coefficients.
         For each node, returns a specific clustering coefficient, depending
@@ -2224,9 +2257,14 @@ class Network:
         t = t_func(A, AT).diagonal()
         T = T.astype(float)
         T[T == 0] = np.nan
-        C = t / (self.node_weights * T) if nsi else t / T
-        C[np.isnan(C)] = 0
-        return C
+        if typical_weight is None:
+            C = t / (self.node_weights * T) if nsi else t / T
+            C[np.isnan(C)] = 0
+            return C
+        else:
+            bilk = self.nsi_bildegree(typical_weight=typical_weight)
+            numerator = t / self.node_weights
+            return (numerator/typical_weight**2 - 3.0*bilk - 1.0) / (T - ksum/typical_weight - bilk + 2)
 
     @cached_var('local cyclemotif', 'local cycle motif clustering coefficient')
     def local_cyclemotif_clustering(self, key=None):
@@ -2320,9 +2358,9 @@ class Network:
         T = self.outdegree() * (self.outdegree() - 1)
         return self._motif_clustering_helper(t_func, T, key=key)
 
-    @cached_var('nsi local cyclemotif',
-                'local nsi cycle motif clustering coefficient')
-    def nsi_local_cyclemotif_clustering(self, key=None):
+#    @cached_var('nsi local cyclemotif',
+#                'local nsi cycle motif clustering coefficient')
+    def nsi_local_cyclemotif_clustering(self, key=None, typical_weight=None):
         """
         For each node, return the nsi clustering coefficient with respect to
         the cycle motif.
@@ -2356,12 +2394,15 @@ class Network:
         """
         def t_func(x, xT):
             return x * x * x
-        T = self.nsi_indegree() * self.nsi_outdegree()
-        return self._motif_clustering_helper(t_func, T, key=key, nsi=True)
+        ink = self.nsi_indegree(typical_weight=typical_weight)
+        outk = self.nsi_outdegree(typical_weight=typical_weight)
+        T = ink * outk
+        ksum = ink + outk
+        return self._motif_clustering_helper(t_func, T, key=key, nsi=True, typical_weight=typical_weight, ksum=ksum)
 
-    @cached_var('nsi local midemotif',
-                'local nsi mid. motif clustering coefficient')
-    def nsi_local_midmotif_clustering(self, key=None):
+#    @cached_var('nsi local midemotif',
+#                'local nsi mid. motif clustering coefficient')
+    def nsi_local_midmotif_clustering(self, key=None, typical_weight=None):
         """
         For each node, return the nsi clustering coefficient with respect to
         the mid motif.
@@ -2395,12 +2436,15 @@ class Network:
         """
         def t_func(x, xT):
             return x * xT * x
-        T = self.nsi_indegree() * self.nsi_outdegree()
-        return self._motif_clustering_helper(t_func, T, key=key, nsi=True)
+        ink = self.nsi_indegree(typical_weight=typical_weight)
+        outk = self.nsi_outdegree(typical_weight=typical_weight)
+        T = ink * outk
+        ksum = ink + outk
+        return self._motif_clustering_helper(t_func, T, key=key, nsi=True, typical_weight=typical_weight, ksum=ksum)
 
-    @cached_var('nsi local inemotif',
-                'local nsi in motif clustering coefficient')
-    def nsi_local_inmotif_clustering(self, key=None):
+#    @cached_var('nsi local inemotif',
+#                'local nsi in motif clustering coefficient')
+    def nsi_local_inmotif_clustering(self, key=None, typical_weight=None):
         """
         For each node, return the nsi clustering coefficient with respect to
         the in motif.
@@ -2435,12 +2479,14 @@ class Network:
         """
         def t_func(x, xT):
             return xT * x * x
-        T = self.nsi_indegree()**2
-        return self._motif_clustering_helper(t_func, T, key=key, nsi=True)
+        ink = self.nsi_indegree(typical_weight=typical_weight)
+        T = ink**2
+        ksum = ink * 2
+        return self._motif_clustering_helper(t_func, T, key=key, nsi=True, typical_weight=typical_weight, ksum=ksum)
 
-    @cached_var('nsi local outemotif',
-                'local nsi out motif clustering coefficient')
-    def nsi_local_outmotif_clustering(self, key=None):
+#    @cached_var('nsi local outemotif',
+#                'local nsi out motif clustering coefficient')
+    def nsi_local_outmotif_clustering(self, key=None, typical_weight=None):
         """
         For each node, return the nsi clustering coefficient with respect to
         the out motif.
@@ -2474,8 +2520,10 @@ class Network:
         """
         def t_func(x, xT):
             return x * x * xT
-        T = self.nsi_outdegree()**2
-        return self._motif_clustering_helper(t_func, T, key=key, nsi=True)
+        outk = self.nsi_outdegree(typical_weight=typical_weight)
+        T = outk**2
+        ksum = outk * 2
+        return self._motif_clustering_helper(t_func, T, key=key, nsi=True, typical_weight=typical_weight, ksum=ksum)
 
     @cached_const('base', 'transitivity', 'transitivity coefficient (C_1)')
     def transitivity(self):
@@ -3340,6 +3388,9 @@ class Network:
         This is the load on this node from the eigenvector corresponding to the
         largest eigenvalue of the n.s.i. adjacency matrix, divided by
         sqrt(node weight) and normalized to a maximum of 1.
+        
+        For a directed network, this uses the right eigenvectors. To get the 
+        values for the left eigenvectors, apply this to the inverse network!  
 
         **Example:**
 
