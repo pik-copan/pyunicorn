@@ -40,7 +40,8 @@ To Do
 import os
 import sys
 
-from setup import __version__
+with open(os.path.join(sys.path[0], 'VERSION'),"rt") as fd:
+    __version__ = fd.readline().strip()
 
 from .utils import mpi
 from .core import *
