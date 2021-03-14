@@ -14,7 +14,7 @@
 # and J. Kurths, "Unified functional network and nonlinear time series analysis
 # for complex systems science: The pyunicorn package"
 
-
+import os
 from setuptools import setup
 from setuptools.extension import Extension
 
@@ -30,7 +30,8 @@ except ImportError:
 # -----------------------------------------------------------------------------
 
 
-__version__ = '0.6.1'
+with open(os.path.join(sys.path[0], "pyunicorn", 'VERSION'),"rt") as fd:
+    __version__ = fd.readline().strip()
 
 
 # -----------------------------------------------------------------------------
