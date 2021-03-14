@@ -40,7 +40,10 @@ To Do
 import os
 import sys
 
-with open(os.path.join(sys.path[0], 'VERSION'),"rt") as fd:
+__location__ = os.path.realpath(
+    os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
+with open(os.path.join(__location__, "pyunicorn", 'VERSION'),"rt") as fd:
     __version__ = fd.readline().strip()
 
 from .utils import mpi
