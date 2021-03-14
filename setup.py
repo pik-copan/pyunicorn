@@ -90,6 +90,8 @@ def main():
                   'pyunicorn.eventseries', 'pyunicorn.utils',
                   'pyunicorn.utils.progressbar'],
         scripts=[],
+        package_data={'pyunicorn': ['pyunicorn/VERSION']},
+        include_package_data=True,
         ext_modules=extensions,
         install_requires=open('requirements.txt', 'r').read().split('\n'),
         platforms=['all']
