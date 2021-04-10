@@ -122,6 +122,9 @@ Installation
 
         $> pip install pyunicorn
 
+    To install pyunicorn on Fedora OS, use:
+        $> dnf install python3-pyunicorn
+
 **Development version**
     For a simple system-wide installation::
 
