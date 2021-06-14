@@ -17,6 +17,7 @@
 
 from setuptools import setup
 from setuptools.extension import Extension
+import imp
 
 import numpy as np
 
@@ -29,11 +30,7 @@ except ImportError:
 
 # -----------------------------------------------------------------------------
 
-
-__version__ = '0.6.1'
-
-
-# -----------------------------------------------------------------------------
+__version__ = imp.load_source("", "pyunicorn/__init__.py").__version__
 
 
 def main():

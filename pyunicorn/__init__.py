@@ -40,14 +40,13 @@ To Do
 import os
 import sys
 
-from setup import __version__
-
-from .utils import mpi
-from .core import *
+from pyunicorn.utils import mpi
+from pyunicorn.core import *
 
 sys.path.insert(0, os.path.abspath('../..'))
 
 
+__version__ = '0.6.1'
 __author__ = "Jonathan F. Donges <donges@pik-potsdam.de>"
 __copyright__ = \
     "Copyright (C) 2008-2019 Jonathan F. Donges and pyunicorn authors"
