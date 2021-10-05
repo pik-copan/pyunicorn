@@ -29,8 +29,8 @@ import numpy as np
 #  Import climate_network for ClimateNetwork class
 from .climate_network import ClimateNetwork
 
-#  Import grid for Grid class
-from ..core import InteractingNetworks, GeoNetwork, Grid
+#  Import grid for GeoGrid class
+from ..core import InteractingNetworks, GeoNetwork, GeoGrid
 
 
 #
@@ -73,11 +73,11 @@ class CoupledClimateNetwork(InteractingNetworks, ClimateNetwork):
           - "surface" (cos lat)
           - "irrigation" (cos**2 lat)
 
-        :type grid_1: :class:`.Grid`
-        :arg  grid_1: The Grid object describing the first layer's spatial
+        :type grid_1: :class:`.GeoGrid`
+        :arg  grid_1: The GeoGrid object describing the first layer's spatial
             embedding.
-        :type grid_2: :class:`.Grid`
-        :arg  grid_2: The Grid object describing the second layer's spatial
+        :type grid_2: :class:`.GeoGrid`
+        :arg  grid_2: The GeoGrid object describing the second layer's spatial
             embedding.
         :type similarity_measure: 2D array [index, index]
         :arg similarity_measure: The similarity measure for all pairs of nodes.
@@ -94,10 +94,10 @@ class CoupledClimateNetwork(InteractingNetworks, ClimateNetwork):
         """
         #  Store single grids
         self.grid_1 = grid_1
-        """(Grid) - The Grid object describing the first layer's spatial
+        """(Grid) - The GeoGrid object describing the first layer's spatial
                     embedding."""
         self.grid_2 = grid_2
-        """(Grid) - The Grid object describing the second layer's spatial
+        """(Grid) - The GeoGrid object describing the second layer's spatial
                     embedding."""
 
         #  Construct grid object describing both layers
@@ -110,8 +110,8 @@ class CoupledClimateNetwork(InteractingNetworks, ClimateNetwork):
         lon_2 = grid_2.grid()["lon"]
 
         if len(time_1) == len(time_2):
-            grid = Grid(time_1, np.concatenate((lat_1, lat_2)),
-                        np.concatenate((lon_1, lon_2)))
+            grid = GeoGrid(time_1, np.concatenate((lat_1, lat_2)),
+                           np.concatenate((lon_1, lon_2)))
             #  Set total number of nodes
             self.N = grid.N
             """(number (int)) - The total number of nodes in both layers."""
@@ -311,6 +311,17 @@ class CoupledClimateNetwork(InteractingNetworks, ClimateNetwork):
                                node_list2=self.nodes_2,
                                link_attribute=link_attribute)
 
+    def cross_link_distance(self):
+        """
+        Return cross link distance matrix.
+
+        Contains the distance between nodes from different layers.
+
+        :rtype: 2D array [index_1, index_2]
+        :return: the cross link distance matrix.
+        """
+        return self.distance()[self.nodes_1, :][:, self.nodes_2]
+
     #
     #  Define scalar coupled network statistics
     #
@@ -425,6 +436,30 @@ class CoupledClimateNetwork(InteractingNetworks, ClimateNetwork):
         ct_21 = InteractingNetworks.cross_transitivity(
             self, node_list1=self.nodes_2, node_list2=self.nodes_1)
         return (ct_12, ct_21)
+
+    def cross_average_link_distance(self, reverse=False):
+        """
+        Return the cross average link distance
+
+        The cross average link distance is the average link distance of each
+        node of the first subnetwork to the nodes of the second subnetwork
+        it is connected to. If reverse is set to True, the method calculates
+        the average link distance of each node of the second subnetwork to the
+        nodes of the first subnetwork.
+
+        :arg bool reverse: Replace the subnetworks.
+
+        :rtype: 1D Numpy array
+        :return: the cross average link distances
+        """
+        if reverse:
+            ax = 0
+        else:
+            ax = 1
+
+        adj = self.cross_layer_adjacency()
+        cld = self.cross_link_distance()
+        return np.sum(adj*cld, axis=ax) / np.sum(adj, axis=ax)
 
     def cross_average_path_length(self, link_attribute=None):
         """

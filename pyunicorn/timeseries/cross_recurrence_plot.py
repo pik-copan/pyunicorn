@@ -226,11 +226,12 @@ class CrossRecurrencePlot(RecurrencePlot):
         if self.silence_level <= 1:
             print("Calculating the manhattan distance matrix...")
 
+        x_embedded = x_embedded.astype('double')
+        y_embedded = y_embedded.astype('double')
         ntime_x = x_embedded.shape[0]
         ntime_y = y_embedded.shape[0]
         dim = x_embedded.shape[1]
-        x_embedded = x_embedded.astype('double').copy(order='c')
-        y_embedded = y_embedded.astype('double').copy(order='c')
+
         return _manhattan_distance_matrix_crp(ntime_x, ntime_y, dim,
                                               x_embedded, y_embedded)
 
@@ -248,11 +249,12 @@ class CrossRecurrencePlot(RecurrencePlot):
         if self.silence_level <= 1:
             print("Calculating the euclidean distance matrix...")
 
+        x_embedded = x_embedded.astype('double')
+        y_embedded = y_embedded.astype('double')
         ntime_x = x_embedded.shape[0]
         ntime_y = y_embedded.shape[0]
         dim = x_embedded.shape[1]
-        x_embedded = x_embedded.astype('double').copy(order='c')
-        y_embedded = y_embedded.astype('double').copy(order='c')
+
         return _euclidean_distance_matrix_crp(ntime_x, ntime_y, dim,
                                               x_embedded, y_embedded)
 
@@ -270,11 +272,12 @@ class CrossRecurrencePlot(RecurrencePlot):
         if self.silence_level <= 1:
             print("Calculating the supremum distance matrix...")
 
+        x_embedded = x_embedded.astype('float32')
+        y_embedded = y_embedded.astype('float32')
         ntime_x = x_embedded.shape[0]
         ntime_y = y_embedded.shape[0]
         dim = x_embedded.shape[1]
-        x_embedded = x_embedded.astype('float32').copy(order='c')
-        y_embedded = y_embedded.astype('float32').copy(order='c')
+
         return _supremum_distance_matrix_crp(ntime_x, ntime_y, dim, x_embedded,
                                              y_embedded)
 

@@ -40,13 +40,12 @@ To Do
 import os
 import sys
 
-from setup import __version__
+from ._version import __version__
 
 from .utils import mpi
 from .core import *
 
 sys.path.insert(0, os.path.abspath('../..'))
-
 
 __author__ = "Jonathan F. Donges <donges@pik-potsdam.de>"
 __copyright__ = \

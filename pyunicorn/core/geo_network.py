@@ -16,8 +16,7 @@
 # for complex systems science: The pyunicorn package"
 
 """
-Provides classes for analyzing spatially embedded complex networks, handling
-multivariate data and generating time series surrogates.
+Provides class for analyzing complex network embedded on a spherical surface.
 """
 
 # array object and fast numerics
@@ -27,18 +26,15 @@ from numpy import random
 # high performance graph theory tools written in pure ANSI-C
 import igraph
 
-from ._ext.numerics import _randomly_rewire_geomodel_I, \
-        _randomly_rewire_geomodel_II, _randomly_rewire_geomodel_III
-
-from .network import Network, cached_const
-from .grid import Grid
+from .spatial_network import SpatialNetwork
+from .geo_grid import GeoGrid
 
 
 #
-#  Define class ClimateNetwork
+#  Define class GeoNetwork
 #
 
-class GeoNetwork(Network):
+class GeoNetwork(SpatialNetwork):
 
     """
     Encapsulates a network embedded on a spherical surface.
@@ -59,8 +55,9 @@ class GeoNetwork(Network):
         """
         Initialize an instance of GeoNetwork.
 
-        :type grid: :class:`.Grid`
-        :arg grid: The Grid object describing the network's spatial embedding.
+        :type grid: :class:`.GeoGrid`
+        :arg grid: The GeoGrid object describing the network's spatial
+            embedding.
         :type adjacency: 2D array (int8) [index, index]
         :arg adjacency: The network's adjacency matrix.
         :type edge_list: array-like list of lists
@@ -77,12 +74,17 @@ class GeoNetwork(Network):
           - "surface" (cos lat)
           - "irrigation" (cos² lat)
         """
+        if grid.__class__.__name__ != "GeoGrid":
+            raise TypeError("GeoNetwork can only be created with GeoGrid!")
+
         self.grid = grid
-        """(Grid) - Grid object describing the network's spatial embedding"""
+        """(Grid) - GeoGrid object describing the network's spatial
+        embedding"""
 
         #  Call constructor of parent class Network
-        Network.__init__(self, adjacency=adjacency, edge_list=edge_list,
-                         directed=directed, silence_level=silence_level)
+        SpatialNetwork.__init__(self, grid=grid, adjacency=adjacency,
+                                edge_list=edge_list, directed=directed,
+                                silence_level=silence_level)
 
         #  Set area weights
         self.set_node_weight_type(node_weight_type)
@@ -96,7 +98,7 @@ class GeoNetwork(Network):
         """
         Return a string representation of the GeoNetwork object.
         """
-        return (f'GeoNetwork:\n{Network.__str__(self)}\n'
+        return (f'GeoNetwork:\n{SpatialNetwork.__str__(self)}\n'
                 f'Geographical boundaries:\n{self.grid.print_boundaries()}')
 
     def clear_cache(self):
@@ -106,8 +108,7 @@ class GeoNetwork(Network):
         Is reversible, since all cached information can be recalculated from
         basic data.
         """
-        Network.clear_cache(self)
-        self.grid.clear_cache()
+        SpatialNetwork.clear_cache(self)
 
     def set_node_weight_type(self, node_weight_type):
         """
@@ -130,61 +131,81 @@ class GeoNetwork(Network):
         self.node_weight_type = node_weight_type
 
         if node_weight_type == "surface":
-            self.node_weights = self.grid.cos_lat()
+            self._node_weights = self.grid.cos_lat()
         elif node_weight_type == "irrigation":
-            self.node_weights = np.square(self.grid.cos_lat())
+            self._node_weights = np.square(self.grid.cos_lat())
         #  If None or invalid choice:
         else:
-            self.node_weights = None
+            self._node_weights = None
 
     #
     #  Load and save GeoNetwork object
     #
 
-    def save(self, filename_network, filename_grid=None, fileformat=None,
-             *args, **kwds):
+    @staticmethod
+    def Load(filename_network, filename_grid, fileformat=None,
+             silence_level=0, *args, **kwds):
         """
-        Save the GeoNetwork object to files.
+        Return a GeoNetwork object stored in files.
 
-        Unified writing function for graphs. Relies on and partially extends
+        Unified reading function for graphs. Relies on and partially extends
         the corresponding igraph function. Refer to igraph documentation for
-        further details on the various writer methods for different formats.
+        further details on the various reader methods for different formats.
 
         This method tries to identify the format of the graph given in
-        the first parameter (based on extension) and calls the corresponding
-        writer method.
+        the first parameter and calls the corresponding reader method.
 
-        Existing node and link attributes/weights are also stored depending
+        Existing node and link attributes/weights are also restored depending
         on the chosen file format. E.g., the formats GraphML and gzipped
         GraphML are able to store both node and link weights.
 
-        The grid is not stored if the corresponding filename is None.
-
-        The remaining arguments are passed to the writer method without
+        The remaining arguments are passed to the reader method without
         any changes.
 
         :arg str filename_network:  The name of the file where the Network
             object is to be stored.
-        :arg str filename_grid:  The name of the file where the Grid object is
-            to be stored (including ending).
-        :arg str fileformat: the format of the file (if one wants to override
-            the format determined from the filename extension, or the filename
-            itself is a stream). ``None`` means auto-detection.  Possible
-            values are: ``"ncol"`` (NCOL format), ``"lgl"`` (LGL format),
-            ``"graphml"``, ``"graphmlz"`` (GraphML and gzipped GraphML format),
-            ``"gml"`` (GML format), ``"dot"``, ``"graphviz"`` (DOT format, used
-            by GraphViz), ``"net"``, ``"pajek"`` (Pajek format), ``"dimacs"``
-            (DIMACS format), ``"edgelist"``, ``"edges"`` or ``"edge"`` (edge
-            list), ``"adjacency"`` (adjacency matrix), ``"pickle"`` (Python
-            pickled format), ``"svg"`` (Scalable Vector Graphics).
+        :arg str filename_grid:  The name of the file where the GeoGrid object
+            is to be stored (including ending).
+        :arg str fileformat: the format of the file (if known in advance)
+          ``None`` means auto-detection. Possible values are: ``"ncol"`` (NCOL
+          format), ``"lgl"`` (LGL format), ``"graphml"``, ``"graphmlz"``
+          (GraphML and gzipped GraphML format), ``"gml"`` (GML format),
+          ``"net"``, ``"pajek"`` (Pajek format), ``"dimacs"`` (DIMACS format),
+          ``"edgelist"``, ``"edges"`` or ``"edge"`` (edge list),
+          ``"adjacency"`` (adjacency matrix), ``"pickle"`` (Python pickled
+          format).
+        :arg int silence_level: The inverse level of verbosity of the object.
+        :rtype: SpatialNetwork object
+        :return: :class:`GeolNetwork` instance.
         """
-        #  Store network
-        Network.save(self, filename=filename_network, fileformat=fileformat,
-                     *args, **kwds)
+        #  Load Grid object
+        grid = GeoGrid.Load(filename_grid)
+        print(grid.__class__)
 
-        #  Store grid
-        if filename_grid is not None:
-            self.grid.save(filename=filename_grid)
+        #  Load to igraph Graph object
+        graph = igraph.Graph.Read(f=filename_network, format=fileformat,
+                                  *args, **kwds)
+
+        #  Extract adjacency matrix
+        A = np.array(graph.get_adjacency(type=2).data)
+
+        #  Create GeoNetwork instance
+        net = GeoNetwork(adjacency=A, grid=grid,
+                         directed=graph.is_directed())
+
+        #  Extract node weights
+        if "node_weight_nsi" in graph.vs.attribute_names():
+            node_weights = \
+                np.array(graph.vs.get_attribute_values("node_weight_nsi"))
+            net.node_weights = node_weights
+
+        #  Overwrite igraph Graph object in Network instance to restore link
+        #  attributes/weights
+        net.graph = graph
+        #  Restore link attributes/weights
+        net.clear_paths_cache()
+
+        return net
 
     def save_for_cgv(self, filename, fileformat="graphml"):
         """
@@ -220,70 +241,6 @@ class GeoNetwork(Network):
             print("ERROR: the chosen format is not supported by save_for_cgv "
                   "for use with the CGV software.")
 
-    @staticmethod
-    def Load(filename_network, filename_grid, fileformat=None,
-             silence_level=0, *args, **kwds):
-        """
-        Return a GeoNetwork object stored in files.
-
-        Unified reading function for graphs. Relies on and partially extends
-        the corresponding igraph function. Refer to igraph documentation for
-        further details on the various reader methods for different formats.
-
-        This method tries to identify the format of the graph given in
-        the first parameter and calls the corresponding reader method.
-
-        Existing node and link attributes/weights are also restored depending
-        on the chosen file format. E.g., the formats GraphML and gzipped
-        GraphML are able to store both node and link weights.
-
-        The remaining arguments are passed to the reader method without
-        any changes.
-
-        :arg str filename_network:  The name of the file where the Network
-            object is to be stored.
-        :arg str filename_grid:  The name of the file where the Grid object is
-            to be stored (including ending).
-        :arg str fileformat: the format of the file (if known in advance)
-          ``None`` means auto-detection. Possible values are: ``"ncol"`` (NCOL
-          format), ``"lgl"`` (LGL format), ``"graphml"``, ``"graphmlz"``
-          (GraphML and gzipped GraphML format), ``"gml"`` (GML format),
-          ``"net"``, ``"pajek"`` (Pajek format), ``"dimacs"`` (DIMACS format),
-          ``"edgelist"``, ``"edges"`` or ``"edge"`` (edge list),
-          ``"adjacency"`` (adjacency matrix), ``"pickle"`` (Python pickled
-          format).
-        :arg int silence_level: The inverse level of verbosity of the object.
-        :rtype: GeoNetwork object
-        :return: :class:`GeoNetwork` instance.
-        """
-        #  Load Grid object
-        grid = Grid.Load(filename_grid)
-
-        #  Load to igraph Graph object
-        graph = igraph.Graph.Read(f=filename_network, format=fileformat,
-                                  *args, **kwds)
-
-        #  Extract adjacency matrix
-        A = np.array(graph.get_adjacency(type=2).data)
-
-        #  Create GeoNetwork instance
-        net = GeoNetwork(adjacency=A, grid=grid, directed=graph.is_directed(),
-                         node_weight_type=None)
-
-        #  Extract node weights
-        if "node_weight_nsi" in graph.vs.attribute_names():
-            node_weights = \
-                np.array(graph.vs.get_attribute_values("node_weight_nsi"))
-            net.node_weights = node_weights
-
-        #  Overwrite igraph Graph object in Network instance to restore link
-        #  attributes/weights
-        net.graph = graph
-        #  Restore link attributes/weights
-        net.clear_paths_cache()
-
-        return net
-
     #
     #  Graph generation methods
     #
@@ -294,7 +251,7 @@ class GeoNetwork(Network):
         Return a 6-node undirected geographically embedded test network.
 
         The test network consists of the SmallTestNetwork of the Network class
-        with node coordinates given by the SmallTestGrid of the Grid class.
+        with node coordinates given by the SmallTestGrid of the GeoGrid class.
 
         The network looks like this::
 
@@ -305,391 +262,25 @@ class GeoNetwork(Network):
         :rtype: GeoNetwork instance
         :return: an instance of GeoNetwork for testing purposes.
         """
-        return GeoNetwork(adjacency=Network.SmallTestNetwork().adjacency,
-                          grid=Grid.SmallTestGrid(),
+        return GeoNetwork(grid=GeoGrid.SmallTestGrid(),
+                          adjacency=SpatialNetwork.SmallTestNetwork()
+                          .adjacency,
                           directed=False, node_weight_type="surface",
                           silence_level=2)
 
     @staticmethod
-    def ErdosRenyi(grid, n_nodes, link_probability=None, n_links=None,
-                   node_weight_type="surface", silence_level=0):
+    def Model(network_model, grid, node_weight_type="surface", **kwargs):
         """
-        Generates an undirected and spatially embedded Erdos-Renyi random graph
-
-        Any pair of nodes is connected with probability :math:`p`.
-
-        **Example:**
-
-        >>> print(GeoNetwork.ErdosRenyi(
-        ...     grid=Grid.SmallTestGrid(), n_nodes=6, n_links=5))
-        Generating Erdos-Renyi random graph with 6 nodes and 5 links...
-        Setting area weights according to type surface...
-        GeoNetwork:
-        Network: undirected, 6 nodes, 5 links, link density 0.333.
-        Geographical boundaries:
-                 time     lat     lon
-           min    0.0    0.00    2.50
-           max    9.0   25.00   15.00
-
-        :type grid: :class:`.Grid` object
-        :arg grid: The :class:`.Grid` object describing the network's spatial
-            embedding.
-        :type n_nodes: number > 0 (int)
-        :arg  n_nodes: Number of nodes.
-        :type link_probability: number from 0 to 1 (float), or None
-        :arg  link_probability: If not None, each pair of nodes is
-            independently linked with this probability.  (Default: None)
-        :type n_links: number > 0 (int), or None
-        :arg  n_links: If not None, this many links are assigned at random.
-            Must be None if link_probability is not None.  (Default: None)
-        :arg str node_weight_type: The type of geographical node weight to be
-            used (see :meth:`set_node_weight_type`).
-        :arg int silence_level: The inverse level of verbosity of the object.
-        :rtype: :class:`GeoNetwork`
-        :return: the Erdos-Renyi random graph.
+        Return a new model graph generated with the specified network model
+        and embedded on a geographical grid
         """
-        if link_probability is not None and n_links is None:
-            if silence_level <= 1:
-                print(f"Generating Erdos-Renyi random graph with {n_nodes} "
-                      f"nodes and probability {link_probability}...")
-            graph = igraph.Graph.Erdos_Renyi(n=n_nodes, p=link_probability)
-            # type=2 corresponds to returning the full adjacency matrix
-            A = np.array(graph.get_adjacency(type=2).data)
-
-        elif link_probability is None and n_links is not None:
-            if silence_level <= 1:
-                print(f"Generating Erdos-Renyi random graph with {n_nodes} "
-                      f"nodes and {n_links} links...")
-            graph = igraph.Graph.Erdos_Renyi(n=n_nodes, m=n_links)
-            # type=2 corresponds to returning the full adjacency matrix
-            A = np.array(graph.get_adjacency(type=2).data)
-
-        else:
-            return None
-
+        A = getattr(GeoNetwork, network_model)(**kwargs)
         return GeoNetwork(adjacency=A, grid=grid, directed=False,
-                          node_weight_type=node_weight_type,
-                          silence_level=silence_level)
-
-    @staticmethod
-    def BarabasiAlbert(n_nodes, n_links, grid, node_weight_type="surface",
-                       silence_level=0):
-        """
-        Generates an undirected and spatially embedded Barabasi-Albert network.
-
-        :arg int n_nodes: The number of nodes.
-        :arg int n_links: The number of links of the node that is added at each
-            step of the growth process.
-        :type grid: Grid object
-        :arg grid: The Grid object describing the network's spatial embedding.
-        :arg str node_weight_type: The type of geographical node weight to be
-            used (see :meth:`set_node_weight_type`).
-        :arg int silence_level: The inverse level of verbosity of the object.
-        :rtype: GeoNetwork
-        :return: the Barabasi-Albert network.
-        """
-        #  FIXME: Add example
-
-        if silence_level <= 1:
-            print("Generating Barabasi-Albert random graph "
-                  f"(n = {n_nodes}, m = {n_links})...")
-
-        graph = igraph.Graph.Barabasi(n_nodes, n_links)
-
-        #  Remove self-loops and multiple links, this does of course change the
-        #  actual degree sequence of the generated graph, but just slightly
-        graph.simplify()
-
-        #  type=2 corresponds to returning the full adjacency matrix
-        A = np.array(graph.get_adjacency(type=2).data)
-
-        network = GeoNetwork(adjacency=A, grid=grid, directed=False,
-                             node_weight_type=node_weight_type,
-                             silence_level=silence_level)
-
-        return network
-
-    @staticmethod
-    def ConfigurationModel(grid, degrees, node_weight_type="surface",
-                           silence_level=0):
-        """
-        Generates an undirected and spatially embedded configuration model
-        graph.
-
-        The configuration model gives a fully random graph with a given degree
-        sequence `degrees`.
-
-        .. note::
-           The configuration model network is simplified to eliminate
-           self-loops and multiple edges. This results in a model
-           degree sequence differing (slightly) from the original one.
-           To fully conserve the degree sequence, distribution, link density
-           etc., random rewiring should be used
-           (:meth:`.Network.randomly_rewire`).
-
-        **Example** (Repeat creation of configuration model network from
-        SmallTestNetwork until the number of links is the same as in the
-        original network):
-
-        >>> n = 0
-        >>> while n != 7:
-        ...     net = GeoNetwork.ConfigurationModel(
-        ...         grid=Grid.SmallTestGrid(),
-        ...         degrees=GeoNetwork.SmallTestNetwork().degree(),
-        ...         silence_level=2)
-        ...     n = net.n_links
-        >>> print(net.link_density)
-        0.4666666666666667
-
-        :type degrees: 1D array [index]
-        :arg degrees: The original degree sequence.
-        :type grid: Grid object
-        :arg grid: The Grid object describing the network's spatial embedding.
-        :arg str node_weight_type: The type of geographical node weight to be
-            used (see :meth:`set_node_weight_type`).
-        :arg int silence_level: The inverse level of verbosity of the object.
-        :rtype: GeoNetwork
-        :return: the configuration model network.
-        """
-        if silence_level <= 1:
-            print("Generating configuration model random graph from degree "
-                  "sequence...")
-
-        graph = igraph.Graph.Degree_Sequence(list(degrees))
-
-        #  Remove self-loops and multiple links, this does of course change the
-        #  actual degree sequence of the generated graph, but just slightly
-        graph.simplify()
-
-        #  type=2 corresponds to returning the full adjacency matrix
-        A = np.array(graph.get_adjacency(type=2).data)
-
-        network = GeoNetwork(adjacency=A, grid=grid, directed=False,
-                             node_weight_type=node_weight_type,
-                             silence_level=silence_level)
-
-        return network
+                          node_weight_type=node_weight_type)
 
     #
     #  Graph randomization methods
     #
-
-    #  TODO: Experimental code!
-    def randomly_rewire_geomodel_I(self, distance_matrix, iterations,
-                                   inaccuracy):
-        """
-        Randomly rewire the current network in place using geographical
-        model I.
-
-        Geographical model I preserves the degree sequence (exactly) and the
-        link distance distribution :math:`p(l)` (approximately).
-
-        A higher ``inaccuracy`` in the conservation of :math:`p(l)` will lead
-        to
-
-          - less deterministic links in the network and, hence,
-          - more degrees of freedom for the random graph and
-          - a shorter runtime of the algorithm, since more pairs of nodes
-            eligible for rewiring can be found.
-
-        **Example** (The degree sequence should be the same after rewiring):
-
-        >>> _i()
-        >>> net = GeoNetwork.SmallTestNetwork()
-        >>> net.randomly_rewire_geomodel_I(
-        ...     distance_matrix=net.grid.angular_distance(),
-        ...     iterations=100, inaccuracy=1.0)
-        #
-        >>> net.degree()
-        array([3, 3, 2, 2, 3, 1])
-
-        :type distance_matrix: 2D Numpy array [index, index]
-        :arg distance_matrix: Suitable distance matrix between nodes.
-
-        :type iterations: number (int)
-        :arg iterations: The number of rewirings to be performed.
-
-        :type inaccuracy: number (float)
-        :arg inaccuracy: The inaccuracy with which to conserve :math:`p(l)`.
-        """
-        if self.silence_level <= 1:
-            print("Randomly rewiring given graph, preserving the degree "
-                  "sequence and link distance distribution...")
-        #  Get number of nodes
-        N = self.N
-        #  Get number of links
-        E = self.n_links
-        #  Collect adjacency and distance matrices
-        A = self.adjacency.copy(order='c')
-        D = distance_matrix.astype("float32").copy(order='c')
-        #  Get degree sequence
-        # degree = self.degree()
-
-        #  Define for brevity
-        eps = float(inaccuracy)
-
-        # iterations = int(iterations)
-
-        #  Get edge list
-        edges = np.array(self.graph.get_edgelist()).copy(order='c')
-
-        #  Initialize list of neighbors
-        # neighbors = np.zeros((N, degree.max()))
-
-        _randomly_rewire_geomodel_I(iterations, eps, A, D, E, N, edges)
-
-        #  Update all other properties of GeoNetwork
-        self.adjacency = A
-
-    #  TODO: Experimental code!
-    def randomly_rewire_geomodel_II(self, distance_matrix,
-                                    iterations, inaccuracy):
-        """
-        Randomly rewire the current network in place using geographical
-        model II.
-
-        Geographical model II preserves the degree sequence :math:`k_v`
-        (exactly), the link distance distribution :math:`p(l)` (approximately),
-        and the average link distance sequence :math:`<l>_v` (approximately).
-
-        A higher ``inaccuracy`` in the conservation of :math:`p(l)` and
-        :math:`<l>_v` will lead to:
-
-          - less deterministic links in the network and, hence,
-          - more degrees of freedom for the random graph and
-          - a shorter runtime of the algorithm, since more pairs of nodes
-            eligible for rewiring can be found.
-
-        :type distance_matrix: 2D Numpy array [index, index]
-        :arg distance_matrix: Suitable distance matrix between nodes.
-
-        :type iterations: number (int)
-        :arg iterations: The number of rewirings to be performed.
-
-        :type inaccuracy: number (float)
-        :arg inaccuracy: The inaccuracy with which to conserve :math:`p(l)`.
-        """
-        #  FIXME: Add example
-        if self.silence_level <= 1:
-            print("Randomly rewiring given graph, preserving the degree "
-                  "sequence, link distance distribution and average link "
-                  "distance sequence...")
-
-        #  Get number of nodes
-        N = int(self.N)
-        #  Get number of links
-        E = int(self.n_links)
-        #  Collect adjacency and distance matrices
-        A = self.adjacency.copy(order='c')
-        D = distance_matrix.astype("float32").copy(order='c')
-
-        #  Define for brevity
-        eps = float(inaccuracy)
-
-        #  Get edge list
-        edges = np.array(self.graph.get_edgelist()).copy(order='c')
-
-        _randomly_rewire_geomodel_II(iterations, eps, A, D, E, N, edges)
-
-        #  Update all other properties of GeoNetwork
-        self.adjacency = A
-
-    #  TODO: Experimental code!
-    def randomly_rewire_geomodel_III(self, distance_matrix,
-                                     iterations, inaccuracy):
-        """
-        Randomly rewire the current network in place using geographical
-        model III.
-
-        Geographical model III preserves the degree sequence :math:`k_v`
-        (exactly), the link distance distribution :math:`p(l)` (approximately),
-        and the average link distance sequence :math:`<l>_v` (approximately).
-        Moreover, degree-degree correlations are also conserved exactly.
-
-        A higher ``inaccuracy`` in the conservation of :math:`p(l)` and
-        :math:`<l>_v` will lead to:
-
-          - less deterministic links in the network and, hence,
-          - more degrees of freedom for the random graph and
-          - a shorter runtime of the algorithm, since more pairs of nodes
-            eligible for rewiring can be found.
-
-        :type distance_matrix: 2D Numpy array [index, index]
-        :arg distance_matrix: Suitable distance matrix between nodes.
-
-        :type iterations: number (int)
-        :arg iterations: The number of rewirings to be performed.
-
-        :type inaccuracy: number (float)
-        :arg inaccuracy: The inaccuracy with which to conserve :math:`p(l)`.
-        """
-        #  FIXME: Add example
-        if self.silence_level <= 1:
-            print("Randomly rewiring given graph, preserving the degree "
-                  "sequence, degree-degree correlations, link distance "
-                  "distribution and average link distance sequence...")
-
-        #  Get number of nodes
-        N = int(self.N)
-        #  Get number of links
-        E = int(self.n_links)
-        #  Collect adjacency and distance matrices
-        A = self.adjacency.copy(order='c')
-        D = distance_matrix.astype("float32").copy(order='c')
-        #  Get degree sequence
-        degree = self.degree().copy(order='c')
-
-        #  Define for brevity
-        eps = float(inaccuracy)
-
-        #  Get edge list
-        edges = np.array(self.graph.get_edgelist()).copy(order='c')
-
-        _randomly_rewire_geomodel_III(iterations, eps, A, D, E, N, edges,
-                                      degree)
-
-        #  Update all other properties of GeoNetwork
-        self.adjacency = A
-
-    def set_random_links_by_distance(self, a, b):
-        """
-        Reassign links independently with
-        link probability = :math:`exp(a + b*angular distance)`.
-
-        .. note::
-           Modifies network in place, creates an undirected network!
-
-        **Example** (Repeat until a network with 5 links is created):
-
-        >>> net = GeoNetwork.SmallTestNetwork()
-        >>> while (net.n_links != 5):
-        ...     net.set_random_links_by_distance(a=0., b=-4.)
-        >>> net.n_links
-        5
-
-        :type a: number (float)
-        :arg a: The a parameter.
-
-        :type b: number (float)
-        :arg b: The b parameter.
-        """
-        #  Get angular distance matrix
-        D = self.grid.angular_distance()
-        #  Calculate link probabilities
-        p = np.exp(a + b * D)
-
-        #  Generate random numbers
-        P = random.random(D.shape)
-        #  Symmetrize
-        P = 0.5 * (P + P.transpose())
-
-        #  Create new adjacency matrix
-        A = (p >= P).astype("int8")
-        #  Set diagonal to zero - no self-loops!
-        np.fill_diagonal(A, 0)
-
-        #  Set new adjacency matrix
-        self.adjacency = A
 
     #  FIXME: Check this method and implement in C++ via Cython for speed.
     #  FIXME: Also improve documentation.
@@ -708,7 +299,7 @@ class GeoNetwork(Network):
         """
         N = self.N
         A = self.adjacency
-        D = self.grid.angular_distance()
+        D = self.grid.distance()
 
         #  Count pairs and links by distance
         n_pairs_by_dist = {}
@@ -868,62 +459,6 @@ class GeoNetwork(Network):
         for i in range(n_bins):
             cumu_dist[i] = dist[i:].sum()
         return (cumu_dist, error, lbb)
-
-    #
-    #  Get link distance distribution
-    #
-
-    def link_distance_distribution(self, n_bins, grid_type="spherical",
-                                   geometry_corrected=False):
-        """
-        Return the normalized link distance distribution.
-
-        Correct for the geometry of the embedding space by default.
-
-        **Examples:**
-
-        >>> GeoNetwork.SmallTestNetwork().link_distance_distribution(
-        ...     n_bins=4, geometry_corrected=False)[0]
-        array([ 0.14285714,  0.28571429,  0.28571429,  0.28571429])
-        >>> GeoNetwork.SmallTestNetwork().link_distance_distribution(
-        ...     n_bins=4, geometry_corrected=True)[0]
-        array([ 0.09836066,  0.24590164,  0.32786885,  0.32786885])
-
-        :arg int n_bins: The number of bins for histogram.
-        :arg str grid_type: Type of grid, used for distance calculation, can
-            take values "euclidean" and "spherical".
-        :arg bool geometry_corrected: Toggles correction for grid geometry.
-        :rtype: tuple of three 1D arrays [bin]
-        :return: the link distance distribution, statistical error,
-                 and lower bin boundaries.
-        """
-        if self.silence_level <= 1:
-            print("Calculating link distance distribution...")
-
-        #  Collect matrices
-        A = self.adjacency
-        if grid_type == "spherical":
-            D = self.grid.angular_distance()
-        elif grid_type == "euclidean":
-            D = self.grid.euclidean_distance()
-
-        #  Determine range for link distance histograms
-        interval = (0, D.max())
-
-        #  Get link distance distribution
-        (dist, error, lbb) = self._histogram(D[A == 1], n_bins=n_bins,
-                                             interval=interval)
-
-        if geometry_corrected:
-            geometric_ld_dist = \
-                self.grid.geometric_distance_distribution(n_bins)[0]
-            # Divide out the geometrical factor of the distribution
-            dist /= geometric_ld_dist
-
-        #  Normalize the distribution
-        dist /= dist.sum()
-
-        return (dist, error, lbb)
 
     #
     #  Area weighted connectivity (AWC) related measures
@@ -1232,131 +767,6 @@ class GeoNetwork(Network):
     #  Distance related measures
     #
 
-    #  (Un)directed average link distances
-
-    #  TODO: Discuss geometry correction with Jobst.
-    def _calculate_general_average_link_distance(self, adjacency, degrees,
-                                                 geometry_corrected=False):
-        """
-        Return general average link distances (:math:`ALD`).
-
-        This general method is called to calculate undirected average link
-        distance, average in-link distance and average out-link distance.
-
-        The resulting sequence can optionally be corrected for biases in
-        average link distance arising due to the grid geometry. E.g., for
-        regional networks, nodes on the boundaries may have a bias towards
-        larger values of :math:`ALD`, while nodes in the center have a bias
-        towards smaller values of :math:`ALD`.
-
-        :type adjacency: 2D array [index, index]
-        :arg adjacency: The adjacency matrix.
-        :type degrees: 1D array [index]
-        :arg degrees: The degree sequence.
-        :arg bool geometry_corrected: Toggles geometry correction.
-        :rtype: 1D array [index]
-        :return: the general average link distance sequence.
-        """
-        D = self.grid.angular_distance()
-        k = self.degree()
-
-        average_link_distance = np.zeros(self.N)
-
-        #  Normalize by degree, not by number of nodes!!!
-        average_link_distance[k != 0] = \
-            (D * adjacency).sum(axis=1)[k != 0] / k[k != 0]
-
-        if geometry_corrected:
-            #  Calculate the average link distance for a fully connected
-            #  network to correct for geometrical biases, particularly in
-            #  regional networks.
-            ald_correction = D.mean(axis=1)
-            # aldCorrection = angularDistance.max(axis=1)
-
-            #  Correct average link distance
-            average_link_distance /= ald_correction
-
-        return average_link_distance
-
-    def average_link_distance(self, geometry_corrected=False):
-        """
-        Return average link distances (undirected).
-
-        .. note::
-           Does not use directionality information.
-
-        **Examples:**
-
-        >>> r(GeoNetwork.SmallTestNetwork().\
-                average_link_distance(geometry_corrected=False))
-        array([ 0.3885, 0.1943, 0.1456, 0.2433, 0.2912, 0.4847])
-        >>> r(GeoNetwork.SmallTestNetwork().\
-                average_link_distance(geometry_corrected=True))[:-1]
-        array([ 1.5988, 1.0921, 1.0001, 1.6708, 1.6384])
-
-        :arg bool geometry_corrected: Toggles geometry correction.
-        :rtype: 1D array [index]
-        :return: the average link distance sequence (undirected).
-        """
-        if self.silence_level <= 1:
-            print("Calculating average link distance...")
-
-        A = self.undirected_adjacency().A
-        degree = self.degree()
-
-        return self._calculate_general_average_link_distance(
-            A, degree, geometry_corrected=geometry_corrected)
-
-    def inaverage_link_distance(self, geometry_corrected=False):
-        """
-        Return in-average link distances.
-
-        Return regular average link distance for undirected networks.
-
-        **Example:**
-
-        >>> r(GeoNetwork.SmallTestNetwork().\
-                inaverage_link_distance(geometry_corrected=False))
-        array([ 0.3885, 0.1943, 0.1456, 0.2433, 0.2912, 0.4847])
-
-        :arg bool geometry_corrected: Toggles geometry correction.
-        :rtype: 1D array [index]
-        :return: the in-average link distance sequence.
-        """
-        if self.silence_level <= 1:
-            print("Calculating in-average link distance...")
-
-        A = self.adjacency.T
-        in_degree = self.indegree()
-
-        return self._calculate_general_average_link_distance(
-            A, in_degree, geometry_corrected=geometry_corrected)
-
-    def outaverage_link_distance(self, geometry_corrected=False):
-        """
-        Return out-average link distances.
-
-        Return regular average link distance for undirected networks.
-
-        **Example:**
-
-        >>> r(GeoNetwork.SmallTestNetwork().\
-                outaverage_link_distance(geometry_corrected=False))
-        array([ 0.3885, 0.1943, 0.1456, 0.2433, 0.2912, 0.4847])
-
-        :arg bool geometry_corrected: Toggles geometry correction.
-        :rtype: 1D array [index]
-        :return: the out-average link distance sequence.
-        """
-        if self.silence_level <= 1:
-            print("Calculating out-average link distance...")
-
-        A = self.adjacency
-        out_degree = self.outdegree()
-
-        return self._calculate_general_average_link_distance(
-            A, out_degree, geometry_corrected=geometry_corrected)
-
     #  (Un)directed total link distances
 
     def total_link_distance(self, geometry_corrected=False):
@@ -1529,119 +939,9 @@ class GeoNetwork(Network):
         return self._calculate_general_connectivity_weighted_distance(
             A, outdegree)
 
-    def max_link_distance(self):
-        """
-        Return maximum angular geodesic link distances.
-
-        .. note::
-           Does not use directionality information.
-
-        **Example:**
-
-        >>> r(GeoNetwork.SmallTestNetwork().max_link_distance())
-        array([ 0.4847, 0.2911, 0.1938, 0.292 , 0.3887, 0.4847])
-
-        :rtype: 1D Numpy array [index]
-        :return: the maximum link distance sequence.
-        """
-        if self.silence_level <= 1:
-            print("Calculating maximum link distance...")
-
-        A = self.undirected_adjacency().A
-        D = self.grid.angular_distance()
-
-        maximum_link_distance = (D * A).max(axis=1)
-        return maximum_link_distance
-
-    #
-    #  Link weighted network measures
-    #
-
-    @cached_const('base', 'angular_distance')
-    def angular_distance(self):
-        """
-        Return the angular great circle distance matrix.
-        """
-        ad = self.grid.angular_distance()
-        self.set_link_attribute('angular_distance', ad)
-        return ad
-
-    def average_distance_weighted_path_length(self):
-        """
-        Return average distance weighted path length.
-
-        Returns the average path length link-weighted by the angular
-        great circle distance between nodes.
-
-        **Example:**
-
-        >>> r(GeoNetwork.SmallTestNetwork().\
-                average_distance_weighted_path_length())
-        0.4985
-
-        :rtype: number (float)
-        :return: the average distance weighted path length.
-        """
-        self.angular_distance()
-        return self.average_path_length('angular_distance')
-
-    def distance_weighted_closeness(self):
-        """
-        Return distance weighted closeness.
-
-        Returns the sequence of closeness centralities link-weighted by the
-        angular great circle distance between nodes.
-
-        **Example:**
-
-        >>> r(GeoNetwork.SmallTestNetwork().\
-                distance_weighted_closeness())
-        array([ 2.2378, 2.4501, 2.2396, 2.4501, 2.2396, 1.1982])
-
-        :rtype: 1D Numpy array [index]
-        :return: the distance weighted closeness sequence.
-        """
-        self.angular_distance()
-        return self.closeness('angular_distance')
-
-    def local_distance_weighted_vulnerability(self):
-        """
-        Return local distance weighted vulnerability.
-
-        Return the sequence of vulnerabilities link-weighted by
-        the angular great circle distance between nodes.
-
-        **Example:**
-
-        >>> r(GeoNetwork.SmallTestNetwork().\
-                local_distance_weighted_vulnerability())
-        array([ 0.0325, 0.3137, 0.2056, 0.028 , -0.0283, -0.288 ])
-
-        :rtype: 1D Numpy array [index]
-        :return: the local distance weighted vulnerability sequence.
-        """
-        self.angular_distance()
-        return self.local_vulnerability('angular_distance')
-
     #
     #  Clustering coefficients including geographical information
     #
-
-    #  TODO: Maybe implement this one day...
-    def local_tsonis_clustering(self):
-        """
-        Return local Tsonis clustering.
-
-        This measure of local clustering was introduced in [Tsonis2008a]_.
-
-        :rtype: 1D Numpy array (index)
-        :return: the local Tsonis clustering sequence.
-        """
-        if self.silence_level <= 1:
-            print("Calculating local Tsonis clustering coefficients...")
-
-        tsonis_clustering = np.zeros(self.N)
-        return tsonis_clustering
 
     def local_geographical_clustering(self):
         """
@@ -1833,6 +1133,7 @@ class GeoNetwork(Network):
             partial_boundary = [i]
             partial_shape = [lam*pos[i] + lam1*pos[o]]
             partial_fullshape = [0.49*pos[i] + 0.51*pos[o]]
+            print(partial_shape)
             steps = [(i, o)]
             for it in range(N):  # at most this many steps we need
                 nbi = self.grid_neighbours[i]
@@ -1866,7 +1167,7 @@ class GeoNetwork(Network):
             off = length/2
             for it in range(length):
                 pos1 = partial_shape[it]
-                pos2 = partial_shape[(it+off) % length]
+                pos2 = partial_shape[int((it+off) % length)]
                 latlon_shape.append(self.cartesian2latlon(pos1))
                 d2 = ((pos2-pos1)**2).sum()
                 if d2 < mind2:

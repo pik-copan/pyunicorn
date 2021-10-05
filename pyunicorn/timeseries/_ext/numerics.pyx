@@ -57,9 +57,9 @@ cdef extern from "time.h":
 
 cdef extern from "src_numerics.c":
     void _manhattan_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
-        double *x_embedded, double *y_embedded, double *distance)
+        double *x_embedded, double *y_embedded, float *distance)
     void _euclidean_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
-        double *x_embedded, double *y_embedded, double *distance)
+        double *x_embedded, double *y_embedded, float *distance)
     void _supremum_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
         float *x_embedded, float *y_embedded, float *distance)
     void _test_pearson_correlation_fast(double *original_data,
@@ -77,14 +77,14 @@ def _manhattan_distance_matrix_crp(
     np.ndarray[double, ndim=2, mode='c'] x_embedded not None,
     np.ndarray[double, ndim=2, mode='c'] y_embedded not None):
 
-    cdef np.ndarray[double, ndim=2, mode='c'] distance = \
-        np.zeros((ntime_x, ntime_y), dtype="double")
+    cdef np.ndarray[float, ndim=2, mode='c'] distance = \
+        np.zeros((ntime_x, ntime_y), dtype='float32')
 
     _manhattan_distance_matrix_fast(
         ntime_x, ntime_y, dim,
         <double*> np.PyArray_DATA(x_embedded),
         <double*> np.PyArray_DATA(y_embedded),
-        <double*> np.PyArray_DATA(distance))
+        <float*> np.PyArray_DATA(distance))
 
     return distance
 
@@ -94,14 +94,14 @@ def _euclidean_distance_matrix_crp(
     np.ndarray[double, ndim=2, mode='c'] x_embedded not None,
     np.ndarray[double, ndim=2, mode='c'] y_embedded not None):
 
-    cdef np.ndarray[double, ndim=2, mode='c'] distance = \
-        np.zeros((ntime_x, ntime_y), dtype="double")
+    cdef np.ndarray[float, ndim=2, mode='c'] distance = \
+        np.zeros((ntime_x, ntime_y), dtype="float32")
 
     _euclidean_distance_matrix_fast(
         ntime_x, ntime_y, dim,
         <double*> np.PyArray_DATA(x_embedded),
         <double*> np.PyArray_DATA(y_embedded),
-        <double*> np.PyArray_DATA(distance))
+        <float*> np.PyArray_DATA(distance))
 
     return distance
 
@@ -251,10 +251,6 @@ def _embed_time_series(
     int n_time, int dim, int tau,
     np.ndarray[FLOAT32TYPE_t, ndim=2] time_series,
     np.ndarray[FLOAT32TYPE_t, ndim=2] embedding):
-    """
-    >>> 42 == 42
-    True
-    """
 
     cdef:
         int i,j, max_delay, len_embedded, index

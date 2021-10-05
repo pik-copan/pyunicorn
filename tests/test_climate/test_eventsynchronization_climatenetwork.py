@@ -35,6 +35,7 @@ def test_str(capsys):
               "EventSynchronization: 6 variables, 10 timesteps, taumax: 16" + \
               "\nClimateNetwork:\n" + \
               "GeoNetwork:\n" + \
+              "SpatialNetwork:\n" + \
               "Network: directed, 6 nodes, 0 links, link density 0.000.\n" + \
               "Geographical boundaries:\n" + \
               "         time     lat     lon\n" + \

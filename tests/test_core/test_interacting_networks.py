@@ -115,6 +115,17 @@ def test_number_cross_links():
     exp = 2
     assert res == exp
 
+def test_total_cross_degree():
+    net = InteractingNetworks.SmallTestNetwork()
+
+    res = net.total_cross_degree([0, 3, 5], [1, 2, 4])
+    exp = 0.6667
+    assert np.isclose(res, exp, atol=1e-04)
+
+    res = net.total_cross_degree([0, 5], [1, 2, 3, 4])
+    exp = 1.0
+    assert np.isclose(res, exp, atol=1e-04)
+
 def test_number_internal_links():
     net = InteractingNetworks.SmallTestNetwork()
 
@@ -125,6 +136,13 @@ def test_number_internal_links():
     res = net.number_internal_links([1, 2, 4])
     exp = 3
     assert res == exp
+
+def test_cross_degree_density():
+    net = InteractingNetworks.SmallTestNetwork()
+
+    res = net.cross_degree_density([0, 3, 5], [1, 2, 4])
+    exp = np.array([0.33333333, 0.33333333, 0.])
+    assert np.allclose(res, exp, atol=1e-04)
 
 def test_cross_link_density():
     net = InteractingNetworks.SmallTestNetwork()
@@ -238,6 +256,20 @@ def test_internal_average_path_length():
 
     res = net.internal_average_path_length([1, 2, 4], None)
     exp = 1.0
+    assert np.isclose(res, exp, atol=1e-04)
+
+def test_average_cross_closeness():
+    net = InteractingNetworks.SmallTestNetwork()
+
+    res = net.average_cross_closeness([0, 5], [1, 2, 3, 4])
+    exp = 0.5333
+    assert np.isclose(res, exp, atol=1e-04)
+
+def test_global_efficiency():
+    net = InteractingNetworks.SmallTestNetwork()
+
+    res = net.global_efficiency([0, 5], [1, 2, 3, 4])
+    exp = 1.7143
     assert np.isclose(res, exp, atol=1e-04)
 
 def test_cross_degree():
@@ -362,6 +394,13 @@ def test_internal_betweenness():
 
     res = net.internal_betweenness(range(0, 6))
     exp = np.array([9., 3., 0., 2., 6., 0.])
+    assert np.allclose(res, exp, atol=1e-04)
+
+def test_local_efficiency():
+    net = InteractingNetworks.SmallTestNetwork()
+
+    res = net.local_efficiency([0, 5], [1, 2, 3, 4])
+    exp = np.array([0.75, 0.41666667])
     assert np.allclose(res, exp, atol=1e-04)
 
 def test_nsi_cross_degree():

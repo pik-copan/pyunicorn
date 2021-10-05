@@ -8,7 +8,6 @@ matrix:
     fast_finish: true
 env:
     matrix:
-        - NUMPY=1.14 SCIPY=1.0 CYTHON=0.27
         - NUMPY=1.15 SCIPY=1.1 CYTHON=0.28
         - NUMPY=1.16 SCIPY=1.2 CYTHON=0.29
 addons:

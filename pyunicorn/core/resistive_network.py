@@ -46,7 +46,7 @@ from ._ext.numerics import _vertex_current_flow_betweenness, \
 
 # Import things we inherit from
 from .geo_network import GeoNetwork
-from .grid import Grid
+from .geo_grid import GeoGrid
 
 # a network Error (use uncertain)
 # from .network import NetworkError
@@ -82,8 +82,9 @@ class ResNetwork(GeoNetwork):
         :type resistances: 2D NumPy array
         :arg resistances: A matrix with the resistances
 
-        :type grid: Grid object
-        :arg grid: The Grid object describing the network's spatial embedding.
+        :type grid: GeoGrid object
+        :arg grid: The GeoGrid object describing the network's spatial
+            embedding.
 
         :type adjacency: 2D NumPy array (int8) [index, index]
         :arg adjacency: The network's adjacency matrix.
@@ -119,7 +120,7 @@ class ResNetwork(GeoNetwork):
         if grid is None:
             if silence_level < 2:
                 print("Using dummy grid")
-            grid = Grid(
+            grid = GeoGrid(
                 time_seq=np.arange(10), lat_seq=np.absolute(
                     np.linspace(-90, 90, adjacency.shape[0])),
                 lon_seq=np.linspace(-180, 180, adjacency.shape[0]),
@@ -191,7 +192,7 @@ class ResNetwork(GeoNetwork):
                                 [0, 2, 8, 0, 10],
                                 [0, 0, 0, 10, 0]])
         # a grid
-        grid = Grid(
+        grid = GeoGrid(
             time_seq=np.arange(10), lat_seq=np.absolute(
                 np.linspace(-90, 90, adjacency.shape[0])),
             lon_seq=np.linspace(-180, 180, adjacency.shape[0]),

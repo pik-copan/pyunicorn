@@ -624,6 +624,27 @@ class InteractingNetworks(Network):
 
         return self.cross_adjacency(node_list1, node_list2).sum()
 
+    def total_cross_degree(self, node_list1, node_list2):
+        """
+        Return the total cross degree of the two subnetworks.
+
+        **Examples:**
+
+        >>> InteractingNetworks.SmallTestNetwork().\
+                toal_cross_degree([0,3,5], [1,2,4])
+        1.0
+        >>> InteractingNetworks.SmallTestNetwork().\
+                total_cross_degree([0,5], [1,2,3,4]).round(4)
+        0.6667
+
+        :arg [int] node_list1: list of node indices describing the first
+            subnetwork
+        :arg [int] node_list2: list of node indices describing the second
+            subnetwork
+        :return int: the total cross degree.
+        """
+        return np.mean(self.cross_degree(node_list1, node_list2))
+
     def number_internal_links(self, node_list):
         """
         Return the number of links within an induced subnetwork.
@@ -645,6 +666,31 @@ class InteractingNetworks(Network):
             return n_links
         else:
             return n_links // 2
+
+    def cross_degree_density(self, node_list1, node_list2):
+        """
+        Return the density of degrees, i.e., the cross degree sequence of the
+        first subnetwork normalized to the number of nodes in the second
+        subnetwork
+
+        **Example:**
+
+        >>> InteractingNetworks.SmallTestNetwork().\
+                cross_degree_density([0,3,5], [1,2,4])
+        array([0.33333333, 0.33333333, 0.        ])
+
+        :arg [int] node_list1: list of node indices describing the first
+                               subnetwork
+
+        :arg [int] node_list2: list of node indices describing the second
+                               subnetwork
+
+        :rtype: 1D array [node index]
+        :return: the cross degree sequence.
+        """
+
+        N2 = len(node_list2)
+        return self.cross_degree(node_list1, node_list2) / N2
 
     def cross_link_density(self, node_list1, node_list2):
         """
@@ -985,6 +1031,50 @@ class InteractingNetworks(Network):
         path_lengths = self.internal_path_lengths(node_list, link_attribute)
         return self._calculate_general_average_path_length(path_lengths,
                                                            internal=True)
+
+    def average_cross_closeness(self, node_list1, node_list2,
+                                link_attribute=None):
+        """
+        Return the average cross closeness.
+
+        **Example:**
+
+        >>> r(InteractingNetworks.SmallTestNetwork().\
+                average_cross_closeness([0,5], [1,2,3,4]))
+        1.7143
+
+        :arg [int] node_list1: list of node indices describing the first
+            subnetwork
+        :arg [int] node_list2: list of node indices describing the second
+            subnetwork
+        :arg str link_attribute: Optional name of the link attribute to be used
+            as the links' length. If None, links have length 1. (Default: None)
+        :return float: the average cross closeness.
+        """
+        return np.mean(self.cross_closeness(node_list1, node_list2,
+                                            link_attribute))
+
+    def global_efficiency(self, node_list1, node_list2, link_attribute=None):
+        """
+        Return the global efficiency.
+
+        **Example:**
+
+        >>> r(InteractingNetworks.SmallTestNetwork().\
+                global_efficiency([0,5], [1,2,3,4]))
+        1.7143
+
+        :arg [int] node_list1: list of node indices describing the first
+            subnetwork
+        :arg [int] node_list2: list of node indices describing the second
+            subnetwork
+        :arg str link_attribute: Optional name of the link attribute to be used
+            as the links' length. If None, links have length 1. (Default: None)
+        :return float: the global efficiency.
+        """
+        local_efficiency = self.local_efficiency(node_list1, node_list2,
+                                                 link_attribute)
+        return 1/np.mean(local_efficiency)
 
     #
     #  Define local measures for interacting networks
@@ -1419,6 +1509,29 @@ class InteractingNetworks(Network):
         """
         return self.interregional_betweenness(sources=node_list,
                                               targets=node_list)
+
+    def local_efficiency(self, node_list1, node_list2, link_attribute=None):
+        """
+        Return the local efficiency sequence for an induced subnetwork.
+
+        **Example:**
+
+        >>> InteractingNetworks.SmallTestNetwork().\
+                local_efficiency([0,5], [1,2,3,4])
+        array([0.75      , 0.41666667])
+
+        :arg [int] node_list1: list of node indices describing the first
+            subnetwork
+        :arg [int] node_list2: list of node indices describing the second
+            subnetwork
+        :arg str link_attribute: Optional name of the link attribute to be used
+            as the links' length. If None, links have length 1. (Default: None)
+        :rtype: 1D arrays [index]
+        :return: the local efficiency sequence.
+        """
+        path_lengths = self.cross_path_lengths(node_list1, node_list2,
+                                               link_attribute)
+        return np.mean(1/path_lengths, axis=1)
 
     def nsi_cross_degree(self, node_list1, node_list2):
         """
