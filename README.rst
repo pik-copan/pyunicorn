@@ -92,6 +92,8 @@ Required:
   - `Numpy <http://www.numpy.org/>`_ 1.14+
   - `Scipy <http://www.scipy.org/>`_ 1.0+
   - `igraph, python-igraph <http://igraph.org/>`_ 0.7+
+  - `Cython <http://cython.org/>`_ 0.27+ (for compiling code during
+    development)
 
 Optional *(used only in certain classes and methods)*:
   - `PyNGL <http://www.pyngl.ucar.edu/Download/>`_ (for class NetCDFDictionary)
@@ -103,8 +105,7 @@ Optional *(used only in certain classes and methods)*:
   - `mpi4py <https://bitbucket.org/mpi4py/mpi4py>`_ (for parallelizing costly
     computations)
   - `Sphinx <http://sphinx-doc.org/>`_ (for generating documentation)
-  - `Cython <http://cython.org/>`_ 0.27+ (for compiling code during
-    development)
+  
 
 ``Numpy``, ``Scipy``, ``Matplotlib``, ``igraph`` and other packages should be
 available via a package management system on Linux or MacOSX. All packages can
@@ -125,7 +126,7 @@ following the instructions below.
 
 On Linux ``pyunicorn`` can simply be installed via the Python Package Index::
 
-        $> pip install pyunicorn
+        $> pip3 install pyunicorn
 
 **MacOSX**
 
