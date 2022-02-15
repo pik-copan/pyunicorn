@@ -40,7 +40,11 @@ To Do
 import os
 import sys
 
-from ._version import __version__
+__location__ = os.path.realpath(
+    os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
+with open(os.path.join(__location__, 'VERSION'),"rt") as fd:
+    __version__ = fd.readline().strip()
 
 from .utils import mpi
 from .core import *
