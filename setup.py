@@ -29,8 +29,11 @@ except ImportError:
 
 # -----------------------------------------------------------------------------
 
-__version__ = ''
-exec(open('pyunicorn/_version.py').read())
+__location__ = os.path.realpath(
+    os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
+with open(os.path.join(__location__, "pyunicorn", 'VERSION'),"rt") as fd:
+    __version__ = fd.readline().strip()
 
 # -----------------------------------------------------------------------------
 
