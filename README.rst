@@ -127,6 +127,10 @@ following the instructions below.
 On Linux ``pyunicorn`` can simply be installed via the Python Package Index::
 
         $> pip3 install pyunicorn
+        
+To install pyunicorn on Fedora OS, use:
+
+        $> dnf install python3-pyunicorn
 
 **MacOSX**
 
