@@ -52,6 +52,8 @@ from .spearman import SpearmanClimateNetwork
 from .tsonis import TsonisClimateNetwork
 from .eventsynchronization_climatenetwork import \
     EventSynchronizationClimateNetwork
+from .eventseries_climatenetwork import \
+    EventSeriesClimateNetwork
 
 
 #
