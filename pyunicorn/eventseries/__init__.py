@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2019 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2022 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 #
@@ -17,20 +17,24 @@
 
 """
 eventseries
-=======
+===========
 
-Provides classes for analyzing event series.
+Provides a class for analyzing event series, namely event synchronization and
+event coincidence analysis
 
 Related Publications
 ~~~~~~~~~~~~~~~~~~~~
-
+[Quiroga2002]_, [Boers2014]_, [Donges2016]_, [Odenweller2020]_, [Kreuz2007]_,
+[Marwan2015]_, [Schleussner2016]_.
 
 To do
 ~~~~~
-  - Insert related publications
+  - Combine precursor and trigger coincidence rate to obtain one ECA measure
 
 Known Bugs
 ~~~~~~~~~~
   - ...
 
 """
+
+from .event_series import EventSeries

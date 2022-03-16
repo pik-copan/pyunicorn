@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2019 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2022 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 #
@@ -14,25 +14,30 @@
 # L. Tupikina, V. Stolbova, R.V. Donner, N. Marwan, H.A. Dijkstra,
 # and J. Kurths, "Unified functional network and nonlinear time series analysis
 # for complex systems science: The pyunicorn package"
+
 """
-Tests for the EventSynchronizationClimateNetworkClimateData class.
+Tests for the EventSeriesClimateNetwork class.
 """
 import numpy as np
 
 from pyunicorn.core.data import Data
-from pyunicorn.climate.eventsynchronization_climatenetwork import\
- EventSynchronizationClimateNetwork
+from pyunicorn.climate.eventseries_climatenetwork import\
+ EventSeriesClimateNetwork
 
 
 def test_str(capsys):
-    data = EventSynchronizationClimateNetwork.SmallTestData()
-    print(EventSynchronizationClimateNetwork(data, 0.8, 16))
+    data = EventSeriesClimateNetwork.SmallTestData()
+    print(EventSeriesClimateNetwork(data, method='ES',
+                                    threshold_method='quantile',
+                                    threshold_values=0.8, taumax=16,
+                                    threshold_types='above'))
     out, err = capsys.readouterr()
     out_ref = "Extracting network adjacency matrix by thresholding...\n" + \
               "Setting area weights according to type surface ...\n" + \
               "Setting area weights according to type surface ...\n" + \
-              "EventSynchronizationClimateNetwork:\n" + \
-              "EventSynchronization: 6 variables, 10 timesteps, taumax: 16" + \
+              "EventSeriesClimateNetwork:\n" + \
+              "EventSeries: 6 variables, 10 timesteps, taumax: 16.0, " \
+              "lag: 0.0" + \
               "\nClimateNetwork:\n" + \
               "GeoNetwork:\n" + \
               "SpatialNetwork:\n" + \
@@ -43,9 +48,10 @@ def test_str(capsys):
               "   max    9.0   25.00   15.00\n" + \
               "Threshold: 0\n" + \
               "Local connections filtered out: False\n" + \
-              "Type of event synchronization to construct " + \
+              "Type of event series measure to construct " + \
               "the network: directedES\n"
     assert out == out_ref
+
 
 def test_SmallTestData():
     res = Data.SmallTestData().observable()
