@@ -193,8 +193,8 @@ def testVisibilityHorizontal():
     # Choose two different, not neighbouring random nodes i, j
     node1, node2 = 0, 0
     while abs(node2-node1) <= 0:
-        node1 = np.int(np.floor(np.random.rand()*n_times))
-        node2 = np.int(np.floor(np.random.rand()*n_times))
+        node1 = np.int32(np.floor(np.random.rand()*n_times))
+        node2 = np.int32(np.floor(np.random.rand()*n_times))
 
     val = tdata[1]
     i, j = min(node1, node2), max(node1, node2)

@@ -41,6 +41,7 @@ from scipy import sparse
 #  Import iGraph for high performance graph theory tools written in pure ANSI-C
 import igraph
 
+from ._ext.types import to_cy, FIELD, DFIELD
 from ._ext.numerics import _vertex_current_flow_betweenness, \
     _edge_current_flow_betweenness
 
@@ -700,7 +701,7 @@ class ResNetwork(GeoNetwork):
         """
 
         # alloc
-        ERCC = np.float(0.0)
+        ERCC = DFIELD(0.0)
 
         # compute
         for i in range(self.N):
@@ -746,11 +747,10 @@ class ResNetwork(GeoNetwork):
         0.044
         """
         # set params
-        Is = It = np.float(1.0)
+        Is = It = FIELD(1.0)
         return _vertex_current_flow_betweenness(
-            np.int(self.N), Is, It,
-            self.get_admittance().astype('float32').copy(order='c'),
-            self.get_R().astype('float32').copy(order='c'), i)
+            self.N, Is, It,
+            to_cy(self.get_admittance(), FIELD), to_cy(self.get_R(), FIELD), i)
 
     def edge_current_flow_betweenness(self):
         """The electrial version of Newmann's edge betweeness
@@ -776,12 +776,11 @@ class ResNetwork(GeoNetwork):
          [ 0.      0.      0.      0.4     0.    ]]
         """
         # set currents
-        Is = It = np.float(1)
+        Is = It = FIELD(1)
 
         return _edge_current_flow_betweenness(
-            np.int(self.N), Is, It,
-            self.get_admittance().astype('float32').copy(order='c'),
-            self.get_R().astype('float32').copy(order='c'))
+            self.N, Is, It,
+            to_cy(self.get_admittance(), FIELD), to_cy(self.get_R(), FIELD))
 
 
 ###############################################################################

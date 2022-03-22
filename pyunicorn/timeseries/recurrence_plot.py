@@ -27,15 +27,17 @@ from math import factorial
 import numpy as np
 
 # Cython inline code
+from ..core._ext.types import to_cy, NODE, LAG, FIELD
 from ._ext.numerics import _embed_time_series, _manhattan_distance_matrix_rp, \
     _euclidean_distance_matrix_rp, _supremum_distance_matrix_rp, \
-    _set_adaptive_neighborhood_size, _bootstrap_distance_matrix_manhatten, \
-    _bootstrap_distance_matrix_euclidean, _bootstrap_distance_matrix_supremum,\
+    _set_adaptive_neighborhood_size, _bootstrap_distance_matrix_manhattan, \
+    _bootstrap_distance_matrix_euclidean, _bootstrap_distance_matrix_supremum, \
     _diagline_dist_norqa_missingvalues, _diagline_dist_norqa, \
     _diagline_dist_rqa_missingvalues, _diagline_dist_rqa, \
     _vertline_dist_norqa_missingvalues, _vertline_dist_norqa, \
-    _vertline_dist_rqa_missingvalues, _vertline_dist_rqa, _rejection_sampling,\
-    _white_vertline_dist, _twins_r, _twin_surrogates
+    _vertline_dist_rqa_missingvalues, _vertline_dist_rqa, _rejection_sampling, \
+    _white_vertline_dist, _twins_r, _twin_surrogates_r
+
 
 #
 #  Class definitions
@@ -142,7 +144,7 @@ class RecurrencePlot:
         """Controls sequential calculation of RQA measures."""
 
         #  Store time series
-        self.time_series = time_series.copy().astype("float32")
+        self.time_series = time_series.copy().astype(FIELD)
         """The time series from which the recurrence plot is constructed."""
 
         #  Reshape time series
@@ -429,10 +431,10 @@ class RecurrencePlot:
         #  Make sure that dim and tau are Python integers
         dim = int(dim)
         tau = int(tau)
-        time_series = time_series.astype("float32")
+        time_series = to_cy(time_series, FIELD)
 
         n_time = time_series.shape[0]
-        embedding = np.empty((n_time - (dim - 1) * tau, dim), dtype="float32")
+        embedding = np.empty((n_time - (dim - 1) * tau, dim), dtype=FIELD)
 
         # Reshape time series if it is one dimensional
         if time_series.ndim == 1:
@@ -542,9 +544,10 @@ class RecurrencePlot:
             print("Calculating the manhattan distance matrix...")
 
         (n_time, dim) = embedding.shape
-        distance = np.zeros((n_time, n_time), dtype="float32")
+        distance = np.zeros((n_time, n_time), dtype=FIELD)
 
-        _manhattan_distance_matrix_rp(n_time, dim, embedding, distance)
+        _manhattan_distance_matrix_rp(n_time, dim, to_cy(embedding, FIELD),
+                                      distance)
         return distance
 
     def euclidean_distance_matrix(self, embedding):
@@ -561,9 +564,10 @@ class RecurrencePlot:
             print("Calculating the euclidean distance matrix...")
 
         (n_time, dim) = embedding.shape
-        distance = np.zeros((n_time, n_time), dtype="float32")
+        distance = np.zeros((n_time, n_time), dtype=FIELD)
 
-        _euclidean_distance_matrix_rp(n_time, dim, embedding, distance)
+        _euclidean_distance_matrix_rp(n_time, dim, to_cy(embedding, FIELD),
+                                      distance)
         distance = np.sqrt(distance)
         return distance
 
@@ -581,9 +585,10 @@ class RecurrencePlot:
             print("Calculating the supremum distance matrix...")
 
         (n_time, dim) = embedding.shape
-        distance = np.zeros((n_time, n_time), dtype="float32")
+        distance = np.zeros((n_time, n_time), dtype=FIELD)
 
-        _supremum_distance_matrix_rp(n_time, dim, embedding, distance)
+        _supremum_distance_matrix_rp(n_time, dim, to_cy(embedding, FIELD),
+                                     distance)
         return distance
 
     def set_fixed_threshold(self, threshold):
@@ -738,18 +743,19 @@ class RecurrencePlot:
         #  Get indices that would sort the distance matrix.
         #  sorted_neighbors[i,j] contains the index of the jth nearest neighbor
         #  of i. Sorting order is very important here!
-        sorted_neighbors = distance.argsort(axis=1)
-        sorted_neighbors = sorted_neighbors.astype("int32")
+        sorted_neighbors = to_cy(distance.argsort(axis=1), NODE)
 
         #  Get number of nodes
         n_time = distance.shape[0]
 
         #  Initialize recurrence matrix
-        recurrence = np.zeros((n_time, n_time), dtype="int8")
+        recurrence = np.zeros((n_time, n_time), dtype=LAG)
 
         #  Set processing order of state vectors
         if order is None:
-            order = np.arange(n_time)
+            order = np.arange(n_time, dtype=NODE)
+        else:
+            order = to_cy(order, NODE)
 
         _set_adaptive_neighborhood_size(n_time, adaptive_neighborhood_size,
                                         sorted_neighbors, order, recurrence)
@@ -834,12 +840,12 @@ class RecurrencePlot:
         """
         #  Prepare
         M = int(M)
-        embedding = embedding.astype("float32")
-        distances = np.zeros(M, dtype="float32")
+        embedding = to_cy(embedding, FIELD)
+        distances = np.zeros(M, dtype=FIELD)
         (n_time, dim) = embedding.shape
 
         if metric == "manhattan":
-            _bootstrap_distance_matrix_manhatten(n_time, dim, embedding,
+            _bootstrap_distance_matrix_manhattan(n_time, dim, embedding,
                                                  distances, M)
 
         elif metric == "euclidean":
@@ -936,7 +942,7 @@ class RecurrencePlot:
         else:
             #  Prepare
             n_time = self.N
-            diagline = np.zeros(n_time, dtype="int32")
+            diagline = np.zeros(n_time, dtype=NODE)
 
             if not self.sparse_rqa:
                 #  Get recurrence matrix
@@ -964,8 +970,7 @@ class RecurrencePlot:
                                                      mv_indices, embedding,
                                                      eps, dim)
                 else:
-                    _diagline_dist_rqa(n_time, diagline, embedding, eps,
-                                       dim)
+                    _diagline_dist_rqa(n_time, diagline, embedding, eps, dim)
 
             #  Function just runs over the upper triangular matrix
             self._diagline_dist = 2*diagline
@@ -991,10 +996,10 @@ class RecurrencePlot:
         N = len(dist)
 
         #  Prepare
-        resampled_dist = np.zeros(N)
+        resampled_dist = np.zeros(N, dtype=FIELD)
 
         #  Prescribed distribution
-        dist = dist.copy().astype(float)
+        dist = to_cy(dist, FIELD)
         #  Normalize distribution
         dist /= dist.sum()
 
@@ -1164,7 +1169,7 @@ class RecurrencePlot:
         else:
             #  Prepare
             n_time = self.N
-            vertline = np.zeros(n_time, dtype="int32")
+            vertline = np.zeros(n_time, dtype=NODE)
 
             if not self.sparse_rqa:
                 #  Get recurrence matrix
@@ -1174,7 +1179,6 @@ class RecurrencePlot:
                     mv_indices = self.missing_value_indices
                     _vertline_dist_norqa_missingvalues(n_time, vertline,
                                                        recmat, mv_indices)
-
                 else:
                     _vertline_dist_norqa(n_time, vertline, recmat)
 
@@ -1372,7 +1376,7 @@ class RecurrencePlot:
         """
         R = self.recurrence_matrix()
         n_time = self.N
-        white_vertline = np.zeros(n_time, dtype="int32")
+        white_vertline = np.zeros(n_time, dtype=NODE)
 
         _white_vertline_dist(n_time, white_vertline, R)
 
@@ -1522,12 +1526,6 @@ class RecurrencePlot:
         N = self.N
         embedding = self.embedding
         dim = embedding.shape[1]
-
         twins = self.twins(min_dist)
 
-        #  Initialize
-        surrogates = np.empty((n_surrogates, N, dim))
-
-        _twin_surrogates(n_surrogates, N, dim, twins, embedding,
-                         surrogates)
-        return surrogates
+        return _twin_surrogates_r(n_surrogates, N, dim, twins, embedding)

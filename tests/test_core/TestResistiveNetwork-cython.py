@@ -23,9 +23,9 @@ def testVCFB():
         admittance = res.get_admittance()
         R = res.get_R()
         # set params
-        Is = It = np.float(1.0)
+        Is = It = np.float32(1.0)
         # alloc output
-        vcfbPython = np.float(0)
+        vcfbPython = np.float32(0)
         for t in range(res.N):
             for s in range(t):
                 I = 0.0
@@ -43,7 +43,7 @@ def testVCFB():
 
 def testECFB():
     # set currents
-    Is = It = np.float(1)
+    Is = It = np.float32(1)
     # alloc output
     if res.flagComplex:
         dtype = complex

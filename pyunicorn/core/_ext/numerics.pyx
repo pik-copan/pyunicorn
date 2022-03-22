@@ -14,39 +14,24 @@
 # and J. Kurths, "Unified functional network and nonlinear time series analysis
 # for complex systems science: The pyunicorn package"
 
-
 cimport cython
-cimport numpy as np
 
+import random
+
+cimport numpy as np
 import numpy as np
 import numpy.random as rd
-
 randint = rd.randint
 
-INTTYPE = np.int
-INT16TYPE = np.int16
-INT32TYPE = np.int32
-FLOATTYPE = np.float
-FLOAT32TYPE = np.float32
-FLOAT64TYPE = np.float64
-ctypedef np.int_t INTTYPE_t
-ctypedef np.int16_t INT16TYPE_t
-ctypedef np.int32_t INT32TYPE_t
-ctypedef np.float_t FLOATTYPE_t
-ctypedef np.float32_t FLOAT32TYPE_t
-ctypedef np.float64_t FLOAT64TYPE_t
-
-cdef extern from "time.h":
-    double time()
+from ...core._ext.types import NODE, FIELD
+from ...core._ext.types cimport \
+    ADJ_t, MASK_t, NODE_t, DEGREE_t, WEIGHT_t, DWEIGHT_t, FIELD_t, DFIELD_t
 
 cdef extern from "src_numerics.c":
-    void _randomly_rewire_geomodel_I_fast(int iterations, float eps, short *A,
-        float *D, int E, int N, int *edges)
     void _randomly_rewire_geomodel_II_fast(int iterations, float eps, short *A,
         float *D, int E, int N, int *edges)
     void _randomly_rewire_geomodel_III_fast(int iterations, float eps,
         short *A, float *D, int E, int N, int *edges, int *degree)
-    double _higher_order_transitivity4_fast(int N, short* A)
     void _do_nsi_hamming_clustering_fast(int n2, int nActiveIndices,
         float mind0, float minwp0, int lastunited, int part1, int part2,
         float *distances, int *theActiveIndices, float *linkedWeights,
@@ -59,30 +44,15 @@ cdef extern from "src_numerics.c":
 
 # geo_network =================================================================
 
+
 def _randomly_rewire_geomodel_I(int iterations, float eps,
-    np.ndarray[short, ndim=2] A, np.ndarray[float, ndim=2] D, int E, int N,
-    np.ndarray[INTTYPE_t, ndim=2] edges):
+    np.ndarray[ADJ_t, ndim=2] A, np.ndarray[FIELD_t, ndim=2] D,
+    int E, int N, np.ndarray[NODE_t, ndim=2] edges):
 
     cdef:
         int i, j, s, t, k, l, edge1, edge2, count
         int neighbor_s_index, neighbor_t_index
         int neighbor_k_index, neighbor_l_index
-
-    #  Create list of neighbors
-    #for (int i = 0; i < N; i++) {
-    #
-    #    count = 0;
-    #
-    #    for (int j = 0; j < N; j++) {
-    #        if (A(i,j) == 1) {
-    #            neighbors(i,count) = j;
-    #            count++;
-    #        }
-    #    }
-    #}
-
-    #  Initialize random number generator
-    #srand48(time(0))
 
     i = 0
     count = 0
@@ -97,16 +67,6 @@ def _randomly_rewire_geomodel_I(int iterations, float eps,
         k = edges[edge2,0]
         l = edges[edge2,1]
 
-        #  Randomly choose 2 nodes
-        #s = floor(drand48() * N);
-        #k = floor(drand48() * N);
-
-        #  Randomly choose 1 neighbor of each
-        #neighbor_s_index = floor(drand48() * degree(s));
-        #neighbor_k_index = floor(drand48() * degree(k));
-        #t = neighbors(s,neighbor_s_index);
-        #l = neighbors(k,neighbor_k_index);
-
         count+=1
 
         #  Proceed only if s != k, s != l, t != k, t != l
@@ -119,8 +79,7 @@ def _randomly_rewire_geomodel_I(int iterations, float eps,
                         np.abs(D[k,l] - D[s,l]) < eps ) or
                             (np.abs(D[s,t] - D[s,l]) < eps and
                                 np.abs(D[k,l] - D[k,t]) < eps )):
-                    # Now rewire the links symmetrically
-                    # and increase i by 1
+                    # Now rewire the links symmetrically and increase i by 1
                     A[s,t] = 0
                     A[t,s] = 0
                     A[k,l] = 0
@@ -135,42 +94,24 @@ def _randomly_rewire_geomodel_I(int iterations, float eps,
                     edges[edge2,0] = k
                     edges[edge2,1] = t
 
-                    #  Update neighbor lists of all 4 involved nodes
-                    #neighbors(s,neighbor_s_index) = l;
-                    #neighbors(k,neighbor_k_index) = t;
-
-                    #neighbor_t_index = 0;
-                    #while (neighbors(t,neighbor_t_index) != s) {
-                    #    neighbor_t_index++;
-                    #}
-                    #neighbors(t,neighbor_t_index) = k;
-
-                    #neighbor_l_index = 0;
-                    #while (neighbors(l,neighbor_l_index) != k) {
-                    #    neighbor_l_index++;
-                    #}
-                    #neighbors(l,neighbor_l_index) = s;
-
                     i+=1
 
     print("Trials %d, Rewirings %d", (count, iterations))
-    """
-    _randomly_rewire_geomodel_I_fast(iterations, eps,
-            <short*> np.PyArray_DATA(A), <float*> np.PyArray_DATA(D), E, N,
-            <int*> np.PyArray_DATA(edges))
-    """
+
 
 def _randomly_rewire_geomodel_II(int iterations, float eps,
-    np.ndarray[short, ndim=2] A, np.ndarray[float, ndim=2] D, int E, int N,
-    np.ndarray[INTTYPE_t, ndim=2] edges):
+    np.ndarray[ADJ_t, ndim=2] A, np.ndarray[FIELD_t, ndim=2] D,
+    int E, int N, np.ndarray[NODE_t, ndim=2] edges):
 
     _randomly_rewire_geomodel_II_fast(iterations, eps,
             <short*> np.PyArray_DATA(A), <float*> np.PyArray_DATA(D), E, N,
             <int*> np.PyArray_DATA(edges))
 
+
 def _randomly_rewire_geomodel_III(int iterations, float eps,
-    np.ndarray[short, ndim=2] A, np.ndarray[float, ndim=2] D, int E, int N,
-    np.ndarray[INTTYPE_t, ndim=2] edges, np.ndarray[INTTYPE_t, ndim=1] degree):
+    np.ndarray[ADJ_t, ndim=2] A, np.ndarray[FIELD_t, ndim=2] D,
+    int E, int N, np.ndarray[NODE_t, ndim=2] edges,
+    np.ndarray[DEGREE_t, ndim=1] degree):
 
     _randomly_rewire_geomodel_III_fast(iterations, eps,
             <short*> np.PyArray_DATA(A), <float*> np.PyArray_DATA(D), E, N,
@@ -179,9 +120,11 @@ def _randomly_rewire_geomodel_III(int iterations, float eps,
 
 # interacting_networks ========================================================
 
+
 cdef void overwriteAdjacency(
-    np.ndarray[INTTYPE_t, ndim=2] A, np.ndarray[INTTYPE_t, ndim=2] cross_A,
-    np.ndarray[INTTYPE_t, ndim=1] nodes1, np.ndarray[INTTYPE_t, ndim=1] nodes2,
+    np.ndarray[ADJ_t, ndim=2] A, np.ndarray[ADJ_t, ndim=2] cross_A,
+    np.ndarray[NODE_t, ndim=1] nodes1,
+    np.ndarray[NODE_t, ndim=1] nodes2,
     int m, int n):
     """
     Overwrite the adjacency matrix of the full interacting network with the
@@ -189,7 +132,7 @@ cdef void overwriteAdjacency(
     """
     cdef:
         int i, j
-        INTTYPE_t n1, n2
+        NODE_t n1, n2
 
     for i in range(m):
         for j in range(n):
@@ -198,9 +141,9 @@ cdef void overwriteAdjacency(
 
 
 def _randomlySetCrossLinks(
-    np.ndarray[INTTYPE_t, ndim=2] A, np.ndarray[INTTYPE_t, ndim=2] cross_A,
+    np.ndarray[ADJ_t, ndim=2] A, np.ndarray[ADJ_t, ndim=2] cross_A,
     int number_cross_links,
-    np.ndarray[INTTYPE_t, ndim=1] nodes1, np.ndarray[INTTYPE_t, ndim=1] nodes2,
+    np.ndarray[NODE_t, ndim=1] nodes1, np.ndarray[NODE_t, ndim=1] nodes2,
     int m, int n):
     """
     >>> A = np.eye(2, dtype=np.int)
@@ -223,14 +166,16 @@ def _randomlySetCrossLinks(
 
 
 def _randomlyRewireCrossLinks(
-    np.ndarray[INTTYPE_t, ndim=2] A, np.ndarray[INTTYPE_t, ndim=2] cross_A,
-    np.ndarray[INTTYPE_t, ndim=2] cross_links,
-    np.ndarray[INTTYPE_t, ndim=1] nodes1, np.ndarray[INTTYPE_t, ndim=1] nodes2,
+    np.ndarray[ADJ_t, ndim=2] A,
+    np.ndarray[ADJ_t, ndim=2] cross_A,
+    np.ndarray[NODE_t, ndim=2] cross_links,
+    np.ndarray[NODE_t, ndim=1] nodes1,
+    np.ndarray[NODE_t, ndim=1] nodes2,
     int number_cross_links, int number_swaps):
 
     cdef:
         int m = len(nodes1), n = len(nodes2)
-        INTTYPE_t e1, e2, a, b, c, d
+        NODE_t e1, e2, a, b, c, d
 
     # implement permutations
     for _ in range(number_swaps):
@@ -256,13 +201,13 @@ def _randomlyRewireCrossLinks(
 
 
 def _cross_transitivity(
-    np.ndarray[INTTYPE_t, ndim=2] A, np.ndarray[INTTYPE_t, ndim=1] nodes1,
-    np.ndarray[INTTYPE_t, ndim=1] nodes2):
+    np.ndarray[ADJ_t, ndim=2] A,
+    np.ndarray[NODE_t, ndim=1] nodes1, np.ndarray[NODE_t, ndim=1] nodes2):
 
     cdef:
         unsigned int m = len(nodes1), n = len(nodes2)
         unsigned int i, j, k
-        INTTYPE_t n1, n2, n3
+        NODE_t n1, n2, n3
         long triangles = 0, triples = 0
 
     for i in range(m):
@@ -284,15 +229,16 @@ def _cross_transitivity(
 
 
 def _nsi_cross_transitivity(
-    np.ndarray[INTTYPE_t, ndim=2] A,
-    np.ndarray[INTTYPE_t, ndim=1] nodes1, np.ndarray[INTTYPE_t, ndim=1] nodes2,
-    np.ndarray[FLOATTYPE_t, ndim=1] node_weights):
+    np.ndarray[ADJ_t, ndim=2] A,
+    np.ndarray[NODE_t, ndim=1] nodes1,
+    np.ndarray[NODE_t, ndim=1] nodes2,
+    np.ndarray[DWEIGHT_t, ndim=1] node_weights):
 
     cdef:
         unsigned int m = len(nodes1), n = len(nodes2)
         unsigned int v, p, q
-        INTTYPE_t node_v, node_p, node_q
-        FLOATTYPE_t weight_v, weight_p, ppv, pqv, T1 = 0, T2 = 0
+        NODE_t node_v, node_p, node_q
+        DWEIGHT_t weight_v, weight_p, ppv, pqv, T1 = 0, T2 = 0
 
     for v in range(m):
         node_v = nodes1[v]
@@ -315,14 +261,15 @@ def _nsi_cross_transitivity(
 
 
 def _cross_local_clustering(
-    np.ndarray[INTTYPE_t, ndim=2] A, np.ndarray[FLOATTYPE_t, ndim=1] norm,
-    np.ndarray[INTTYPE_t, ndim=1] nodes1, np.ndarray[INTTYPE_t, ndim=1] nodes2,
-    np.ndarray[FLOATTYPE_t, ndim=1] cross_clustering):
+    np.ndarray[ADJ_t, ndim=2] A,
+    np.ndarray[FIELD_t, ndim=1] norm,
+    np.ndarray[NODE_t, ndim=1] nodes1, np.ndarray[NODE_t, ndim=1] nodes2,
+    np.ndarray[FIELD_t, ndim=1] cross_clustering):
 
     cdef:
         unsigned int m = len(nodes1), n = len(nodes2)
         unsigned int i, j, k
-        INTTYPE_t n1, n2, n3
+        NODE_t n1, n2, n3
         long counter
 
     for i in range(m):
@@ -342,15 +289,16 @@ def _cross_local_clustering(
 
 
 def _nsi_cross_local_clustering(
-    np.ndarray[INTTYPE_t, ndim=2] A, np.ndarray[FLOATTYPE_t, ndim=1] nsi_cc,
-    np.ndarray[INTTYPE_t, ndim=1] nodes1, np.ndarray[INTTYPE_t, ndim=1] nodes2,
-    np.ndarray[FLOATTYPE_t, ndim=1] node_weights):
+    np.ndarray[ADJ_t, ndim=2] A,
+    np.ndarray[FIELD_t, ndim=1] nsi_cc,
+    np.ndarray[NODE_t, ndim=1] nodes1, np.ndarray[NODE_t, ndim=1] nodes2,
+    np.ndarray[WEIGHT_t, ndim=1] node_weights):
 
     cdef:
         unsigned int m = len(nodes1), n = len(nodes2)
         unsigned int v, p, q
-        INTTYPE_t node_v, node_p, node_q
-        FLOATTYPE_t weight_p
+        NODE_t node_v, node_p, node_q
+        WEIGHT_t weight_p
 
     for v in range(m):
         node_v = nodes1[v]
@@ -367,21 +315,17 @@ def _nsi_cross_local_clustering(
 
 # network =====================================================================
 
-def _higher_order_transitivity4(int N, np.ndarray[short, ndim=2] A):
-    return _higher_order_transitivity4_fast(N, <short*> np.PyArray_DATA(A))
-
 
 def _local_cliquishness_4thorder(
-    int N, np.ndarray[INTTYPE_t, ndim=2] A,
-    np.ndarray[INTTYPE_t, ndim=1] degree):
+    int N, np.ndarray[ADJ_t, ndim=2] A, np.ndarray[DEGREE_t, ndim=1] degree):
 
     cdef:
-        unsigned int order = 4, index
-        INTTYPE_t node1, node2, node3, degree_i
+        unsigned int index
+        NODE_t node1, node2, node3, degree_i, order = 4
         long counter
-        np.ndarray[INTTYPE_t, ndim=1] neighbors = np.zeros(N, dtype=INTTYPE)
-        np.ndarray[FLOATTYPE_t, ndim=1] local_cliquishness = \
-            np.zeros(N, dtype=FLOATTYPE)
+        np.ndarray[NODE_t, ndim=1] neighbors = np.zeros(N, dtype=NODE)
+        np.ndarray[FIELD_t, ndim=1] local_cliquishness = \
+            np.zeros(N, dtype=FIELD)
 
     # Iterate over all nodes
     for i in range(N):
@@ -411,16 +355,15 @@ def _local_cliquishness_4thorder(
 
 
 def _local_cliquishness_5thorder(
-    int N, np.ndarray[INTTYPE_t, ndim=2] A,
-    np.ndarray[INTTYPE_t, ndim=1] degree):
+    int N, np.ndarray[ADJ_t, ndim=2] A, np.ndarray[DEGREE_t, ndim=1] degree):
 
     cdef:
-        unsigned int index, order = 5
-        INTTYPE_t j, node1, node2, node3, node4, degree_i
+        unsigned int index
+        NODE_t j, node1, node2, node3, node4, degree_i, order = 5
         long counter
-        np.ndarray[INTTYPE_t, ndim=1] neighbors = np.zeros(N, dtype=INTTYPE)
-        np.ndarray[FLOATTYPE_t, ndim=1] local_cliquishness = \
-            np.zeros(N, dtype=FLOATTYPE)
+        np.ndarray[NODE_t, ndim=1] neighbors = np.zeros(N, dtype=NODE)
+        np.ndarray[FIELD_t, ndim=1] local_cliquishness = \
+            np.zeros(N, dtype=FIELD)
 
     # Iterate over all nodes
     for i in range(N):
@@ -455,27 +398,24 @@ def _local_cliquishness_5thorder(
 
 
 def _nsi_betweenness(
-    int N, int E, np.ndarray[FLOATTYPE_t, ndim=1] w,
-    np.ndarray[INTTYPE_t, ndim=1] k, int j ,
-    np.ndarray[FLOATTYPE_t, ndim=1] betweenness_to_j,
-    np.ndarray[FLOATTYPE_t, ndim=1] excess_to_j,
-    np.ndarray[INTTYPE_t, ndim=1] offsets,
-    np.ndarray[INTTYPE_t, ndim=1] flat_neighbors,
-    np.ndarray[FLOATTYPE_t, ndim=1] is_source,
-    np.ndarray[INTTYPE_t, ndim=1] flat_predecessors):
+    int N, int E, np.ndarray[WEIGHT_t, ndim=1] w,
+    np.ndarray[DEGREE_t, ndim=1] k, int j,
+    np.ndarray[FIELD_t, ndim=1] betweenness_to_j,
+    np.ndarray[FIELD_t, ndim=1] excess_to_j,
+    np.ndarray[NODE_t, ndim=1] offsets,
+    np.ndarray[NODE_t, ndim=1] flat_neighbors,
+    np.ndarray[MASK_t, ndim=1] is_source,
+    np.ndarray[NODE_t, ndim=1] flat_predecessors):
 
     cdef:
-        unsigned int qi, oi, queue_len, l_index, ql, fi
-        INTTYPE_t l, i, next_d, dl, ol
-        float base_factor
-        np.ndarray[INTTYPE_t, ndim=1] distances_to_j =\
-            2 * N * np.ones(N, dtype=INTTYPE)
-        np.ndarray[INTTYPE_t, ndim=1] n_predecessors =\
-            np.zeros(N, dtype=INTTYPE)
-        np.ndarray[INTTYPE_t, ndim=1] queue =\
-          np.zeros(N, dtype=INTTYPE)
-        np.ndarray[FLOATTYPE_t, ndim=1] multiplicity_to_j =\
-            np.zeros(N, dtype=FLOATTYPE)
+        unsigned int qi, oi, queue_len, l_index, ql
+        NODE_t l, i, next_d, dl, ol, fi
+        FIELD_t base_factor
+        np.ndarray[NODE_t, ndim=1] distances_to_j =\
+            2 * N * np.ones(N, dtype=NODE)
+        np.ndarray[NODE_t, ndim=1] n_predecessors = np.zeros(N, dtype=NODE)
+        np.ndarray[NODE_t, ndim=1] queue = np.zeros(N, dtype=NODE)
+        np.ndarray[FIELD_t, ndim=1] multiplicity_to_j = np.zeros(N, dtype=FIELD)
 
     # init distances to j and queue of nodes by distance from j
     for l in range(N):
@@ -540,37 +480,8 @@ def _nsi_betweenness(
                     multiplicity_to_j[i]
 
 
-def _newman_betweenness_badly_cython(np.ndarray[INTTYPE_t, ndim=2] adjacency,
-    np.ndarray[FLOAT64TYPE_t, ndim=2] T, np.ndarray[FLOAT64TYPE_t, ndim=2] rwb,
-    N):
-
-    cdef:
-        int i, j, s, t
-        double norm, sum, Tis, Tit, Tjs, Tjt
-
-    norm = 2 / (N * (N - 1))
-
-    for i in range(N):
-        for s in range(N):
-            for t in range(s):
-                if (i == s or i == t):
-                    rwb[i] += 1
-                else:
-                    sum = 0
-                    Tis = T[i,s]
-                    Tit = T[i,t]
-                    for j in range(N):
-                        if (adjacency[i,j] == 1):
-                            Tjs = T(j,s)
-                            Tjt = T(j,t)
-                            sum += np.abs(Tis - Tit - Tjs + Tjt)
-                    rwb[i] += 0.5 * sum;
-        rwb[i] *= norm
-    return rwb
-
-
-def _cy_mpi_newman_betweenness(
-    np.ndarray[INTTYPE_t, ndim=2] this_A, np.ndarray[FLOATTYPE_t, ndim=2] V,
+def _mpi_newman_betweenness(
+    np.ndarray[ADJ_t, ndim=2] this_A, np.ndarray[FIELD_t, ndim=2] V,
     int N, int start_i, int end_i):
     """
     This function does the outer loop for a certain range start_i-end_i of
@@ -583,8 +494,8 @@ def _cy_mpi_newman_betweenness(
         float sum_s, sum_j, Vis_minus_Vjs
 
         int this_N = end_i - start_i
-        np.ndarray[FLOATTYPE_t, ndim=1] this_betweenness =\
-            np.zeros(this_N, dtype=FLOATTYPE)
+        np.ndarray[FIELD_t, ndim=1] this_betweenness = \
+            np.zeros(this_N, dtype=FIELD)
 
     for i_rel in range(this_N):
         # correct i index for V matrix
@@ -606,19 +517,18 @@ def _cy_mpi_newman_betweenness(
     return this_betweenness, start_i, end_i
 
 
-def _cy_mpi_nsi_newman_betweenness(
-    np.ndarray[INTTYPE_t, ndim=2] this_A, np.ndarray[FLOATTYPE_t, ndim=2] V,
-    int N, np.ndarray[FLOATTYPE_t, ndim=1] w,
-    np.ndarray[INTTYPE_t, ndim=2] this_not_adj_or_equal, int start_i,
-    int end_i):
+def _mpi_nsi_newman_betweenness(
+    np.ndarray[ADJ_t, ndim=2] this_A,
+    np.ndarray[FIELD_t, ndim=2] V, int N, np.ndarray[WEIGHT_t, ndim=1] w,
+    np.ndarray[MASK_t, ndim=2] this_not_adj_or_equal, int start_i, int end_i):
 
     cdef:
         int i_rel, j, s, t, i_abs
         float sum_s, sum_j, Vis_minus_Vjs
 
         int this_N = end_i - start_i
-        np.ndarray[FLOATTYPE_t, ndim=1] this_betweenness =\
-            np.zeros(this_N, dtype=FLOATTYPE)
+        np.ndarray[FIELD_t, ndim=1] this_betweenness =\
+            np.zeros(this_N, dtype=FIELD)
 
     for i_rel in range(this_N):
         i_abs = i_rel + start_i
@@ -640,12 +550,11 @@ def _cy_mpi_nsi_newman_betweenness(
 
 
 def _do_nsi_clustering_I(
-    int n_cands, np.ndarray[INTTYPE_t, ndim=1] cands,
-    np.ndarray[INT16TYPE_t, ndim=1] D_cluster,
-    np.ndarray[FLOATTYPE_t, ndim=1] w, double d0,
-    np.ndarray[INT32TYPE_t, ndim=1] D_firstpos,
-    np.ndarray[INT32TYPE_t, ndim=1] D_nextpos, int N, dict dict_D,
-    dict dict_Delta):
+    int n_cands, np.ndarray[NODE_t, ndim=1] cands,
+    np.ndarray[DEGREE_t, ndim=1] D_cluster,
+    np.ndarray[FIELD_t, ndim=1] w, double d0,
+    np.ndarray[NODE_t, ndim=1] D_firstpos, np.ndarray[NODE_t, ndim=1] D_nextpos,
+    int N, dict dict_D, dict dict_Delta):
 
     cdef:
         int ca, ij, i, j, posh, h, ih, jh
@@ -710,11 +619,10 @@ def _do_nsi_clustering_I(
 
 
 def _do_nsi_clustering_II(int a, int b,
-    np.ndarray[INT16TYPE_t, ndim=1] D_cluster,
-    np.ndarray[FLOATTYPE_t, ndim=1] w, double d0,
-    np.ndarray[INT32TYPE_t, ndim=1] D_firstpos,
-    np.ndarray[INT32TYPE_t, ndim=1] D_nextpos, int N, dict dict_D,
-    dict dict_Delta):
+    np.ndarray[DEGREE_t, ndim=1] D_cluster,
+    np.ndarray[FIELD_t, ndim=1] w, double d0,
+    np.ndarray[NODE_t, ndim=1] D_firstpos, np.ndarray[NODE_t, ndim=1] D_nextpos,
+    int N, dict dict_D, dict dict_Delta):
 
     cdef:
         float wa = w[a], wb = w[b], wc = wa+wb, wad0 = wa*d0, wbd0 = wb*d0
@@ -730,7 +638,6 @@ def _do_nsi_clustering_II(int a, int b,
         int N1 = N+1, posa1 = D_firstpos[a] # a meaning c!
         int a1, a1N, a1a1, a1a, a1b, posb1, b1, b1N, posc2, b1c2, b1a, b1b, \
                 a1b1key, b1b1
-
 
     while (posa1 > 0):
         a1 = D_cluster[posa1]
@@ -879,15 +786,15 @@ def _do_nsi_clustering_II(int a, int b,
 
 def _do_nsi_hamming_clustering(int n2, int nActiveIndices, float mind0,
     float minwp0, int lastunited, int part1, int part2,
-    np.ndarray[FLOATTYPE_t, ndim=2] distances,
-    np.ndarray[INTTYPE_t, ndim=1] theActiveIndices,
-    np.ndarray[FLOATTYPE_t, ndim=2] linkedWeights,
-    np.ndarray[FLOATTYPE_t, ndim=2] weightProducts,
-    np.ndarray[FLOATTYPE_t, ndim=2] errors,
-    np.ndarray[FLOATTYPE_t, ndim=1] results,
-    np.ndarray[INTTYPE_t, ndim=2] mayJoin):
+    np.ndarray[DFIELD_t, ndim=2] distances,
+    np.ndarray[NODE_t, ndim=1] theActiveIndices,
+    np.ndarray[DFIELD_t, ndim=2] linkedWeights,
+    np.ndarray[DFIELD_t, ndim=2] weightProducts,
+    np.ndarray[DFIELD_t, ndim=2] errors,
+    np.ndarray[DFIELD_t, ndim=1] results,
+    np.ndarray[MASK_t, ndim=2] mayJoin):
 
-    return _do_nsi_hamming_clustering_fast(n2, nActiveIndices, mind0, minwp0,
+    _do_nsi_hamming_clustering_fast(n2, nActiveIndices, mind0, minwp0,
         lastunited, part1, part2,
         <float*> np.PyArray_DATA(distances),
         <int*> np.PyArray_DATA(theActiveIndices),
@@ -900,15 +807,16 @@ def _do_nsi_hamming_clustering(int n2, int nActiveIndices, float mind0,
 
 # grid ========================================================================
 
-def _cy_calculate_angular_distance(
-    np.ndarray[FLOAT32TYPE_t, ndim=1] cos_lat,
-    np.ndarray[FLOAT32TYPE_t, ndim=1] sin_lat,
-    np.ndarray[FLOAT32TYPE_t, ndim=1] cos_lon,
-    np.ndarray[FLOAT32TYPE_t, ndim=1] sin_lon,
-    np.ndarray[FLOAT32TYPE_t, ndim=2] cosangdist, unsigned int N):
+
+def _calculate_angular_distance(
+    np.ndarray[FIELD_t, ndim=1] cos_lat,
+    np.ndarray[FIELD_t, ndim=1] sin_lat,
+    np.ndarray[FIELD_t, ndim=1] cos_lon,
+    np.ndarray[FIELD_t, ndim=1] sin_lon,
+    np.ndarray[FIELD_t, ndim=2] cosangdist, unsigned int N):
 
     cdef:
-        FLOAT32TYPE_t expr
+        FIELD_t expr
         unsigned int i,j
 
     for i in range(N):
@@ -924,14 +832,14 @@ def _cy_calculate_angular_distance(
             cosangdist[i, j] = cosangdist[j, i] = expr
 
 
-def _cy_calculate_euclidean_distance(
-    np.ndarray[FLOAT32TYPE_t, ndim=2] x,
-    np.ndarray[FLOAT32TYPE_t, ndim=2] distance,
+def _calculate_euclidean_distance(
+    np.ndarray[FIELD_t, ndim=2] x,
+    np.ndarray[FIELD_t, ndim=2] distance,
     unsigned int N_dim, unsigned int N_nodes):
 
     cdef:
         unsigned int i,j,k
-        FLOAT32TYPE_t expr
+        FIELD_t expr
 
     for i in range(N_nodes):
         for j in range(i+1):
@@ -943,21 +851,23 @@ def _cy_calculate_euclidean_distance(
 
 # resistive_network ===========================================================
 
+
 def _vertex_current_flow_betweenness(int N, double Is, double It,
-    np.ndarray[FLOAT32TYPE_t, ndim=2] admittance,
-    np.ndarray[FLOAT32TYPE_t, ndim=2] R, int i):
+    np.ndarray[FIELD_t, ndim=2] admittance, np.ndarray[FIELD_t, ndim=2] R,
+    int i):
 
     return _vertex_current_flow_betweenness_fast(N, Is, It,
         <float*> np.PyArray_DATA(admittance),
         <float*> np.PyArray_DATA(R), i)
 
+
 def _edge_current_flow_betweenness(int N, double Is, double It,
-    np.ndarray[FLOAT32TYPE_t, ndim=2] admittance,
-    np.ndarray[FLOAT32TYPE_t, ndim=2] R,):
+    np.ndarray[FIELD_t, ndim=2] admittance,
+    np.ndarray[FIELD_t, ndim=2] R,):
 
     # alloc output
-    cdef np.ndarray[FLOAT32TYPE_t, ndim=2, mode='c'] ECFB = \
-            np.zeros((N, N), dtype='float32')
+    cdef np.ndarray[FIELD_t, ndim=2, mode='c'] ECFB = \
+            np.zeros((N, N), dtype=FIELD)
 
     _edge_current_flow_betweenness_fast(N, Is, It,
         <float*> np.PyArray_DATA(admittance),

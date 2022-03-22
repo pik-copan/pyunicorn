@@ -26,6 +26,7 @@ Provides classes for generating and analyzing complex climate networks.
 # array object and fast numerics
 import numpy as np
 
+from ..core._ext.types import to_cy, FIELD
 from ._ext.numerics import _calculate_mutual_information_cython
 
 #  Import progress bar for easy progress bar handling
@@ -155,10 +156,8 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         #  using the maximum range of the whole dataset.
         scaling = 1./(range_max - range_min)
 
-        anomaly = anomaly.astype(np.float32).copy(order='c')
-        mi = _calculate_mutual_information_cython(anomaly, n_samples, N,
-                                                  n_bins, scaling,
-                                                  range_min)
+        mi = _calculate_mutual_information_cython(
+            to_cy(anomaly, FIELD), n_samples, N, n_bins, scaling, range_min)
 
         if self.silence_level <= 1:
             print("Done!")

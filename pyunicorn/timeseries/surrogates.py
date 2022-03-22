@@ -24,8 +24,9 @@ multivariate data and generating time series surrogates.
 import numpy as np
 from numpy import random
 
+from ..core._ext.types import to_cy, ADJ, DEGREE, FIELD, DFIELD
 from ._ext.numerics import _embed_time_series_array, _recurrence_plot, \
-    _twins_s, _twin_surrogates, _test_pearson_correlation, \
+    _twins_s, _twin_surrogates_s, _test_pearson_correlation, \
     _test_mutual_information
 
 # easy progress bar handling
@@ -186,10 +187,12 @@ class Surrogates:
                   f"and with lag {delay} ...")
         (N, n_time) = time_series_array.shape
 
-        embedding = np.empty((N, n_time - (dimension - 1)*delay, dimension))
+        embedding = np.empty(
+            (N, n_time - (dimension - 1)*delay, dimension), dtype=DFIELD)
 
-        _embed_time_series_array(N, n_time, dimension, delay,
-                                 time_series_array, embedding)
+        _embed_time_series_array(
+            N, n_time, dimension, delay,
+            to_cy(time_series_array, DFIELD), embedding)
         return embedding
 
     # FIXME: I(wb) included the line
@@ -213,11 +216,10 @@ class Surrogates:
 
         n_time = embedding.shape[0]
         dimension = embedding.shape[1]
-        R = np.ones((n_time, n_time), dtype="int8")
+        R = np.ones((n_time, n_time), dtype=ADJ)
 
         _recurrence_plot(n_time, dimension, threshold,
-                         embedding.copy(order='c'),
-                         R.copy(order='c'))
+                         to_cy(embedding, FIELD), R)
         return R
 
     # FIXME: I(wb) included the line
@@ -250,13 +252,12 @@ class Surrogates:
         twins = []
 
         #  Initialize the R matrix with ones
-        R = np.empty((n_time, n_time))
+        R = np.empty((n_time, n_time), dtype=ADJ)
         #  Initialize array to store the number of neighbors for each sample
-        nR = np.empty(n_time)
+        nR = np.empty(n_time, dtype=DEGREE)
 
         _twins_s(N, n_time, dimension, threshold, min_dist,
-                 embedding_array.copy(order='c'), R.copy(order='c'),
-                 nR.copy(order='c'), twins)
+                 to_cy(embedding_array, DFIELD), R, nR, twins)
 
         return twins
 
@@ -527,8 +528,8 @@ class Surrogates:
             self._twins = twins
             self._twins_cached = True
 
-        return _twin_surrogates(N, n_time, twins,
-                                original_data.copy(order='c'))
+        return _twin_surrogates_s(N, n_time, twins,
+                                  to_cy(original_data, DFIELD))
 
     #
     #  Defines methods to generate correlation measure matrices based on
@@ -585,9 +586,8 @@ class Surrogates:
         :return: the Pearson correlation test matrix.
         """
         (N, n_time) = original_data.shape
-        norm = 1. / float(n_time)
-        return _test_pearson_correlation(original_data.copy(order='c'),
-                                         surrogates.copy(order='c'),
+        return _test_pearson_correlation(to_cy(original_data, DFIELD),
+                                         to_cy(surrogates, DFIELD),
                                          N, n_time)
 
     @staticmethod
@@ -616,9 +616,9 @@ class Surrogates:
         #  Calculate 2D histograms and mutual information
         #  mi[i,j] gives the mutual information between the ith original_data
         #  time series and the jth surrogate time series.
-        return _test_mutual_information(original_data.copy(order='c'),
-                                        surrogates.copy(order='c'), N, n_time,
-                                        n_bins)
+        return _test_mutual_information(to_cy(original_data, DFIELD),
+                                        to_cy(surrogates, DFIELD),
+                                        N, n_time, n_bins)
 
     #
     #  Define methods to perform significance tests on correlation measures

@@ -8,6 +8,8 @@
 * License: BSD (3-clause)
 */
 
+#include <math.h>
+
 // mutual_info ================================================================
 
 void _cython_calculate_mutual_information(float *anomaly, int n_samples,
@@ -18,7 +20,7 @@ void _cython_calculate_mutual_information(float *anomaly, int n_samples,
          in_nodes;
     double norm, rescaled, hpl, hpm, plm;
 
-    double *p_anomaly;
+    float *p_anomaly;
     float *p_mi, *p_mi2;
     long *p_symbolic, *p_symbolic1, *p_symbolic2, *p_hist, *p_hist1,
          *p_hist2, *p_hist2d;

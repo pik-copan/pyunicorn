@@ -26,8 +26,9 @@ from scipy import special, linalg   # special math functions
 
 # import mpi                          # parallelized computations
 
+from ..core._ext.types import to_cy, LAG, FIELD
 from ._ext.numerics import _symmetrize_by_absmax, _cross_correlation_max, \
-    _cross_correlation_all, _get_nearest_neighbors_cython
+    _cross_correlation_all, _get_nearest_neighbors
 
 
 #
@@ -131,9 +132,8 @@ class CouplingAnalysis:
         :returns: the value at the absolute maximum and the (pos or neg) lag.
         """
 
-        N = self.N
-        return _symmetrize_by_absmax(similarity_matrix.copy(order='c'),
-                                     lag_matrix.copy(order='c'), N)
+        return _symmetrize_by_absmax(
+            to_cy(similarity_matrix, FIELD), to_cy(lag_matrix, LAG), self.N)
 
     #
     #  Define methods to estimate similarity measures
@@ -205,7 +205,7 @@ class CouplingAnalysis:
 
         #  Normalize time series to zero mean and unit variance for all lags
         corr_range = T - tau_max
-        array = numpy.empty((tau_max + 1, N, corr_range), dtype="float32")
+        array = numpy.empty((tau_max + 1, N, corr_range), dtype=FIELD)
 
         for t in range(tau_max + 1):
             #  Remove mean value from time series at each node
@@ -220,12 +220,11 @@ class CouplingAnalysis:
             array[t][numpy.isnan(array[t])] = 0
 
         if lag_mode == 'max':
-            return _cross_correlation_max(array.copy(order='c'), N, tau_max,
-                                          corr_range)
-
+            return _cross_correlation_max(
+                to_cy(array, FIELD), N, tau_max, corr_range)
         elif lag_mode == 'all':
-            return _cross_correlation_all(array.copy(order='c'), N, tau_max,
-                                          corr_range)
+            return _cross_correlation_all(
+                to_cy(array, FIELD), N, tau_max, corr_range)
         else:
             return None
 
@@ -358,7 +357,7 @@ class CouplingAnalysis:
                     if estimator == 'knn':
                         xyz = numpy.array([0, 1])
 
-                        k_xz, k_yz, k_z = self._get_nearest_neighbors(
+                        k_xz, k_yz, k_z = self.get_nearest_neighbors(
                             array=array, xyz=xyz, k=knn, standardize=True)
 
                         ixy_z = (special.digamma(knn)
@@ -558,7 +557,7 @@ class CouplingAnalysis:
                     if estimator == 'knn':
                         xyz = numpy.array([0, 1])
 
-                        k_xz, k_yz, k_z = self._get_nearest_neighbors(
+                        k_xz, k_yz, k_z = self.get_nearest_neighbors(
                             array=array, xyz=xyz, k=knn, standardize=True)
 
                         ixy_z = (special.digamma(knn)
@@ -638,7 +637,7 @@ class CouplingAnalysis:
         return -0.5*numpy.log(1. - par_corr**2)
 
     @staticmethod
-    def _get_nearest_neighbors(array, xyz, k, standardize=True):
+    def get_nearest_neighbors(array, xyz, k, standardize=True):
 
         """
         Returns nearest-neighbors for conditional mutual information estimator.
@@ -684,8 +683,8 @@ class CouplingAnalysis:
         dim_y = int(numpy.where(xyz == 1)[0][-1] + 1 - dim_x)
         # dim_z = maxdim - dim_x - dim_y
 
-        return _get_nearest_neighbors_cython(array.copy(order='c'), T, dim_x,
-                                             dim_y, k, dim)
+        return _get_nearest_neighbors(
+            to_cy(array, FIELD), T, dim_x, dim_y, k, dim)
 
     @staticmethod
     def _quantile_bin_array(array, bins=6):

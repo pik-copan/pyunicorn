@@ -23,6 +23,9 @@ Provides classes for generating and analyzing complex climate networks.
 #  Import essential packages
 #
 
+import numpy as np
+
+from ..core._ext.types import to_cy, MASK, FIELD
 from ._ext.numerics import _calculate_corr
 
 #  Import cnTsonisClimateNetwork for TsonisClimateNetwork class
@@ -276,10 +279,7 @@ class RainfallClimateNetwork(ClimateNetwork):
         :return: the Spearman correlation matrix.
         """
         # Get rank time series
-        time_series_ranked = self.rank_time_series(anomaly).astype('float32')
-
+        time_series_ranked = self.rank_time_series(anomaly)
         m, tmax = anomaly.shape
-
-        return _calculate_corr(m, tmax,
-                               final_mask.astype('int32').copy(order='c'),
-                               time_series_ranked.copy(order='c'))
+        return _calculate_corr(
+            m, tmax, to_cy(final_mask, MASK), to_cy(time_series_ranked, FIELD))

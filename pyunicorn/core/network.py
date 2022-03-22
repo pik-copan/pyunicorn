@@ -41,7 +41,7 @@ from functools import wraps         # helper function for decorators
 import numpy as np                  # array object and fast numerics
 from numpy import random
 from scipy import linalg            # solvers
-from scipy.linalg import matfuncs
+from scipy.linalg import expm
 from scipy import sparse as sp      # fast sparse matrices
 from scipy.sparse.linalg import eigsh, inv, splu
 
@@ -49,11 +49,12 @@ import igraph                       # high performance graph theory tools
 
 from ..utils import mpi             # parallelized computations
 
-from ._ext.numerics import _local_cliquishness_4thorder, \
-    _local_cliquishness_5thorder, _cy_mpi_nsi_newman_betweenness, \
-    _cy_mpi_newman_betweenness, _nsi_betweenness, \
-    _newman_betweenness_badly_cython, _do_nsi_clustering_I, \
-    _do_nsi_clustering_II, _do_nsi_hamming_clustering
+from ._ext.types import \
+    to_cy, ADJ, MASK, NODE, DEGREE, WEIGHT, DWEIGHT, FIELD, DFIELD
+from ._ext.numerics import \
+    _local_cliquishness_4thorder, _local_cliquishness_5thorder, \
+    _nsi_betweenness, _mpi_newman_betweenness, _mpi_nsi_newman_betweenness, \
+    _do_nsi_clustering_I, _do_nsi_clustering_II, _do_nsi_hamming_clustering
 
 from ..utils import progressbar     # easy progress bar handling
 
@@ -250,7 +251,7 @@ class Network:
         measures."""
 
         self._node_weights = None
-        """(array([int>=0])) array of node weights"""
+        """(array([double>=0])) array of node weights"""
         self.mean_node_weight = 0
         """mean node weight"""
         self.total_node_weight = 0
@@ -533,7 +534,7 @@ class Network:
 
     @property
     def node_weights(self):
-        """(array([int>=0])) array of node weights"""
+        """(array([double>=0])) array of node weights"""
         return self._node_weights
 
     def _set_node_weights(self, weights):
@@ -555,11 +556,11 @@ class Network:
         self.clear_nsi_cache()
 
         if weights is None:
-            w = np.ones(N, dtype=np.float)
+            w = np.ones(N, dtype=DWEIGHT)
         elif len(weights) != N:
             raise NetworkError("Incorrect number of node weights!")
         else:
-            w = np.array(weights, dtype=np.float)
+            w = np.array(weights, dtype=DWEIGHT)
 
         self._node_weights = w
         self.mean_node_weight = w.mean()
@@ -2530,12 +2531,6 @@ class Network:
             return self.transitivity()
 
         if order == 4:
-            #  Gathering
-            # N = self.N
-            # A = self.adjacency
-            # T = _higher_order_transitivity4(N, A)
-            # return T
-
             if estimate:
                 motif_counts = self.graph.motifs_randesu(
                     size=4, cut_prob=[0.5, 0.5, 0.5, 0.5])
@@ -2593,13 +2588,13 @@ class Network:
             return self.local_clustering()
 
         if order == 4:
-            return _local_cliquishness_4thorder(self.N,
-                                                self.adjacency.astype(int),
-                                                self.degree())
+            return _local_cliquishness_4thorder(
+                self.N, to_cy(self.adjacency, ADJ),
+                to_cy(self.degree(), DEGREE))
         if order == 5:
-            return _local_cliquishness_5thorder(self.N,
-                                                self.adjacency.astype(int),
-                                                self.degree())
+            return _local_cliquishness_5thorder(
+                self.N, to_cy(self.adjacency, ADJ),
+                to_cy(self.degree(), DEGREE))
         if order > 5:
             raise NotImplementedError("Local cliquishness is not yet \
                                       implemented for orders larger than 5.")
@@ -3061,7 +3056,7 @@ class Network:
 
         :rtype: array([[0<=float<=1,0<=float<=1]])
         """
-        commons = (self.sp_A * self.sp_A).astype(np.float).A
+        commons = (self.sp_A * self.sp_A).astype(DFIELD).A
         kk = np.repeat([self.degree()], self.N, axis=0)
         return commons / (kk + kk.T - commons)
 
@@ -3259,52 +3254,47 @@ class Network:
         w = self.node_weights
         if "aw" in kwargs:
             if kwargs["aw"] == 0:
-                w = 0.0*w + 1.0
+                w = np.ones_like(w)
 
         N, k = self.N, self.degree()
         rN = range(0, N)
-        zn = np.zeros(N, dtype=np.float)
-        betweenness_times_w = zn.copy()
+        betweenness_times_w = np.zeros(N, dtype=FIELD)
 
         # initialize node lists:
-        is_source = zn.copy()
+        is_source = np.zeros(N, dtype=MASK)
         if "sources" in kwargs and kwargs["sources"] is not None:
-            for i in kwargs["sources"]:
-                is_source[i] = 1
+            is_source[kwargs["sources"]] = 1
         else:
-            for i in rN:
-                is_source[i] = 1
+            is_source[rN] = 1
         if "targets" in kwargs and kwargs["targets"] is not None:
             targets = kwargs["targets"]
         else:
             targets = rN
 
         # node offsets for flat arrays:
-        offsets = np.zeros(N)
+        # NOTE: We don't use k.cumsum() since that uses too much memory!
+        offsets = np.zeros(N, dtype=NODE)
         for i in range(1, N):
             offsets[i] = offsets[i-1] + k[i-1]
-        # Note: We don't use k.cumsum() since that uses to much memory!
 
         # sort links by node indices (contains each link twice!):
         links = nz_coords(self.sp_A)
 
         # neighbours of each node:
-        flat_neighbors = np.array(links)[:, 1].astype(int)
+        flat_neighbors = to_cy(np.array(links)[:, 1], NODE)
         E = len(flat_neighbors)
 
         # this main loop might be parallelized:
         for j0 in targets:
             j = int(j0)
 
-            betweenness_to_j = w.copy().astype(float)
-            excess_to_j = w.copy().astype(float)
-            flat_predecessors = list(np.zeros(E, dtype=int))
-            # Note: this cannot be transferred as numpy array since if too
-            # large we get an glibc error...
-            _nsi_betweenness(N, E, w, k, j, betweenness_to_j,
-                             excess_to_j, offsets.astype(int),
-                             flat_neighbors,
-                             is_source, np.array(flat_predecessors))
+            betweenness_to_j = to_cy(w, FIELD)
+            excess_to_j = to_cy(w, FIELD)
+            flat_predecessors = np.zeros(E, dtype=NODE)
+            _nsi_betweenness(
+                N, E, to_cy(w, WEIGHT), to_cy(k, DEGREE), j,
+                betweenness_to_j, excess_to_j, offsets, flat_neighbors,
+                is_source, flat_predecessors)
             del flat_predecessors
             betweenness_times_w += w[j] * (betweenness_to_j - excess_to_j)
 
@@ -4000,82 +3990,6 @@ class Network:
 
         return nsi_arenas_betweenness
 
-    # deactivated and replaced by corrected and faster version (see below):
-    # TODO: remove after regression test
-    def _newman_betweenness_badly(self, link_attribute=None):
-        print("WARNING: _newman_betweenness_badly() is deprecated!")
-
-        #  Initialize the array to hold random walk betweenness
-        randomWalkBetweenness = np.zeros(self.N)
-
-        #  Random walk betweenness has to be calculated for each component
-        #  separately. Therefore get different components of the graph first
-        components = self.graph.clusters()
-
-        for i, comp in enumerate(components):
-            #  If the component has size 1, set random walk betweenness to zero
-            if len(comp) == 1:
-                randomWalkBetweenness[comp[0]] = 0
-            #  For larger components, continue with the calculation
-            else:
-                #  Get the subgraph corresponding to component i
-                subgraph = components.subgraph(i)
-
-                #  Get the subgraph adjacency matrix
-                adjacency = np.array(subgraph.get_adjacency(type=2).data)
-
-                #  Generate a Network object representing the subgraph
-                subnetwork = Network(adjacency, directed=True)
-
-                #  Get the number of nodes of the subgraph (the component size)
-                nNodes = subnetwork.N
-
-                #  Initialize the RWB array
-                rwb = np.zeros(nNodes)
-
-                # Heitzig FIXME: laplacian is faulty for undirected
-                # networks since row-sum != 0: Get the (directed and weighted)
-                # graph Laplacian
-                laplacian = \
-                    subnetwork.laplacian(link_attribute).astype('float64')
-
-                #  Remove the last row and column to make the matrix invertible
-                laplacian = laplacian[:-1, :-1]
-
-                #  Invert the reduced laplacian matrix and
-                T = np.linalg.inv(laplacian)
-
-                #  Clean up
-                del subgraph, laplacian
-
-                #  add row and column of zeros to T at the position they were
-                #  removed from the laplacian matrix (the last row and column)
-                T = np.vstack((T, np.zeros(nNodes - 1)))
-                T = np.ascontiguousarray(np.hstack((T, np.zeros((nNodes, 1)))))
-
-                nNodes = float(nNodes)
-
-                #  Calculate the random walk betweenness in C++ using Cython
-                # added -w since numerous warnings of type "Warnung: veraltete
-                # Konvertierung von Zeichenkettenkonstante in »char*«"
-                # occurred:
-                rwb = _newman_betweenness_badly_cython(adjacency.astype(int),
-                                                       T, rwb, self.N)
-
-                #  Normalize RWB by component size
-                rwb *= nNodes
-
-                #  Get the list of vertex numbers in the subgraph
-                vertexList = comp
-
-                #  Copy results into randomWalkBetweennessArray at the correct
-                #  positions
-                for j, vs in enumerate(vertexList):
-                    randomWalkBetweenness[vs] = rwb[j]
-
-        return randomWalkBetweenness
-
-    # much faster (and corrected) version of the preceding:
     @cached_const('base', 'newman btw', "Newman's random walk betweenness")
     def newman_betweenness(self):
         """
@@ -4119,8 +4033,7 @@ class Network:
             else:
                 #  Get the subgraph A matrix corresponding to component c
                 subgraph = components.subgraph(c)
-                A = np.array(subgraph.get_adjacency(type=2).data,
-                             dtype=np.int8)
+                A = np.array(subgraph.get_adjacency(type=2).data, dtype=ADJ)
 
                 #  Generate a Network object representing the subgraph
                 subnetwork = Network(adjacency=A, directed=False)
@@ -4139,12 +4052,11 @@ class Network:
                 V = V.A
                 del subgraph, subnetwork, sp_A, sp_M
 
-                #  Calculate the random walk betweenness in C++ using Weave
                 component_betweenness = np.zeros(N)
                 if mpi.available:
                     # determine in how many parts we split the outer loop:
-                    parts = max(1, int(np.ceil(min((mpi.size-1) * 10.0,
-                                                   0.1 * N))))
+                    parts = max(1, int(np.ceil(
+                        min((mpi.size-1) * 10.0, 0.1 * N))))
                     # corresponding step size for c index of outer loop:
                     step = int(np.ceil(1.0 * N / (1.0 * parts)))
                     if self.silence_level <= 0:
@@ -4163,11 +4075,12 @@ class Network:
                         # that later the results can be retrieved:
                         if self.silence_level <= 0:
                             print("submitting part from", start_i, "to", end_i)
-                        mpi.submit_call("_cy_mpi_newman_betweenness",
-                                        (this_A.astype(int), V.astype(float),
-                                         N, start_i, end_i),
-                                        module="pyunicorn", id=index,
-                                        time_est=this_A.sum())
+                        mpi.submit_call(
+                            "_mpi_newman_betweenness",
+                            (to_cy(this_A, ADJ), to_cy(V, FIELD),
+                             N, start_i, end_i),
+                            module="pyunicorn", id=index,
+                            time_est=this_A.sum())
 
                     # Retrieve results of all submitted jobs:
                     component_betweenness = np.zeros(N)
@@ -4181,8 +4094,9 @@ class Network:
                         component_betweenness[start_i:end_i] = this_betweenness
                 else:
                     component_betweenness, start_i, end_i =\
-                        _cy_mpi_newman_betweenness(A.astype(int),
-                                                   V.astype(float), N, 0, N)
+                        _mpi_newman_betweenness(
+                            to_cy(A, ADJ), to_cy(V, FIELD),
+                            N, 0, N)
 
                 component_betweenness += 2 * (N - 1)
                 component_betweenness /= (N - 1.0)  # TODO: why is this?
@@ -4283,16 +4197,13 @@ class Network:
                 subgraph = components.subgraph(c)
 
                 #  Get the subgraph A matrix
-                A = np.array(subgraph.get_adjacency(type=2).data,
-                             dtype=np.int8)
+                A = np.array(subgraph.get_adjacency(type=2).data, dtype=ADJ)
 
                 #  Get the list of vertex numbers in the subgraph
                 nodes = comp
 
                 # Extract corresponding area weight vector:
-                w = np.zeros(len(nodes))
-                for j, node in enumerate(nodes):
-                    w[j] = self.node_weights[node]
+                w = to_cy(self.node_weights[nodes], WEIGHT)
 
                 #  Generate a Network object representing the subgraph
                 subnet = Network(adjacency=A, directed=False, node_weights=w)
@@ -4313,14 +4224,14 @@ class Network:
 
                 # Note: sp_M_inv is not necessarily sparse, so the order is
                 # important for performance
-                V = ((DkI * Ap) * sp_M_inv).T.astype('float32').A
+                V = ((DkI * Ap) * sp_M_inv).T.astype(DFIELD).A
                 del subgraph, Ap, Dw, DwI, Dk, DkI, sp_M, sp_M_inv
 
                 # TODO: verify that this was indeed wrong
                 # w = self.node_weights
 
                 # indicator matrix that i,j are not neighboured or equal
-                not_adjacent_or_equal = (1 - A - np.identity(N)).astype('int8')
+                not_adjacent_or_equal = (1 - A - np.identity(N)).astype(MASK)
 
                 if mpi.available:
                     parts = max(1, int(np.ceil(min((mpi.size-1) * 10.0,
@@ -4341,11 +4252,9 @@ class Network:
                             not_adjacent_or_equal[start_i:end_i, :]
 
                         mpi.submit_call(
-                            "_cy_mpi_nsi_newman_betweenness",
-                            (this_A.astype(int), V.astype(float), N,
-                             w.astype(float),
-                             this_not_adjacent_or_equal.astype(int), start_i,
-                             end_i),
+                            "_mpi_nsi_newman_betweenness",
+                            (to_cy(this_A, ADJ), to_cy(V, FIELD), N, w,
+                             this_not_adjacent_or_equal, start_i, end_i),
                             module="pyunicorn", id=idx)
 
                     # Retrieve results of all submited jobs
@@ -4356,9 +4265,9 @@ class Network:
 
                 else:
                     component_betweenness, start_i, end_i = \
-                        _cy_mpi_nsi_newman_betweenness(
-                            A.astype(int), V.astype(float), N, w.astype(float),
-                            not_adjacent_or_equal.astype(int), 0, N)
+                        _mpi_nsi_newman_betweenness(
+                            to_cy(A, ADJ), to_cy(V, FIELD), N, w,
+                            not_adjacent_or_equal, 0, N)
 
                 #  Correction for the fact that we used only s,t not
                 #  neighboured to i
@@ -4691,9 +4600,8 @@ class Network:
         """
         if alpha is None:
             alpha = 1.0 / self.degree().mean()
-        return matfuncs.expm(
-            np.log(2.0) * (alpha * self.adjacency
-                           - np.identity(self.N))).sum(axis=0).flatten()
+        return expm(np.log(2.0) * (
+            alpha * self.adjacency - np.identity(self.N))).sum(axis=0).flatten()
 
     def nsi_spreading(self, alpha=None):
         """
@@ -4708,10 +4616,8 @@ class Network:
         w, k = self.node_weights, self.nsi_degree()
         if alpha is None:
             alpha = self.total_node_weight / k.dot(w)
-        # print(alpha)
         return (
-            matfuncs.expm(
-                np.log(2.0)*(Aplus * alpha * w - sp.identity(N))).dot(Aplus)
+            expm(np.log(2.0) * (Aplus * alpha * w - sp.identity(N))).dot(Aplus)
             * w.reshape((N, 1))).sum(axis=0)
 
     def do_nsi_pca_clustering(self, max_n_clusters=None):
@@ -4840,7 +4746,7 @@ class Network:
         N = self.N
         N2 = 2*N - 1
         rN = range(N)
-        w = self.node_weights.copy()
+        w = to_cy(self.node_weights, FIELD)
         k = self.nsi_degree()  # TODO: link weight
 
         # init result structures:
@@ -4882,19 +4788,17 @@ class Network:
         M = len(distance_keys)
         rM = range(M)
         rpos = range(1, M+1)
-        # if M < 65535:
-        #     postype = "int16"
-        postype = "int32"
-        D_firstpos = np.zeros(N, postype)  # pos. of first nb. of cl.
-        D_lastpos = np.zeros(N, postype)  # pos. of last nb. of cl.
+
+        D_firstpos = np.zeros(N, NODE)  # pos. of first nb. of cl.
+        D_lastpos = np.zeros(N, NODE)  # pos. of last nb. of cl.
         # pos. of next nb. of the same cl.
-        D_nextpos = np.zeros(2*M+1, postype)
+        D_nextpos = np.zeros(2*M+1, NODE)
         # pos. of previous nb. of the samle cl.
-        D_prevpos = np.zeros(2*M+1, postype)
+        D_prevpos = np.zeros(2*M+1, NODE)
         # pos. of cl. in nbs. list of nbs.
-        D_invpos = np.zeros(2*M+1, postype)
+        D_invpos = np.zeros(2*M+1, NODE)
         # cluster index of the neighbour at this pos.
-        D_cluster = np.zeros(2*M+1, "int16")
+        D_cluster = np.zeros(2*M+1, DEGREE)
 
         # compute average distance of unconnected pairs,
         # which will be used as an estimate for them:
@@ -4909,7 +4813,6 @@ class Network:
             print(f"calculated {d0} as average non-linked distance, "
                   f"needed {time.time()-t0} sec.")
 
-        ftype = "float32"
         dict_D = {}  # weighted sum of distances between clusters
         dict_Delta = {}  # error increase upon join, only i<j
 
@@ -4978,13 +4881,12 @@ class Network:
         print("initialization of candidates needed", time.time()-t0, "sec.")
 
         t0 = time.time()
-        cands = dict_Delta.keys()
+        cands = to_cy(dict_Delta.keys(), NODE)
         n_cands = len(cands)
 
         dict_Delta = _do_nsi_clustering_I(n_cands, cands, D_cluster, w, d0,
                                           D_firstpos, D_nextpos, N, dict_D,
                                           dict_Delta)
-
         print(f"initialization of error increments needed"
               f"{time.time()-t0} sec.")
 
@@ -5071,7 +4973,6 @@ class Network:
             dict_Delta = _do_nsi_clustering_II(a, b, D_cluster, w, d0,
                                                D_firstpos, D_nextpos, N,
                                                dict_D, dict_Delta)
-
             sumt3 = time.time()-t0
 
             # finally update D:
@@ -5201,10 +5102,10 @@ class Network:
         # join admissibility matrix:
         if admissible_joins is None:
             print("all joins admissible")
-            mayJoin = np.zeros((n2, n2), dtype=int) + 1
+            mayJoin = np.zeros((n2, n2), dtype=MASK) + 1
         else:
             print("only some joins admissible")
-            mayJoin = np.zeros((n2, n2), dtype=int)
+            mayJoin = np.zeros((n2, n2), dtype=MASK)
             mayJoin[0:n, 0:n] = admissible_joins
         # cluster membership indicators:
         clusterMembers = np.zeros((n2, n), dtype=int)
@@ -5213,20 +5114,20 @@ class Network:
         clusterWeights = np.zeros(n2)
         clusterWeights[0:n] = w
         # weight products:
-        weightProducts = np.zeros((n2, n2))
+        weightProducts = np.zeros((n2, n2), dtype=DFIELD)
         weightProducts[0:n, 0:n] = np.dot(w.reshape((n, 1)), w.reshape((1, n)))
         # linked weights:
         A, Aplus = self.adjacency, self.sp_Aplus().A
-        linkedWeights = np.zeros((n2, n2))
+        linkedWeights = np.zeros((n2, n2), dtype=DFIELD)
         linkedWeights[0:n, 0:n] = \
             self.node_weights.reshape((n, 1)) * Aplus * \
             self.node_weights.reshape((1, n))
         # error contributions of cluster pairs
         # (sum up to total error = 2*Hamming distance):
-        errors = np.zeros((n2, n2))
+        errors = np.zeros((n2, n2), dtype=DFIELD)
         # distance = increase of Hamming distance:
         # and find first pair to join:
-        distances = np.zeros((n2, n2))
+        distances = np.zeros((n2, n2), dtype=DFIELD)
 
         # list of active cluster indices:
         activeIndices = range(0, n)
@@ -5260,16 +5161,17 @@ class Network:
             theActiveIndices = np.sort(activeIndices)
             mind0 = float(np.power(1.0*self.total_node_weight, 3.0))
             minwp0 = float(2.0*weightProducts.max())
-            result = np.zeros(3)
 
-            results = _do_nsi_hamming_clustering(
-                n2, nActiveIndices, mind0, minwp0, lastunited, part1,
-                part2, distances.copy(order='c'),
-                theActiveIndices.copy(order='c'),
-                linkedWeights.copy(order='c'),
-                weightProducts.copy(order='c'),
-                errors.copy(order='c'), result.copy(order='c'),
-                mayJoin.copy(order='c'))
+            result = np.zeros(3, dtype=DFIELD)
+            _do_nsi_hamming_clustering(
+                n2, nActiveIndices, mind0, minwp0, lastunited, part1, part2,
+                to_cy(distances, DFIELD),
+                to_cy(theActiveIndices, NODE),
+                to_cy(linkedWeights, DFIELD),
+                to_cy(weightProducts, DFIELD),
+                to_cy(errors, DFIELD),
+                result,
+                to_cy(mayJoin, NODE))
 
             mind = result[0]
             part1 = int(result[1])

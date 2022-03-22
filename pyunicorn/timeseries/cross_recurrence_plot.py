@@ -24,6 +24,7 @@ analysis (RQA) and recurrence network analysis.
 # array object and fast numerics
 import numpy as np
 
+from ..core._ext.types import to_cy, FIELD, DFIELD
 from ._ext.numerics import _manhattan_distance_matrix_crp, \
     _euclidean_distance_matrix_crp, _supremum_distance_matrix_crp
 
@@ -226,8 +227,8 @@ class CrossRecurrencePlot(RecurrencePlot):
         if self.silence_level <= 1:
             print("Calculating the manhattan distance matrix...")
 
-        x_embedded = x_embedded.astype('double')
-        y_embedded = y_embedded.astype('double')
+        x_embedded = to_cy(x_embedded, DFIELD)
+        y_embedded = to_cy(y_embedded, DFIELD)
         ntime_x = x_embedded.shape[0]
         ntime_y = y_embedded.shape[0]
         dim = x_embedded.shape[1]
@@ -249,8 +250,8 @@ class CrossRecurrencePlot(RecurrencePlot):
         if self.silence_level <= 1:
             print("Calculating the euclidean distance matrix...")
 
-        x_embedded = x_embedded.astype('double')
-        y_embedded = y_embedded.astype('double')
+        x_embedded = to_cy(x_embedded, DFIELD)
+        y_embedded = to_cy(y_embedded, DFIELD)
         ntime_x = x_embedded.shape[0]
         ntime_y = y_embedded.shape[0]
         dim = x_embedded.shape[1]
@@ -272,8 +273,8 @@ class CrossRecurrencePlot(RecurrencePlot):
         if self.silence_level <= 1:
             print("Calculating the supremum distance matrix...")
 
-        x_embedded = x_embedded.astype('float32')
-        y_embedded = y_embedded.astype('float32')
+        x_embedded = to_cy(x_embedded, FIELD)
+        y_embedded = to_cy(y_embedded, FIELD)
         ntime_x = x_embedded.shape[0]
         ntime_y = y_embedded.shape[0]
         dim = x_embedded.shape[1]

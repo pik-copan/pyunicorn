@@ -30,7 +30,8 @@ import pickle
 import numpy as np
 
 #  Cythonized functions
-from ._ext.numerics import _cy_calculate_euclidean_distance
+from ._ext.types import to_cy, FIELD
+from ._ext.numerics import _calculate_euclidean_distance
 
 
 #
@@ -299,7 +300,7 @@ class Grid:
         """
         return self.euclidean_distance()
 
-    def _calculate_euclidean_distance(self):
+    def calculate_euclidean_distance(self):
         """
         Calculate and return the euclidean distance matrix.
 
@@ -310,13 +311,13 @@ class Grid:
         N_nodes = self.N
 
         #  Get sequences of coordinates
-        sequences = self._grid["space"]
+        sequences = to_cy(self._grid["space"], FIELD)
 
         #  Get number of dimensions
         N_dim = sequences.shape[0]
 
-        distance = np.zeros((N_nodes, N_nodes), dtype="float32")
-        _cy_calculate_euclidean_distance(sequences, distance, N_dim, N_nodes)
+        distance = np.zeros((N_nodes, N_nodes), dtype=FIELD)
+        _calculate_euclidean_distance(sequences, distance, N_dim, N_nodes)
 
         return distance
 
@@ -338,7 +339,7 @@ class Grid:
         :return: the euclidean distance matrix.
         """
         if not self._euclidean_distance_cached:
-            self._euclidean_distance = self._calculate_euclidean_distance()
+            self._euclidean_distance = self.calculate_euclidean_distance()
             self._euclidean_distance_cached = True
 
         return self._euclidean_distance

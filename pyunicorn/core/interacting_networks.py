@@ -24,6 +24,7 @@ multivariate data and generating time series surrogates.
 import numpy as np
 from numpy import random
 
+from ._ext.types import to_cy, ADJ, NODE, WEIGHT, DWEIGHT, FIELD
 from ._ext.numerics import _randomlySetCrossLinks, _randomlyRewireCrossLinks, \
     _cross_transitivity, _nsi_cross_transitivity, _cross_local_clustering, \
     _nsi_cross_local_clustering
@@ -176,12 +177,12 @@ class InteractingNetworks(Network):
         :return: The initial InteractingNetworks with random cross links
         """
         #  store node lists as arrays
-        nodes1 = np.array(node_list1, dtype=int)
-        nodes2 = np.array(node_list2, dtype=int)
+        nodes1 = np.array(node_list1, dtype=NODE)
+        nodes2 = np.array(node_list2, dtype=NODE)
         #  retrieve number of nodes
         N1, N2 = len(nodes1), len(nodes2)
         #  retrieve cross adjacency matrix
-        cross_A = network.cross_adjacency(nodes1, nodes2).astype(int)
+        cross_A = network.cross_adjacency(nodes1, nodes2).astype(ADJ)
 
         #  determine number of cross links
         if cross_link_density is not None:
@@ -198,9 +199,9 @@ class InteractingNetworks(Network):
             number_cross_links = int(cross_A.sum())
 
         #  retrieve adjacency matrix of the full interacting network
-        A_new = network.adjacency.astype(int)
+        A_new = network.adjacency.astype(ADJ)
         #  create new empty cross adjacency matrix
-        cross_A_new = np.zeros((N1, N2))
+        cross_A_new = np.zeros((N1, N2), dtype=ADJ)
 
         _randomlySetCrossLinks(A_new, cross_A_new, number_cross_links,
                                nodes1, nodes2, N1, N2)
@@ -347,18 +348,18 @@ class InteractingNetworks(Network):
         """
         #  retrieve cross adjacency matrix of the considered interacting
         #  network
-        cross_A = network.cross_adjacency(node_list1, node_list2).astype(int)
+        cross_A = network.cross_adjacency(node_list1, node_list2).astype(ADJ)
         #  determine number of cross links
-        number_cross_links = int(cross_A.sum())
+        number_cross_links = cross_A.sum()
         #  Store node lists as arrays
-        nodes1 = np.array(node_list1, dtype=int)
-        nodes2 = np.array(node_list2, dtype=int)
+        nodes1 = np.array(node_list1, dtype=NODE)
+        nodes2 = np.array(node_list2, dtype=NODE)
         #  retrieve adjacency matrix of the full interacting network
-        A_new = network.adjacency.astype(int)
+        A_new = network.adjacency.astype(ADJ)
         #  determine number of cross link permutations that will be performed
-        number_swaps = int(swaps * number_cross_links)
+        number_swaps = NODE(swaps * number_cross_links)
         #  Create list of cross links
-        cross_links = np.array(cross_A.nonzero()).transpose()
+        cross_links = np.array(cross_A.nonzero(), dtype=NODE).transpose()
 
         _randomlyRewireCrossLinks(A_new, cross_A, cross_links, nodes1, nodes2,
                                   number_cross_links, number_swaps)
@@ -869,8 +870,9 @@ class InteractingNetworks(Network):
             subnetwork
         :return float: the cross transitivity for a pair of subnetworks.
         """
-        return _cross_transitivity(self.adjacency.astype(int),
-                                   np.array(node_list1), np.array(node_list2))
+        return _cross_transitivity(
+            to_cy(self.adjacency, ADJ),
+            np.array(node_list1, dtype=NODE), np.array(node_list2, dtype=NODE))
 
     def cross_transitivity_sparse(self, node_list1, node_list2):
         """
@@ -991,11 +993,11 @@ class InteractingNetworks(Network):
         :return float: the cross average path length between a pair of
             subnetworks.
         """
-        path_lengths = InteractingNetworks.cross_path_lengths(self, node_list1, node_list2,
-                                              link_attribute)
+        path_lengths = InteractingNetworks.cross_path_lengths(
+            self, node_list1, node_list2, link_attribute)
         
-        return self._calculate_general_average_path_length(path_lengths,
-                                                           internal=False)
+        return self._calculate_general_average_path_length(
+            path_lengths, internal=False)
 
     def internal_average_path_length(self, node_list, link_attribute=None):
         """
@@ -1282,15 +1284,17 @@ class InteractingNetworks(Network):
         :rtype: 1D array [node index]
         :return: the cross local clustering coefficient.
         """
-        nodes1, nodes2 = np.array(node_list1), np.array(node_list2)
+        nodes1 = np.array(node_list1, dtype=NODE)
+        nodes2 = np.array(node_list2, dtype=NODE)
         #  Get cross degree sequence
         cross_degree = InteractingNetworks.cross_degree(self, nodes1, nodes2)
         #  Prepare normalization factor
         norm = cross_degree * (cross_degree - 1) / 2.
         #  Initialize
-        cross_clustering = np.zeros_like(nodes1, dtype=np.float)
+        cross_clustering = np.zeros_like(nodes1, dtype=FIELD)
 
-        _cross_local_clustering(self.adjacency.astype(int), norm,
+        _cross_local_clustering(to_cy(self.adjacency, ADJ),
+                                to_cy(norm, FIELD),
                                 nodes1, nodes2, cross_clustering)
         return cross_clustering
 
@@ -1618,12 +1622,12 @@ class InteractingNetworks(Network):
         :rtype: 1D array [node index]
         :return: the n.s.i. cross-local clustering coefficient for layer 1.
         """
-        nodes1 = np.array(node_list1, dtype=int)
-        nodes2 = np.array(node_list2, dtype=int)
-        nsi_cc = np.zeros(nodes1.shape, dtype=np.float)
+        nodes1 = np.array(node_list1, dtype=NODE)
+        nodes2 = np.array(node_list2, dtype=NODE)
+        nsi_cc = np.zeros(nodes1.shape, dtype=FIELD)
         _nsi_cross_local_clustering(
-            self.adjacency + np.eye(self.N, dtype=int),
-            nsi_cc, nodes1, nodes2, self.node_weights)
+            to_cy(self.adjacency + np.eye(self.N, dtype=ADJ), ADJ),
+            nsi_cc, nodes1, nodes2, to_cy(self.node_weights, WEIGHT))
 
         norm = self.nsi_cross_degree(nodes1, nodes2) ** 2
         nsi_cc[norm != 0] = nsi_cc[norm != 0] / norm[norm != 0]
@@ -1793,8 +1797,10 @@ class InteractingNetworks(Network):
             1 and 2.
         """
         return _nsi_cross_transitivity(
-            self.adjacency + np.eye(self.N, dtype=int),
-            np.array(node_list1), np.array(node_list2), self.node_weights)
+            to_cy(self.adjacency + np.eye(self.N, dtype=ADJ), ADJ),
+            np.array(node_list1, dtype=NODE),
+            np.array(node_list2, dtype=NODE),
+            to_cy(self.node_weights, DWEIGHT))
 
     def nsi_cross_average_path_length(self, node_list1, node_list2):
         """

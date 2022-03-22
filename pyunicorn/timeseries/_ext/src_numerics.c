@@ -8,6 +8,8 @@
 * License: BSD (3-clause)
 */
 
+#include <math.h>
+
 // cross_recurrence_plot ======================================================
 
 void _manhattan_distance_matrix_fast(int ntime_x, int ntime_y, int dim, 

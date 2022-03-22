@@ -26,6 +26,7 @@ import numpy as np
 
 from ..core import InteractingNetworks
 
+from ..core._ext.types import MASK
 from ._ext.numerics import _visibility_relations_missingvalues, \
     _visibility_relations_no_missingvalues, _visibility_relations_horizontal, \
     _visibility, _retarded_local_clustering, _advanced_local_clustering
@@ -125,7 +126,7 @@ class VisibilityGraph(InteractingNetworks):
         x = self.time_series
         t = self.timings
         N = len(self.time_series)
-        A = np.zeros((N, N), dtype="int8")
+        A = np.zeros((N, N), dtype=MASK)
 
         if self.missing_values:
             mv_indices = self.missing_value_indices
@@ -148,7 +149,7 @@ class VisibilityGraph(InteractingNetworks):
         x = self.time_series
         t = self.timings
         N = len(self.time_series)
-        A = np.zeros((N, N), dtype="int8")
+        A = np.zeros((N, N), dtype=MASK)
 
         _visibility_relations_horizontal(x, t, N, A)
         return A

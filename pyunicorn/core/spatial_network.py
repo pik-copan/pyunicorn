@@ -26,8 +26,9 @@ from numpy import random
 # high performance graph theory tools written in pure ANSI-C
 import igraph
 
+from ._ext.types import to_cy, ADJ, NODE, FIELD, DEGREE
 from ._ext.numerics import _randomly_rewire_geomodel_I, \
-        _randomly_rewire_geomodel_II, _randomly_rewire_geomodel_III
+    _randomly_rewire_geomodel_II, _randomly_rewire_geomodel_III
 
 from .network import cached_const
 from .network import Network
@@ -281,8 +282,8 @@ class SpatialNetwork(Network):
         #  Get number of links
         E = self.n_links
         #  Collect adjacency and distance matrices
-        A = self.adjacency.copy(order='c')
-        D = distance_matrix.astype("float32").copy(order='c')
+        A = to_cy(self.adjacency, ADJ)
+        D = to_cy(distance_matrix, FIELD)
         #  Get degree sequence
         # degree = self.degree()
 
@@ -292,10 +293,7 @@ class SpatialNetwork(Network):
         # iterations = int(iterations)
 
         #  Get edge list
-        edges = np.array(self.graph.get_edgelist()).copy(order='c')
-
-        #  Initialize list of neighbors
-        # neighbors = np.zeros((N, degree.max()))
+        edges = to_cy(np.array(self.graph.get_edgelist()), NODE)
 
         _randomly_rewire_geomodel_I(iterations, eps, A, D, E, N, edges)
 
@@ -341,14 +339,14 @@ class SpatialNetwork(Network):
         #  Get number of links
         E = int(self.n_links)
         #  Collect adjacency and distance matrices
-        A = self.adjacency.copy(order='c')
-        D = distance_matrix.astype("float32").copy(order='c')
+        A = to_cy(self.adjacency, ADJ)
+        D = to_cy(distance_matrix, FIELD)
 
         #  Define for brevity
         eps = float(inaccuracy)
 
         #  Get edge list
-        edges = np.array(self.graph.get_edgelist()).copy(order='c')
+        edges = to_cy(np.array(self.graph.get_edgelist()), NODE)
 
         _randomly_rewire_geomodel_II(iterations, eps, A, D, E, N, edges)
 
@@ -395,16 +393,16 @@ class SpatialNetwork(Network):
         #  Get number of links
         E = int(self.n_links)
         #  Collect adjacency and distance matrices
-        A = self.adjacency.copy(order='c')
-        D = distance_matrix.astype("float32").copy(order='c')
+        A = to_cy(self.adjacency, ADJ)
+        D = to_cy(distance_matrix, FIELD)
         #  Get degree sequence
-        degree = self.degree().copy(order='c')
+        degree = to_cy(self.degree(), DEGREE)
 
         #  Define for brevity
         eps = float(inaccuracy)
 
         #  Get edge list
-        edges = np.array(self.graph.get_edgelist()).copy(order='c')
+        edges = to_cy(np.array(self.graph.get_edgelist()), NODE)
 
         _randomly_rewire_geomodel_III(iterations, eps, A, D, E, N, edges,
                                       degree)
@@ -445,7 +443,7 @@ class SpatialNetwork(Network):
         P = 0.5 * (P + P.transpose())
 
         #  Create new adjacency matrix
-        A = (p >= P).astype("int8")
+        A = (p >= P).astype(ADJ)
         #  Set diagonal to zero - no self-loops!
         np.fill_diagonal(A, 0)
 

@@ -35,7 +35,8 @@ except ImportError:
           "Some functionality in GeoGrid class might not be available.")
 
 #  Cythonized functions
-from ._ext.numerics import _cy_calculate_angular_distance
+from ._ext.types import to_cy, FIELD
+from ._ext.numerics import _calculate_angular_distance
 
 #  Grid base class
 from .grid import Grid
@@ -407,7 +408,7 @@ class GeoGrid(Grid):
         """
         return self.angular_distance()
 
-    def _calculate_angular_distance(self):
+    def calculate_angular_distance(self):
         """
         Calculate and return the angular great circle distance matrix.
 
@@ -424,16 +425,16 @@ class GeoGrid(Grid):
         N = self.N
 
         #  Get sequences of cosLat, sinLat, cosLon and sinLon for all nodes
-        cos_lat = self.cos_lat()
-        sin_lat = self.sin_lat()
-        cos_lon = self.cos_lon()
-        sin_lon = self.sin_lon()
+        cos_lat = to_cy(self.cos_lat(), FIELD)
+        sin_lat = to_cy(self.sin_lat(), FIELD)
+        cos_lon = to_cy(self.cos_lon(), FIELD)
+        sin_lon = to_cy(self.sin_lon(), FIELD)
 
         #  Initialize cython cof of angular distance matrix
-        cosangdist = np.zeros((N, N), dtype="float32")
+        cosangdist = np.zeros((N, N), dtype=FIELD)
 
-        _cy_calculate_angular_distance(cos_lat, sin_lat, cos_lon, sin_lon,
-                                       cosangdist, N)
+        _calculate_angular_distance(cos_lat, sin_lat, cos_lon, sin_lon,
+                                    cosangdist, N)
         return np.arccos(cosangdist)
 
     def angular_distance(self):
@@ -457,7 +458,7 @@ class GeoGrid(Grid):
         :return: the angular great circle distance matrix.
         """
         if not self._angular_distance_cached:
-            self._angular_distance = self._calculate_angular_distance()
+            self._angular_distance = self.calculate_angular_distance()
             self._angular_distance_cached = True
 
         return self._angular_distance

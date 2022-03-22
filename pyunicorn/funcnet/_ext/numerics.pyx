@@ -15,30 +15,12 @@
 # for complex systems science: The pyunicorn package"
 
 cimport cython
-from cpython cimport bool
-
 
 import numpy as np
 cimport numpy as np
 
-
-BOOLTYPE = np.uint8
-INTTYPE = np.int
-INT8TYPE = np.int8
-INT16TYPE = np.int16
-INT32TYPE = np.int32
-FLOATTYPE = np.float
-FLOAT32TYPE = np.float32
-FLOAT64TYPE = np.float64
-ctypedef np.uint8_t BOOLTYPE_t
-ctypedef np.int_t INTTYPE_t
-ctypedef np.int8_t INT8TYPE_t
-ctypedef np.int16_t INT16TYPE_t
-ctypedef np.int32_t INT32TYPE_t
-ctypedef np.float_t FLOATTYPE_t
-ctypedef np.float32_t FLOAT32TYPE_t
-ctypedef np.float64_t FLOAT64TYPE_t
-
+from ...core._ext.types import LAG, FIELD
+from ...core._ext.types cimport LAG_t, FIELD_t, INT32TYPE_t
 
 cdef extern from "src_numerics.c":
     void _symmetrize_by_absmax_fast(float *similarity_matrix,
@@ -54,8 +36,8 @@ cdef extern from "src_numerics.c":
 # coupling_analysis ===========================================================
 
 def _symmetrize_by_absmax(
-    np.ndarray[float, ndim=2, mode='c'] similarity_matrix not None,
-    np.ndarray[INT8TYPE_t, ndim=2, mode='c'] lag_matrix not None, int N):
+    np.ndarray[FIELD_t, ndim=2, mode='c'] similarity_matrix not None,
+    np.ndarray[LAG_t, ndim=2, mode='c'] lag_matrix not None, int N):
 
     _symmetrize_by_absmax_fast(
         <float*> np.PyArray_DATA(similarity_matrix),
@@ -65,13 +47,13 @@ def _symmetrize_by_absmax(
 
 
 def _cross_correlation_max(
-    np.ndarray[FLOAT32TYPE_t, ndim=3, mode='c'] array not None,
+    np.ndarray[FIELD_t, ndim=3, mode='c'] array not None,
     int N, int tau_max, int corr_range):
 
-    cdef np.ndarray[FLOAT32TYPE_t, ndim=2, mode='c'] similarity_matrix = \
-        np.ones((N, N), dtype="float32")
-    cdef np.ndarray[INT8TYPE_t, ndim=2, mode='c'] lag_matrix = \
-        np.zeros((N, N), dtype='int8')
+    cdef np.ndarray[FIELD_t, ndim=2, mode='c'] similarity_matrix = \
+        np.ones((N, N), dtype=FIELD)
+    cdef np.ndarray[LAG_t, ndim=2, mode='c'] lag_matrix = \
+        np.zeros((N, N), dtype=LAG)
 
     cdef:
         double crossij, max
@@ -100,15 +82,16 @@ def _cross_correlation_max(
 
     return similarity_matrix, lag_matrix
 
+
 def _cross_correlation_all(
-        np.ndarray[FLOAT32TYPE_t, ndim=3, mode='c'] array not None,
+        np.ndarray[FIELD_t, ndim=3, mode='c'] array not None,
         int N, int tau_max, int corr_range):
 
     """
     lagfuncs = np.zeros((N, N, tau_max+1), dtype="float32")
     """
-    cdef np.ndarray[FLOAT32TYPE_t, ndim=3, mode='c'] lagfuncs = \
-        np.zeros((N, N, tau_max+1), dtype="float32")
+    cdef np.ndarray[FIELD_t, ndim=3, mode='c'] lagfuncs = \
+        np.zeros((N, N, tau_max+1), dtype=FIELD)
 
     cdef:
         int i, j, tau, k
@@ -129,8 +112,8 @@ def _cross_correlation_all(
     return lagfuncs
 
 
-def _get_nearest_neighbors_cython(
-        np.ndarray[float, ndim=1, mode='c'] array not None,
+def _get_nearest_neighbors(
+        np.ndarray[FIELD_t, ndim=1, mode='c'] array not None,
         int T, int dim_x, int dim_y, int k, int dim):
 
     # Initialize
