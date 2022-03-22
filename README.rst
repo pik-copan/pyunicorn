@@ -78,110 +78,97 @@ For extensive HTML documentation, jump right to the `pyunicorn homepage
 On a local development version, HTML and PDF documentation can be generated
 using ``Sphinx``::
 
-    $> pip install --user -e .
+    $> pip install --user .[docs]
     $> cd docs; make clean html latexpdf
 
 Dependencies
 ------------
-``pyunicorn`` is written in Python 3.7. The software is written and tested
-on Linux. It should work on other systems but installation might be more complicated
-(see instructions below). ``pyunicorn`` relies on the following open source or freely
-available packages which have to be installed on your machine.
+``pyunicorn`` is implemented in Python 3. The software is written and tested on
+Linux and MacOSX, but it is also in active use on Windows. ``pyunicorn`` relies
+on the following open source or freely available packages, which need to be
+installed on your machine. For exact dependency information, see ``setup.cfg``.
 
-Required:
-  - `Numpy <http://www.numpy.org/>`_ 1.14+
-  - `Scipy <http://www.scipy.org/>`_ 1.0+
-  - `igraph, python-igraph <http://igraph.org/>`_ 0.7+
-  - `Cython <http://cython.org/>`_ 0.27+ (for compiling code during
-    development)
+Required at runtime:
+  - `Numpy <http://www.numpy.org/>`_
+  - `Scipy <http://www.scipy.org/>`_
+  - `python-igraph <http://igraph.org/>`_
 
 Optional *(used only in certain classes and methods)*:
-  - `PyNGL <http://www.pyngl.ucar.edu/Download/>`_ (for class NetCDFDictionary)
-  - `netcdf4-python <http://unidata.github.io/netcdf4-python/>`_ (for classes
-    Data and NetCDFDictionary)
-  - `Matplotlib <http://matplotlib.org/>`_ 2.0+
-  - `Matplotlib Basemap Toolkit <http://matplotlib.org/basemap/>`_ (for drawing
-    maps)
-  - `mpi4py <https://bitbucket.org/mpi4py/mpi4py>`_ (for parallelizing costly
-    computations)
-  - `Sphinx <http://sphinx-doc.org/>`_ (for generating documentation)
+  - `PyNGL <http://www.pyngl.ucar.edu/Download/>`_
+    (for ``NetCDFDictionary``)
+  - `netcdf4-python <http://unidata.github.io/netcdf4-python/>`_
+    (for ``Data`` and ``NetCDFDictionary``)
+  - `Matplotlib <http://matplotlib.org/>`_
+  - `Matplotlib Basemap Toolkit <http://matplotlib.org/basemap/>`_
+    (for drawing maps)
+  - `mpi4py <https://bitbucket.org/mpi4py/mpi4py>`_
+    (for parallelizing costly computations)
+  - `Sphinx <http://sphinx-doc.org/>`_
+    (for generating documentation)
   
-
-``Numpy``, ``Scipy``, ``Matplotlib``, ``igraph`` and other packages should be
-available via a package management system on Linux or MacOSX. All packages can
-be downloaded, compiled and installed following the instructions on their
-homepages.
-
-An easy way to go may be a Python distribution like `Anaconda
-<https://www.anaconda.com/distribution/>`_ that already includes many
-libraries.
+To install these dependencies, please follow the instructions for your system's
+package manager or consult the libraries' homepages. An easy way to go may be a
+Python distribution like `Anaconda <https://www.anaconda.com/distribution/>`_
+that already includes many libraries.
 
 Installation
 ------------
-Before the installation of ``pyunicorn`` we recommend that you make sure that 
-the required dependencies are installed. Afterwards, the package can be installed 
-following the instructions below.
+Before installing ``pyunicorn`` itself, we recommend to make sure that the
+required dependencies are installed using your preferred installation method for
+Python libraries. Afterwards, the package can be installed in the standard way
+from the Python Package Index (PyPI).
 
-**Linux**
+**Linux, MacOSX**
 
-On Linux ``pyunicorn`` can simply be installed via the Python Package Index::
+With the ``pip`` package manager::
 
-        $> pip3 install pyunicorn
+        $> pip install pyunicorn
         
-To install ``pyunicorn`` on Fedora OS, use::
+On Fedora OS, use::
 
         $> dnf install python3-pyunicorn
 
-**MacOSX**
-
-We did not test the current version of pyunicorn with MacOSX. However, we would
-expect that the same installation procedure as for Linux systems might work
-as MacOSX is also UNIX based.
-
 **Windows**
 
-Unfortunately,``pyunicorn`` does not work with the Microsoft Visual Studio
-C-Compiler but only with the GNU Compiler gcc. The following installation 
+Unfortunately, ``pyunicorn`` does not work with the Microsoft Visual Studio
+C Compiler but only with the GNU Compiler ``gcc``. The following installation
 procedure using `Anaconda <https://www.anaconda.com/distribution/>`_ was found
-to work on a Windows 10 machine:
-Open an Anaconda prompt and install the Minimalist GNU Compiler Toolchain by 
-typing::
+to work on a Windows 10 machine.
+
+Open an Anaconda prompt and install the Minimalist GNU Compiler Toolchain::
 
     $> conda install libpython m2w64-toolchain -c msys2
 
-Download the zip-files of ``pyunicorn`` from the repository. Open the file
-pyunicorn/core/_ext/numerics.pyx and exchange "srand48()" with "srand()" and
-"drand48()" with "rand()". Finally, install ``pyunicorn`` with::
+Download the Zip file for ``pyunicorn`` from the source repository, unpack it,
+and execute::
 
-    $> python setup.py install
+    $> pip install .
 
 
 Test suite
 ----------
-Before committing changes to the code base, please make sure that all tests
-pass. The test suite is managed by `tox <http://tox.readthedocs.io/>`_ and
-configured to use system-wide packages when available. Thus to avoid frequent
-waiting, we recommend you to install the current versions of the following
-packages::
+Before committing changes or opening a pull request (PR) to the code base,
+please make sure that all tests pass. The test suite is managed by `tox
+<http://tox.readthedocs.io/>`_ and configured to use system-wide packages when
+available. Install the test dependencies as follows::
 
-    $> pip install networkx matplotlib basemap Sphinx
-    $> pip install tox pylint pytest pytest-xdist pytest-flake8
+    $> pip install .[testing]
 
 The test suite can be run from anywhere in the project tree by issuing::
 
     $> tox
 
-To expose the defined test environments and target them independently::
+To display the defined test environments and target them individually::
 
     $> tox -l
-    $> tox -e units,style
+    $> tox -e units,pylint,docs
 
 To test individual files::
 
-    $> py.test                   tests/test_core/TestNetwork.py  # unit tests
-    $> py.test --doctest-modules pyunicorn/core/network.py       # doctests
-    $> py.test --flake8          pyunicorn/core/network.py       # style
-    $> pylint                    pyunicorn/core/network.py       # code analysis
+    $> pytest           tests/test_core/TestNetwork.py   # unit tests
+    $> pytest --flake8  pyunicorn/core/network.py        # style
+    $> pylint           pyunicorn/core/network.py        # static code analysis
+
 
 Mailing list
 ------------

@@ -256,7 +256,6 @@ class SpatialNetwork(Network):
 
         **Example** (The degree sequence should be the same after rewiring):
 
-        >>> _i()
         >>> net = SpatialNetwork.SmallTestNetwork()
         >>> net.randomly_rewire_geomodel_I(
         ...     distance_matrix=net.grid.distance(),

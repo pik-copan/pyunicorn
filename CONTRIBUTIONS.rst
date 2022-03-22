@@ -29,8 +29,9 @@
     - `Jan Feldhoff <feldhoff@pik-potsdam.de>`_ (extended ``timeseries``)
     - Aljoscha Rheinwalt
     - Hannes Kutza
-    - `Boyan Beronov <beronov@pik-potsdam.de>`_ (restructured,
-      consolidated and updated codebase during an internship at PIK)
+    - `Boyan Beronov <beronov@pik-potsdam.de>`_ (restructured and updated
+      codebase and documentation, consolidated packaging and CI, prepared
+      Cythonization and migration to Python 3, managed open-sourcing)
     - `Paul Schultz <pschultz@pik-potsdam.de>`_, `Stefan Schinkel
       <mail@dreeg.org>`_ (supplied ``resistive_network`` and corresponding
       tests)
@@ -42,16 +43,17 @@
 **Related publications**
     See `Publications <docs/source/publications.rst>`_.
 
-**Dependencies**
-    - Python 3.7
-    - `Numpy <http://www.numpy.org/>`_ 1.14+
-    - `Scipy <http://www.scipy.org/>`_ 1.0+
-    - `Cython <http://cython.org/>`_ 0.27+
-    - `Matplotlib <http://matplotlib.org/>`_ 2.0+
-    - `igraph, python-igraph <http://igraph.org/>`_ 0.7+
+**Essential runtime dependencies**
+    - `Numpy <http://www.numpy.org/>`_
+    - `Scipy <http://www.scipy.org/>`_
+    - `python-igraph <http://igraph.org/>`_
+
+**Essential compile time dependencies**
+    - `Numpy <http://www.numpy.org/>`_
+    - `Cython <http://cython.org/>`_
 
 **Included**
-    - `progressbar <http://pypi.python.org/pypi/progressbar/>`_ 2.3
+    - `progressbar <http://pypi.python.org/pypi/progressbar/>`_
 
 **To Do**
   - A lot - See current product backlog.

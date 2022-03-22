@@ -1,8 +1,5 @@
-# This file is part of pyunicorn
-# (Unified Complex Network and Recurrence Analysis Toolbox).
-#
-# Copyright (C) 2008--2019 Jonathan F. Donges and pyunicorn authors
-#
+# This file is part of pyunicorn.
+# Copyright (C) 2008--2022 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 #
@@ -15,4 +12,11 @@
 # and J. Kurths, "Unified functional network and nonlinear time series analysis
 # for complex systems science: The pyunicorn package"
 
-__all__ = ['test_generic']
+import sys
+
+if sys.version_info >= (3, 8):
+    from importlib import metadata
+else:
+    import importlib_metadata as metadata
+
+__version__ = metadata.version('pyunicorn')

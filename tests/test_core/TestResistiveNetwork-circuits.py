@@ -13,7 +13,8 @@ import networkx as nx
 
 
 from pyunicorn import ResNetwork
-from .ResistiveNetwork_utils import makeNW, parallelCopy, serialCopy, nx2nw
+from .ResistiveNetwork_utils import \
+    makeNW, parallelCopy, serialCopy, nx2nw
 
 debug = 0
 """ Test for basic sanity, parallel and serial circiuts

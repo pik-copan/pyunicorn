@@ -1470,7 +1470,6 @@ class InteractingNetworks(Network):
 
         **Examples:**
 
-        >>> _i()
         >>> InteractingNetworks.SmallTestNetwork().\
                 cross_betweenness([2], [3,5])
         array([ 1.,  1.,  0.,  0.,  1.,  0.])

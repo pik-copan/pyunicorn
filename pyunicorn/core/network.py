@@ -58,6 +58,9 @@ from ._ext.numerics import _local_cliquishness_4thorder, \
 from ..utils import progressbar     # easy progress bar handling
 
 
+# ==============================================================================
+
+
 def nz_coords(matrix):
     """
     Find coordinates of all non-zero entries in a sparse matrix.
@@ -123,6 +126,41 @@ class NetworkError(Exception):
     def __str__(self):
         return repr(self.value)
 
+
+# ==============================================================================
+
+
+def r(obj, decimals=4):
+    """
+    Round numbers, arrays or iterables thereof. Only used in docstrings.
+    """
+    if isinstance(obj, (np.ndarray, np.matrix)):
+        if obj.dtype.kind == 'f':
+            rounded = np.around(obj.astype(np.float128),
+                                decimals=decimals).astype(np.float64)
+        elif obj.dtype.kind == 'i':
+            rounded = obj.astype(np.int)
+    elif isinstance(obj, list):
+        rounded = map(r, obj)
+    elif isinstance(obj, tuple):
+        rounded = tuple(map(r, obj))
+    elif isinstance(obj, (float, np.float32, np.float64, np.float128)):
+        rounded = np.float64(np.around(np.float128(obj), decimals=decimals))
+    elif isinstance(obj, (int, np.int8, np.int16, np.int32)):
+        rounded = int(obj)
+    else:
+        rounded = obj
+    return rounded
+
+
+def rr(obj, decimals=4):
+    """
+    Round arrays in scientific notation. Only used in docstrings.
+    """
+    print(np.vectorize('%.4g'.__mod__)(r(obj, decimals=decimals)))
+
+
+# ==============================================================================
 
 #
 #  Define class Network

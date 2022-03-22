@@ -1,4 +1,0 @@
-numpy >= 1.14
-scipy >= 1.0
-python-igraph >= 0.7
-Cython >= 0.27.3

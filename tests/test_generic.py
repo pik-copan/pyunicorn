@@ -19,7 +19,15 @@ Generic consistency checks.
 """
 
 import numpy as np
-from pyunicorn import core, climate, timeseries, funcnet
+
+from pyunicorn import __version__, core, climate, timeseries, funcnet
+
+
+def test_version():
+    """
+    Valid version information.
+    """
+    assert isinstance(__version__, str)
 
 
 def test_init_str():

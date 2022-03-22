@@ -21,7 +21,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath('../..'))
-from pyunicorn._version import __version__
+from pyunicorn import __version__
 
 
 # -- General configuration ------------------------------------------------

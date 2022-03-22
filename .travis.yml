@@ -1,6 +1,9 @@
 language: python
 python:
     - 3.7
+    - 3.8
+    - 3.9
+    - 3.10
 
 sudo: false
 dist: xenial
@@ -8,55 +11,45 @@ matrix:
     fast_finish: true
 env:
     matrix:
-        - NUMPY=1.15 SCIPY=1.1 CYTHON=0.28
-        - NUMPY=1.16 SCIPY=1.2 CYTHON=0.29
-addons:
-    apt:
-        packages:
-            - libigraph0v5
-            - libigraph0-dev
+        - NUMPY=1.20 SCIPY=1.5
+        - NUMPY=1.21 SCIPY=1.6
+        - NUMPY=1.22 SCIPY=1.7
 
 before_install:
-    # current python packages via miniconda
-    - export MINICONDA="3"
-    - travis_retry wget http://repo.continuum.io/miniconda/Miniconda$MINICONDA-latest-Linux-x86_64.sh -O miniconda.sh
+    # Python package manager
+    - travis_retry wget \
+          http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+          -O miniconda.sh
     - bash miniconda.sh -b -p $HOME/miniconda
     - export PATH="$HOME/miniconda/bin:$PATH"; hash -r
-    - conda config --set always_yes yes --set changeps1 no
-    - travis_retry conda update -q conda
+    - conda config --set quiet yes --set always_yes yes --set changeps1 no
+    - travis_retry conda update --name base --channel defaults conda
     - conda info -a
 
 install:
-    # test environment
-    - travis_retry conda create -q -n test-env python=$TRAVIS_PYTHON_VERSION
-    - source activate test-env
-    # https://github.com/conda/conda/issues/1367
-    - travis_retry conda install -q virtualenv
-
     # runtime dependencies
-    - travis_retry conda install numpy=$NUMPY scipy=$SCIPY cython=$CYTHON
+    - travis_retry conda create --name test-env
+    - conda activate test-env
+    - travis_retry conda install --channel conda-forge \
+          python=$TRAVIS_PYTHON_VERSION numpy=$NUMPY scipy=$SCIPY \
+          python-igraph
 
     # testing dependencies
-    - travis_retry conda install -q networkx matplotlib basemap sphinx pytest
-    - travis_retry pip   install -q tox pytest-xdist pytest-flake8 pytest-cov pylint codecov
+    - travis_retry conda install networkx matplotlib basemap sphinx
+    - travis_retry pip   install .[testing]
 
 before_script:
-    # limit py.test processes within container environment
-    - sed 's/auto/2/' pytest.ini > temp && mv temp pytest.ini
+    # limit pytest processes within container environment
+    - sed -i 's/auto/4/' pytest.ini
 
 script:
-    # run test suite in dev env
-    - pip install -r requirements.txt -e .
-    - tox
+    # package
+    - pip install -vv -e .
 
-    # run cleanup script
-    - ./tools/publish 1 0 0 1; export DIST="$(basename `ls ../pyunicorn-*` .tar.gz)"; cd ..; tar xzf $DIST.tar.gz; cd $DIST
+    # test suite
+    # (Cython imports dysfunctional inside tox env, unless package installed outside)
+    - tox -vvvv
 
-    # run test suite in source distribution (without Cython)
-    - conda uninstall -q cython
-    - python setup.py sdist; cd dist; tar xzf $DIST.tar.gz; cd $DIST
-    - tox -e units
-    
 after_success:
     - codecov
 
