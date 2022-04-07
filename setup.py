@@ -21,8 +21,7 @@ setup(
     ext_modules=cythonize(
         [Extension(
             f'pyunicorn.{pkg}._ext.numerics',
-            sources=[f'pyunicorn/{pkg}/_ext/numerics.pyx'],
-            # sources=[f'src/pyunicorn/{pkg}/_ext/numerics.pyx'],
+            sources=[f'src/pyunicorn/{pkg}/_ext/numerics.pyx'],
             include_dirs=[np.get_include()],
             extra_compile_args=['-O3', '-std=c99', '-D_GNU_SOURCE'],
             define_macros=[('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION')])
