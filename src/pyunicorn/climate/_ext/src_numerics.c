@@ -9,6 +9,9 @@
 */
 
 #include <math.h>
+#if defined(_WIN32) || defined(_WIN64)
+#include <malloc.h>
+#endif
 
 // mutual_info ================================================================
 
@@ -46,7 +49,7 @@ void _cython_calculate_mutual_information(float *anomaly, int n_samples,
             //  Calculate symbolic trajectories for each time series,
             //  where the symbols are bin numbers.
             if (rescaled < 1.0) {
-                *p_symbolic = rescaled * n_bins;
+                *p_symbolic = (long) rescaled * n_bins;
             }
             else {
                 *p_symbolic = n_bins - 1;
@@ -132,7 +135,7 @@ void _cython_calculate_mutual_information(float *anomaly, int n_samples,
                             if (hpm > 0.0) {
                                 plm = (*p_hist2d) * norm;
                                 if (plm > 0.0) {
-                                    *p_mi += plm * log(plm/hpm/hpl);
+                                    *p_mi += (float) plm * log(plm/hpm/hpl);
                                 }
                             }
 
@@ -189,16 +192,12 @@ void _cython_calculate_mutual_information(float *anomaly, int n_samples,
 void _calculate_corr_fast(int m, int tmax, int *final_mask,
     float *time_series_ranked, float *spearman_rho)  {
 
-    double cov = 0;
-    double sigmai = 0;
-    double sigmaj = 0;
-    double meani = 0;
-    double meanj = 0;
+    double cov = 0, sigmai = 0, sigmaj = 0, meani = 0, meanj = 0;
     int zerocount = 0;
-    double rankedi[tmax];
-    double rankedj[tmax];
-    double normalizedi[tmax];
-    double normalizedj[tmax];
+    double *rankedi = alloca(tmax * sizeof(double)),
+           *rankedj = alloca(tmax * sizeof(double)),
+           *normalizedi = alloca(tmax * sizeof(double)),
+           *normalizedj = alloca(tmax * sizeof(double));
 
     for (int i=0; i<m; i++) {
         for (int j=i; j<m; j++) {
@@ -231,14 +230,14 @@ void _calculate_corr_fast(int m, int tmax, int *final_mask,
                     sigmaj = sigmaj + normalizedj[t]*normalizedj[t];
                 }
             }
-            spearman_rho[i*m+j]=spearman_rho[j*m+i] = cov/sqrt(sigmai*sigmaj);
+            spearman_rho[i*m+j] = spearman_rho[j*m+i] =
+                (float) cov/sqrt(sigmai*sigmaj);
             meani = 0;
             meanj = 0;
             cov = 0;
             sigmai = 0;
             sigmaj = 0;
             zerocount = 0;
-
         }
     }
 }

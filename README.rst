@@ -7,7 +7,6 @@ pyunicorn
 .. image:: https://codecov.io/gh/pik-copan/pyunicorn/branch/master/graph/badge.svg
   :target: https://codecov.io/gh/pik-copan/pyunicorn
 
-
 ``pyunicorn`` (**Uni**\ fied **Co**\ mplex Network and **R**\ ecurre\ **N**\ ce
 analysis toolbox) is a fully object-oriented Python package for the advanced
 analysis and modeling of complex networks. Above the standard measures of
@@ -27,6 +26,7 @@ nonlinear analysis of single and pairs of time series such as recurrence
 quantification analysis (RQA), recurrence network analysis and visibility
 graphs.
 
+
 Reference
 ---------
 **Please acknowledge and cite the use of this software and its authors when
@@ -43,9 +43,9 @@ following reference:**
     `Preprint: arxiv.org:1507.01571 [physics.data-an].
     <http://arxiv.org/abs/1507.01571>`_
 
+
 Funding
 -------
-
 The development of ``pyunicorn`` has been supported by various funding sources,
 notably the `German Federal Ministry for Education and Research
 <https://www.bmbf.de/en/index.html>`_ (projects `GOTHAM
@@ -58,9 +58,11 @@ and the `Stordalen Foundation <http://www.stordalenfoundation.no/>`_ via the
 `Planetary Boundary Research Network <http://www.pb-net.org>`_ (PB.net) among
 others.
 
+
 License
 -------
 ``pyunicorn`` is `BSD-licensed <LICENSE.txt>`_ (3 clause).
+
 
 Code
 ----
@@ -68,6 +70,7 @@ Code
 `Development version <https://github.com/pik-copan/pyunicorn>`_
 
 `Changelog <docs/source/changelog.rst>`_, `Contributions <CONTRIBUTIONS.rst>`_
+
 
 Documentation
 -------------
@@ -80,6 +83,7 @@ using ``Sphinx``::
 
     $> pip install --user .[docs]
     $> cd docs; make clean html latexpdf
+
 
 Dependencies
 ------------
@@ -111,6 +115,7 @@ package manager or consult the libraries' homepages. An easy way to go may be a
 Python distribution like `Anaconda <https://www.anaconda.com/distribution/>`_
 that already includes many libraries.
 
+
 Installation
 ------------
 Before installing ``pyunicorn`` itself, we recommend to make sure that the
@@ -122,27 +127,26 @@ from the Python Package Index (PyPI).
 
 With the ``pip`` package manager::
 
-        $> pip install pyunicorn
+    $> pip install pyunicorn
         
 On Fedora OS, use::
 
-        $> dnf install python3-pyunicorn
+    $> dnf install python3-pyunicorn
 
 **Windows**
 
-Unfortunately, ``pyunicorn`` does not work with the Microsoft Visual Studio
-C Compiler but only with the GNU Compiler ``gcc``. The following installation
-procedure using `Anaconda <https://www.anaconda.com/distribution/>`_ was found
-to work on a Windows 10 machine.
+Install the latest version of the `Microsoft C++ Build Tools
+<https://visualstudio.microsoft.com/visual-cpp-build-tools/>`_, and then::
 
-Open an Anaconda prompt and install the Minimalist GNU Compiler Toolchain::
+    $> pip install pyunicorn
 
-    $> conda install libpython m2w64-toolchain -c msys2
+**Development version**
 
-Download the Zip file for ``pyunicorn`` from the source repository, unpack it,
-and execute::
+To use a newer version of ``pyunicorn`` than the latest official release on
+PyPI, download the source code from the Github repository and, instead of the
+above, execute::
 
-    $> pip install .
+    $> pip install -e .
 
 
 Test suite
