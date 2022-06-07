@@ -69,8 +69,8 @@ void _cross_correlation_max_fast(float *array, float *similarity_matrix,
                         argmax = tau;
                     }
                 }
-                similarity_matrix[i*N+j] = max/(float) corr_range;
-                lag_matrix[i*N+j] = tau_max - argmax;
+                similarity_matrix[i*N+j] = (float) (max / corr_range);
+                lag_matrix[i*N+j] = (signed char) (tau_max - argmax);
             }
         }
     }
@@ -95,7 +95,7 @@ void _cross_correlation_all_fast(float *array, float *lagfuncs, int N,
                                array[tau_max*(tau_max+1)+j*N+k];
                 }
                 lagfuncs[i*N+j*N+(tau_max-tau)] =
-                    crossij/(float)(corr_range);
+                    (float) (crossij / corr_range);
             }
         }
     }
@@ -159,7 +159,7 @@ void _get_nearest_neighbors_fast(float *array, int T, int dim_x, int dim_y,
             dxyzarray[j] = dxyz;
             if ( j > 0 ){
                 // only list of smallest k+1 distances need to be kept!
-                m = fmin(k, j-1);
+                m = (int) fmin(k, j-1);
                 while ( m >= 0 && dxyzarray[m] > dxyz ){
                     dxyzarray[m+1] = dxyzarray[m];
                     m -= 1;

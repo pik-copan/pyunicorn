@@ -31,8 +31,8 @@ from ...core._ext.types cimport \
 cdef extern from "src_numerics.c":
     void _do_nsi_hamming_clustering_fast(int n2, int nActiveIndices,
         float mind0, float minwp0, int lastunited, int part1, int part2,
-        float *distances, int *theActiveIndices, float *linkedWeights,
-        float *weightProducts, float *errors, float *result, int *mayJoin)
+        double *distances, int *theActiveIndices, double *linkedWeights,
+        double *weightProducts, double *errors, double *result, int *mayJoin)
     double _vertex_current_flow_betweenness_fast(int N, double Is, double It,
         float *admittance, float *R, int i)
     void _edge_current_flow_betweenness_fast(int N, double Is, double It,
@@ -167,7 +167,7 @@ def _randomlySetCrossLinks(
     True
     """
     cdef:
-        unsigned int i, j
+        int i, j
 
     # create random cross links
     for _ in range(number_cross_links):
@@ -188,7 +188,7 @@ def _randomlyRewireCrossLinks(
     int number_cross_links, int number_swaps):
 
     cdef:
-        int m = len(nodes1), n = len(nodes2)
+        int m = int(len(nodes1)), n = int(len(nodes2))
         NODE_t e1, e2, a, b, c, d
 
     # implement permutations
@@ -219,8 +219,8 @@ def _cross_transitivity(
     np.ndarray[NODE_t, ndim=1] nodes1, np.ndarray[NODE_t, ndim=1] nodes2):
 
     cdef:
-        unsigned int m = len(nodes1), n = len(nodes2)
-        unsigned int i, j, k
+        int m = int(len(nodes1)), n = int(len(nodes2))
+        int i, j, k
         NODE_t n1, n2, n3
         long triangles = 0, triples = 0
 
@@ -249,8 +249,8 @@ def _nsi_cross_transitivity(
     np.ndarray[DWEIGHT_t, ndim=1] node_weights):
 
     cdef:
-        unsigned int m = len(nodes1), n = len(nodes2)
-        unsigned int v, p, q
+        int m = int(len(nodes1)), n = int(len(nodes2))
+        int v, p, q
         NODE_t node_v, node_p, node_q
         DWEIGHT_t weight_v, weight_p, ppv, pqv, T1 = 0, T2 = 0
 
@@ -281,8 +281,8 @@ def _cross_local_clustering(
     np.ndarray[DFIELD_t, ndim=1] cross_clustering):
 
     cdef:
-        unsigned int m = len(nodes1), n = len(nodes2)
-        unsigned int i, j, k
+        int m = int(len(nodes1)), n = int(len(nodes2))
+        int i, j, k
         NODE_t n1, n2, n3
         long counter
 
@@ -309,8 +309,8 @@ def _nsi_cross_local_clustering(
     np.ndarray[DWEIGHT_t, ndim=1] node_weights):
 
     cdef:
-        unsigned int m = len(nodes1), n = len(nodes2)
-        unsigned int v, p, q
+        int m = int(len(nodes1)), n = int(len(nodes2))
+        int v, p, q
         NODE_t node_v, node_p, node_q
         DWEIGHT_t weight_p
 
@@ -324,7 +324,7 @@ def _nsi_cross_local_clustering(
                 for q in range(p + 1, n):
                     node_q = nodes2[q]
                     if A[node_p, node_q] and A[node_q, node_v]:
-                        nsi_cc[v] += 2 * weight_p * node_weights[node_q]
+                        nsi_cc[v] += <WEIGHT_t>2 * weight_p * node_weights[node_q]
 
 
 # network =====================================================================
@@ -334,7 +334,8 @@ def _local_cliquishness_4thorder(
     int N, np.ndarray[ADJ_t, ndim=2] A, np.ndarray[DEGREE_t, ndim=1] degree):
 
     cdef:
-        unsigned int index
+        int i, j, k, l
+        int index
         NODE_t node1, node2, node3, degree_i, order = 4
         long counter
         np.ndarray[NODE_t, ndim=1] neighbors = np.zeros(N, dtype=NODE)
@@ -372,8 +373,8 @@ def _local_cliquishness_5thorder(
     int N, np.ndarray[ADJ_t, ndim=2] A, np.ndarray[DEGREE_t, ndim=1] degree):
 
     cdef:
-        unsigned int index
-        NODE_t j, node1, node2, node3, node4, degree_i, order = 5
+        int i, index
+        NODE_t j, k, l, m, node1, node2, node3, node4, degree_i, order = 5
         long counter
         np.ndarray[NODE_t, ndim=1] neighbors = np.zeros(N, dtype=NODE)
         np.ndarray[DFIELD_t, ndim=1] local_cliquishness = \
@@ -412,7 +413,7 @@ def _local_cliquishness_5thorder(
 
 
 def _nsi_betweenness(
-    int N, int E, np.ndarray[DWEIGHT_t, ndim=1] w,
+    int N, np.ndarray[DWEIGHT_t, ndim=1] w,
     np.ndarray[DEGREE_t, ndim=1] k, int j,
     np.ndarray[DFIELD_t, ndim=1] betweenness_to_j,
     np.ndarray[DFIELD_t, ndim=1] excess_to_j,
@@ -422,7 +423,7 @@ def _nsi_betweenness(
     np.ndarray[NODE_t, ndim=1] flat_predecessors):
 
     cdef:
-        unsigned int qi, oi, queue_len, l_index, ql
+        int qi, oi, queue_len, l_index, ql
         NODE_t l, i, next_d, dl, ol, fi
         DFIELD_t base_factor
         np.ndarray[NODE_t, ndim=1] distances_to_j =\
@@ -642,16 +643,18 @@ def _do_nsi_clustering_II(int a, int b,
         double  wa = w[a], wb = w[b], wc = wa+wb, wad0 = wa*d0, wbd0 = wb*d0, \
                 wa1, wa1sq, wa1d0, Da1a1, Da1a, Da1b, Da1c, wb1, wb1d0, wb1sq, \
                 wa1b1, wc1, Db1b1, Da1b1, Dc1c1_wc1sq, \
-                Dc1c1_wc1sq_Da1a1_wa1sq, Dc1c1_wc1sq_Da1a1_wb1sq, \
-                Dc1c1_wc1sq_Da1b1_wa1b1, Delta_new, wc2, Da1c2, Db1c2, \
+                Dc1c1_wc1sq_Da1a1_wa1sq, Dc1c1_wc1sq_Da1b1_wa1b1, \
+                Dc1c1_wc1sq_Db1b1_wb1sq, \
+                Delta_new, Delta_inc, wc2 = 0, Da1c2, Db1c2, \
                 Dc1c2_wc1, Dc1c2_wc1_Da1c2_wa1, Dc1c2_wc1_Db1c2_wb1, \
                 Dc1c2_wc1_wc2_d0, Db1a, Db1b, Db1c, Dc1a_wc1, Dc1b_wc1, \
                 Dc1c_wc1, Dc1c_wc1_Da1c_wa1, Dc1a_wc1_Da1a_wa1, \
                 Dc1b_wc1_Da1b_wa1, Dc1c_wc1_Db1c_wb1, Dc1a_wc1_Db1a_wb1, \
                 Dc1b_wc1_Db1b_wb1
         int N1 = N+1, posa1 = D_firstpos[a] # a meaning c!
-        int a1, a1N, a1a1, a1a, a1b, posb1, b1, b1N, posc2, b1c2, b1a, b1b, \
-                a1b1key, b1b1
+        int a1, a1N, a1a1, a1a, a1b, posb1, b1, b1N, posc2, b1c2 = 0, b1a, b1b, \
+            a1b1key, b1b1
+        DEGREE_t c2
 
     while (posa1 > 0):
         a1 = D_cluster[posa1]
@@ -701,7 +704,7 @@ def _do_nsi_clustering_II(int a, int b,
                     Da1b1 = dict_D[a1b1key]
                 else:
                     Da1b1 = wb1 * wa1d0
-                Dc1c1_wc1sq = (Da1a1+Db1b1+2.0*Da1b1) / (wc1*wc1)
+                Dc1c1_wc1sq = (Da1a1+Db1b1+<float>2*Da1b1) / (wc1*wc1)
                 if (b1 == a): # a meaning c!
                     Dc1c1_wc1sq_Da1a1_wa1sq = Dc1c1_wc1sq - Da1a1/wa1sq
                     Dc1c1_wc1sq_Db1b1_wb1sq = Dc1c1_wc1sq - Db1b1/wb1sq
@@ -710,10 +713,10 @@ def _do_nsi_clustering_II(int a, int b,
                                 Dc1c1_wc1sq_Da1a1_wa1sq + \
                                 wb1sq * Dc1c1_wc1sq_Db1b1_wb1sq * \
                                 Dc1c1_wc1sq_Db1b1_wb1sq + \
-                                2.0 * wa1b1 * Dc1c1_wc1sq_Da1b1_wa1b1 * \
+                                <float>2 * wa1b1 * Dc1c1_wc1sq_Da1b1_wa1b1 * \
                                 Dc1c1_wc1sq_Da1b1_wa1b1
                     # loop thru all nbs c2 of a1 other than b1:
-                    posc2 = D_firstpos[a1], c2
+                    posc2 = D_firstpos[a1]
                     while (posc2 > 0):
                         c2 = D_cluster[posc2]
                         if (c2 != b1):
@@ -781,14 +784,15 @@ def _do_nsi_clustering_II(int a, int b,
                     Dc1c_wc1_Db1c_wb1 = Dc1c_wc1 - Db1c/wb1
                     Dc1a_wc1_Db1a_wb1 = Dc1a_wc1 - Db1a/wb1
                     Dc1b_wc1_Db1b_wb1 = Dc1b_wc1 - Db1b/wb1
-                    Delta_inc = 2 * (Dc1c_wc1_Da1c_wa1*Dc1c_wc1_Da1c_wa1/wc - \
-                                     Dc1a_wc1_Da1a_wa1*Dc1a_wc1_Da1a_wa1/wa - \
-                                     Dc1b_wc1_Da1b_wa1*Dc1b_wc1_Da1b_wa1/wb)/ \
+                    Delta_inc = (Dc1c_wc1_Da1c_wa1*Dc1c_wc1_Da1c_wa1/wc - \
+                                 Dc1a_wc1_Da1a_wa1*Dc1a_wc1_Da1a_wa1/wa - \
+                                 Dc1b_wc1_Da1b_wa1*Dc1b_wc1_Da1b_wa1/wb)/ \
                                 wa1 + \
-                                2 * (Dc1c_wc1_Db1c_wb1*Dc1c_wc1_Db1c_wb1/wc - \
-                                     Dc1a_wc1_Db1a_wb1*Dc1a_wc1_Db1a_wb1/wa - \
-                                     Dc1b_wc1_Db1b_wb1*Dc1b_wc1_Db1b_wb1/wb)/ \
+                                (Dc1c_wc1_Db1c_wb1*Dc1c_wc1_Db1c_wb1/wc - \
+                                 Dc1a_wc1_Db1a_wb1*Dc1a_wc1_Db1a_wb1/wa - \
+                                 Dc1b_wc1_Db1b_wb1*Dc1b_wc1_Db1b_wb1/wb)/ \
                                 wb1
+                    Delta_inc *= <float>2
                     dict_Delta[a1b1key] = float(dict_Delta[a1b1key])+Delta_inc
 
             posb1 = D_nextpos[posb1]
@@ -810,12 +814,12 @@ def _do_nsi_hamming_clustering(int n2, int nActiveIndices, float mind0,
 
     _do_nsi_hamming_clustering_fast(n2, nActiveIndices, mind0, minwp0,
         lastunited, part1, part2,
-        <float*> np.PyArray_DATA(distances),
-        <int*> np.PyArray_DATA(theActiveIndices),
-        <float*> np.PyArray_DATA(linkedWeights),
-        <float*> np.PyArray_DATA(weightProducts),
-        <float*> np.PyArray_DATA(errors),
-        <float*> np.PyArray_DATA(results),
+        <DFIELD_t*> np.PyArray_DATA(distances),
+        <int*> cnp.PyArray_DATA(theActiveIndices),
+        <DFIELD_t*> np.PyArray_DATA(linkedWeights),
+        <DFIELD_t*> np.PyArray_DATA(weightProducts),
+        <DFIELD_t*> np.PyArray_DATA(errors),
+        <DFIELD_t*> np.PyArray_DATA(results),
         <int*> np.PyArray_DATA(mayJoin))
 
 
@@ -827,11 +831,11 @@ def _calculate_angular_distance(
     np.ndarray[FIELD_t, ndim=1] sin_lat,
     np.ndarray[FIELD_t, ndim=1] cos_lon,
     np.ndarray[FIELD_t, ndim=1] sin_lon,
-    np.ndarray[FIELD_t, ndim=2] cosangdist, unsigned int N):
+    np.ndarray[FIELD_t, ndim=2] cosangdist, int N):
 
     cdef:
         FIELD_t expr
-        unsigned int i,j
+        int i,j
 
     for i in range(N):
         for j in range(i+1):
@@ -849,10 +853,10 @@ def _calculate_angular_distance(
 def _calculate_euclidean_distance(
     np.ndarray[FIELD_t, ndim=2] x,
     np.ndarray[FIELD_t, ndim=2] distance,
-    unsigned int N_dim, unsigned int N_nodes):
+    int N_dim, int N_nodes):
 
     cdef:
-        unsigned int i,j,k
+        int i,j,k
         FIELD_t expr
 
     for i in range(N_nodes):
@@ -860,7 +864,7 @@ def _calculate_euclidean_distance(
             expr = 0
             for k in range(N_dim):
                 expr += (x[k, i]-x[k, j])**2
-            distance[i, j] = distance[j, i] = expr**(0.5)
+            distance[i, j] = distance[j, i] = expr**(<FIELD_t> 0.5)
 
 
 # resistive_network ===========================================================

@@ -147,11 +147,10 @@ class VisibilityGraph(InteractingNetworks):
 
         #  Prepare
         x = self.time_series
-        t = self.timings
         N = len(self.time_series)
         A = np.zeros((N, N), dtype=MASK)
 
-        _visibility_relations_horizontal(x, t, N, A)
+        _visibility_relations_horizontal(x, N, A)
         return A
 
     #

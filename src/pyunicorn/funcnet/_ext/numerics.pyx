@@ -54,7 +54,6 @@ def _cross_correlation_max(
         np.ones((N, N), dtype=FIELD)
     cdef np.ndarray[LAG_t, ndim=2, mode='c'] lag_matrix = \
         np.zeros((N, N), dtype=LAG)
-
     cdef:
         double crossij, max
         int i,j,tau,k, argmax
@@ -77,25 +76,25 @@ def _cross_correlation_max(
                     if abs(crossij) > abs(max):
                         max = crossij
                         argmax = tau
-                similarity_matrix[i,j] = max/(float)(corr_range)
-                lag_matrix[i,j] = tau_max - argmax
+                similarity_matrix[i,j] = <FIELD_t> (max / corr_range)
+                lag_matrix[i,j] = <LAG_t> (tau_max - argmax)
 
     return similarity_matrix, lag_matrix
 
 
 def _cross_correlation_all(
-        np.ndarray[FIELD_t, ndim=3, mode='c'] array not None,
-        int N, int tau_max, int corr_range):
+    np.ndarray[FIELD_t, ndim=3, mode='c'] array not None,
+    int N, int tau_max, int corr_range):
 
     """
     lagfuncs = np.zeros((N, N, tau_max+1), dtype="float32")
     """
     cdef np.ndarray[FIELD_t, ndim=3, mode='c'] lagfuncs = \
         np.zeros((N, N, tau_max+1), dtype=FIELD)
-
     cdef:
         int i, j, tau, k
         double crossij
+
     # loop over all node pairs, NOT symmetric due to time shifts!
     for i in range(N):
         for j in range(N):
@@ -107,7 +106,7 @@ def _cross_correlation_all(
                 for k in range(corr_range):
                     crossij += array[tau,i,k] * array[tau_max,j,k]
 
-                lagfuncs[i,j,tau_max-tau] = crossij/(float)(corr_range)
+                lagfuncs[i,j,tau_max-tau] = <FIELD_t> (crossij / corr_range)
 
     return lagfuncs
 

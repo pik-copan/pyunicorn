@@ -139,7 +139,6 @@ class CouplingAnalysis:
     #  Define methods to estimate similarity measures
     #
     def cross_correlation(self, tau_max=0, lag_mode='max'):
-
         r"""
         Return cross correlation between all pairs of nodes.
 
@@ -230,7 +229,6 @@ class CouplingAnalysis:
 
     def mutual_information(self, tau_max=0, estimator='knn',
                            knn=10, bins=6, lag_mode='max'):
-
         r"""
         Return mutual information (MI) between all pairs of nodes.
 
@@ -420,7 +418,6 @@ class CouplingAnalysis:
 
     def information_transfer(self, tau_max=0, estimator='knn',
                              knn=10, past=1, cond_mode='ity', lag_mode='max'):
-
         r"""
         Return bivariate information transfer between all pairs of nodes.
 
@@ -638,7 +635,6 @@ class CouplingAnalysis:
 
     @staticmethod
     def get_nearest_neighbors(array, xyz, k, standardize=True):
-
         """
         Returns nearest-neighbors for conditional mutual information estimator.
 
@@ -688,7 +684,6 @@ class CouplingAnalysis:
 
     @staticmethod
     def _quantile_bin_array(array, bins=6):
-
         """
         Returns symbolified array with aequi-quantile binning.
 
@@ -723,7 +718,6 @@ class CouplingAnalysis:
 
     @staticmethod
     def bincount_hist(symb_array):
-
         """
         Computes histogram from symbolic array.
 
@@ -761,7 +755,6 @@ class CouplingAnalysis:
 
     @staticmethod
     def create_plogp(T):
-
         """
         Precalculation of p*log(p) needed for entropies.
 

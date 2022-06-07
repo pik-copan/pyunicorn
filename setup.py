@@ -25,13 +25,16 @@ import numpy as np
 win = system() == 'Windows'
 c_args = {
     'include_dirs': [np.get_include()],
-    'extra_compile_args': ['/O2' if win else '-O3', '-D_GNU_SOURCE',
-                           *([] if win else ['-std=c99'])],
+    'extra_compile_args': ['-D_GNU_SOURCE'] + (
+        ['/O2']
+        if win else
+        ['-O3', '-std=c99', '-Wconversion']),
     'define_macros': [('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION')]}
 cy_args = {
     'language_level': 3, 'embedsignature': True,
     'boundscheck': True, 'wraparound': False,
-    'initializedcheck': True, 'nonecheck': True}
+    'initializedcheck': True, 'nonecheck': True,
+    'warn.unused': True, 'warn.unused_arg': True}
 
 
 # ==============================================================================

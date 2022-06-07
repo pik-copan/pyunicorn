@@ -23,19 +23,20 @@ from ...core._ext.types import FIELD, DFIELD
 from ...core._ext.types cimport MASK_t, FIELD_t, DFIELD_t
 
 cdef extern from "src_numerics.c":
-    void _cython_calculate_mutual_information(
+    void _mutual_information(
             float *anomaly, int n_samples, int N, int n_bins, double scaling,
             double range_min, long *symbolic, long *hist, long *hist2d,
             float *mi)
-    void _calculate_corr_fast(int m, int tmax, bint *final_mask,
+    void _spearman_corr(int m, int tmax, bint *final_mask,
             float *time_series_ranked, float *spearman_rho)
 
 
 # mutual_info =================================================================
 
-def _calculate_mutual_information_cython(
+
+def mutual_information(
     np.ndarray[FIELD_t, ndim=2, mode='c'] anomaly not None,
-    int n_samples, int N, int n_bins, double scaling, double range_min):
+    int n_samples, int N, int n_bins, float scaling, float range_min):
 
     cdef:
         np.ndarray[DFIELD_t, ndim=2, mode='c'] symbolic = np.zeros(
@@ -47,7 +48,7 @@ def _calculate_mutual_information_cython(
         np.ndarray[FIELD_t, ndim=2, mode='c'] mi = np.zeros(
             (N, N), dtype=FIELD)
 
-    _cython_calculate_mutual_information(
+    _mutual_information(
         <float*> np.PyArray_DATA(anomaly), n_samples, N, n_bins, scaling,
         range_min, <long*> np.PyArray_DATA(symbolic),
         <long*> np.PyArray_DATA(hist), <long*> np.PyArray_DATA(hist2d),
@@ -58,14 +59,15 @@ def _calculate_mutual_information_cython(
 
 # rainfall ====================================================================
 
-def _calculate_corr(int m, int tmax,
+
+def spearman_corr(int m, int tmax,
     np.ndarray[MASK_t, ndim=2, mode='c'] final_mask not None,
     np.ndarray[FIELD_t, ndim=2, mode='c'] time_series_ranked not None):
 
     cdef np.ndarray[FIELD_t, ndim=2, mode='c'] spearman_rho = np.zeros(
         (m, m), dtype=FIELD)
 
-    _calculate_corr_fast(m, tmax,
+    _spearman_corr(m, tmax,
             <bint*> np.PyArray_DATA(final_mask),
             <float*> np.PyArray_DATA(time_series_ranked),
             <float*> np.PyArray_DATA(spearman_rho))

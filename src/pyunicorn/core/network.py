@@ -3293,7 +3293,7 @@ class Network:
             excess_to_j = to_cy(w, DFIELD)
             flat_predecessors = np.zeros(E, dtype=NODE)
             _nsi_betweenness(
-                N, E, to_cy(w, DWEIGHT), to_cy(k, DEGREE), j,
+                N, to_cy(w, DWEIGHT), to_cy(k, DEGREE), j,
                 betweenness_to_j, excess_to_j, offsets, flat_neighbors,
                 is_source, flat_predecessors)
             del flat_predecessors

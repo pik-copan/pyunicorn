@@ -16,9 +16,9 @@
 
 
 void _do_nsi_hamming_clustering_fast(int n2, int nActiveIndices, float mind0,
-    float minwp0, int lastunited, int part1, int part2, float *distances,
-    int *theActiveIndices, float *linkedWeights, float *weightProducts,
-    float *errors, float *result, int *mayJoin)  {
+    float minwp0, int lastunited, int part1, int part2, double *distances,
+    int *theActiveIndices, double *linkedWeights, double *weightProducts,
+    double *errors, double *result, int *mayJoin)  {
 
     
     int i1, i2, i3, c3;
@@ -80,7 +80,7 @@ void _do_nsi_hamming_clustering_fast(int n2, int nActiveIndices, float mind0,
                                        + linkedWeights[c2*n2+part1],
                             lw_part2 = linkedWeights[c1*n2+part2]
                                        + linkedWeights[c2*n2+part2];
-                    distances[c1*n2+c2] +=
+                    distances[c1*n2+c2] += (
                         (fmin(lw_united, weightProducts[c1*n2+lastunited]
                               + weightProducts[c2*n2+lastunited]
                               - lw_united)
@@ -91,7 +91,7 @@ void _do_nsi_hamming_clustering_fast(int n2, int nActiveIndices, float mind0,
                            - errors[c1*n2+part1] - errors[c2*n2+part1])
                         - (fmin(lw_part2,weightProducts[c1*n2+part2]
                                 + weightProducts[c2*n2+part2] -lw_part2)
-                           - errors[c1*n2+part2] - errors[c2*n2+part2]);
+                           - errors[c1*n2+part2] - errors[c2*n2+part2]));
                     d = distances[c1*n2+c2];
                     if ((d<mind) ||
                             ((d==mind) &&
@@ -161,7 +161,7 @@ void _edge_current_flow_betweenness_fast(int N, double Is, double It,
                               It*(R[j*N+t]-R[i*N+t]));
                 } //for s
             } // for t
-            ECFB[i*N+j] += 2.*I/(N*(N-1));
+            ECFB[i*N+j] += (float) (2.* I/(N*(N-1)));
         } // for j
     } // for i
 }
