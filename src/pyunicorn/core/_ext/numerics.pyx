@@ -19,6 +19,7 @@ cimport cython
 import random
 
 cimport numpy as np
+from numpy cimport ndarray, abs
 import numpy as np
 import numpy.random as rd
 randint = rd.randint
@@ -28,10 +29,6 @@ from ...core._ext.types cimport \
     ADJ_t, MASK_t, NODE_t, DEGREE_t, WEIGHT_t, DWEIGHT_t, FIELD_t, DFIELD_t
 
 cdef extern from "src_numerics.c":
-    void _randomly_rewire_geomodel_II_fast(int iterations, float eps, short *A,
-        float *D, int E, int N, int *edges)
-    void _randomly_rewire_geomodel_III_fast(int iterations, float eps,
-        short *A, float *D, int E, int N, int *edges, int *degree)
     void _do_nsi_hamming_clustering_fast(int n2, int nActiveIndices,
         float mind0, float minwp0, int lastunited, int part1, int part2,
         float *distances, int *theActiveIndices, float *linkedWeights,
@@ -45,77 +42,94 @@ cdef extern from "src_numerics.c":
 # geo_network =================================================================
 
 
-def _randomly_rewire_geomodel_I(int iterations, float eps,
-    np.ndarray[ADJ_t, ndim=2] A, np.ndarray[FIELD_t, ndim=2] D,
-    int E, int N, np.ndarray[NODE_t, ndim=2] edges):
+ctypedef bint (*rewire_cond_len)(
+    np.ndarray[FIELD_t, ndim=2], float, int, int, int, int)
+ctypedef bint (*rewire_cond_deg)(
+    np.ndarray[DEGREE_t, ndim=1], int, int, int, int)
 
-    cdef:
-        int i, j, s, t, k, l, edge1, edge2, count
-        int neighbor_s_index, neighbor_t_index
-        int neighbor_k_index, neighbor_l_index
 
-    i = 0
-    count = 0
+# condition C1
+cdef bint cond_len_c1(
+    np.ndarray[FIELD_t, ndim=2] D, float eps, int s, int t, int k, int l):
+    return (
+        (abs(D[s,t] - D[k,t]) < eps and abs(D[k,l] - D[s,l]) < eps) or
+        (abs(D[s,t] - D[s,l]) < eps and abs(D[k,l] - D[k,t]) < eps))
+
+# condition C2
+cdef bint cond_len_c2(
+    np.ndarray[FIELD_t, ndim=2] D, float eps, int s, int t, int k, int l):
+    return (
+        abs(D[s,t] - D[s,l]) < eps and abs(D[t,s] - D[t,k]) < eps and
+        abs(D[k,l] - D[k,t]) < eps and abs(D[l,k] - D[l,s]) < eps)
+
+# invariance of degree-degree correlations
+cdef bint cond_deg_corr(
+    np.ndarray[DEGREE_t, ndim=1] degree, int s, int t, int k, int l):
+    return (degree[s] == degree[k] and degree[t] == degree[l])
+
+# tautology
+cdef rewire_cond_deg cond_deg_true = NULL
+
+
+cdef void _randomly_rewire_geomodel(int iterations, float eps,
+    np.ndarray[ADJ_t, ndim=2] A, np.ndarray[FIELD_t, ndim=2] D, int E,
+    np.ndarray[NODE_t, ndim=2] edges, np.ndarray[DEGREE_t, ndim=1] degree,
+    rewire_cond_len cond_len, rewire_cond_deg cond_deg):
+
+    cdef int i = 0, s, t, k, l, edge1, edge2
+
     while (i < iterations):
         # Randomly choose 2 edges
         edge1 = np.floor(rd.random() * E)
         edge2 = np.floor(rd.random() * E)
+        s, t = edges[edge1,[0,1]]
+        k, l = edges[edge2,[0,1]]
 
-        s = edges[edge1,0]
-        t = edges[edge1,1]
+        # Proceed only if old links are disjoint
+        if ((s != k and s != l and t != k and t != l) and
+            # Proceed only if new links do NOT already exist
+            (A[s,l] == 0 and A[t,k] == 0) and
+            # Proceed only if link conditions are fulfilled
+            (cond_deg is NULL or cond_deg(degree, s, t, k, l)) and
+            cond_len(D, eps, s, t, k, l)):
 
-        k = edges[edge2,0]
-        l = edges[edge2,1]
+                # Now rewire the links symmetrically & increment i
+                A[s,t] = A[t,s] = 0
+                A[k,l] = A[l,k] = 0
+                A[s,l] = A[l,s] = 1
+                A[t,k] = A[k,t] = 1
+                edges[edge1,[0,1]] = s, l
+                edges[edge2,[0,1]] = k, t
 
-        count+=1
+                i+=1
 
-        #  Proceed only if s != k, s != l, t != k, t != l
-        if (s != k and s != l and t != k and t != l):
-            # Proceed only if the new links {s,l} and {t,k}
-            # do NOT already exist
-            if (A[s,l] == 0 and A[t,k] == 0):
-                # Proceed only if the link lengths fulfill condition C1
-                if ((np.abs(D[s,t] - D[k,t]) < eps and
-                        np.abs(D[k,l] - D[s,l]) < eps ) or
-                            (np.abs(D[s,t] - D[s,l]) < eps and
-                                np.abs(D[k,l] - D[k,t]) < eps )):
-                    # Now rewire the links symmetrically and increase i by 1
-                    A[s,t] = 0
-                    A[t,s] = 0
-                    A[k,l] = 0
-                    A[l,k] = 0
-                    A[s,l] = 1
-                    A[l,s] = 1
-                    A[t,k] = 1
-                    A[k,t] = 1
 
-                    edges[edge1,0] = s
-                    edges[edge1,1] = l
-                    edges[edge2,0] = k
-                    edges[edge2,1] = t
+def _randomly_rewire_geomodel_I(int iterations, float eps,
+    np.ndarray[ADJ_t, ndim=2] A, np.ndarray[FIELD_t, ndim=2] D, int E,
+    np.ndarray[NODE_t, ndim=2] edges):
 
-                    i+=1
+    cdef np.ndarray[DEGREE_t, ndim=1] null = np.array([], dtype=DEGREE)
 
-    print("Trials %d, Rewirings %d", (count, iterations))
+    _randomly_rewire_geomodel(iterations, eps, A, D, E, edges, null,
+                              cond_len_c1, cond_deg_true)
 
 
 def _randomly_rewire_geomodel_II(int iterations, float eps,
-    np.ndarray[ADJ_t, ndim=2] A, np.ndarray[FIELD_t, ndim=2] D,
-    int E, int N, np.ndarray[NODE_t, ndim=2] edges):
+    np.ndarray[ADJ_t, ndim=2] A, np.ndarray[FIELD_t, ndim=2] D, int E,
+    np.ndarray[NODE_t, ndim=2] edges):
 
-    _randomly_rewire_geomodel_II_fast(iterations, eps,
-            <short*> np.PyArray_DATA(A), <float*> np.PyArray_DATA(D), E, N,
-            <int*> np.PyArray_DATA(edges))
+    cdef np.ndarray[DEGREE_t, ndim=1] null = np.array([], dtype=DEGREE)
+
+    _randomly_rewire_geomodel(iterations, eps, A, D, E, edges, null,
+                              cond_len_c2, cond_deg_true)
 
 
 def _randomly_rewire_geomodel_III(int iterations, float eps,
-    np.ndarray[ADJ_t, ndim=2] A, np.ndarray[FIELD_t, ndim=2] D,
-    int E, int N, np.ndarray[NODE_t, ndim=2] edges,
-    np.ndarray[DEGREE_t, ndim=1] degree):
+    np.ndarray[ADJ_t, ndim=2] A, np.ndarray[FIELD_t, ndim=2] D, int E,
+    np.ndarray[NODE_t, ndim=2] edges, np.ndarray[DEGREE_t, ndim=1] degree):
 
-    _randomly_rewire_geomodel_III_fast(iterations, eps,
-            <short*> np.PyArray_DATA(A), <float*> np.PyArray_DATA(D), E, N,
-            <int*> np.PyArray_DATA(edges), <int*> np.PyArray_DATA(degree))
+    _randomly_rewire_geomodel(iterations, eps, A, D, E, edges, degree,
+                              cond_len_c2, cond_deg_corr)
 
 
 # interacting_networks ========================================================

@@ -9,8 +9,12 @@
 */
 
 #include <math.h>
-#if defined(_WIN32) || defined(_WIN64)
-#include <malloc.h>
+#ifdef _MSC_VER
+    #include <malloc.h>
+    #define ALLOCA(sz) _alloca(sz)
+#else
+    #include <alloca.h>
+    #define ALLOCA(sz) alloca(sz)
 #endif
 
 // mutual_info ================================================================
@@ -194,10 +198,11 @@ void _calculate_corr_fast(int m, int tmax, int *final_mask,
 
     double cov = 0, sigmai = 0, sigmaj = 0, meani = 0, meanj = 0;
     int zerocount = 0;
-    double *rankedi = alloca(tmax * sizeof(double)),
-           *rankedj = alloca(tmax * sizeof(double)),
-           *normalizedi = alloca(tmax * sizeof(double)),
-           *normalizedj = alloca(tmax * sizeof(double));
+    unsigned int T = (unsigned int) tmax;
+    double *rankedi = ALLOCA(T * sizeof(double)),
+           *rankedj = ALLOCA(T * sizeof(double)),
+           *normalizedi = ALLOCA(T * sizeof(double)),
+           *normalizedj = ALLOCA(T * sizeof(double));
 
     for (int i=0; i<m; i++) {
         for (int j=i; j<m; j++) {

@@ -9,6 +9,13 @@
 */
 
 #include <math.h>
+#ifdef _MSC_VER
+    #include <malloc.h>
+    #define ALLOCA(sz) _alloca(sz)
+#else
+    #include <alloca.h>
+    #define ALLOCA(sz) alloca(sz)
+#endif
 
 // coupling_analysis ==========================================================
 
@@ -98,9 +105,11 @@ void _cross_correlation_all_fast(float *array, float *lagfuncs, int N,
 void _get_nearest_neighbors_fast(float *array, int T, int dim_x, int dim_y,
         int k, int dim, int *k_xz, int *k_yz, int *k_z)  {
 
-    int i, j, index=0, t, m, n, d, kxz, kyz, kz, indexfound[T];
-    double  dz=0., dxyz=0., dx=0., dy=0., eps, epsmax;
-    double dist[T*dim], dxyzarray[k+1];
+    int i, j, index=0, t, m, n, d, kxz, kyz, kz;
+    int *indexfound = ALLOCA((unsigned int) T * sizeof(int));
+    double dz=0., dxyz=0., dx=0., dy=0., eps, epsmax;
+    double *dist = ALLOCA((unsigned int) (T * dim) * sizeof(double)),
+           *dxyzarray = ALLOCA((unsigned int) (k+1) * sizeof(double));
 
     // Loop over time
     for(i = 0; i < T; i++){

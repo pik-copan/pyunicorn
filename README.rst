@@ -137,8 +137,9 @@ On Fedora OS, use::
 
 **Windows**
 
-Install the latest version of the `Microsoft C++ Build Tools
-<https://visualstudio.microsoft.com/visual-cpp-build-tools/>`_, and then::
+First follow the instructions for installing the latest version of the
+`Microsoft C++ Build Tools <https://wiki.python.org/moin/WindowsCompilers>`_ in
+order to be able to compile the Cython modules, and then::
 
     $> pip install pyunicorn
 
