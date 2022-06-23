@@ -30,6 +30,7 @@ from pyunicorn.core.data import Data
 # turn off for weave compilation & error detection
 parallel = False
 
+
 def create_test_data():
     # Create test time series
     tdata = Data.SmallTestData().observable()
@@ -45,14 +46,17 @@ def create_test_data():
 # cross_recurrence_plot
 # -----------------------------------------------------------------------------
 
+
 def testCrossRecurrencePlot():
     tdata = create_test_data()
     CrossRecurrencePlot(x=tdata, y=tdata, threshold=0.2)
+
 
 def testDistanceMatrix():
     tdata = create_test_data()
     crp = CrossRecurrencePlot(x=tdata, y=tdata, threshold=1.0)
     crp.distance_matrix(tdata.T, tdata.T, metric='manhattan')
+
 
 def testManhattanDistanceMatrix():
     tdata = create_test_data()
@@ -62,6 +66,7 @@ def testManhattanDistanceMatrix():
     manh_dist_2 = crp.manhattan_distance_matrix(tdata.T, tdata.T)
     assert np.allclose(manh_dist_1, manh_dist_2, atol=1e-04)
 
+
 def testEuclideanDistanceMatrix():
     tdata = create_test_data()
     n_index, n_times = tdata.shape
@@ -69,6 +74,7 @@ def testEuclideanDistanceMatrix():
     eucl_dist_1 = crp.euclidean_distance_matrix(tdata.T, tdata.T)
     eucl_dist_2 = crp.euclidean_distance_matrix(tdata.T, tdata.T)
     assert np.allclose(eucl_dist_1, eucl_dist_2, atol=1e-04)
+
 
 def testSupremumDistanceMatrix():
     tdata = create_test_data()
@@ -83,6 +89,7 @@ def testSupremumDistanceMatrix():
 # surrogates
 # -----------------------------------------------------------------------------
 
+
 def testNormalizeTimeSeriesArray():
     ts = Surrogates.SmallTestData().original_data
     Surrogates.SmallTestData().normalize_time_series_array(ts)
@@ -93,6 +100,7 @@ def testNormalizeTimeSeriesArray():
     res = ts.std(axis=1)
     exp = np.array([1., 1., 1., 1., 1., 1.])
     assert np.allclose(res, exp, atol=1e-04)
+
 
 def testEmbedTimeSeriesArray():
     ts = Surrogates.SmallTestData().original_data
@@ -106,6 +114,7 @@ def testEmbedTimeSeriesArray():
                     [1.3660254, 1.6636525, 1.76007351]])
     assert np.allclose(res, exp, atol=1e-04)
 
+
 def testWhiteNoiseSurrogates():
     ts = Surrogates.SmallTestData().original_data
     surrogates = Surrogates.SmallTestData().white_noise_surrogates(ts)
@@ -113,11 +122,13 @@ def testWhiteNoiseSurrogates():
     assert(np.allclose(np.histogram(ts[0, :])[0],
                        np.histogram(surrogates[0, :])[0]))
 
+
 def testCorrelatedNoiseSurrogates():
     ts = Surrogates.SmallTestData().original_data
     surrogates = Surrogates.SmallTestData().correlated_noise_surrogates(ts)
     assert np.allclose(np.abs(np.fft.fft(ts, axis=1))[0, 1:10],
                        np.abs(np.fft.fft(surrogates, axis=1))[0, 1:10])
+
 
 def testTwinSurrogates():
     tdata = create_test_data()
@@ -153,6 +164,7 @@ def testMutualInformation():
 # visibility_graph
 # -----------------------------------------------------------------------------
 
+
 def create_test_timeseries():
     """
     Return test data set of 6 time series with 10 sampling points each.
@@ -185,6 +197,7 @@ def create_test_timeseries():
 #                                (val[j]-val[i])/(time[j]-time[i]))
 #    test = np.bool(np.sum(~np.array(map(testfun, range(i+1,j)))))
 #    assert np.invert(test) == vg.visibility(node1, node2)
+
 
 def testVisibilityHorizontal():
     tdata = create_test_timeseries()

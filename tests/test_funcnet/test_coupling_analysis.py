@@ -34,6 +34,7 @@ def create_test_data():
     tdata /= np.sqrt(np.sum(tdata*tdata, axis=1))[:, None]
     return tdata
 
+
 def test_symmetrize_by_absmax():
     # Test example
     ca = CouplingAnalysis(CouplingAnalysis.test_data())
@@ -68,6 +69,7 @@ def test_symmetrize_by_absmax():
         for j in range(n_times):
             assert sm_new[i, j] >= similarity_matrix[i, j]
 
+
 def test_cross_correlation():
     coup_ana = CouplingAnalysis(CouplingAnalysis.test_data())
     similarity_matrix, lag_matrix = coup_ana.cross_correlation(
@@ -79,6 +81,7 @@ def test_cross_correlation():
                      [0.4827, 0.5509, 0.4996, 1.]]),
            np.array([[0, 4, 1, 2], [0, 0, 0, 0], [0, 3, 0, 1], [0, 2, 0, 0]]))
     assert np.allclose(res, exp, atol=1e-04)
+
 
 def test_mutual_information():
     coup_ana = CouplingAnalysis(CouplingAnalysis.test_data())
@@ -94,6 +97,7 @@ def test_mutual_information():
                      [0, 2, 0, 1],
                      [0, 2, 0, 0]], dtype=np.int8))
     assert np.allclose(res, exp, atol=1e-04)
+
 
 def test_information_transfer():
     coup_ana = CouplingAnalysis(CouplingAnalysis.test_data())

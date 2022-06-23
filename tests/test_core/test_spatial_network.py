@@ -21,6 +21,7 @@ import numpy as np
 
 from pyunicorn.core.geo_network import SpatialNetwork
 
+
 def test_randomly_rewire_geomodel_I():
     net = SpatialNetwork.SmallTestNetwork()
     net.randomly_rewire_geomodel_I(distance_matrix=net.grid.distance(),
@@ -29,6 +30,7 @@ def test_randomly_rewire_geomodel_I():
     exp = np.array([3, 3, 2, 2, 3, 1])
     assert (res == exp).all()
 
+
 def test_set_random_links_by_distance():
     net = SpatialNetwork.SmallTestNetwork()
     while net.n_links != 5:
@@ -36,6 +38,7 @@ def test_set_random_links_by_distance():
     res = net.n_links
     exp = 5
     assert res == exp
+
 
 def test_link_distance_distribution():
     net = SpatialNetwork.SmallTestNetwork()
@@ -47,6 +50,7 @@ def test_link_distance_distribution():
     res = net.link_distance_distribution(n_bins=4, geometry_corrected=True)[0]
     exp = np.array([0.09836066, 0.24590164, 0.32786885, 0.32786885])
     assert np.allclose(res, exp, atol=1e-04)
+
 
 def test_average_link_distance():
     net = SpatialNetwork.SmallTestNetwork()
@@ -60,12 +64,14 @@ def test_average_link_distance():
     exp = np.array([1.6, 1.09090909, 1., 1.66666667, 1.63636357])
     assert np.allclose(res, exp, atol=1e-04)
 
+
 def test_inaverage_link_distance():
     net = SpatialNetwork.SmallTestNetwork()
     res = net.inaverage_link_distance(geometry_corrected=False)
     exp = np.array([22.36067963, 11.18033981, 8.38525486, 13.97542477,
                     16.77050908, 27.95084953])
     assert np.allclose(res, exp, atol=1e-04)
+
 
 def test_outaverage_link_distance():
     net = SpatialNetwork.SmallTestNetwork()
@@ -74,11 +80,13 @@ def test_outaverage_link_distance():
                     16.77050908, 27.95084953])
     assert np.allclose(res, exp, atol=1e-04)
 
+
 def test_max_link_distance():
     res = SpatialNetwork.SmallTestNetwork().max_link_distance()
     exp = np.array([27.95085, 16.77051, 11.18034, 16.77051, 22.36068,
                     27.95085], dtype=np.float32)
     assert np.allclose(res, exp, atol=1e-04)
+
 
 def test_average_distance_weighted_path_length():
     res = SpatialNetwork.SmallTestNetwork(). \
@@ -86,11 +94,13 @@ def test_average_distance_weighted_path_length():
     exp = 28.69620552062988
     assert np.allclose(res, exp, atol=1e-04)
 
+
 def test_distance_weighted_closeness():
     res = SpatialNetwork.SmallTestNetwork().distance_weighted_closeness()
     exp = np.array([0.03888814, 0.04259177, 0.03888814, 0.04259177, 0.03888814,
                     0.02080063])
     assert np.allclose(res, exp, atol=1e-04)
+
 
 def test_local_distance_weighted_vulnerability():
     res = SpatialNetwork.SmallTestNetwork(). \

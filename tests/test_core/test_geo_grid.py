@@ -21,6 +21,7 @@ import numpy as np
 
 from pyunicorn.core.geo_grid import GeoGrid
 
+
 def test_RegularGrid():
     res = GeoGrid.RegularGrid(time_seq=np.arange(2),
                               lat_grid=np.array([0., 5.]),
@@ -36,21 +37,25 @@ def test_RegularGrid():
     exp = np.array([1., 2., 1., 2.], dtype=np.float32)
     assert np.allclose(res, exp, atol=1e-04)
 
+
 def test_coord_sequence_from_rect_grid():
     res = GeoGrid.coord_sequence_from_rect_grid(lat_grid=np.array([0., 5.]),
                                                 lon_grid=np.array([1., 2.]))
     exp = (np.array([0., 0., 5., 5.]), np.array([1., 2., 1., 2.]))
     assert np.allclose(res, exp, atol=1e-04)
 
+
 def test_lat_sequence():
     res = GeoGrid.SmallTestGrid().lat_sequence()
     exp = np.array([0., 5., 10., 15., 20., 25.], dtype=np.float32)
     assert np.allclose(res, exp, atol=1e-04)
 
+
 def test_lon_sequence():
     res = GeoGrid.SmallTestGrid().lon_sequence()
     exp = np.array([2.5, 5., 7.5, 10., 12.5, 15.], dtype=np.float32)
     assert np.allclose(res, exp, atol=1e-04)
+
 
 def test_convert_lon_coordinates():
     res = GeoGrid.SmallTestGrid().convert_lon_coordinates(
@@ -58,30 +63,36 @@ def test_convert_lon_coordinates():
     exp = np.array([10., -10., 20., -20., 170., -170.])
     assert np.allclose(res, exp, atol=1e-04)
 
+
 def test_node_number2d():
     res = GeoGrid.SmallTestGrid().node_number(lat_node=14., lon_node=9.)
     exp = 3
     assert res == exp
+
 
 def test_cos_lat():
     res = GeoGrid.SmallTestGrid().cos_lat()[:2]
     exp = np.array([1., 0.9962])
     assert np.allclose(res, exp, atol=1e-04)
 
+
 def test_sin_lat():
     res = GeoGrid.SmallTestGrid().sin_lat()[:2]
     exp = np.array([0., 0.0872])
     assert np.allclose(res, exp, atol=1e-04)
+
 
 def test_cos_lon():
     res = GeoGrid.SmallTestGrid().cos_lon()[:2]
     exp = np.array([0.999, 0.9962])
     assert np.allclose(res, exp, atol=1e-04)
 
+
 def test_sin_lon():
     res = GeoGrid.SmallTestGrid().sin_lon()[:2]
     exp = np.array([0.0436, 0.0872])
     assert np.allclose(res, exp, atol=1e-04)
+
 
 def test_angular_distance():
     res = GeoGrid.SmallTestGrid().angular_distance().round(2)
@@ -93,11 +104,13 @@ def test_angular_distance():
                     [0.48, 0.39, 0.29, 0.19, 0.1, 0.]], dtype=np.float32)
     assert np.allclose(res, exp, atol=1e-04)
 
+
 def test_boundaries():
     res = GeoGrid.SmallTestGrid().print_boundaries()
     exp = "         time     lat     lon\n   min    0.0    0.00    2.50\n" + \
           "   max    9.0   25.00   15.00"
     assert res == exp
+
 
 def test_geometric_distance_distribution():
     res = GeoGrid.SmallTestGrid().geometric_distance_distribution(3)[0]
@@ -107,6 +120,7 @@ def test_geometric_distance_distribution():
     res = GeoGrid.SmallTestGrid().geometric_distance_distribution(3)[1]
     exp = np.array([0., 0.1616, 0.3231, 0.4847])
     assert np.allclose(res, exp, atol=1e-04)
+
 
 def test_region_indices():
     res = GeoGrid.SmallTestGrid().region_indices(

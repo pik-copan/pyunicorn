@@ -22,6 +22,7 @@ import numpy as np
 from pyunicorn.climate.climate_data import ClimateData
 from pyunicorn.climate.tsonis import TsonisClimateNetwork
 
+
 def test_str(capsys):
     print(TsonisClimateNetwork.SmallTestNetwork())
     out, err = capsys.readouterr()
@@ -39,12 +40,14 @@ def test_str(capsys):
               "Use only data points from winter months: False\n"
     assert out == out_ref
 
+
 def test_SmallTestNetwork():
     res = TsonisClimateNetwork.SmallTestNetwork().adjacency
     exp = np.array([[0, 0, 1, 0, 1, 0], [0, 0, 0, 1, 0, 1],
                     [1, 0, 0, 0, 1, 0], [0, 1, 0, 0, 0, 1],
                     [1, 0, 1, 0, 0, 0], [0, 1, 0, 1, 0, 0]])
     assert np.allclose(res, exp, atol=1e-04)
+
 
 def test_calculate_similarity_measure():
     res = TsonisClimateNetwork.SmallTestNetwork().calculate_similarity_measure(
@@ -58,6 +61,7 @@ def test_calculate_similarity_measure():
                    dtype=np.float32)
     assert np.allclose(res, exp, atol=1e-04)
 
+
 def test_correlation():
     res = TsonisClimateNetwork.SmallTestNetwork().correlation()
     exp = np.array([[1., 0.25377226, 1., 0.25377226, 1., 0.25377226],
@@ -69,10 +73,12 @@ def test_correlation():
                    dtype=np.float32)
     assert np.allclose(res, exp, atol=1e-04)
 
+
 def test_winter_only():
     res = TsonisClimateNetwork.SmallTestNetwork().winter_only()
     exp = False
     assert res == exp
+
 
 def test_set_winter_only():
     net = TsonisClimateNetwork.SmallTestNetwork()
@@ -82,17 +88,20 @@ def test_set_winter_only():
     exp = 6
     assert res == exp
 
+
 def test_correlation_weighted_average_path_length():
     res = TsonisClimateNetwork.SmallTestNetwork().\
             correlation_weighted_average_path_length()
     exp = 1.0
     assert np.isclose(res, exp, atol=1e-04)
 
+
 def test_correlation_weighted_closeness():
     res = TsonisClimateNetwork.SmallTestNetwork().\
                 correlation_weighted_closeness()
     exp = np.array([0.25, 0.25, 0.25, 0.25, 0.25, 0.25])
     assert np.allclose(res, exp, atol=1e-04)
+
 
 def test_local_correlation_weighted_vulnerability():
     res = TsonisClimateNetwork.SmallTestNetwork().\

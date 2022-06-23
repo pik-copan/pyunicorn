@@ -21,6 +21,7 @@ import numpy as np
 
 from pyunicorn.timeseries.recurrence_plot import RecurrencePlot
 
+
 def test_permutation_entropy():
     ts = np.array([[4], [7], [9], [10], [6], [11], [3]])
     rp = RecurrencePlot(ts, threshold=1, dim=3, tau=1)
@@ -28,6 +29,7 @@ def test_permutation_entropy():
     res = rp.permutation_entropy()
     exp = 0.5888
     assert np.isclose(res, exp, atol=1e-04)
+
 
 def test_complexity_entropy():
     ts = np.array([[4], [7], [9], [10], [6], [11], [3]])
