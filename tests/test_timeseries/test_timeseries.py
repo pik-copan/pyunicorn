@@ -182,21 +182,21 @@ def create_test_timeseries():
 
     return ts
 
-#def testVisibility():
-#    tdata = create_test_timeseries()
-#    n_times = tdata.shape[1]
-#    vg = VisibilityGraph(tdata[1], timings=tdata[0])
-#    # Choose two different, not neighbouring random nodes i, j
-#    node1, node2 = 0, 0
-#    while (abs(node2-node1)<=1):
-#        node1 = np.int(np.floor(np.random.rand()*n_times))
-#        node2 = np.int(np.floor(np.random.rand()*n_times))
-#    time, val = tdata
-#    i, j = min(node1, node2), max(node1, node2)
-#    testfun = lambda k: np.less((val[k]-val[i])/(time[k]-time[i]),
-#                                (val[j]-val[i])/(time[j]-time[i]))
-#    test = np.bool(np.sum(~np.array(map(testfun, range(i+1,j)))))
-#    assert np.invert(test) == vg.visibility(node1, node2)
+# def testVisibility():
+#     tdata = create_test_timeseries()
+#     n_times = tdata.shape[1]
+#     vg = VisibilityGraph(tdata[1], timings=tdata[0])
+#     # Choose two different, not neighbouring random nodes i, j
+#     node1, node2 = 0, 0
+#     while (abs(node2-node1)<=1):
+#         node1 = np.int(np.floor(np.random.rand()*n_times))
+#         node2 = np.int(np.floor(np.random.rand()*n_times))
+#     time, val = tdata
+#     i, j = min(node1, node2), max(node1, node2)
+#     testfun = lambda k: np.less((val[k]-val[i])/(time[k]-time[i]),
+#                                 (val[j]-val[i])/(time[j]-time[i]))
+#     test = np.bool(np.sum(~np.array(map(testfun, range(i+1,j)))))
+#     assert np.invert(test) == vg.visibility(node1, node2)
 
 
 def testVisibilityHorizontal():

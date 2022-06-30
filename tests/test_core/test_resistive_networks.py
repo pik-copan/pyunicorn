@@ -123,7 +123,7 @@ def test_get_R():
 
 def test_admittance_laplacian():
     res = ResNetwork.SmallTestNetwork().admittance_lapacian()
-    exp = [[0.5, -0.5, 0., 0., 0.,],
+    exp = [[0.5, -0.5, 0., 0., 0.],
            [-0.5, 1.125, -0.125, -0.5, 0.],
            [0., -0.125, 0.25, -0.125, 0.],
            [0., -0.5, -0.125, 0.725, -0.1],

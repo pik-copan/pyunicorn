@@ -55,7 +55,7 @@ def test_window():
     lon_min_ref = 2.5
     lon_max_ref = 15.0
     isequal = np.allclose(lon_min, lon_min_ref) and \
-              np.allclose(lon_max, lon_max_ref)
+	np.allclose(lon_max, lon_max_ref)
     assert isequal
 
 
@@ -104,7 +104,7 @@ def test_normalize_time_series_array():
     ts_ref = np.array([-1.34164079, -0.4472136, 0.4472136, 1.34164079])
 
     isequal = np.allclose(mean, mean_ref) and np.allclose(std, std_ref) and \
-              np.allclose(ts, ts_ref)
+	np.allclose(ts, ts_ref)
     assert isequal
 
 

@@ -112,17 +112,16 @@ class EventSeriesClimateNetwork(EventSeries, ClimateNetwork):
 
         method_types = ['ES', 'ECA', 'ES_pval', 'ECA_pval']
         if method not in method_types:
-            raise IOError("Method input must be: '%s', '%s', '%s', or '%s'!" %
-                          (method_types[0], method_types[1], method_types[2],
-                           method_types[3]))
+            raise IOError(f"Method input must be: {method_types[0]},\
+            		   {method_types[1]},\
+                          {method_types[2]}, or {method_types[3]}!")
 
         etypes = ["directed", "symmetric", "antisym", "mean", "max", "min"]
         if symmetrization not in etypes:
-            raise IOError("wrong symmetry...\n \
-                          Available options: '%s', '%s', '%s', '%s', '%s', or "
-                          "'%s'" %
-                          (etypes[0], etypes[1], etypes[2], etypes[3],
-                           etypes[4], etypes[5]))
+            raise IOError(f"wrong symmetry...\n \
+                          Available options: {etypes[0]}, {etypes[1]},\
+                          {etypes[2]}, {etypes[3]},\
+                          {etypes[4]}, or {etypes[5]}")
 
         self.__method = method
         self.__symmetry = symmetrization
