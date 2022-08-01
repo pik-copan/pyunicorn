@@ -166,8 +166,10 @@ class EventSeries:
         """
         Return a string representation of the EventSeries object.
         """
-        return f'EventSeries: {self.__N} variables, {self.__T} timesteps, taumax: {self.__taumax:.1f}, lag: {self.__lag:.1f}'
-               
+        return(f"EventSeries: {self.__N} variables, "
+        f"{self.__T} timesteps, taumax: {self.__taumax:.1f}, "
+        f"lag: {self.__lag:.1f}")
+
     def get_event_matrix(self):
         return self.__eventmatrix
 

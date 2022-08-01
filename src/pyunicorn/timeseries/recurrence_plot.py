@@ -31,12 +31,13 @@ from ..core._ext.types import to_cy, NODE, LAG, FIELD
 from ._ext.numerics import _embed_time_series, _manhattan_distance_matrix_rp, \
     _euclidean_distance_matrix_rp, _supremum_distance_matrix_rp, \
     _set_adaptive_neighborhood_size, _bootstrap_distance_matrix_manhattan, \
-    _bootstrap_distance_matrix_euclidean, _bootstrap_distance_matrix_supremum, \
+    _bootstrap_distance_matrix_euclidean, \
+    _bootstrap_distance_matrix_supremum, \
     _diagline_dist_norqa_missingvalues, _diagline_dist_norqa, \
     _diagline_dist_rqa_missingvalues, _diagline_dist_rqa, \
     _vertline_dist_norqa_missingvalues, _vertline_dist_norqa, \
-    _vertline_dist_rqa_missingvalues, _vertline_dist_rqa, _rejection_sampling, \
-    _white_vertline_dist, _twins_r, _twin_surrogates_r
+    _vertline_dist_rqa_missingvalues, _vertline_dist_rqa, \
+    _rejection_sampling, _white_vertline_dist, _twins_r, _twin_surrogates_r
 
 
 #

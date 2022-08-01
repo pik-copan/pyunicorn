@@ -283,7 +283,9 @@ class Network:
         :rtype: string
         """
         net_type_prefix = '' if self.directed else 'un'
-        return (f'Network: {net_type_prefix}directed, {self.N} nodes, {self.n_links} links, link density {self.link_density:.3f}.')
+        return (f"Network: {net_type_prefix}directed, "
+        f"{self.N} nodes, {self.n_links} links, "
+        f"link density {self.link_density:.3f}.")
 
     def __len__(self):
         """

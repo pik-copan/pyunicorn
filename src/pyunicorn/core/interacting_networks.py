@@ -805,7 +805,8 @@ class InteractingNetworks(Network):
             subnetworks.
         """
         #  Get cross local clustering sequences
-        cc = InteractingNetworks.cross_local_clustering(self, node_list1, node_list2)
+        cc = InteractingNetworks.cross_local_clustering(self, node_list1,
+         node_list2)
         return cc.mean()
 
     def cross_global_clustering_sparse(self, node_list1, node_list2):
@@ -994,8 +995,8 @@ class InteractingNetworks(Network):
             subnetworks.
         """
         path_lengths = InteractingNetworks.cross_path_lengths(
-            self, node_list1, node_list2, link_attribute)
-        
+        self, node_list1, node_list2, link_attribute)
+
         return self._calculate_general_average_path_length(
             path_lengths, internal=False)
 
@@ -1426,8 +1427,8 @@ class InteractingNetworks(Network):
         :rtype: 1D arrays [index]
         :return: the cross closeness sequence.
         """
-        path_lengths = InteractingNetworks.cross_path_lengths(self, node_list1, node_list2,
-                                               link_attribute)
+        path_lengths = InteractingNetworks.cross_path_lengths(self, node_list1,
+         node_list2, link_attribute)
         return self._calculate_general_closeness(path_lengths, internal=False)
 
     def internal_closeness(self, node_list, link_attribute=None):

@@ -83,11 +83,11 @@ class NetCDFDictionary:
         """
         Return a string representation of the object.
         """
-        text = 'NetCDFDictionary:\nGlobal attributes:\n%s\nVariables:' % (
-            self.dict["global_attributes"])
+        text = ('NetCDFDictionary:\nGlobal attributes:\n' +
+        f'{self.dict["global_attributes"]}\nVariables:')
         for key in self.dict["variables"].keys():
-            text += '\n\t%s\t-> array shape %s' % (
-                key, self.dict["variables"][key]["array"].shape)
+            text += f'\n\t{key}\t-> array shape\
+             {self.dict["variables"][key]["array"].shape}'
         return text
 
     #
@@ -110,9 +110,9 @@ class NetCDFDictionary:
         #  Open NetCDF4 file
         try:
             cdf = Dataset(file_name, "r")
-            print("MODULE: File %s opened." % file_name)
+            print(f"MODULE: File {file_name} opened.")
         except RuntimeError:
-            print("MODULE: File %s couldn't be opened." % file_name)
+            print(f"MODULE: File {file_name} couldn't be opened.")
             return None
 
         #  Create empty dictionary structure
@@ -137,16 +137,16 @@ class NetCDFDictionary:
             if var in with_array or 'all' in with_array:
                 try:
                     content["variables"][var]["array"] = cdf.variables[var][:]
-                    print("MODULE: Array %s loaded to dictionary." % var)
+                    print(f"MODULE: Array {var} loaded to dictionary.")
                 except MemoryError:
-                    print("Memory Error during loading of array %s" % var)
+                    print(f"Memory Error during loading of array {var}")
                 except RuntimeError:
-                    print("Other Error during loading of array %s" % var)
+                    print(f"Other Error during loading of array {var}")
 
                 try:
                     content["variables"][var]["array"] = \
                         content["variables"][var]["array"].astype('float32')
-                    print("MODULE: Array %s converted to 'float32'." % var)
+                    print(f"MODULE: Array {var} converted to 'float32'.")
                 except MemoryError:
                     print("MODULE: Memory Error during conversion of "
                           f"array {var}.")
@@ -190,7 +190,7 @@ class NetCDFDictionary:
         #  Check dictionary for empty entries
         for val in self.dict.keys():
             if not self.dict[val]:
-                print("MODULE: Entry %s is empty." % val)
+                print("MODULE: Entry {val} is empty.")
 
         print(f"MODULE: If {file_name} already existed, old file will be "
               "overwritten.")
@@ -241,4 +241,4 @@ class NetCDFDictionary:
                         self.dict["variables"][var]["attributes"][att])
 
         cdf.close()
-        print("MODULE: Dictionary saved as NetCDF file %s." % file_name)
+        print("MODULE: Dictionary saved as NetCDF file {file_name}.")

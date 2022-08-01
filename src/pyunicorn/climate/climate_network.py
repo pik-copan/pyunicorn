@@ -128,7 +128,7 @@ class ClimateNetwork(GeoNetwork):
         return (f'ClimateNetwork:\n{GeoNetwork.__str__(self)}\n' +
         f'Threshold: {self.threshold()}\n' +
         f'Local connections filtered out: {self.non_local()}')
-               
+
     def clear_cache(self, irreversible=False):
         """
         Clean up cache.
