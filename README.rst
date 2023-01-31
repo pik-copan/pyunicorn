@@ -140,8 +140,6 @@ Install the latest version of the `Microsoft C++ Build Tools
 
     $> pip install pyunicorn
 
-Currently
-
 **Development version**
 
 To use a newer version of ``pyunicorn`` than the latest official release on
@@ -180,4 +178,4 @@ Mailing list
 ------------
 Not implemented yet.
 
-Travis test.
+test travis
