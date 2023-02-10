@@ -36,6 +36,7 @@ except ImportError:
           "in class MapPlots might not be available!")
 
 import cartopy.crs as ccrs
+import cartopy.feature as cf
 
 #
 #  Define class CartopyPlots
@@ -53,7 +54,7 @@ class CartopyPlots:
         """
         Initialize an instance of MapPlots.
 
-        Plotting of maps is powered by PyNGL.
+        Plotting of maps is powered by cartopy and matplotlib.
 
         :type grid: :class:`.Grid`
         :arg grid: The Grid object describing the map data to be plotted.
@@ -76,20 +77,26 @@ class CartopyPlots:
         #
 
         # Specify Coordinate Refference System for Map Projection
-        projection = ccrs.Robinson()
+        self.projection = ccrs.PlateCarree()
 
         # Specify CRS (where data should be plotted)
-        crs = ccrs.Robinson()
+        self.crs = ccrs.PlateCarree()
 
-        # create axes object having specific projection
-
-        lon_min = self.grid.boundaries()["lon_min"]
-        lon_max = self.grid.boundaries()["lon_max"]
-        lat_min = self.grid.boundaries()["lat_min"]
-        lat_max = self.grid.boundaries()["lat_max"]
-
-
-
+        # get spatial dims
+        self.lon = self.grid.convert_lon_coordinates(self.grid.lon_sequence())
+        # self.lon = self.grid.lon_sequence()
+        self.lat = self.grid.lat_sequence()
+        self.gridsize_lon = len(self.lon)
+        self.gridsize_lat = len(self.lat)
+        self.lon_min = self.grid.boundaries()["lon_min"]
+        self.lon_max = self.grid.boundaries()["lon_max"]
+        self.lat_min = self.grid.boundaries()["lat_min"]
+        self.lat_max = self.grid.boundaries()["lat_max"]
+        
+        # extent of data will also give extent of world map
+        self.data_extent = [self.lon_min, self.lon_max, self.lat_min, self.lat_max]
+       
+        print("Created plot class.")
 
     def add_dataset(self, title, data):
         """
@@ -103,9 +110,9 @@ class CartopyPlots:
         """
         self.map_data.append({"title": title, "data": data})
 
-    def generate_map_plots(self, file_name, title_on=True, labels_on=True):
+    def generate_plots(self, file_name, title_on=True, labels_on=True):
         """
-        Generate and save map plots.
+        Generate and map plots.
 
         Store the plots in the file indicated by ``file_name`` in the current
         directory.
@@ -119,36 +126,52 @@ class CartopyPlots:
             plotted.
         """
 
-        plt.figure(dpi=150)
-        ax = plt.axes(projection=self.projection, frameon=True)
-
-        ax.set_extent([self.lon_min, self.lon_max, self.lat_min, self.lat_max], crs=self.crs)
-
-        # Draw gridlines in degrees over Mercator map
-        gl = ax.gridlines(crs=self.crs, draw_labels=True,
+        for dataset in self.map_data: 
+            
+            #  Generate figue
+            fig = plt.figure()
+            
+            # create map plot
+            ax = plt.axes(projection=self.projection)
+        
+            # make it a class feature, as to work with it from outside
+            # self.ax = ax
+            
+            # create some standards of plotting that can be adjusted
+            # before calling generate_cartopy_plot    
+            # adjust size and plot coastlines and borders
+            ax.set_extent(self.data_extent, crs=self.crs)
+            # ax.set_global()
+            ax.add_feature(cf.COASTLINE.with_scale("50m"), lw=0.5)
+            ax.add_feature(cf.BORDERS.with_scale("50m"), lw=0.2)       
+            
+            # Draw gridlines in degrees over map
+            gl = ax.gridlines(crs=self.crs, draw_labels=True,
                           linewidth=.6, color='gray', alpha=0.5, linestyle='-.')
-        gl.xlabel_style = {"size": 7}
-        gl.ylabel_style = {"size": 7}
+            gl.xlabel_style = {"size": 7}
+            gl.ylabel_style = {"size": 7}                
+            # plot data upon map
+            ax = plt.tricontourf(self.lon, self.lat, dataset["data"], extent = self.data_extent, transform = self.crs)
+                     
+            ax = plt.colorbar()
 
-        #  Set plot title
-        # if title_on:
-        #     plt.title(f"{self.title}")
-
-        plt.show()
-
-        #
-        #  Generate map plots
-        #
-        # for dataset in self.map_data:
-        #     #  Set title
-        #
-        #     #  Generate map plot
-        #     cmap = Ngl.contour_map(wks, dataset["data"], resources)
-
-
-
-
-
-
+            # plot main title
+            if title_on:
+                plt.suptitle(self.title)
+            
+            # plot subtitles
+            if labels_on:
+                plt.title(dataset["title"])
+            
+            # save figures at current dir
+            file_extension = dataset["title"] + ".png"
+            file_extension = file_extension.replace(" ", "")
+            
+            fig.savefig(file_name + "_" + file_extension)
+            
+            plt.close()            
+        
+        print("Created and saved plots @ current directory.")
+            
 
 

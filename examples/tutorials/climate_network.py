@@ -14,15 +14,13 @@ Copyright 2008-2022.
 """
 
 import numpy as np
+from matplotlib import pyplot as plt
 
 from pyunicorn import climate
 
-# Test if Ngl package is installed
-try:
-    import Ngl
-    ngl_flag = True
-except ImportError:
-    ngl_flag = False
+import cartopy.crs as ccrs
+import cartopy.feature as cf
+
 #
 #  Settings
 #
@@ -94,13 +92,10 @@ data = climate.ClimateData.Load(
     window=WINDOW, time_cycle=TIME_CYCLE)
 
 #  Print some information on the data set
-print(data)
 
-#
-#  Create a MapPlots object to manage 2D-plotting on the sphere
-#
-if ngl_flag:
-    map_plots = climate.MapPlots(data.grid, DATA_SOURCE)
+data.grid.print_grid_size()
+
+
 #
 #  Generate climate network using various procedures
 #
@@ -112,6 +107,8 @@ if ngl_flag:
 #  fixed threshold
 net = climate.TsonisClimateNetwork(
     data, threshold=THRESHOLD, winter_only=WINTER_ONLY)
+
+print("net created")
 
 #  Create a climate network based on Pearson correlation without lag and with
 #  fixed link density
@@ -161,27 +158,25 @@ np.savetxt("degree.txt", degree)
 #  Plotting
 #
 
+# create a Cartopy plot instance called cn_plot (cn for climate network)
+# from the data with tite DATA_SOURCE
+cn_plot = climate.CartopyPlots(data.grid, DATA_SOURCE)
+
 #  Add network measures to the plotting queue
-if ngl_flag:
-    map_plots.add_dataset("Degree", degree)
-    map_plots.add_dataset("Closeness", closeness)
-    map_plots.add_dataset("Betweenness (log10)", np.log10(betweenness + 1))
-    map_plots.add_dataset("Clustering", clustering)
-    map_plots.add_dataset("Average link distance", ald)
-    map_plots.add_dataset("Maximum link distance", mld)
+cn_plot.add_dataset("Degree", degree)
+cn_plot.add_dataset("Closeness", closeness)
+cn_plot.add_dataset("Betweenness (log10)", np.log10(betweenness + 1))
+cn_plot.add_dataset("Clustering", clustering)
+cn_plot.add_dataset("Average link distance", ald)
+cn_plot.add_dataset("Maximum link distance", mld)
 
-    #  Change the map projection
-    map_plots.resources.mpProjection = "Robinson"
-    map_plots.resources.mpCenterLonF = 0
+# before plotting, we can change some things, like cmap
+ax = plt.set_cmap('plasma')
 
-    #  Change the levels of contouring
-    map_plots.resources.cnLevelSelectionMode = "EqualSpacedLevels"
-    map_plots.resources.cnMaxLevelCount = 20
-
-    # map_plots.resources.cnRasterSmoothingOn = True
-    # map_plots.resources.cnFillMode = "AreaFill"
-
-    map_plots.generate_map_plots(file_name="climate_network_measures",
+# Plot with cartopy and matplotlib
+cn_plot.generate_plots(file_name="climate_network_measures",
                                  title_on=False, labels_on=True)
-else:
-    print("\nPlots can only be created when Ngl package is installed!")
+
+
+
+
