@@ -153,7 +153,7 @@ class CartopyPlots:
             # plot data upon map
             ax = plt.tricontourf(self.lon, self.lat, dataset["data"], extent = self.data_extent, transform = self.crs)
                      
-            ax = plt.colorbar()
+            ax = plt.colorbar(shrink=0.5)
 
             # plot main title
             if title_on:
