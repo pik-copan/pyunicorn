@@ -52,9 +52,6 @@ OBSERVABLE_NAME = "air"
 
 #  Select a subset in time and space from the data (e.g., a particular region
 #  or a particular time window, or both)
-#  Plase note that "time_min" and "time_max" have to be in the time format of
-#  NetCDF files, e.g. 1918248. to 1921128. for the NetCDF file used here.
-#  In particular, they are not indices, e.g. "time_max"=10. will not work.
 WINDOW = {"time_min": 0., "time_max": 0., "lat_min": 0, "lon_min": 0,
           "lat_max": 30, "lon_max": 0}  # selects the whole data set
 

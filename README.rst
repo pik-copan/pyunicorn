@@ -105,6 +105,8 @@ Optional *(used only in certain classes and methods)*:
   - `Matplotlib <http://matplotlib.org/>`_
   - `Matplotlib Basemap Toolkit <http://matplotlib.org/basemap/>`_
     (for drawing maps)
+  - `Cartopy <https://scitools.org.uk/cartopy/docs/latest/index.html>`_
+    (for some plotting features)
   - `mpi4py <https://bitbucket.org/mpi4py/mpi4py>`_
     (for parallelizing costly computations)
   - `Sphinx <http://sphinx-doc.org/>`_
