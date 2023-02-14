@@ -38,7 +38,11 @@
     - `Wolfram Barfuss <barfuss@pik-potsdam.de>`_ (package extensions and maintenance)
     - Nils Harmening (cythonized ``weave.inline`` functions, extended testing
       framework, migrated from Python 2.7 to 3.6)
-    - Jonathan Krönke (extending test framework, package extensions and maintenance)
+    - Jonathan Kroenke (extending test framework, package extensions and maintenance)
+    - Lena Schmidt (writing ipynb tutorials, maintenance)
+    - `Max Bechthold <max.bechthold@stud.uni-heidelberg.de>`_
+      (reenalbe CI, update to cartopy plotting, writing ipynb tutorials,
+      style improvements, maintenance)
 
 **Related publications**
     See `Publications <docs/source/publications.rst>`_.
