@@ -59,7 +59,7 @@ from ._ext.numerics import \
 from ..utils import progressbar     # easy progress bar handling
 
 
-# ==============================================================================
+# =============================================================================
 
 
 def nz_coords(matrix):
@@ -128,7 +128,7 @@ class NetworkError(Exception):
         return repr(self.value)
 
 
-# ==============================================================================
+# =============================================================================
 
 
 def r(obj, decimals=4):
@@ -161,7 +161,7 @@ def rr(obj, decimals=4):
     print(np.vectorize('%.4g'.__mod__)(r(obj, decimals=decimals)))
 
 
-# ==============================================================================
+# =============================================================================
 
 #
 #  Define class Network
@@ -282,9 +282,10 @@ class Network:
 
         :rtype: string
         """
-        return ('Network: %sdirected, %i nodes, %i links, '
-                'link density %.3f.') % ('' if self.directed else 'un', self.N,
-                                         self.n_links, self.link_density)
+        net_type_prefix = '' if self.directed else 'un'
+        return (f"Network: {net_type_prefix}directed, "
+        f"{self.N} nodes, {self.n_links} links, "
+        f"link density {self.link_density:.3f}.")
 
     def __len__(self):
         """
@@ -4601,7 +4602,8 @@ class Network:
         if alpha is None:
             alpha = 1.0 / self.degree().mean()
         return expm(np.log(2.0) * (
-            alpha * self.adjacency - np.identity(self.N))).sum(axis=0).flatten()
+            alpha * self.adjacency
+            - np.identity(self.N))).sum(axis=0).flatten()
 
     def nsi_spreading(self, alpha=None):
         """

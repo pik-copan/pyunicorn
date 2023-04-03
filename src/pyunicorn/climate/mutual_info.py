@@ -290,7 +290,7 @@ class MutualInfoClimateNetwork(ClimateNetwork):
                 print("Loading mutual information matrix from "
                       f"{self.mi_file}...")
 
-            with open(self.mi_file, 'r') as f:
+            with open(self.mi_file, 'r', encoding="utf-8") as f:
                 mi = np.load(f)
                 #  Check if the dimensions of mutual_information correspond to
                 #  the grid.
@@ -307,7 +307,7 @@ class MutualInfoClimateNetwork(ClimateNetwork):
 
             mi = self._cython_calculate_mutual_information(anomaly)
             if dump:
-                with open(self.mi_file, 'w') as f:
+                with open(self.mi_file, 'w', encoding="utf-8") as f:
                     if self.silence_level <= 1:
                         print("Storing in", self.mi_file)
                     mi.dump(f)

@@ -23,7 +23,7 @@ Provides classes for generating and analyzing complex climate networks.
 #  Import essential packages
 #
 
-import numpy as np
+# import numpy as np
 
 from ..core._ext.types import to_cy, MASK, FIELD
 from ._ext.numerics import _calculate_corr

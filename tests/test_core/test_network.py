@@ -94,6 +94,7 @@ def compare_nsi(net, nsi_measures):
 # stability
 # -----------------------------------------------------------------------------
 
+
 def test_int_overflow():
     """
     Avoid integer overflow in scipy.sparse representation.
@@ -108,6 +109,7 @@ def test_int_overflow():
 # -----------------------------------------------------------------------------
 # consistency
 # -----------------------------------------------------------------------------
+
 
 def test_permutations():
     """
@@ -178,11 +180,14 @@ def test_nsi():
 # -----------------------------------------------------------------------------
 # Class member tests with TestNetwork
 # -----------------------------------------------------------------------------
+
+
 def test_init():
     Network(adjacency=[[0, 1, 0, 0, 0, 0], [1, 0, 1, 0, 0, 1],
                        [0, 1, 0, 1, 1, 0], [0, 0, 1, 0, 1, 0],
                        [0, 0, 1, 1, 0, 1], [0, 1, 0, 0, 1, 0]])
     assert True
+
 
 def test_str(capsys):
     print(Network.SmallTestNetwork())
@@ -190,8 +195,10 @@ def test_str(capsys):
     out_ref = "Network: undirected, 6 nodes, 7 links, link density 0.467.\n"
     assert out == out_ref
 
+
 def test_len():
     assert np.allclose(len(Network.SmallTestNetwork()), 6)
+
 
 def test_undirected_copy(capsys):
     net = Network(adjacency=[[0, 1], [0, 0]], directed=True)
@@ -205,6 +212,7 @@ def test_undirected_copy(capsys):
     out2, err = capsys.readouterr()
     out2_ref = "Network: undirected, 2 nodes, 1 links, link density 1.000.\n"
     assert out2 == out2_ref
+
 
 def test_splitted_copy(capsys):
     net = Network.SmallTestNetwork()
@@ -220,11 +228,13 @@ def test_splitted_copy(capsys):
     assert np.allclose(net.node_weights, nw1_ref)
     assert np.allclose(net2.node_weights, nw2_ref)
 
+
 def test_adjacency():
     adj_ref = np.array([[0, 0, 0, 1, 1, 1], [0, 0, 1, 1, 1, 0],
                         [0, 1, 0, 0, 1, 0], [1, 1, 0, 0, 0, 0],
                         [1, 1, 1, 0, 0, 0], [1, 0, 0, 0, 0, 0]])
     assert np.array_equal(Network.SmallTestNetwork().adjacency, adj_ref)
+
 
 def test_set_adjacency(capsys):
     net = Network.SmallTestNetwork()
@@ -233,6 +243,7 @@ def test_set_adjacency(capsys):
     out, err = capsys.readouterr()
     out_ref = "Network: undirected, 2 nodes, 1 links, link density 1.000.\n"
     assert out == out_ref
+
 
 def test_set_node_weights(capsys):
     net = Network.SmallTestNetwork()
@@ -243,6 +254,7 @@ def test_set_node_weights(capsys):
     nw_ref = [1., 1., 1., 1., 1., 1.]
     assert np.allclose(net.node_weights, nw_ref)
 
+
 def test_ErdosRenyi(capsys):
     print(Network.Model("ErdosRenyi", n_nodes=10, n_links=18))
     out, err = capsys.readouterr()
@@ -251,17 +263,21 @@ def test_ErdosRenyi(capsys):
               "Network: undirected, 10 nodes, 18 links, link density 0.400.\n"
     assert out == out_ref
 
+
 def test_BarabasiAlbert_igraph():
     net = Network.Model("BarabasiAlbert_igraph", n_nodes=100, n_links_each=1)
     assert np.allclose(net.link_density, 0.02)
+
 
 def test_ConfigurationModel():
     net = Network.Model("Configuration", degrees=[3 for _ in range(0, 1000)])
     assert int(round(net.degree().mean())) == 3
 
+
 def test_WattsStrogatz():
     net = Network.Model("WattsStrogatz", N=100, k=2, p=0.1)
     assert int(round(net.degree().mean())) == 4
+
 
 def test_randomly_rewire(capsys):
     net = Network.SmallTestNetwork()
@@ -275,22 +291,26 @@ def test_randomly_rewire(capsys):
     out_ref = "Network: undirected, 6 nodes, 7 links, link density 0.467.\n"
     assert out == out_ref
 
+
 def test_edge_list():
     edges = Network.SmallTestNetwork().edge_list()[:8]
     edges_ref = [[0, 3], [0, 4], [0, 5], [1, 2],
                  [1, 3], [1, 4], [2, 1], [2, 4]]
     assert np.array_equal(edges, edges_ref)
 
+
 def test_undirected_adjacency():
     net = Network(adjacency=[[0, 1], [0, 0]], directed=True)
     adj_ref = [[0, 1], [1, 0]]
     assert np.array_equal(net.undirected_adjacency().A, adj_ref)
+
 
 def test_laplacian():
     lap_ref = np.array([[3, 0, 0, -1, -1, -1], [0, 3, -1, -1, -1, 0],
                         [0, -1, 2, 0, -1, 0], [-1, -1, 0, 2, 0, 0],
                         [-1, -1, -1, 0, 3, 0], [-1, 0, 0, 0, 0, 1]])
     assert np.allclose(Network.SmallTestNetwork().laplacian(), lap_ref)
+
 
 def test_nsi_laplacian():
     nsi_lap_ref = np.array([[6.9, 0., 0., -2.1, -2.3, -2.5],
@@ -301,20 +321,24 @@ def test_nsi_laplacian():
                             [-1.5, 0., 0., 0., 0., 1.5]])
     assert np.allclose(Network.SmallTestNetwork().nsi_laplacian(), nsi_lap_ref)
 
+
 def test_degree():
     deg = Network.SmallTestNetwork().degree()
     deg_ref = np.array([3, 3, 2, 2, 3, 1])
     assert (deg == deg_ref).all()
+
 
 def test_indegree():
     deg = Network.SmallDirectedTestNetwork().indegree()
     deg_ref = np.array([2, 2, 2, 1, 1, 0])
     assert (deg == deg_ref).all()
 
+
 def test_outdegree():
     deg = Network.SmallDirectedTestNetwork().outdegree()
     deg_ref = np.array([2, 2, 0, 1, 2, 1])
     assert (deg == deg_ref).all()
+
 
 def test_bildegree():
     deg = Network.SmallDirectedTestNetwork().bildegree()
@@ -323,6 +347,7 @@ def test_bildegree():
 
     net = Network.SmallTestNetwork()
     assert (net.bildegree() == net.degree()).all()
+
 
 def test_nsi_degree():
     net = Network.SmallTestNetwork()
@@ -341,6 +366,7 @@ def test_nsi_degree():
     assert np.allclose(net.splitted_copy().nsi_degree(typical_weight=2.0),
                        deg_ref)
 
+
 def test_nsi_indegree():
     net = Network.SmallDirectedTestNetwork()
 
@@ -349,6 +375,7 @@ def test_nsi_indegree():
 
     deg_ref = np.array([6.3, 5.3, 5.9, 3.6, 4., 2.5, 2.5])
     assert np.allclose(net.splitted_copy().nsi_indegree(), deg_ref)
+
 
 def test_nsi_outdegree():
     net = Network.SmallDirectedTestNetwork()
@@ -359,32 +386,39 @@ def test_nsi_outdegree():
     deg_ref = np.array([5.3, 5.9, 1.9, 3.8, 5.7, 4., 4.])
     assert np.allclose(net.splitted_copy().nsi_outdegree(), deg_ref)
 
+
 def test_degree_distribution():
     dist = Network.SmallTestNetwork().degree_distribution()
     dist_ref = np.array([0.16666667, 0.33333333, 0.5])
     assert np.allclose(dist, dist_ref)
+
 
 def test_indegree_distribution():
     dist = Network.SmallTestNetwork().indegree_distribution()
     dist_ref = np.array([0.16666667, 0.33333333, 0.5])
     assert np.allclose(dist, dist_ref)
 
+
 def test_outdegree_distribution():
     dist = Network.SmallTestNetwork().outdegree_distribution()
     dist_ref = np.array([0.16666667, 0., 0.33333333, 0.5])
     assert np.allclose(dist, dist_ref)
 
+
 def test_degree_cdf():
     cdf_ref = np.array([1., 0.83333333, 0.5])
     assert np.allclose(Network.SmallTestNetwork().degree_cdf(), cdf_ref)
+
 
 def test_indegree_cdf():
     cdf_ref = np.array([1., 0.83333333, 0.83333333, 0.5])
     assert np.allclose(Network.SmallTestNetwork().indegree_cdf(), cdf_ref)
 
+
 def test_outdegree_cdf():
     cdf_ref = np.array([1., 0.83333333, 0.83333333, 0.5])
     assert np.allclose(Network.SmallTestNetwork().outdegree_cdf(), cdf_ref)
+
 
 def test_nsi_degree_histogram():
     hist = Network.SmallTestNetwork().nsi_degree_histogram()
@@ -393,21 +427,25 @@ def test_nsi_degree_histogram():
                 np.array([4., 5.46666667, 6.93333333]))
     assert np.allclose(hist, hist_ref)
 
+
 def test_nsi_degree_cumulative_histogram():
     res = Network.SmallTestNetwork().nsi_degree_cumulative_histogram()
     exp = (np.array([1., 0.66666667, 0.5]),
            np.array([4., 5.46666667, 6.93333333]))
     assert np.allclose(res, exp)
 
+
 def test_average_neighbors_degree():
     res = Network.SmallTestNetwork().average_neighbors_degree()
     exp = np.array([2., 2.33333333, 3., 3., 2.66666667, 3.])
     assert np.allclose(res, exp)
 
+
 def test_max_neighbors_degree():
     res = Network.SmallTestNetwork().max_neighbors_degree()
     exp = np.array([3, 3, 3, 3, 3, 3])
     assert (res == exp).all()
+
 
 def test_nsi_average_neighbors_degree():
     net = Network.SmallTestNetwork()
@@ -420,40 +458,48 @@ def test_nsi_average_neighbors_degree():
     exp = np.array([6.0417, 6.62, 7.0898, 7.0434, 7.3554, 5.65, 5.65])
     assert np.allclose(res, exp)
 
+
 def test_nsi_max_neighbors_degree():
     res = Network.SmallTestNetwork().nsi_max_neighbors_degree()
     exp = np.array([8.4, 8., 8., 8.4, 8.4, 8.4])
     assert np.allclose(res, exp)
+
 
 def test_local_clustering():
     res = Network.SmallTestNetwork().local_clustering()
     exp = np.array([0., 0.33333333, 1., 0., 0.33333333, 0.])
     assert np.allclose(res, exp)
 
+
 def test_global_clustering():
     res = Network.SmallTestNetwork().global_clustering()
     exp = 0.27777777
     assert np.allclose(res, exp)
+
 
 def test_local_cyclemotif_clustering():
     res = Network.SmallDirectedTestNetwork().local_cyclemotif_clustering()
     exp = np.array([0.25, 0.25, 0., 0., 0.5, 0.])
     assert np.allclose(res, exp)
 
+
 def test_local_midmotif_clustering():
     res = Network.SmallDirectedTestNetwork().local_midmotif_clustering()
     exp = np.array([0., 0., 0., 1., 0.5, 0.])
     assert np.allclose(res, exp)
+
 
 def test_local_inmotif_clustering():
     res = Network.SmallDirectedTestNetwork().local_inmotif_clustering()
     exp = np.array([0., 0.5, 0.5, 0., 0., 0.])
     assert np.allclose(res, exp)
 
+
 def test_local_outmotif_clustering():
     res = Network.SmallDirectedTestNetwork().local_outmotif_clustering()
     exp = np.array([0.5, 0.5, 0., 0., 0., 0.])
     assert np.allclose(res, exp)
+
 
 def test_nsi_local_cyclemotif_clustering():
     net = Network.SmallDirectedTestNetwork()
@@ -468,6 +514,7 @@ def test_nsi_local_cyclemotif_clustering():
                     0.32236842, 0.34385965, 0.625, 0.20275024])
     assert np.allclose(res, exp)
 
+
 def test_nsi_local_midmotif_clustering():
     net = Network.SmallDirectedTestNetwork()
 
@@ -478,6 +525,7 @@ def test_nsi_local_midmotif_clustering():
     res = net.splitted_copy(node=4).local_midmotif_clustering()
     exp = np.array([0., 0., 0., 1., 0.8, 0., 0.8])
     assert np.allclose(res, exp)
+
 
 def test_nsi_local_inmotif_clustering():
     net = Network.SmallDirectedTestNetwork()
@@ -492,6 +540,7 @@ def test_nsi_local_inmotif_clustering():
                     1., 0.66998932])
     assert np.allclose(res, exp)
 
+
 def test_nsi_local_outmotif_clustering():
     net = Network.SmallDirectedTestNetwork()
 
@@ -505,10 +554,12 @@ def test_nsi_local_outmotif_clustering():
                     0.765625, 0.66934789])
     assert np.allclose(res, exp)
 
+
 def test_transitivity():
     res = Network.SmallTestNetwork().transitivity()
     exp = 0.27272727
     assert np.allclose(res, exp)
+
 
 def test_weighted_local_clustering():
     res = Network.weighted_local_clustering(
@@ -520,6 +571,7 @@ def test_weighted_local_clustering():
                     [0.75, 0., 0., 0., 0., 0.]])
     exp = np.array([0., 0.21487603, 0.35388889, 0., 0.15384615, 0.])
     assert np.allclose(res, exp)
+
 
 def test_nsi_twinness():
     net = Network.SmallDirectedTestNetwork()
@@ -543,10 +595,12 @@ def test_nsi_twinness():
                     [0.34482759, 0., 0., 0., 0., 0.38461538, 0.38461538]])
     assert np.allclose(res, exp)
 
+
 def test_assortativity():
     res = Network.SmallTestNetwork().assortativity()
     exp = -0.47368421
     assert np.allclose(res, exp)
+
 
 def test_nsi_local_clustering():
     net = Network.SmallTestNetwork()
@@ -559,10 +613,12 @@ def test_nsi_local_clustering():
     exp = np.array([0.55130385, 0.724375, 1., 0.81844073, 0.80277575, 1., 1.])
     assert np.allclose(res, exp)
 
+
 def test_nsi_global_clustering():
     res = Network.SmallTestNetwork().nsi_global_clustering()
     exp = 0.83529192
     assert np.allclose(res, exp)
+
 
 def test_nsi_local_soffer_clustering():
     net = Network.SmallTestNetwork()
@@ -576,6 +632,7 @@ def test_nsi_local_soffer_clustering():
                     1.])
     assert np.allclose(res, exp)
 
+
 def test_path_lengths():
     res = Network.SmallTestNetwork().path_lengths()
     exp = np.array([[0., 2., 2., 1., 1., 1.],
@@ -586,10 +643,12 @@ def test_path_lengths():
                     [1., 3., 3., 2., 2., 0.]])
     assert np.allclose(res, exp)
 
+
 def test_average_path_length():
     res = Network.SmallTestNetwork().average_path_length()
     exp = 1.66666667
     assert np.allclose(res, exp)
+
 
 def test_nsi_average_path_length():
     net = Network.SmallTestNetwork()
@@ -602,10 +661,12 @@ def test_nsi_average_path_length():
     exp = 1.60027778
     assert np.allclose(res, exp)
 
+
 def test_diameter():
     res = Network.SmallTestNetwork().diameter()
     exp = 3
     assert np.allclose(res, exp)
+
 
 def test_matching_index():
     res = Network.SmallTestNetwork().matching_index()
@@ -617,6 +678,7 @@ def test_matching_index():
                     [0., 0., 0., 0.5, 0.33333333, 1.]])
     assert np.allclose(res, exp)
 
+
 def test_link_betweenness():
     res = Network.SmallTestNetwork().link_betweenness()
     exp = np.array([[0., 0., 0., 3.5, 5.5, 5.],
@@ -626,6 +688,7 @@ def test_link_betweenness():
                     [5.5, 2.5, 3., 0., 0., 0.],
                     [5., 0., 0., 0., 0., 0.]])
     assert np.allclose(res, exp)
+
 
 def test_edge_betweenness():
     res = Network.SmallTestNetwork().edge_betweenness()
@@ -637,10 +700,12 @@ def test_edge_betweenness():
                     [5., 0., 0., 0., 0., 0.]])
     assert np.allclose(res, exp)
 
+
 def test_betweenness():
     res = Network.SmallTestNetwork().betweenness()
     exp = np.array([4.5, 1.5, 0., 1., 3., 0.])
     assert np.allclose(res, exp)
+
 
 def test_interregional_betweenness():
     net = Network.SmallTestNetwork()
@@ -653,11 +718,13 @@ def test_interregional_betweenness():
     exp = np.array([9., 3., 0., 2., 6., 0.])
     assert np.allclose(res, exp)
 
+
 def test_nsi_interregional_betweenness():
     res = Network.SmallTestNetwork().nsi_interregional_betweenness(
         sources=[2], targets=[3, 5])
     exp = np.array([3.16666689, 2.34705893, 0., 0., 2.06521743, 0.])
     assert np.allclose(res, exp)
+
 
 def test_nsi_betweenness():
     net = Network.SmallTestNetwork()
@@ -671,11 +738,13 @@ def test_nsi_betweenness():
                     0.])
     assert np.allclose(res, exp)
 
+
 def test_eigenvector_centrality():
     res = Network.SmallTestNetwork().eigenvector_centrality()
     exp = np.array([0.7895106, 0.97303126, 0.77694188, 0.69405519, 1.,
                     0.31089413])
     assert np.allclose(res, exp)
+
 
 def test_nsi_eigenvector_centrality():
     net = Network.SmallTestNetwork()
@@ -690,17 +759,20 @@ def test_nsi_eigenvector_centrality():
                     0.28035747, 0.28035747])
     assert np.allclose(res, exp)
 
+
 def test_pagerank():
     res = Network.SmallTestNetwork().pagerank()
     exp = np.array([0.21836231, 0.20440819, 0.14090543, 0.14478497, 0.20466978,
                     0.08686932])
     assert np.allclose(res, exp)
 
+
 def test_closeness():
     res = Network.SmallTestNetwork().closeness()
     exp = np.array([0.71428571, 0.625, 0.55555556, 0.625, 0.71428571,
                     0.45454545])
     assert np.allclose(res, exp)
+
 
 def test_nsi_closeness():
     net = Network.SmallTestNetwork()
@@ -715,6 +787,7 @@ def test_nsi_closeness():
                     0.50847458, 0.50847458])
     assert np.allclose(res, exp)
 
+
 def test_nsi_harmonic_closeness():
     net = Network.SmallTestNetwork()
 
@@ -727,6 +800,7 @@ def test_nsi_harmonic_closeness():
     exp = np.array([0.85, 0.79861111, 0.71111111, 0.72083333, 0.80833333,
                     0.61666667, 0.61666667])
     assert np.allclose(res, exp)
+
 
 def test_nsi_exponential_closeness():
     net = Network.SmallTestNetwork()
@@ -741,11 +815,13 @@ def test_nsi_exponential_closeness():
                     0.29583333, 0.29583333])
     assert np.allclose(res, exp)
 
+
 def test_arenas_betweenness():
     res = Network.SmallTestNetwork().arenas_betweenness()
     exp = np.array([50.18181818, 50.18181818, 33.45454545, 33.45454545,
                     50.18181818, 16.72727273])
     assert np.allclose(res, exp)
+
 
 def test_nsi_arenas_betweenness():
     net = Network.SmallTestNetwork()
@@ -770,11 +846,13 @@ def test_nsi_arenas_betweenness():
                     38.58242175, 30.29941829])
     assert np.allclose(res, exp)
 
+
 def test_newman_betweenness():
     res = Network.SmallTestNetwork().newman_betweenness()
     exp = np.array([4.1818182, 3.41818185, 2.5090909, 3.0181818, 3.60000002,
                     2.])
     assert np.allclose(res, exp)
+
 
 def test_nsi_newman_betweenness():
     net = Network.SmallTestNetwork()
@@ -798,15 +876,18 @@ def test_nsi_newman_betweenness():
                     124.20618345, 80., 80.])
     assert np.allclose(res, exp)
 
+
 def test_global_efficiency():
     res = Network.SmallTestNetwork().global_efficiency()
     exp = 0.71111111
     assert np.allclose(res, exp)
 
+
 def test_nsi_global_efficiency():
     res = Network.SmallTestNetwork().nsi_global_efficiency()
     exp = 0.74152777
     assert np.allclose(res, exp)
+
 
 def test_local_vulnerability():
     res = Network.SmallTestNetwork().local_vulnerability()
@@ -814,10 +895,12 @@ def test_local_vulnerability():
                     -0.125])
     assert np.allclose(res, exp)
 
+
 def test_coreness():
     res = Network.SmallTestNetwork().coreness()
     exp = np.array([2, 2, 2, 2, 2, 1])
     assert (res == exp).all()
+
 
 def test_msf_synchronizability():
     res = Network.SmallTestNetwork().msf_synchronizability()

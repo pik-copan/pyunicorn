@@ -125,10 +125,9 @@ class ClimateNetwork(GeoNetwork):
         Threshold: 0.5
         Local connections filtered out: False
         """
-        return ('ClimateNetwork:\n%s\nThreshold: %s\n'
-                'Local connections filtered out: %s') % (
-                    GeoNetwork.__str__(self), self.threshold(),
-                    self.non_local())
+        return (f'ClimateNetwork:\n{GeoNetwork.__str__(self)}\n' +
+        f'Threshold: {self.threshold()}\n' +
+        f'Local connections filtered out: {self.non_local()}')
 
     def clear_cache(self, irreversible=False):
         """

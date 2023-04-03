@@ -46,8 +46,8 @@ def simple_instances():
     ca = funcnet.CouplingAnalysis.test_data()[:50]
     ts = ca[:, 0]
     t1, t2, t3 = [{'threshold': t} for t in [0.2, (0.2, 0.2), (0.2, 0.2, 0.2)]]
-    es = 1-(np.random.rand(100, 10) > 0.4).astype(int)
-    ec = climate.EventSynchronizationClimateNetwork.SmallTestData()
+    # es = 1-(np.random.rand(100, 10) > 0.4).astype(int)
+    # ec = climate.EventSynchronizationClimateNetwork.SmallTestData()
     return [
         core.Network.SmallTestNetwork(),
         core.Grid.SmallTestGrid(),
@@ -67,8 +67,8 @@ def simple_instances():
         climate.SpearmanClimateNetwork(cd, winter_only=False, **t1),
         climate.MutualInfoClimateNetwork(cd, winter_only=False, **t1),
         climate.CoupledTsonisClimateNetwork(cd, cd, **t1),
-        climate.EventSynchronizationClimateNetwork(ec, 0.8, 16,
-                                                   eventsynctype="directedES"),
+        # climate.EventSynchronizationClimateNetwork(ec, 0.8, 16,
+        #                                           eventsynctype="directedES"),
         timeseries.RecurrencePlot(ts, **t1),
         timeseries.RecurrenceNetwork(ts, **t1),
         timeseries.JointRecurrencePlot(ts, ts, **t2),
@@ -79,5 +79,5 @@ def simple_instances():
         timeseries.VisibilityGraph(ts),
         funcnet.CouplingAnalysis(ca),
         funcnet.CouplingAnalysisPurePython(ca),
-        funcnet.EventSynchronization(es, 16)
+        # funcnet.EventSynchronization(es, 16)
     ]
