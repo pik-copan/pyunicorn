@@ -45,6 +45,7 @@ from .coupled_tsonis import CoupledTsonisClimateNetwork
 from .havlin import HavlinClimateNetwork
 from .hilbert import HilbertClimateNetwork
 from .map_plots import MapPlots
+from .cartopy_plots import CartopyPlots
 from .mutual_info import MutualInfoClimateNetwork
 from .partial_correlation import PartialCorrelationClimateNetwork
 from .rainfall import RainfallClimateNetwork
