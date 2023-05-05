@@ -41,7 +41,7 @@
     - Jonathan Kroenke (extending test framework, package extensions and maintenance)
     - Lena Schmidt (writing ipynb tutorials, maintenance)
     - `Max Bechthold <max.bechthold@stud.uni-heidelberg.de>`_
-      (reenalbe CI, update to cartopy plotting, writing ipynb tutorials,
+      (reenabling CI, update to cartopy plotting, writing ipynb tutorials,
       style improvements, maintenance)
 
 **Related publications**
