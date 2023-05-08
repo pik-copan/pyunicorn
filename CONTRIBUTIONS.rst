@@ -66,4 +66,4 @@
   - See GitHub issues list.
   
 **Acknowledgements**:
-  - Travis-CI for providing free builds for this open source project <https://www.travis-ci.com/>
+  - Travis-CI (<https://www.travis-ci.com/>) for providing free builds for this open source project.
