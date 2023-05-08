@@ -64,3 +64,6 @@
 
 **Known Bugs**:
   - See GitHub issues list.
+  
+**Acknowledgements**:
+  - Travis-CI for providing free builds for this open source project <https://www.travis-ci.com/>
