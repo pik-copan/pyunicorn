@@ -1,3 +1,6 @@
+# require the branch name to be master
+if: branch = master
+
 language: python
 python:
     - "3.7"
