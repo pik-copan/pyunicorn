@@ -39,8 +39,9 @@ install:
     - travis_retry conda install --channel conda-forge igraph
 
     # testing dependencies
-    - travis_retry conda install networkx matplotlib basemap sphinx
-    - travis_retry pip   install .[testing]
+    - travis_retry conda install matplotlib basemap sphinx
+    - travis_retry conda install anaconda networkx
+    - travis_retry pip install .[testing]
 
 before_script:
     # limit pytest processes within container environment
