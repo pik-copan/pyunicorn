@@ -37,7 +37,7 @@ install:
     #- travis_retry conda install python=$TRAVIS_PYTHON_VERSION numpy=$NUMPY scipy=$SCIPY
     - travis_retry conda install python=$TRAVIS_PYTHON_VERSION numpy scipy
     - travis_retry conda install --channel conda-forge igraph
-
+    - travis_retry conda install -c conda-forge tox
     # testing dependencies
     # - travis_retry conda install matplotlib basemap sphinx
     # - travis_retry conda install anaconda networkx
@@ -52,7 +52,6 @@ script:
     - pip install -vv -e .
 
     # test suite
-    - pip install .[testing]
     # (Cython imports dysfunctional inside tox env, unless package installed outside)
     - tox -vvvv
 
