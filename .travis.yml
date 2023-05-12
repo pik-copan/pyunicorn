@@ -11,12 +11,12 @@ sudo: false
 dist: xenial
 matrix:
     fast_finish: true
-env:
-    matrix:
+#env:
+    #matrix:
         #- NUMPY=1.20 SCIPY=1.5
         #- NUMPY=1.21 SCIPY=1.6
         #- NUMPY=1.22 SCIPY=1.7
-        - NUMPY=1.24 SCIPY=1.10
+        #- NUMPY=1.24 SCIPY=1.10
 
 before_install:
     # Python package manager
@@ -35,6 +35,7 @@ install:
     - conda activate test-env
     - conda update --all
     - travis_retry conda install python=$TRAVIS_PYTHON_VERSION numpy=$NUMPY scipy=$SCIPY
+    - travis_retry conda install python=$TRAVIS_PYTHON_VERSION numpy scipy
     - travis_retry conda install --channel conda-forge igraph
 
     # testing dependencies
