@@ -29,7 +29,7 @@ install:
     - travis_retry conda create --name test-env
     - eval "$(conda shell.bash hook)"
     - conda activate test-env
-    - conda update --name base conda
+    - conda update -q conda
     - travis_retry conda install --channel conda-forge \
           python=$TRAVIS_PYTHON_VERSION numpy=$NUMPY scipy=$SCIPY \
           python-igraph
