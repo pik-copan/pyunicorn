@@ -43,9 +43,9 @@ install:
     # - travis_retry conda install anaconda networkx
     # - travis_retry pip install .[testing]
 
-before_script:
+# before_script:
     # limit pytest processes within container environment
-    - sed -i 's/auto/4/' pytest.ini
+    # - sed -i 's/auto/4/' pytest.ini
 
 script:
     # package
