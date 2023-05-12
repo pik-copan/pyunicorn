@@ -52,6 +52,7 @@ script:
     - pip install -vv -e .
 
     # test suite
+    - pip install .[testing]
     # (Cython imports dysfunctional inside tox env, unless package installed outside)
     - tox -vvvv
 
