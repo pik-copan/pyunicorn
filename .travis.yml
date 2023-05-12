@@ -13,9 +13,10 @@ matrix:
     fast_finish: true
 env:
     matrix:
-        - NUMPY=1.20 SCIPY=1.5
-        - NUMPY=1.21 SCIPY=1.6
-        - NUMPY=1.22 SCIPY=1.7
+        #- NUMPY=1.20 SCIPY=1.5
+        #- NUMPY=1.21 SCIPY=1.6
+        #- NUMPY=1.22 SCIPY=1.7
+        - NUMPY=1.24 SCIPY=1.10
 
 before_install:
     # Python package manager
