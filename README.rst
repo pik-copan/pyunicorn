@@ -2,8 +2,8 @@
 pyunicorn
 =========
 
-.. image:: https://travis-ci.org/pik-copan/pyunicorn.svg?branch=master
-    :target: https://travis-ci.org/pik-copan/pyunicorn
+.. image:: https://app.travis-ci.com/github/pik-copan/pyunicorn
+    :target: https://app.travis-ci.com/github/pik-copan/pyunicorn
 .. image:: https://codecov.io/gh/pik-copan/pyunicorn/branch/master/graph/badge.svg
   :target: https://codecov.io/gh/pik-copan/pyunicorn
 
