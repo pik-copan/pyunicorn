@@ -3129,7 +3129,7 @@ class Network:
     #
 
     @cached_const('base', 'btw', 'node betweenness')
-    def betweenness(self, no_big_int=True):
+    def betweenness(self):
         """
         For each node, return its betweenness.
 
@@ -3141,8 +3141,6 @@ class Network:
         Calculating node betweenness...
         array([ 4.5,  1.5,  0. ,  1. ,  3. ,  0. ])
 
-        :arg bool no_big_int: Toggles use of big integer calculation (slow if
-            False).
         :rtype: 1d numpy array [node] of floats >= 0
         """
         #  Return the absolute value of normed tbc, since a bug sometimes
@@ -3152,7 +3150,7 @@ class Network:
         #  This restricts TBC to 0 <= TBC <= 1
         # maxTBC =  ( self.N**2 - 3 * self.N + 2 ) / 2
 
-        return np.abs(np.array(self.graph.betweenness(nobigint=no_big_int)))
+        return np.abs(np.array(self.graph.betweenness()))
 
     # @cached_const('base', 'inter btw', 'interregional betweenness')
     def interregional_betweenness(self, sources=None, targets=None):
