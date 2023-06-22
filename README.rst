@@ -87,10 +87,11 @@ using ``Sphinx``::
 
 Dependencies
 ------------
-``pyunicorn`` is implemented in Python 3. The software is written and tested on
-Linux and MacOSX, but it is also in active use on Windows. ``pyunicorn`` relies
-on the following open source or freely available packages, which need to be
-installed on your machine. For exact dependency information, see ``setup.cfg``.
+``pyunicorn`` is implemented in `Python 3 <https://docs.python.org/3/>`_ and
+`Cython 3 <https://cython.org/>`_. The software is written and tested on Linux
+and macOS, but it is also in active use on Windows. ``pyunicorn`` relies on the
+following open source or freely available packages, which need to be installed
+on your machine. For exact dependency information, see ``setup.cfg``.
 
 Required at runtime:
   - `Numpy <http://www.numpy.org/>`_
@@ -125,7 +126,7 @@ required dependencies are installed using your preferred installation method for
 Python libraries. Afterwards, the package can be installed in the standard way
 from the Python Package Index (PyPI).
 
-**Linux, MacOSX**
+**Linux, macOS**
 
 With the ``pip`` package manager::
 

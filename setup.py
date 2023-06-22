@@ -31,7 +31,7 @@ c_args = {
         ['-O3', '-std=c99', '-Wconversion']),
     'define_macros': [('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION')]}
 cy_args = {
-    'language_level': 3, 'embedsignature': True,
+    'language_level': '3str', 'embedsignature': True,
     'boundscheck': True, 'wraparound': False,
     'initializedcheck': True, 'nonecheck': True,
     'warn.unused': True, 'warn.unused_arg': True}

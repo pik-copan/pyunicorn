@@ -1,8 +1,15 @@
+# This file is part of pyunicorn.
+# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
+# URL: <http://www.pik-potsdam.de/members/donges/software>
+# License: BSD (3-clause)
+
+# package ======================================================================
+
 [build-system]
 requires = [
-    "setuptools>=58",
+    "setuptools>=65",
     "wheel",
-    "Cython>=0.29",
-    "numpy>=1.20"
+    "Cython>=3.0.0b3",
+    "numpy>=1.25"
 ]
 build-backend = "setuptools.build_meta"
