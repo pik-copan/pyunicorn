@@ -18,9 +18,9 @@ cimport cython
 
 import random
 
-cimport numpy as np
-from numpy cimport ndarray, abs
 import numpy as np
+cimport numpy as cnp
+from numpy cimport ndarray, abs
 import numpy.random as rd
 randint = rd.randint
 
@@ -43,28 +43,28 @@ cdef extern from "src_numerics.c":
 
 
 ctypedef bint (*rewire_cond_len)(
-    np.ndarray[FIELD_t, ndim=2], float, int, int, int, int)
+    ndarray[FIELD_t, ndim=2], float, int, int, int, int)
 ctypedef bint (*rewire_cond_deg)(
-    np.ndarray[DEGREE_t, ndim=1], int, int, int, int)
+    ndarray[DEGREE_t, ndim=1], int, int, int, int)
 
 
 # condition C1
 cdef bint cond_len_c1(
-    np.ndarray[FIELD_t, ndim=2] D, float eps, int s, int t, int k, int l):
+    ndarray[FIELD_t, ndim=2] D, float eps, int s, int t, int k, int l):
     return (
         (abs(D[s,t] - D[k,t]) < eps and abs(D[k,l] - D[s,l]) < eps) or
         (abs(D[s,t] - D[s,l]) < eps and abs(D[k,l] - D[k,t]) < eps))
 
 # condition C2
 cdef bint cond_len_c2(
-    np.ndarray[FIELD_t, ndim=2] D, float eps, int s, int t, int k, int l):
+    ndarray[FIELD_t, ndim=2] D, float eps, int s, int t, int k, int l):
     return (
         abs(D[s,t] - D[s,l]) < eps and abs(D[t,s] - D[t,k]) < eps and
         abs(D[k,l] - D[k,t]) < eps and abs(D[l,k] - D[l,s]) < eps)
 
 # invariance of degree-degree correlations
 cdef bint cond_deg_corr(
-    np.ndarray[DEGREE_t, ndim=1] degree, int s, int t, int k, int l):
+    ndarray[DEGREE_t, ndim=1] degree, int s, int t, int k, int l):
     return (degree[s] == degree[k] and degree[t] == degree[l])
 
 # tautology
@@ -72,8 +72,8 @@ cdef rewire_cond_deg cond_deg_true = NULL
 
 
 cdef void _randomly_rewire_geomodel(int iterations, float eps,
-    np.ndarray[ADJ_t, ndim=2] A, np.ndarray[FIELD_t, ndim=2] D, int E,
-    np.ndarray[NODE_t, ndim=2] edges, np.ndarray[DEGREE_t, ndim=1] degree,
+    ndarray[ADJ_t, ndim=2] A, ndarray[FIELD_t, ndim=2] D, int E,
+    ndarray[NODE_t, ndim=2] edges, ndarray[DEGREE_t, ndim=1] degree,
     rewire_cond_len cond_len, rewire_cond_deg cond_deg):
 
     cdef int i = 0, s, t, k, l, edge1, edge2
@@ -105,28 +105,28 @@ cdef void _randomly_rewire_geomodel(int iterations, float eps,
 
 
 def _randomly_rewire_geomodel_I(int iterations, float eps,
-    np.ndarray[ADJ_t, ndim=2] A, np.ndarray[FIELD_t, ndim=2] D, int E,
-    np.ndarray[NODE_t, ndim=2] edges):
+    ndarray[ADJ_t, ndim=2] A, ndarray[FIELD_t, ndim=2] D, int E,
+    ndarray[NODE_t, ndim=2] edges):
 
-    cdef np.ndarray[DEGREE_t, ndim=1] null = np.array([], dtype=DEGREE)
+    cdef ndarray[DEGREE_t, ndim=1] null = np.array([], dtype=DEGREE)
 
     _randomly_rewire_geomodel(iterations, eps, A, D, E, edges, null,
                               cond_len_c1, cond_deg_true)
 
 
 def _randomly_rewire_geomodel_II(int iterations, float eps,
-    np.ndarray[ADJ_t, ndim=2] A, np.ndarray[FIELD_t, ndim=2] D, int E,
-    np.ndarray[NODE_t, ndim=2] edges):
+    ndarray[ADJ_t, ndim=2] A, ndarray[FIELD_t, ndim=2] D, int E,
+    ndarray[NODE_t, ndim=2] edges):
 
-    cdef np.ndarray[DEGREE_t, ndim=1] null = np.array([], dtype=DEGREE)
+    cdef ndarray[DEGREE_t, ndim=1] null = np.array([], dtype=DEGREE)
 
     _randomly_rewire_geomodel(iterations, eps, A, D, E, edges, null,
                               cond_len_c2, cond_deg_true)
 
 
 def _randomly_rewire_geomodel_III(int iterations, float eps,
-    np.ndarray[ADJ_t, ndim=2] A, np.ndarray[FIELD_t, ndim=2] D, int E,
-    np.ndarray[NODE_t, ndim=2] edges, np.ndarray[DEGREE_t, ndim=1] degree):
+    ndarray[ADJ_t, ndim=2] A, ndarray[FIELD_t, ndim=2] D, int E,
+    ndarray[NODE_t, ndim=2] edges, ndarray[DEGREE_t, ndim=1] degree):
 
     _randomly_rewire_geomodel(iterations, eps, A, D, E, edges, degree,
                               cond_len_c2, cond_deg_corr)
@@ -136,9 +136,8 @@ def _randomly_rewire_geomodel_III(int iterations, float eps,
 
 
 cdef void overwriteAdjacency(
-    np.ndarray[ADJ_t, ndim=2] A, np.ndarray[ADJ_t, ndim=2] cross_A,
-    np.ndarray[NODE_t, ndim=1] nodes1,
-    np.ndarray[NODE_t, ndim=1] nodes2,
+    ndarray[ADJ_t, ndim=2] A, ndarray[ADJ_t, ndim=2] cross_A,
+    ndarray[NODE_t, ndim=1] nodes1, ndarray[NODE_t, ndim=1] nodes2,
     int m, int n):
     """
     Overwrite the adjacency matrix of the full interacting network with the
@@ -155,9 +154,9 @@ cdef void overwriteAdjacency(
 
 
 def _randomlySetCrossLinks(
-    np.ndarray[ADJ_t, ndim=2] A, np.ndarray[ADJ_t, ndim=2] cross_A,
+    ndarray[ADJ_t, ndim=2] A, ndarray[ADJ_t, ndim=2] cross_A,
     int number_cross_links,
-    np.ndarray[NODE_t, ndim=1] nodes1, np.ndarray[NODE_t, ndim=1] nodes2,
+    ndarray[NODE_t, ndim=1] nodes1, ndarray[NODE_t, ndim=1] nodes2,
     int m, int n):
     """
     >>> A = np.eye(2, dtype=np.int)
@@ -180,11 +179,11 @@ def _randomlySetCrossLinks(
 
 
 def _randomlyRewireCrossLinks(
-    np.ndarray[ADJ_t, ndim=2] A,
-    np.ndarray[ADJ_t, ndim=2] cross_A,
-    np.ndarray[NODE_t, ndim=2] cross_links,
-    np.ndarray[NODE_t, ndim=1] nodes1,
-    np.ndarray[NODE_t, ndim=1] nodes2,
+    ndarray[ADJ_t, ndim=2] A,
+    ndarray[ADJ_t, ndim=2] cross_A,
+    ndarray[NODE_t, ndim=2] cross_links,
+    ndarray[NODE_t, ndim=1] nodes1,
+    ndarray[NODE_t, ndim=1] nodes2,
     int number_cross_links, int number_swaps):
 
     cdef:
@@ -215,8 +214,8 @@ def _randomlyRewireCrossLinks(
 
 
 def _cross_transitivity(
-    np.ndarray[ADJ_t, ndim=2] A,
-    np.ndarray[NODE_t, ndim=1] nodes1, np.ndarray[NODE_t, ndim=1] nodes2):
+    ndarray[ADJ_t, ndim=2] A,
+    ndarray[NODE_t, ndim=1] nodes1, ndarray[NODE_t, ndim=1] nodes2):
 
     cdef:
         int m = int(len(nodes1)), n = int(len(nodes2))
@@ -243,10 +242,10 @@ def _cross_transitivity(
 
 
 def _nsi_cross_transitivity(
-    np.ndarray[ADJ_t, ndim=2] A,
-    np.ndarray[NODE_t, ndim=1] nodes1,
-    np.ndarray[NODE_t, ndim=1] nodes2,
-    np.ndarray[DWEIGHT_t, ndim=1] node_weights):
+    ndarray[ADJ_t, ndim=2] A,
+    ndarray[NODE_t, ndim=1] nodes1,
+    ndarray[NODE_t, ndim=1] nodes2,
+    ndarray[DWEIGHT_t, ndim=1] node_weights):
 
     cdef:
         int m = int(len(nodes1)), n = int(len(nodes2))
@@ -275,10 +274,10 @@ def _nsi_cross_transitivity(
 
 
 def _cross_local_clustering(
-    np.ndarray[ADJ_t, ndim=2] A,
-    np.ndarray[DFIELD_t, ndim=1] norm,
-    np.ndarray[NODE_t, ndim=1] nodes1, np.ndarray[NODE_t, ndim=1] nodes2,
-    np.ndarray[DFIELD_t, ndim=1] cross_clustering):
+    ndarray[ADJ_t, ndim=2] A,
+    ndarray[DFIELD_t, ndim=1] norm,
+    ndarray[NODE_t, ndim=1] nodes1, ndarray[NODE_t, ndim=1] nodes2,
+    ndarray[DFIELD_t, ndim=1] cross_clustering):
 
     cdef:
         int m = int(len(nodes1)), n = int(len(nodes2))
@@ -303,10 +302,10 @@ def _cross_local_clustering(
 
 
 def _nsi_cross_local_clustering(
-    np.ndarray[ADJ_t, ndim=2] A,
-    np.ndarray[DFIELD_t, ndim=1] nsi_cc,
-    np.ndarray[NODE_t, ndim=1] nodes1, np.ndarray[NODE_t, ndim=1] nodes2,
-    np.ndarray[DWEIGHT_t, ndim=1] node_weights):
+    ndarray[ADJ_t, ndim=2] A,
+    ndarray[DFIELD_t, ndim=1] nsi_cc,
+    ndarray[NODE_t, ndim=1] nodes1, ndarray[NODE_t, ndim=1] nodes2,
+    ndarray[DWEIGHT_t, ndim=1] node_weights):
 
     cdef:
         int m = int(len(nodes1)), n = int(len(nodes2))
@@ -331,15 +330,15 @@ def _nsi_cross_local_clustering(
 
 
 def _local_cliquishness_4thorder(
-    int N, np.ndarray[ADJ_t, ndim=2] A, np.ndarray[DEGREE_t, ndim=1] degree):
+    int N, ndarray[ADJ_t, ndim=2] A, ndarray[DEGREE_t, ndim=1] degree):
 
     cdef:
         int i, j, k, l
         int index
         NODE_t node1, node2, node3, degree_i, order = 4
         long counter
-        np.ndarray[NODE_t, ndim=1] neighbors = np.zeros(N, dtype=NODE)
-        np.ndarray[DFIELD_t, ndim=1] local_cliquishness = \
+        ndarray[NODE_t, ndim=1] neighbors = np.zeros(N, dtype=NODE)
+        ndarray[DFIELD_t, ndim=1] local_cliquishness = \
             np.zeros(N, dtype=DFIELD)
 
     # Iterate over all nodes
@@ -370,14 +369,14 @@ def _local_cliquishness_4thorder(
 
 
 def _local_cliquishness_5thorder(
-    int N, np.ndarray[ADJ_t, ndim=2] A, np.ndarray[DEGREE_t, ndim=1] degree):
+    int N, ndarray[ADJ_t, ndim=2] A, ndarray[DEGREE_t, ndim=1] degree):
 
     cdef:
         int i, index
         NODE_t j, k, l, m, node1, node2, node3, node4, degree_i, order = 5
         long counter
-        np.ndarray[NODE_t, ndim=1] neighbors = np.zeros(N, dtype=NODE)
-        np.ndarray[DFIELD_t, ndim=1] local_cliquishness = \
+        ndarray[NODE_t, ndim=1] neighbors = np.zeros(N, dtype=NODE)
+        ndarray[DFIELD_t, ndim=1] local_cliquishness = \
             np.zeros(N, dtype=DFIELD)
 
     # Iterate over all nodes
@@ -413,24 +412,24 @@ def _local_cliquishness_5thorder(
 
 
 def _nsi_betweenness(
-    int N, np.ndarray[DWEIGHT_t, ndim=1] w,
-    np.ndarray[DEGREE_t, ndim=1] k, int j,
-    np.ndarray[DFIELD_t, ndim=1] betweenness_to_j,
-    np.ndarray[DFIELD_t, ndim=1] excess_to_j,
-    np.ndarray[NODE_t, ndim=1] offsets,
-    np.ndarray[NODE_t, ndim=1] flat_neighbors,
-    np.ndarray[MASK_t, ndim=1] is_source,
-    np.ndarray[NODE_t, ndim=1] flat_predecessors):
+    int N, ndarray[DWEIGHT_t, ndim=1] w,
+    ndarray[DEGREE_t, ndim=1] k, int j,
+    ndarray[DFIELD_t, ndim=1] betweenness_to_j,
+    ndarray[DFIELD_t, ndim=1] excess_to_j,
+    ndarray[NODE_t, ndim=1] offsets,
+    ndarray[NODE_t, ndim=1] flat_neighbors,
+    ndarray[MASK_t, ndim=1] is_source,
+    ndarray[NODE_t, ndim=1] flat_predecessors):
 
     cdef:
         int qi, oi, queue_len, l_index, ql
         NODE_t l, i, next_d, dl, ol, fi
         DFIELD_t base_factor
-        np.ndarray[NODE_t, ndim=1] distances_to_j =\
+        ndarray[NODE_t, ndim=1] distances_to_j =\
             2 * N * np.ones(N, dtype=NODE)
-        np.ndarray[NODE_t, ndim=1] n_predecessors = np.zeros(N, dtype=NODE)
-        np.ndarray[NODE_t, ndim=1] queue = np.zeros(N, dtype=NODE)
-        np.ndarray[DFIELD_t, ndim=1] multiplicity_to_j = np.zeros(N, dtype=DFIELD)
+        ndarray[NODE_t, ndim=1] n_predecessors = np.zeros(N, dtype=NODE)
+        ndarray[NODE_t, ndim=1] queue = np.zeros(N, dtype=NODE)
+        ndarray[DFIELD_t, ndim=1] multiplicity_to_j = np.zeros(N, dtype=DFIELD)
 
     # init distances to j and queue of nodes by distance from j
     for l in range(N):
@@ -496,7 +495,7 @@ def _nsi_betweenness(
 
 
 def _mpi_newman_betweenness(
-    np.ndarray[ADJ_t, ndim=2] this_A, np.ndarray[DFIELD_t, ndim=2] V,
+    ndarray[ADJ_t, ndim=2] this_A, ndarray[DFIELD_t, ndim=2] V,
     int N, int start_i, int end_i):
     """
     This function does the outer loop for a certain range start_i-end_i of
@@ -509,7 +508,7 @@ def _mpi_newman_betweenness(
         double sum_s, sum_j, Vis_minus_Vjs
 
         int this_N = end_i - start_i
-        np.ndarray[DFIELD_t, ndim=1] this_betweenness = \
+        ndarray[DFIELD_t, ndim=1] this_betweenness = \
             np.zeros(this_N, dtype=DFIELD)
 
     for i_rel in range(this_N):
@@ -533,16 +532,16 @@ def _mpi_newman_betweenness(
 
 
 def _mpi_nsi_newman_betweenness(
-    np.ndarray[ADJ_t, ndim=2] this_A,
-    np.ndarray[DFIELD_t, ndim=2] V, int N, np.ndarray[DWEIGHT_t, ndim=1] w,
-    np.ndarray[MASK_t, ndim=2] this_not_adj_or_equal, int start_i, int end_i):
+    ndarray[ADJ_t, ndim=2] this_A,
+    ndarray[DFIELD_t, ndim=2] V, int N, ndarray[DWEIGHT_t, ndim=1] w,
+    ndarray[MASK_t, ndim=2] this_not_adj_or_equal, int start_i, int end_i):
 
     cdef:
         int i_rel, j, s, t, i_abs
         double sum_s, sum_j, Vis_minus_Vjs
 
         int this_N = end_i - start_i
-        np.ndarray[DFIELD_t, ndim=1] this_betweenness =\
+        ndarray[DFIELD_t, ndim=1] this_betweenness =\
             np.zeros(this_N, dtype=DFIELD)
 
     for i_rel in range(this_N):
@@ -565,10 +564,10 @@ def _mpi_nsi_newman_betweenness(
 
 
 def _do_nsi_clustering_I(
-    int n_cands, np.ndarray[NODE_t, ndim=1] cands,
-    np.ndarray[DEGREE_t, ndim=1] D_cluster,
-    np.ndarray[DFIELD_t, ndim=1] w, double d0,
-    np.ndarray[NODE_t, ndim=1] D_firstpos, np.ndarray[NODE_t, ndim=1] D_nextpos,
+    int n_cands, ndarray[NODE_t, ndim=1] cands,
+    ndarray[DEGREE_t, ndim=1] D_cluster,
+    ndarray[DFIELD_t, ndim=1] w, double d0,
+    ndarray[NODE_t, ndim=1] D_firstpos, ndarray[NODE_t, ndim=1] D_nextpos,
     int N, dict dict_D, dict dict_Delta):
 
     cdef:
@@ -634,9 +633,9 @@ def _do_nsi_clustering_I(
 
 
 def _do_nsi_clustering_II(int a, int b,
-    np.ndarray[DEGREE_t, ndim=1] D_cluster,
-    np.ndarray[DFIELD_t, ndim=1] w, double d0,
-    np.ndarray[NODE_t, ndim=1] D_firstpos, np.ndarray[NODE_t, ndim=1] D_nextpos,
+    ndarray[DEGREE_t, ndim=1] D_cluster,
+    ndarray[DFIELD_t, ndim=1] w, double d0,
+    ndarray[NODE_t, ndim=1] D_firstpos, ndarray[NODE_t, ndim=1] D_nextpos,
     int N, dict dict_D, dict dict_Delta):
 
     cdef:
@@ -804,34 +803,34 @@ def _do_nsi_clustering_II(int a, int b,
 
 def _do_nsi_hamming_clustering(int n2, int nActiveIndices, float mind0,
     float minwp0, int lastunited, int part1, int part2,
-    np.ndarray[DFIELD_t, ndim=2] distances,
-    np.ndarray[NODE_t, ndim=1] theActiveIndices,
-    np.ndarray[DFIELD_t, ndim=2] linkedWeights,
-    np.ndarray[DFIELD_t, ndim=2] weightProducts,
-    np.ndarray[DFIELD_t, ndim=2] errors,
-    np.ndarray[DFIELD_t, ndim=1] results,
-    np.ndarray[MASK_t, ndim=2] mayJoin):
+    ndarray[DFIELD_t, ndim=2] distances,
+    ndarray[NODE_t, ndim=1] theActiveIndices,
+    ndarray[DFIELD_t, ndim=2] linkedWeights,
+    ndarray[DFIELD_t, ndim=2] weightProducts,
+    ndarray[DFIELD_t, ndim=2] errors,
+    ndarray[DFIELD_t, ndim=1] results,
+    ndarray[MASK_t, ndim=2] mayJoin):
 
     _do_nsi_hamming_clustering_fast(n2, nActiveIndices, mind0, minwp0,
         lastunited, part1, part2,
-        <DFIELD_t*> np.PyArray_DATA(distances),
+        <DFIELD_t*> cnp.PyArray_DATA(distances),
         <int*> cnp.PyArray_DATA(theActiveIndices),
-        <DFIELD_t*> np.PyArray_DATA(linkedWeights),
-        <DFIELD_t*> np.PyArray_DATA(weightProducts),
-        <DFIELD_t*> np.PyArray_DATA(errors),
-        <DFIELD_t*> np.PyArray_DATA(results),
-        <int*> np.PyArray_DATA(mayJoin))
+        <DFIELD_t*> cnp.PyArray_DATA(linkedWeights),
+        <DFIELD_t*> cnp.PyArray_DATA(weightProducts),
+        <DFIELD_t*> cnp.PyArray_DATA(errors),
+        <DFIELD_t*> cnp.PyArray_DATA(results),
+        <int*> cnp.PyArray_DATA(mayJoin))
 
 
 # grid ========================================================================
 
 
 def _calculate_angular_distance(
-    np.ndarray[FIELD_t, ndim=1] cos_lat,
-    np.ndarray[FIELD_t, ndim=1] sin_lat,
-    np.ndarray[FIELD_t, ndim=1] cos_lon,
-    np.ndarray[FIELD_t, ndim=1] sin_lon,
-    np.ndarray[FIELD_t, ndim=2] cosangdist, int N):
+    ndarray[FIELD_t, ndim=1] cos_lat,
+    ndarray[FIELD_t, ndim=1] sin_lat,
+    ndarray[FIELD_t, ndim=1] cos_lon,
+    ndarray[FIELD_t, ndim=1] sin_lon,
+    ndarray[FIELD_t, ndim=2] cosangdist, int N):
 
     cdef:
         FIELD_t expr
@@ -851,8 +850,8 @@ def _calculate_angular_distance(
 
 
 def _calculate_euclidean_distance(
-    np.ndarray[FIELD_t, ndim=2] x,
-    np.ndarray[FIELD_t, ndim=2] distance,
+    ndarray[FIELD_t, ndim=2] x,
+    ndarray[FIELD_t, ndim=2] distance,
     int N_dim, int N_nodes):
 
     cdef:
@@ -871,25 +870,25 @@ def _calculate_euclidean_distance(
 
 
 def _vertex_current_flow_betweenness(int N, double Is, double It,
-    np.ndarray[FIELD_t, ndim=2] admittance, np.ndarray[FIELD_t, ndim=2] R,
+    ndarray[FIELD_t, ndim=2] admittance, ndarray[FIELD_t, ndim=2] R,
     int i):
 
     return _vertex_current_flow_betweenness_fast(N, Is, It,
-        <float*> np.PyArray_DATA(admittance),
-        <float*> np.PyArray_DATA(R), i)
+        <FIELD_t*> cnp.PyArray_DATA(admittance),
+        <FIELD_t*> cnp.PyArray_DATA(R), i)
 
 
 def _edge_current_flow_betweenness(int N, double Is, double It,
-    np.ndarray[FIELD_t, ndim=2] admittance,
-    np.ndarray[FIELD_t, ndim=2] R,):
+    ndarray[FIELD_t, ndim=2] admittance,
+    ndarray[FIELD_t, ndim=2] R,):
 
     # alloc output
-    cdef np.ndarray[FIELD_t, ndim=2, mode='c'] ECFB = \
+    cdef ndarray[FIELD_t, ndim=2, mode='c'] ECFB = \
             np.zeros((N, N), dtype=FIELD)
 
     _edge_current_flow_betweenness_fast(N, Is, It,
-        <float*> np.PyArray_DATA(admittance),
-        <float*> np.PyArray_DATA(R),
-        <float*> np.PyArray_DATA(ECFB))
+        <FIELD_t*> cnp.PyArray_DATA(admittance),
+        <FIELD_t*> cnp.PyArray_DATA(R),
+        <FIELD_t*> cnp.PyArray_DATA(ECFB))
 
     return ECFB
