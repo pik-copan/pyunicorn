@@ -169,13 +169,13 @@ The test suite can be run from anywhere in the project tree by issuing::
 To display the defined test environments and target them individually::
 
     $> tox -l
-    $> tox -e units,pylint,docs
+    $> tox -e style,lint,test,docs
 
 To test individual files::
 
-    $> pytest           tests/test_core/TestNetwork.py   # unit tests
-    $> pytest --flake8  pyunicorn/core/network.py        # style
-    $> pylint           pyunicorn/core/network.py        # static code analysis
+    $> flake8 src/pyunicorn/core/network.py     # style check
+    $> pylint src/pyunicorn/core/network.py     # static code analysis
+    $> pytest tests/test_core/TestNetwork.py    # unit tests
 
 
 Mailing list
