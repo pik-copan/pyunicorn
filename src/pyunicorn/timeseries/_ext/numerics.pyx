@@ -340,7 +340,7 @@ def _test_mutual_information(
 
 def _embed_time_series(
     int n_time, int dim, int tau,
-    ndarray[FIELD_t, ndim=2] time_series,
+    ndarray[FIELD_t, ndim=1] time_series,
     ndarray[FIELD_t, ndim=2] embedding):
 
     cdef:

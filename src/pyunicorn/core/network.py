@@ -2910,7 +2910,7 @@ class Network:
                 print("Calculating all shortest path lengths...")
 
             # fixed negative numbers to infinity!
-            pl = np.array(self.graph.shortest_paths(), dtype=float)
+            pl = np.array(self.graph.distances(), dtype=float)
             pl[pl < 0] = np.inf
             return pl
         else:
@@ -2918,7 +2918,7 @@ class Network:
                 print("Calculating weighted shortest path lengths...")
 
             return np.array(
-                self.graph.shortest_paths(weights=link_attribute, mode=1))
+                self.graph.distances(weights=link_attribute, mode=1))
 
     def average_path_length(self, link_attribute=None):
         """
@@ -3601,7 +3601,7 @@ class Network:
 
         #  Random walk betweenness has to be calculated for each component
         #  separately Therefore get different components of the graph first
-        components = self.graph.clusters()
+        components = self.graph.connected_components()
 
         #  Print giant component size
         if self.silence_level <= 1:
@@ -3684,7 +3684,7 @@ class Network:
 
         #  Random walk betweenness has to be calculated for each component
         #  separately. Therefore get different components of the graph first
-        components = self.graph.clusters()
+        components = self.graph.connected_components()
 
         #  Print giant component size
         if self.silence_level <= 1:
@@ -3870,7 +3870,7 @@ class Network:
 
         #  Random walk betweenness has to be calculated for each component
         #  separately. Therefore get different components of the graph first
-        components = self.graph.clusters()
+        components = self.graph.connected_components()
 
         #  Print giant component size
         if self.silence_level <= 1:
@@ -4017,7 +4017,7 @@ class Network:
 
         #  Random walk betweenness has to be calculated for each component
         #  separately. Therefore get different components of the graph first
-        components = self.graph.clusters()
+        components = self.graph.connected_components()
 
         #  Print giant component size
         if self.silence_level <= 1:
@@ -4178,7 +4178,7 @@ class Network:
 
         #  Random walk betweenness has to be calculated for each component
         #  separately. Therefore get different components of the graph first
-        components = self.graph.clusters()
+        components = self.graph.connected_components()
 
         #  Print giant component size
         if self.silence_level <= 1:
@@ -4383,7 +4383,7 @@ class Network:
         for i in range(N):
             if self.silence_level == 0:
                 print(i)
-            di = np.array(self.graph.shortest_paths(i), dtype=float).flatten()
+            di = np.array(self.graph.distances(i), dtype=float).flatten()
             di[np.where(di == np.inf)] = replace_inf_by
 
             closeness[i] = 1.0 / di.sum()

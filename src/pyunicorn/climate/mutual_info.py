@@ -144,7 +144,7 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         self.data.normalize_time_series_array(anomaly)
 
         #  Create local transposed copy of anomaly
-        anomaly = np.fastCopyAndTranspose(anomaly)
+        anomaly = anomaly.T.copy()
 
         (N, n_samples) = anomaly.shape
 

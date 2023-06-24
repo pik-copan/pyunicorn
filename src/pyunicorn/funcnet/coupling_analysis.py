@@ -208,9 +208,9 @@ class CouplingAnalysis:
 
         for t in range(tau_max + 1):
             #  Remove mean value from time series at each node
-            array[t] = numpy.fastCopyAndTranspose(
+            array[t] = (
                 data[t:t+corr_range, :]
-                - data[t:t+corr_range, :].mean(axis=0).reshape(1, N))
+                - data[t:t+corr_range, :].mean(axis=0).reshape(1, N)).T
 
             #  Normalize the variance of anomalies to one
             array[t] /= array[t].std(axis=1).reshape(N, 1)
@@ -578,9 +578,8 @@ class CouplingAnalysis:
                         y = array[1, :]
                         if len(array) > 2:
                             confounds = array[2:, :]
-                            ortho_confounds = linalg.qr(
-                                numpy.fastCopyAndTranspose(confounds),
-                                mode='economic')[0].T
+                            ortho_confounds = linalg.qr(confounds.T.copy(),
+                                                        mode='economic')[0].T
                             x -= numpy.dot(numpy.dot(ortho_confounds, x),
                                            ortho_confounds)
                             y -= numpy.dot(numpy.dot(ortho_confounds, y),
