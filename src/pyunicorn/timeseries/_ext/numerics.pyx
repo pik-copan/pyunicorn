@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2022 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 #
@@ -20,9 +20,10 @@ from libc.stdlib cimport rand, RAND_MAX
 from datetime import datetime
 import random
 
-cimport numpy as np
 import numpy as np
 import numpy.random as rd
+cimport numpy as cnp
+from numpy cimport ndarray
 randint = rd.randint
 
 from ...core._ext.types import NODE, FIELD, DFIELD
@@ -49,51 +50,51 @@ cdef extern from "src_numerics.c":
 
 def _manhattan_distance_matrix_crp(
     int ntime_x, int ntime_y, int dim,
-    np.ndarray[DFIELD_t, ndim=2, mode='c'] x_embedded not None,
-    np.ndarray[DFIELD_t, ndim=2, mode='c'] y_embedded not None):
+    ndarray[DFIELD_t, ndim=2, mode='c'] x_embedded not None,
+    ndarray[DFIELD_t, ndim=2, mode='c'] y_embedded not None):
 
-    cdef np.ndarray[DFIELD_t, ndim=2, mode='c'] distance = \
+    cdef ndarray[DFIELD_t, ndim=2, mode='c'] distance = \
         np.zeros((ntime_x, ntime_y), dtype=DFIELD)
 
     _manhattan_distance_matrix_fast(
         ntime_x, ntime_y, dim,
-        <double*> np.PyArray_DATA(x_embedded),
-        <double*> np.PyArray_DATA(y_embedded),
-        <float*> np.PyArray_DATA(distance))
+        <DFIELD_t*> cnp.PyArray_DATA(x_embedded),
+        <DFIELD_t*> cnp.PyArray_DATA(y_embedded),
+        <FIELD_t*> cnp.PyArray_DATA(distance))
 
     return distance
 
 
 def _euclidean_distance_matrix_crp(
     int ntime_x, int ntime_y, int dim,
-    np.ndarray[DFIELD_t, ndim=2, mode='c'] x_embedded not None,
-    np.ndarray[DFIELD_t, ndim=2, mode='c'] y_embedded not None):
+    ndarray[DFIELD_t, ndim=2, mode='c'] x_embedded not None,
+    ndarray[DFIELD_t, ndim=2, mode='c'] y_embedded not None):
 
-    cdef np.ndarray[DFIELD_t, ndim=2, mode='c'] distance = \
+    cdef ndarray[DFIELD_t, ndim=2, mode='c'] distance = \
         np.zeros((ntime_x, ntime_y), dtype=DFIELD)
 
     _euclidean_distance_matrix_fast(
         ntime_x, ntime_y, dim,
-        <double*> np.PyArray_DATA(x_embedded),
-        <double*> np.PyArray_DATA(y_embedded),
-        <float*> np.PyArray_DATA(distance))
+        <DFIELD_t*> cnp.PyArray_DATA(x_embedded),
+        <DFIELD_t*> cnp.PyArray_DATA(y_embedded),
+        <FIELD_t*> cnp.PyArray_DATA(distance))
 
     return distance
 
 
 def _supremum_distance_matrix_crp(
     int ntime_x, int ntime_y, int dim,
-    np.ndarray[FIELD_t, ndim=2, mode='c'] x_embedded not None,
-    np.ndarray[FIELD_t, ndim=2, mode='c'] y_embedded not None):
+    ndarray[FIELD_t, ndim=2, mode='c'] x_embedded not None,
+    ndarray[FIELD_t, ndim=2, mode='c'] y_embedded not None):
 
-    cdef np.ndarray[FIELD_t, ndim=2, mode='c'] distance = \
+    cdef ndarray[FIELD_t, ndim=2, mode='c'] distance = \
         np.zeros((ntime_x, ntime_y), dtype=FIELD)
 
     _supremum_distance_matrix_fast(
         ntime_x, ntime_y, dim,
-        <float*> np.PyArray_DATA(x_embedded),
-        <float*> np.PyArray_DATA(y_embedded),
-        <float*> np.PyArray_DATA(distance))
+        <FIELD_t*> cnp.PyArray_DATA(x_embedded),
+        <FIELD_t*> cnp.PyArray_DATA(y_embedded),
+        <FIELD_t*> cnp.PyArray_DATA(distance))
 
     return distance
 
@@ -103,12 +104,12 @@ def _supremum_distance_matrix_crp(
 
 def _embed_time_series_array(
     int n, int n_time, int dimension, int delay,
-    np.ndarray[DFIELD_t, ndim=2] time_series_array,
-    np.ndarray[DFIELD_t, ndim=3] embedding):
+    ndarray[DFIELD_t, ndim=2] time_series_array,
+    ndarray[DFIELD_t, ndim=3] embedding):
 
     cdef:
-        unsigned int i, j, k, max_delay, len_embedded, index
-        unsigned int N = n, D = dimension
+        int i, j, k, max_delay, len_embedded, index
+        int N = n, D = dimension
 
     # Calculate the maximum delay
     max_delay = (dimension - 1) * delay
@@ -125,12 +126,12 @@ def _embed_time_series_array(
 
 def _recurrence_plot(
     int n_time, int dimension, float threshold,
-    np.ndarray[FIELD_t, ndim=2] embedding,
-    np.ndarray[ADJ_t, ndim=2] R):
+    ndarray[DFIELD_t, ndim=2] embedding,
+    ndarray[ADJ_t, ndim=2] R):
 
     cdef:
-        unsigned int j, k, l, T = n_time, D = dimension
-        FIELD_t diff
+        int j, k, l, T = n_time, D = dimension
+        DFIELD_t diff
 
     for j in range(T):
         # Ignore the main diagonal, since every sample is neighbor of itself
@@ -149,20 +150,21 @@ def _recurrence_plot(
 
 def _twins_s(
     int N, int n_time, int dimension, float threshold, int min_dist,
-    np.ndarray[DFIELD_t, ndim=3] embedding_array,
-    np.ndarray[ADJ_t, ndim=2] R, np.ndarray[DEGREE_t, ndim=1] nR,
+    ndarray[DFIELD_t, ndim=3] embedding_array,
+    ndarray[ADJ_t, ndim=2] R, ndarray[DEGREE_t, ndim=1] nR,
     twins):
 
     cdef:
         int i, j, k, l
         DFIELD_t diff
+        object twins_i, twins_ij, twins_ik
 
     for i in range(N):
         # Initialize the recurrence matrix R and nR
         for j in range(n_time):
             for k in range(j+1):
                 R[j, k] = R[k, j] = 1
-            nR[j] = n_time
+            nR[j] = <DEGREE_t> n_time
 
         # Calculate the recurrence matrix for time series i
         for j in range(n_time):
@@ -218,10 +220,11 @@ def _twins_s(
 
 
 def _twin_surrogates_s(int n_surrogates, int N, twins,
-                       np.ndarray[DFIELD_t, ndim=2] original_data):
+                       ndarray[DFIELD_t, ndim=2] original_data):
     cdef:
-        int i, j, k, l, new_k, n_twins, rand
-        np.ndarray[DFIELD_t, ndim=2] surrogates = np.empty(
+        int i, j, k, new_k, n_twins, rand
+        object twins_i, twins_ik
+        ndarray[DFIELD_t, ndim=2] surrogates = np.empty(
             (n_surrogates, N), dtype=DFIELD)
 
     for i in range(n_surrogates):
@@ -239,7 +242,7 @@ def _twin_surrogates_s(int n_surrogates, int N, twins,
             twins_ik = twins_i[k]
 
             # Get the number of twins of k
-            n_twins = len(twins_ik)
+            n_twins = int(len(twins_ik))
             # If k has no twins, go to the next sample k+1, If k has twins at
             # m, choose among m+1 and k+1 with equal probability
             if n_twins == 0:
@@ -271,28 +274,28 @@ def _twin_surrogates_s(int n_surrogates, int N, twins,
 
 
 def _test_pearson_correlation(
-    np.ndarray[DFIELD_t, ndim=2, mode='c'] original_data not None,
-    np.ndarray[DFIELD_t, ndim=2, mode='c'] surrogates not None,
+    ndarray[DFIELD_t, ndim=2, mode='c'] original_data not None,
+    ndarray[DFIELD_t, ndim=2, mode='c'] surrogates not None,
     int N, int n_time):
 
     cdef:
         DFIELD_t norm = 1.0 / float(n_time)
         #  Initialize Pearson correlation matrix
-        np.ndarray[FIELD_t, ndim=2, mode='c'] correlation = np.zeros(
+        ndarray[FIELD_t, ndim=2, mode='c'] correlation = np.zeros(
             (N, N), dtype=FIELD)
 
     _test_pearson_correlation_fast(
-        <double*> np.PyArray_DATA(original_data),
-        <double*> np.PyArray_DATA(surrogates),
-        <float*> np.PyArray_DATA(correlation),
+        <DFIELD_t*> cnp.PyArray_DATA(original_data),
+        <DFIELD_t*> cnp.PyArray_DATA(surrogates),
+        <FIELD_t*> cnp.PyArray_DATA(correlation),
         n_time, N, norm)
 
     return correlation
 
 
 def _test_mutual_information(
-    np.ndarray[DFIELD_t, ndim=2, mode='c'] original_data not None,
-    np.ndarray[DFIELD_t, ndim=2, mode='c'] surrogates not None,
+    ndarray[DFIELD_t, ndim=2, mode='c'] original_data not None,
+    ndarray[DFIELD_t, ndim=2, mode='c'] surrogates not None,
     int N, int n_time, int n_bins):
 
     cdef:
@@ -303,31 +306,31 @@ def _test_mutual_information(
         #  range of the whole dataset
         DFIELD_t scaling = 1. / (range_max - range_min)
         #  Create arrays to hold symbolic trajectories
-        np.ndarray[NODE_t, ndim=2, mode='c'] symbolic_original = \
+        ndarray[NODE_t, ndim=2, mode='c'] symbolic_original = \
             np.empty((N, n_time), dtype=NODE)
-        np.ndarray[NODE_t, ndim=2, mode='c'] symbolic_surrogates = \
+        ndarray[NODE_t, ndim=2, mode='c'] symbolic_surrogates = \
             np.empty((N, n_time), dtype=NODE)
         #  Initialize array to hold 1d-histograms of individual time series
-        np.ndarray[NODE_t, ndim=2, mode='c'] hist_original = \
+        ndarray[NODE_t, ndim=2, mode='c'] hist_original = \
             np.zeros((N, n_bins), dtype=NODE)
-        np.ndarray[NODE_t, ndim=2, mode='c'] hist_surrogates = \
+        ndarray[NODE_t, ndim=2, mode='c'] hist_surrogates = \
             np.zeros((N, n_bins), dtype=NODE)
         #  Initialize array to hold 2d-histogram for one pair of time series
-        np.ndarray[NODE_t, ndim=2, mode='c'] hist2d = \
+        ndarray[NODE_t, ndim=2, mode='c'] hist2d = \
             np.zeros((n_bins, n_bins), dtype=NODE)
         #  Initialize mutual information array
-        np.ndarray[FIELD_t, ndim=2, mode='c'] mi = np.zeros((N, N), dtype=FIELD)
+        ndarray[FIELD_t, ndim=2, mode='c'] mi = np.zeros((N, N), dtype=FIELD)
 
     _test_mutual_information_fast(
             N, n_time, n_bins, scaling, range_min,
-            <double*> np.PyArray_DATA(original_data),
-            <double*> np.PyArray_DATA(surrogates),
-            <int*> np.PyArray_DATA(symbolic_original),
-            <int*> np.PyArray_DATA(symbolic_surrogates),
-            <int*> np.PyArray_DATA(hist_original),
-            <int*> np.PyArray_DATA(hist_surrogates),
-            <int*> np.PyArray_DATA(hist2d),
-            <float*> np.PyArray_DATA(mi))
+            <DFIELD_t*> cnp.PyArray_DATA(original_data),
+            <DFIELD_t*> cnp.PyArray_DATA(surrogates),
+            <int*> cnp.PyArray_DATA(symbolic_original),
+            <int*> cnp.PyArray_DATA(symbolic_surrogates),
+            <int*> cnp.PyArray_DATA(hist_original),
+            <int*> cnp.PyArray_DATA(hist_surrogates),
+            <int*> cnp.PyArray_DATA(hist2d),
+            <FIELD_t*> cnp.PyArray_DATA(mi))
 
     return mi
 
@@ -337,11 +340,11 @@ def _test_mutual_information(
 
 def _embed_time_series(
     int n_time, int dim, int tau,
-    np.ndarray[FIELD_t, ndim=2] time_series,
-    np.ndarray[FIELD_t, ndim=2] embedding):
+    ndarray[FIELD_t, ndim=1] time_series,
+    ndarray[FIELD_t, ndim=2] embedding):
 
     cdef:
-        unsigned int j, max_delay, index, D = dim
+        int j, max_delay, index, D = dim
         int k, len_embedded
 
     # Calculate the maximum delay
@@ -357,11 +360,11 @@ def _embed_time_series(
 
 
 def _manhattan_distance_matrix_rp(
-    int n_time, int dim, np.ndarray[FIELD_t, ndim=2] embedding,
-    np.ndarray[FIELD_t, ndim=2] distance):
+    int n_time, int dim, ndarray[FIELD_t, ndim=2] embedding,
+    ndarray[FIELD_t, ndim=2] distance):
 
     cdef:
-        unsigned int j, k, l, T = n_time, D = dim
+        int j, k, l, T = n_time, D = dim
         float sum
 
     # Calculate the manhattan distance matrix
@@ -377,11 +380,11 @@ def _manhattan_distance_matrix_rp(
 
 
 def _euclidean_distance_matrix_rp(
-    int n_time, int dim, np.ndarray[FIELD_t, ndim=2] embedding,
-    np.ndarray[FIELD_t, ndim=2] distance):
+    int n_time, int dim, ndarray[FIELD_t, ndim=2] embedding,
+    ndarray[FIELD_t, ndim=2] distance):
 
     cdef:
-        unsigned int j, k, l, T = n_time, D = dim
+        int j, k, l, T = n_time, D = dim
         float sum, diff
 
     # Calculate the eucliadean distance matrix
@@ -397,18 +400,18 @@ def _euclidean_distance_matrix_rp(
 
 
 def _supremum_distance_matrix_rp(
-    int n_time, int dim, np.ndarray[FIELD_t, ndim=2] embedding,
-    np.ndarray[FIELD_t, ndim=2] distance):
+    int n_time, int dim, ndarray[FIELD_t, ndim=2] embedding,
+    ndarray[FIELD_t, ndim=2] distance):
 
     cdef:
-        unsigned int j, k, l, T = n_time, D = dim
+        int j, k, l, T = n_time, D = dim
         float temp_diff, diff
 
     # Calculate the eucliadean distance matrix
     for j in range(T):
         # Ignore the main diagonal, since every sample is neighbor of itself
         for k in range(j):
-            temp_diff = diff = 0
+            diff = 0
             for l in range(D):
                 # Use supremum norm
                 temp_diff = abs(embedding[j, l] - embedding[k, l])
@@ -420,9 +423,9 @@ def _supremum_distance_matrix_rp(
 
 def _set_adaptive_neighborhood_size(
     int n_time, int adaptive_neighborhood_size,
-    np.ndarray[NODE_t, ndim=2] sorted_neighbors,
-    np.ndarray[NODE_t, ndim=1] order,
-    np.ndarray[LAG_t, ndim=2] recurrence):
+    ndarray[NODE_t, ndim=2] sorted_neighbors,
+    ndarray[NODE_t, ndim=1] order,
+    ndarray[LAG_t, ndim=2] recurrence):
 
     cdef:
         int i, j, k, l
@@ -443,13 +446,13 @@ def _set_adaptive_neighborhood_size(
 
 
 def _bootstrap_distance_matrix_manhattan(
-    int n_time, int dim, np.ndarray[FIELD_t, ndim=2] embedding,
-    np.ndarray[FIELD_t, ndim=1] distances, int M):
+    int n_time, int dim, ndarray[FIELD_t, ndim=2] embedding,
+    ndarray[FIELD_t, ndim=1] distances, int M):
 
     cdef:
         int i, l
-        np.ndarray[NODE_t, ndim=2] jk = rd.randint(n_time, size=(2,M))
-        float sum, diff
+        ndarray[NODE_t, ndim=2] jk = rd.randint(n_time, size=(2,M))
+        float sum
 
     for i in range(M):
         #Compute their distance
@@ -462,12 +465,12 @@ def _bootstrap_distance_matrix_manhattan(
 
 
 def _bootstrap_distance_matrix_euclidean(
-    int n_time, int dim, np.ndarray[FIELD_t, ndim=2] embedding,
-    np.ndarray[FIELD_t, ndim=1] distances, int M):
+    int n_time, int dim, ndarray[FIELD_t, ndim=2] embedding,
+    ndarray[FIELD_t, ndim=1] distances, int M):
 
     cdef:
         int i, l
-        np.ndarray[NODE_t, ndim=2] jk = rd.randint(n_time, size=(2,M))
+        ndarray[NODE_t, ndim=2] jk = rd.randint(n_time, size=(2,M))
         float sum, diff
 
     for i in range(M):
@@ -478,21 +481,21 @@ def _bootstrap_distance_matrix_euclidean(
             diff = abs(embedding[jk[0, i], l] - embedding[jk[1, i], l])
             sum += diff * diff
 
-        distances[i] = sqrt(sum)
+        distances[i] = <FIELD_t> sqrt(sum)
 
 
 def _bootstrap_distance_matrix_supremum(
-    int n_time, int dim, np.ndarray[FIELD_t, ndim=2] embedding,
-    np.ndarray[FIELD_t, ndim=1] distances, int M):
+    int n_time, int dim, ndarray[FIELD_t, ndim=2] embedding,
+    ndarray[FIELD_t, ndim=1] distances, int M):
 
     cdef:
         int i, l
-        np.ndarray[NODE_t, ndim=2] jk = rd.randint(n_time, size=(2,M))
+        ndarray[NODE_t, ndim=2] jk = rd.randint(n_time, size=(2,M))
         float temp_diff, diff
 
     for i in range(M):
         #Compute their distance
-        temp_diff = diff = 0
+        diff = 0
         for l in range(dim):
             # Use supremum norm
             temp_diff = abs(embedding[jk[0, i], l] - embedding[jk[1, i], l])
@@ -504,9 +507,9 @@ def _bootstrap_distance_matrix_supremum(
 
 
 def _diagline_dist_norqa_missingvalues(
-    int n_time, np.ndarray[NODE_t, ndim=1] diagline,
-    np.ndarray[LAG_t, ndim=2] recmat,
-    np.ndarray[MASK_t, ndim=1, cast=True] mv_indices):
+    int n_time, ndarray[NODE_t, ndim=1] diagline,
+    ndarray[LAG_t, ndim=2] recmat,
+    ndarray[MASK_t, ndim=1, cast=True] mv_indices):
 
     cdef:
         int i, j, k = 0
@@ -540,8 +543,8 @@ def _diagline_dist_norqa_missingvalues(
 
 
 def _diagline_dist_norqa(
-    int n_time, np.ndarray[NODE_t, ndim=1] diagline,
-    np.ndarray[LAG_t, ndim=2] recmat):
+    int n_time, ndarray[NODE_t, ndim=1] diagline,
+    ndarray[LAG_t, ndim=2] recmat):
 
     cdef:
         int i, j, k = 0
@@ -559,9 +562,9 @@ def _diagline_dist_norqa(
 
 
 def _diagline_dist_rqa_missingvalues(
-    int n_time, np.ndarray[NODE_t, ndim=1] diagline,
-    np.ndarray[MASK_t, ndim=1, cast=True] mv_indices,
-    np.ndarray[FIELD_t, ndim=2] embedding, float eps, int dim):
+    int n_time, ndarray[NODE_t, ndim=1] diagline,
+    ndarray[MASK_t, ndim=1, cast=True] mv_indices,
+    ndarray[FIELD_t, ndim=2] embedding, float eps, int dim):
 
     cdef:
         int i, j, k = 0, l
@@ -577,7 +580,7 @@ def _diagline_dist_rqa_missingvalues(
 
         for j in range(i+1):
             # Compute supreumum distance between state vectors
-            temp_diff = diff = 0
+            diff = 0
             for l in range(dim):
                 # Use supremum norm
                 temp_diff = abs(embedding[j, l] - embedding[n_time-1-i+j, l])
@@ -605,8 +608,8 @@ def _diagline_dist_rqa_missingvalues(
 
 
 def _diagline_dist_rqa(
-    int n_time, np.ndarray[NODE_t, ndim=1] diagline,
-    np.ndarray[FIELD_t, ndim=2] embedding, float eps, int dim):
+    int n_time, ndarray[NODE_t, ndim=1] diagline,
+    ndarray[FIELD_t, ndim=2] embedding, float eps, int dim):
 
     cdef:
         int i, j, k = 0, l
@@ -619,7 +622,7 @@ def _diagline_dist_rqa(
 
         for j in range(i+1):
             # Compute supremum distance between state vectors
-            temp_diff = diff = 0
+            diff = 0
             for l in range(dim):
                 # Use supremum norm
                 temp_diff = abs(embedding[j, l] - embedding[n_time-1-i+j, l])
@@ -635,8 +638,8 @@ def _diagline_dist_rqa(
 
 
 def _rejection_sampling(
-    np.ndarray[FIELD_t, ndim=1] dist,
-    np.ndarray[FIELD_t, ndim=1] resampled_dist, int N, int M):
+    ndarray[DFIELD_t, ndim=1] dist,
+    ndarray[DFIELD_t, ndim=1] resampled_dist, int N, int M):
 
     cdef:
         int i = 0, x
@@ -645,14 +648,14 @@ def _rejection_sampling(
         x = int(floor(random.random() * N))
 
         if (random.random() < dist[x]):
-            resampled_dist[x] += 1
+            resampled_dist[x] += <FIELD_t> 1
             i += 1
 
 
 def _vertline_dist_norqa_missingvalues(
-    int n_time, np.ndarray[NODE_t, ndim=1] vertline,
-    np.ndarray[LAG_t, ndim=2] recmat,
-    np.ndarray[MASK_t, ndim=1, cast=True] mv_indices):
+    int n_time, ndarray[NODE_t, ndim=1] vertline,
+    ndarray[LAG_t, ndim=2] recmat,
+    ndarray[MASK_t, ndim=1, cast=True] mv_indices):
 
     cdef:
         int i, j, k = 0
@@ -682,8 +685,8 @@ def _vertline_dist_norqa_missingvalues(
 
 
 def _vertline_dist_norqa(
-    int n_time, np.ndarray[NODE_t, ndim=1] vertline,
-    np.ndarray[LAG_t, ndim=2] recmat):
+    int n_time, ndarray[NODE_t, ndim=1] vertline,
+    ndarray[LAG_t, ndim=2] recmat):
 
     cdef int i, j, k = 0
 
@@ -701,9 +704,9 @@ def _vertline_dist_norqa(
 
 
 def _vertline_dist_rqa_missingvalues(
-    int n_time, np.ndarray[NODE_t, ndim=1] vertline,
-    np.ndarray[MASK_t, ndim=1, cast=True] mv_indices,
-    np.ndarray[FIELD_t, ndim=2] embedding, float eps, int dim):
+    int n_time, ndarray[NODE_t, ndim=1] vertline,
+    ndarray[MASK_t, ndim=1, cast=True] mv_indices,
+    ndarray[FIELD_t, ndim=2] embedding, float eps, int dim):
 
     cdef:
         int i, j, k = 0, l
@@ -719,7 +722,7 @@ def _vertline_dist_rqa_missingvalues(
 
         for j in range(n_time):
             # Compute supremum distance between state vectors
-            temp_diff = diff = 0
+            diff = 0
             for l in range(dim):
                 # Use supremum norm
                 temp_diff = abs(embedding[i, l] - embedding[j, l])
@@ -744,8 +747,8 @@ def _vertline_dist_rqa_missingvalues(
 
 
 def _vertline_dist_rqa(
-    int n_time, np.ndarray[NODE_t, ndim=1] vertline,
-    np.ndarray[FIELD_t, ndim=2] embedding, float eps, int dim):
+    int n_time, ndarray[NODE_t, ndim=1] vertline,
+    ndarray[FIELD_t, ndim=2] embedding, float eps, int dim):
 
     cdef:
         int i, j, k = 0, l
@@ -758,7 +761,7 @@ def _vertline_dist_rqa(
 
         for j in range(n_time):
             # Compute supremum distance between state vectors
-            temp_diff = diff = 0
+            diff = 0
             for l in range(dim):
                 # Use supremum norm
                 temp_diff = abs(embedding[i, l] - embedding[j, l])
@@ -775,8 +778,8 @@ def _vertline_dist_rqa(
 
 
 def _white_vertline_dist(
-    int n_time, np.ndarray[NODE_t, ndim=1] white_vertline,
-    np.ndarray[LAG_t, ndim=2] R):
+    int n_time, ndarray[NODE_t, ndim=1] white_vertline,
+    ndarray[LAG_t, ndim=2] R):
 
     cdef int i, j, k = 0
 
@@ -794,10 +797,12 @@ def _white_vertline_dist(
 
 
 def _twins_r(
-    int min_dist, int N, np.ndarray[LAG_t, ndim=2] R,
-    np.ndarray[NODE_t, ndim=1] nR, twins):
+    int min_dist, int N, ndarray[LAG_t, ndim=2] R,
+    ndarray[NODE_t, ndim=1] nR, twins):
 
-    cdef int j, k, l
+    cdef:
+        int j, k, l
+        object twins_j, twins_k
 
     twins.append([])
 
@@ -829,10 +834,11 @@ def _twins_r(
 
 
 def _twin_surrogates_r(int n_surrogates, int N, int dim, twins,
-                       np.ndarray[DFIELD_t, ndim=2] embedding):
+                       ndarray[DFIELD_t, ndim=2] embedding):
     cdef:
         int i, j, k, new_k, n_twins, rand
-        np.ndarray[DFIELD_t, ndim=2] surrogates = np.empty(
+        object twins_k
+        ndarray[DFIELD_t, ndim=2] surrogates = np.empty(
             (n_surrogates, N, dim), dtype=DFIELD)
 
     # Initialize random number generator
@@ -851,7 +857,7 @@ def _twin_surrogates_r(int n_surrogates, int N, int dim, twins,
             twins_k = twins[k]
 
             # Get the number of twins of k
-            n_twins = len(twins_k)
+            n_twins = int(len(twins_k))
             # If k has no twins, go to the next sample k+1, If k has twins at
             # m, choose among m+1 and k+1 with equal probability
             if n_twins == 0:
@@ -886,9 +892,9 @@ def _twin_surrogates_r(int n_surrogates, int N, int dim, twins,
 
 
 def _visibility_relations_missingvalues(
-    np.ndarray[FIELD_t, ndim=1] x, np.ndarray[FIELD_t, ndim=1] t,
-    int N, np.ndarray[MASK_t, ndim=2] A,
-    np.ndarray[MASK_t, ndim=1, cast=True] mv_indices):
+    ndarray[FIELD_t, ndim=1] x, ndarray[FIELD_t, ndim=1] t,
+    int N, ndarray[MASK_t, ndim=2] A,
+    ndarray[MASK_t, ndim=1, cast=True] mv_indices):
 
     cdef:
         int i, j, k
@@ -914,8 +920,8 @@ def _visibility_relations_missingvalues(
 
 
 def _visibility_relations_no_missingvalues(
-    np.ndarray[FIELD_t, ndim=1] x, np.ndarray[FIELD_t, ndim=1] t,
-    int N, np.ndarray[MASK_t, ndim=2] A):
+    ndarray[FIELD_t, ndim=1] x, ndarray[FIELD_t, ndim=1] t,
+    int N, ndarray[MASK_t, ndim=2] A):
 
     cdef:
         int i, j, k
@@ -939,8 +945,7 @@ def _visibility_relations_no_missingvalues(
 
 
 def _visibility_relations_horizontal(
-    np.ndarray[FIELD_t, ndim=1] x, np.ndarray[FIELD_t, ndim=1] t,
-    int N, np.ndarray[MASK_t, ndim=2] A):
+    ndarray[FIELD_t, ndim=1] x, int N, ndarray[MASK_t, ndim=2] A):
 
     cdef:
         int i, j, k
@@ -963,12 +968,12 @@ def _visibility_relations_horizontal(
 
 
 def _visibility(
-        np.ndarray[FIELD_t, ndim=1] time,
-        np.ndarray[FIELD_t, ndim=1] val, int node1, int node2):
+        ndarray[FIELD_t, ndim=1] time,
+        ndarray[FIELD_t, ndim=1] val, int node1, int node2):
 
     cdef:
         int i, j, k
-        np.ndarray[MASK_t, ndim=1] test
+        ndarray[MASK_t, ndim=1] test
 
     i = min(node1,node2)
     j = max(node1,node2)
@@ -981,9 +986,9 @@ def _visibility(
 
 
 def _retarded_local_clustering(
-    int N, np.ndarray[ADJ_t, ndim=2] A,
-    np.ndarray[FIELD_t, ndim=1] norm,
-    np.ndarray[FIELD_t, ndim=1] retarded_clustering):
+    int N, ndarray[ADJ_t, ndim=2] A,
+    ndarray[DFIELD_t, ndim=1] norm,
+    ndarray[DFIELD_t, ndim=1] retarded_clustering):
 
     cdef:
         int i, j, k
@@ -1006,9 +1011,9 @@ def _retarded_local_clustering(
 
 
 def _advanced_local_clustering(
-    int N, np.ndarray[ADJ_t, ndim=2] A,
-    np.ndarray[FIELD_t, ndim=1] norm,
-    np.ndarray[FIELD_t, ndim=1] advanced_clustering):
+    int N, ndarray[ADJ_t, ndim=2] A,
+    ndarray[DFIELD_t, ndim=1] norm,
+    ndarray[DFIELD_t, ndim=1] advanced_clustering):
 
     cdef:
         int i, j, k

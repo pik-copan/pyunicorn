@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2022 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 #
@@ -27,7 +27,7 @@ Provides classes for generating and analyzing complex climate networks.
 import numpy as np
 
 from ..core._ext.types import to_cy, FIELD
-from ._ext.numerics import _calculate_mutual_information_cython
+from ._ext.numerics import mutual_information
 
 #  Import progress bar for easy progress bar handling
 from ..utils import progressbar
@@ -144,7 +144,7 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         self.data.normalize_time_series_array(anomaly)
 
         #  Create local transposed copy of anomaly
-        anomaly = np.fastCopyAndTranspose(anomaly)
+        anomaly = anomaly.T.copy()
 
         (N, n_samples) = anomaly.shape
 
@@ -156,7 +156,7 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         #  using the maximum range of the whole dataset.
         scaling = 1./(range_max - range_min)
 
-        mi = _calculate_mutual_information_cython(
+        mi = mutual_information(
             to_cy(anomaly, FIELD), n_samples, N, n_bins, scaling, range_min)
 
         if self.silence_level <= 1:

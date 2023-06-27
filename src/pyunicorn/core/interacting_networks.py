@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2022 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 #
@@ -24,7 +24,7 @@ multivariate data and generating time series surrogates.
 import numpy as np
 from numpy import random
 
-from ._ext.types import to_cy, ADJ, NODE, WEIGHT, DWEIGHT, FIELD
+from ._ext.types import to_cy, ADJ, NODE, WEIGHT, DWEIGHT, FIELD, DFIELD
 from ._ext.numerics import _randomlySetCrossLinks, _randomlyRewireCrossLinks, \
     _cross_transitivity, _nsi_cross_transitivity, _cross_local_clustering, \
     _nsi_cross_local_clustering
@@ -1292,10 +1292,10 @@ class InteractingNetworks(Network):
         #  Prepare normalization factor
         norm = cross_degree * (cross_degree - 1) / 2.
         #  Initialize
-        cross_clustering = np.zeros_like(nodes1, dtype=FIELD)
+        cross_clustering = np.zeros_like(nodes1, dtype=DFIELD)
 
         _cross_local_clustering(to_cy(self.adjacency, ADJ),
-                                to_cy(norm, FIELD),
+                                to_cy(norm, DFIELD),
                                 nodes1, nodes2, cross_clustering)
         return cross_clustering
 
@@ -1625,10 +1625,10 @@ class InteractingNetworks(Network):
         """
         nodes1 = np.array(node_list1, dtype=NODE)
         nodes2 = np.array(node_list2, dtype=NODE)
-        nsi_cc = np.zeros(nodes1.shape, dtype=FIELD)
+        nsi_cc = np.zeros(nodes1.shape, dtype=DFIELD)
         _nsi_cross_local_clustering(
             to_cy(self.adjacency + np.eye(self.N, dtype=ADJ), ADJ),
-            nsi_cc, nodes1, nodes2, to_cy(self.node_weights, WEIGHT))
+            nsi_cc, nodes1, nodes2, to_cy(self.node_weights, DWEIGHT))
 
         norm = self.nsi_cross_degree(nodes1, nodes2) ** 2
         nsi_cc[norm != 0] = nsi_cc[norm != 0] / norm[norm != 0]

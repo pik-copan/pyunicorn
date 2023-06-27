@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2022 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 #
@@ -277,8 +277,6 @@ class SpatialNetwork(Network):
         if self.silence_level <= 1:
             print("Randomly rewiring given graph, preserving the degree "
                   "sequence and link distance distribution...")
-        #  Get number of nodes
-        N = self.N
         #  Get number of links
         E = self.n_links
         #  Collect adjacency and distance matrices
@@ -295,7 +293,7 @@ class SpatialNetwork(Network):
         #  Get edge list
         edges = to_cy(np.array(self.graph.get_edgelist()), NODE)
 
-        _randomly_rewire_geomodel_I(iterations, eps, A, D, E, N, edges)
+        _randomly_rewire_geomodel_I(iterations, eps, A, D, E, edges)
 
         #  Update all other properties of GeoNetwork
         self.adjacency = A
@@ -334,8 +332,6 @@ class SpatialNetwork(Network):
                   "sequence, link distance distribution and average link "
                   "distance sequence...")
 
-        #  Get number of nodes
-        N = int(self.N)
         #  Get number of links
         E = int(self.n_links)
         #  Collect adjacency and distance matrices
@@ -348,7 +344,7 @@ class SpatialNetwork(Network):
         #  Get edge list
         edges = to_cy(np.array(self.graph.get_edgelist()), NODE)
 
-        _randomly_rewire_geomodel_II(iterations, eps, A, D, E, N, edges)
+        _randomly_rewire_geomodel_II(iterations, eps, A, D, E, edges)
 
         #  Set new adjacency matrix
         self.adjacency = A
@@ -389,7 +385,6 @@ class SpatialNetwork(Network):
                   "distribution and average link distance sequence...")
 
         #  Get number of nodes
-        N = int(self.N)
         #  Get number of links
         E = int(self.n_links)
         #  Collect adjacency and distance matrices
@@ -404,8 +399,7 @@ class SpatialNetwork(Network):
         #  Get edge list
         edges = to_cy(np.array(self.graph.get_edgelist()), NODE)
 
-        _randomly_rewire_geomodel_III(iterations, eps, A, D, E, N, edges,
-                                      degree)
+        _randomly_rewire_geomodel_III(iterations, eps, A, D, E, edges, degree)
 
         #  Set new adjacency matrix
         self.adjacency = A

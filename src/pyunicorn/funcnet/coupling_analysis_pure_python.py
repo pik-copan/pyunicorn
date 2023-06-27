@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2022 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 #
@@ -76,21 +76,19 @@ class CouplingAnalysisPurePython:
         if numpy.ndim(dataarray) == 4:
             (self.total_time, n_lev, n_lat, n_lon) = dataarray.shape
             self.N = n_lev * n_lat * n_lon
-            self.dataarray = numpy.\
-                fastCopyAndTranspose(dataarray.reshape(-1, self.N))
+            self.dataarray = dataarray.reshape(-1, self.N).T.copy()
         if numpy.ndim(dataarray) == 3:
             (self.total_time, n_lat, n_lon) = dataarray.shape
             self.N = n_lat * n_lon
-            self.dataarray = numpy.\
-                fastCopyAndTranspose(dataarray.reshape(-1, self.N))
+            self.dataarray = dataarray.reshape(-1, self.N).T.copy()
 
         elif numpy.ndim(dataarray) == 2:
             (self.total_time, self.N) = dataarray.shape
-            self.dataarray = numpy.fastCopyAndTranspose(dataarray)
+            self.dataarray = dataarray.T.copy()
 
         else:
             print("irregular array shape...")
-            self.dataarray = numpy.fastCopyAndTranspose(dataarray)
+            self.dataarray = dataarray.T.copy()
 
         #  factorials below 10 in a list for permutation patterns
         self.factorial = \

@@ -3,132 +3,22 @@
 * -*- coding: utf-8 -*-
 *
 * This file is part of pyunicorn.
-* Copyright (C) 2008--2022 Jonathan F. Donges and pyunicorn authors
+* Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 * URL: <http://www.pik-potsdam.de/members/donges/software>
 * License: BSD (3-clause)
 */
 
 #include <math.h>
 #include <stdlib.h>
-#include <stdio.h>
-#include <time.h>
-
-// geo_network ================================================================
-
-
-void _randomly_rewire_geomodel_II_fast(int iterations, float eps, short *A,
-    float *D, int E, int N, int *edges)  {
-
-    int i, s, t, k, l, edge1, edge2;
-
-    //  Initialize random number generator
-    srand48(time(0));
-
-    i = 0;
-    while (i < iterations) {
-        //  Randomly choose 2 edges
-        edge1 = floor(drand48() * E);
-        edge2 = floor(drand48() * E);
-
-        s = edges[edge1*N+0];
-        t = edges[edge1*N+1];
-
-        k = edges[edge2*N+0];
-        l = edges[edge2*N+1];
-
-        //  Proceed only if s != k, s != l, t != k, t != l
-        if (s != k && s != l && t != k && t != l) {
-            // Proceed only if the new links {s,l} and {t,k}
-            // do NOT already exist
-            if (A[s*N+l] == 0 && A[t*N+k] == 0) {
-
-                // Proceed only if the link lengths fulfill condition C2
-                if (fabs(D[s*N+t] - D[s*N+l]) < eps &&
-                        fabs(D[t*N+s] - D[t*N+k]) < eps &&
-                            fabs(D[k*N+l] - D[k*N+t]) < eps &&
-                                fabs(D[l*N+k] - D[l*N+s]) < eps ) {
-                    // Now rewire the links symmetrically
-                    // and increase i by 1
-                    A[s*N+t] = A[t*N+s] = 0;
-                    A[k*N+l] = A[l*N+k] = 0;
-                    A[s*N+l] = A[l*N+s] = 1;
-                    A[t*N+k] = A[k*N+t] = 1;
-
-                    edges[edge1*N+0] = s;
-                    edges[edge1*N+1] = l;
-                    edges[edge2*N+0] = k;
-                    edges[edge2*N+1] = t;
-
-                    i++;
-                }
-            }
-        }
-    }
-}
-
-  
-void _randomly_rewire_geomodel_III_fast(int iterations, float eps, short *A,
-    float *D, int E, int N, int *edges, int *degree)  {
-
-    int i, s, t, k, l, edge1, edge2;
-
-    //  Initialize random number generator
-    srand48(time(0));
-
-    i = 0;
-    while (i < iterations) {
-        //  Randomly choose 2 edges
-        edge1 = floor(drand48() * E);
-        edge2 = floor(drand48() * E);
-
-        s = edges[edge1*N+0];
-        t = edges[edge1*N+1];
-
-        k = edges[edge2*N+0];
-        l = edges[edge2*N+1];
-
-        //  Proceed only if s != k, s != l, t != k, t != l
-        if (s != k && s != l && t != k && t != l) {
-            // Proceed only if the new links {s,l} and {t,k}
-            // do NOT already exist
-            if (A[s*N+l] == 0 && A[t*N+k] == 0) {
-                // Proceed only if degree-degree correlations
-                // will not be changed
-                if (degree[s] == degree[k] && degree[t] == degree[l]) {
-                    // Proceed only if the link lengths
-                    // fulfill condition C2
-                    if (fabs(D[s*N+t] - D[s*N+l]) < eps &&
-                            fabs(D[t*N+s] - D[t*N+k]) < eps &&
-                                fabs(D[k*N+l] - D[k*N+t]) < eps &&
-                                    fabs(D[l*N+k] - D[l*N+s]) < eps ) {
-                        // Now rewire the links
-                        // symmetrically and increase i by 1
-                        A[s*N+t] = A[t*N+s] = 0;
-                        A[k*N+l] = A[l*N+k] = 0;
-                        A[s*N+l] = A[l*N+s] = 1;
-                        A[t*N+k] = A[k*N+t] = 1;
-
-                        edges[edge1*N+0] = s;
-                        edges[edge1*N+1] = l;
-                        edges[edge2*N+0] = k;
-                        edges[edge2*N+1] = t;
-
-                        i++;
-                    }
-                }
-            }
-        }
-    }
-}
 
 
 // network ====================================================================
 
 
 void _do_nsi_hamming_clustering_fast(int n2, int nActiveIndices, float mind0,
-    float minwp0, int lastunited, int part1, int part2, float *distances,
-    int *theActiveIndices, float *linkedWeights, float *weightProducts,
-    float *errors, float *result, int *mayJoin)  {
+    float minwp0, int lastunited, int part1, int part2, double *distances,
+    int *theActiveIndices, double *linkedWeights, double *weightProducts,
+    double *errors, double *result, int *mayJoin)  {
 
     
     int i1, i2, i3, c3;
@@ -190,7 +80,7 @@ void _do_nsi_hamming_clustering_fast(int n2, int nActiveIndices, float mind0,
                                        + linkedWeights[c2*n2+part1],
                             lw_part2 = linkedWeights[c1*n2+part2]
                                        + linkedWeights[c2*n2+part2];
-                    distances[c1*n2+c2] +=
+                    distances[c1*n2+c2] += (
                         (fmin(lw_united, weightProducts[c1*n2+lastunited]
                               + weightProducts[c2*n2+lastunited]
                               - lw_united)
@@ -201,7 +91,7 @@ void _do_nsi_hamming_clustering_fast(int n2, int nActiveIndices, float mind0,
                            - errors[c1*n2+part1] - errors[c2*n2+part1])
                         - (fmin(lw_part2,weightProducts[c1*n2+part2]
                                 + weightProducts[c2*n2+part2] -lw_part2)
-                           - errors[c1*n2+part2] - errors[c2*n2+part2]);
+                           - errors[c1*n2+part2] - errors[c2*n2+part2]));
                     d = distances[c1*n2+c2];
                     if ((d<mind) ||
                             ((d==mind) &&
@@ -271,7 +161,7 @@ void _edge_current_flow_betweenness_fast(int N, double Is, double It,
                               It*(R[j*N+t]-R[i*N+t]));
                 } //for s
             } // for t
-            ECFB[i*N+j] += 2.*I/(N*(N-1));
+            ECFB[i*N+j] += (float) (2.* I/(N*(N-1)));
         } // for j
     } // for i
 }

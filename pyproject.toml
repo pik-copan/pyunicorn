@@ -1,8 +1,54 @@
+# This file is part of pyunicorn.
+# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
+# URL: <http://www.pik-potsdam.de/members/donges/software>
+# License: BSD (3-clause)
+
+# package ======================================================================
+
 [build-system]
 requires = [
-    "setuptools>=58",
+    "setuptools>=65",
     "wheel",
-    "Cython>=0.29",
-    "numpy>=1.20"
+    "Cython>=3.0.0b3",
+    "numpy>=1.25"
 ]
 build-backend = "setuptools.build_meta"
+
+# static analysis ==============================================================
+
+[tool.pylint.main]
+ignore = [
+    "CVS", ".cache", ".tox", ".ropeproject", "build", "mpi.py", "progressbar"
+]
+ignore-patterns = ["navigator", "progressbar", "numerics"]
+persistent = false
+jobs = 0
+
+[tool.pylint."messages control"]
+disable = [
+    "duplicate-code", "useless-suppression", "suppressed-message",
+    "import-error", "invalid-name", "no-member", "unused-variable",
+    "unused-argument", "wildcard-import", "no-name-in-module", "fixme",
+    "missing-docstring", "arguments-differ", "unsubscriptable-object",
+    "no-else-return", "keyword-arg-before-vararg", "invalid-unary-operand-type",
+    "import-outside-toplevel", "arguments-out-of-order",
+    "unsupported-assignment-operation"
+]
+
+[tool.pylint.format]
+max-line-length = 79
+max-module-lines = 6000
+
+[tool.pylint.refactoring]
+max-nested-blocks = 6
+
+[tool.pylint.design]
+max-args = 12
+max-locals = 95
+max-branches = 50
+max-statements = 230
+max-attributes = 23
+max-public-methods = 120
+
+[tool.pylint.reports]
+output-format = "colorized"

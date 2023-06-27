@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2022 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 #
@@ -2910,7 +2910,7 @@ class Network:
                 print("Calculating all shortest path lengths...")
 
             # fixed negative numbers to infinity!
-            pl = np.array(self.graph.shortest_paths(), dtype=float)
+            pl = np.array(self.graph.distances(), dtype=float)
             pl[pl < 0] = np.inf
             return pl
         else:
@@ -2918,7 +2918,7 @@ class Network:
                 print("Calculating weighted shortest path lengths...")
 
             return np.array(
-                self.graph.shortest_paths(weights=link_attribute, mode=1))
+                self.graph.distances(weights=link_attribute, mode=1))
 
     def average_path_length(self, link_attribute=None):
         """
@@ -3129,7 +3129,7 @@ class Network:
     #
 
     @cached_const('base', 'btw', 'node betweenness')
-    def betweenness(self, no_big_int=True):
+    def betweenness(self):
         """
         For each node, return its betweenness.
 
@@ -3141,8 +3141,6 @@ class Network:
         Calculating node betweenness...
         array([ 4.5,  1.5,  0. ,  1. ,  3. ,  0. ])
 
-        :arg bool no_big_int: Toggles use of big integer calculation (slow if
-            False).
         :rtype: 1d numpy array [node] of floats >= 0
         """
         #  Return the absolute value of normed tbc, since a bug sometimes
@@ -3152,7 +3150,7 @@ class Network:
         #  This restricts TBC to 0 <= TBC <= 1
         # maxTBC =  ( self.N**2 - 3 * self.N + 2 ) / 2
 
-        return np.abs(np.array(self.graph.betweenness(nobigint=no_big_int)))
+        return np.abs(np.array(self.graph.betweenness()))
 
     # @cached_const('base', 'inter btw', 'interregional betweenness')
     def interregional_betweenness(self, sources=None, targets=None):
@@ -3259,7 +3257,7 @@ class Network:
 
         N, k = self.N, self.degree()
         rN = range(0, N)
-        betweenness_times_w = np.zeros(N, dtype=FIELD)
+        betweenness_times_w = np.zeros(N, dtype=DFIELD)
 
         # initialize node lists:
         is_source = np.zeros(N, dtype=MASK)
@@ -3289,11 +3287,11 @@ class Network:
         for j0 in targets:
             j = int(j0)
 
-            betweenness_to_j = to_cy(w, FIELD)
-            excess_to_j = to_cy(w, FIELD)
+            betweenness_to_j = to_cy(w, DFIELD)
+            excess_to_j = to_cy(w, DFIELD)
             flat_predecessors = np.zeros(E, dtype=NODE)
             _nsi_betweenness(
-                N, E, to_cy(w, WEIGHT), to_cy(k, DEGREE), j,
+                N, to_cy(w, DWEIGHT), to_cy(k, DEGREE), j,
                 betweenness_to_j, excess_to_j, offsets, flat_neighbors,
                 is_source, flat_predecessors)
             del flat_predecessors
@@ -3601,7 +3599,7 @@ class Network:
 
         #  Random walk betweenness has to be calculated for each component
         #  separately Therefore get different components of the graph first
-        components = self.graph.clusters()
+        components = self.graph.connected_components()
 
         #  Print giant component size
         if self.silence_level <= 1:
@@ -3684,7 +3682,7 @@ class Network:
 
         #  Random walk betweenness has to be calculated for each component
         #  separately. Therefore get different components of the graph first
-        components = self.graph.clusters()
+        components = self.graph.connected_components()
 
         #  Print giant component size
         if self.silence_level <= 1:
@@ -3870,7 +3868,7 @@ class Network:
 
         #  Random walk betweenness has to be calculated for each component
         #  separately. Therefore get different components of the graph first
-        components = self.graph.clusters()
+        components = self.graph.connected_components()
 
         #  Print giant component size
         if self.silence_level <= 1:
@@ -4017,7 +4015,7 @@ class Network:
 
         #  Random walk betweenness has to be calculated for each component
         #  separately. Therefore get different components of the graph first
-        components = self.graph.clusters()
+        components = self.graph.connected_components()
 
         #  Print giant component size
         if self.silence_level <= 1:
@@ -4078,7 +4076,7 @@ class Network:
                             print("submitting part from", start_i, "to", end_i)
                         mpi.submit_call(
                             "_mpi_newman_betweenness",
-                            (to_cy(this_A, ADJ), to_cy(V, FIELD),
+                            (to_cy(this_A, ADJ), to_cy(V, DFIELD),
                              N, start_i, end_i),
                             module="pyunicorn", id=index,
                             time_est=this_A.sum())
@@ -4096,7 +4094,7 @@ class Network:
                 else:
                     component_betweenness, start_i, end_i =\
                         _mpi_newman_betweenness(
-                            to_cy(A, ADJ), to_cy(V, FIELD),
+                            to_cy(A, ADJ), to_cy(V, DFIELD),
                             N, 0, N)
 
                 component_betweenness += 2 * (N - 1)
@@ -4178,7 +4176,7 @@ class Network:
 
         #  Random walk betweenness has to be calculated for each component
         #  separately. Therefore get different components of the graph first
-        components = self.graph.clusters()
+        components = self.graph.connected_components()
 
         #  Print giant component size
         if self.silence_level <= 1:
@@ -4204,7 +4202,7 @@ class Network:
                 nodes = comp
 
                 # Extract corresponding area weight vector:
-                w = to_cy(self.node_weights[nodes], WEIGHT)
+                w = to_cy(self.node_weights[nodes], DWEIGHT)
 
                 #  Generate a Network object representing the subgraph
                 subnet = Network(adjacency=A, directed=False, node_weights=w)
@@ -4254,7 +4252,7 @@ class Network:
 
                         mpi.submit_call(
                             "_mpi_nsi_newman_betweenness",
-                            (to_cy(this_A, ADJ), to_cy(V, FIELD), N, w,
+                            (to_cy(this_A, ADJ), to_cy(V, DFIELD), N, w,
                              this_not_adjacent_or_equal, start_i, end_i),
                             module="pyunicorn", id=idx)
 
@@ -4267,7 +4265,7 @@ class Network:
                 else:
                     component_betweenness, start_i, end_i = \
                         _mpi_nsi_newman_betweenness(
-                            to_cy(A, ADJ), to_cy(V, FIELD), N, w,
+                            to_cy(A, ADJ), to_cy(V, DFIELD), N, w,
                             not_adjacent_or_equal, 0, N)
 
                 #  Correction for the fact that we used only s,t not
@@ -4383,7 +4381,7 @@ class Network:
         for i in range(N):
             if self.silence_level == 0:
                 print(i)
-            di = np.array(self.graph.shortest_paths(i), dtype=float).flatten()
+            di = np.array(self.graph.distances(i), dtype=float).flatten()
             di[np.where(di == np.inf)] = replace_inf_by
 
             closeness[i] = 1.0 / di.sum()
