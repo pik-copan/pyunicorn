@@ -26,7 +26,7 @@ import numpy as np
 
 from ..core import InteractingNetworks
 
-from ..core._ext.types import MASK
+from ..core._ext.types import to_cy, MASK, ADJ
 from ._ext.numerics import _visibility_relations_missingvalues, \
     _visibility_relations_no_missingvalues, _visibility_relations_horizontal, \
     _visibility, _retarded_local_clustering, _advanced_local_clustering
@@ -253,7 +253,7 @@ class VisibilityGraph(InteractingNetworks):
         #  Prepare normalization factor
         norm = retarded_degree * (retarded_degree - 1) / 2.
 
-        _retarded_local_clustering(N, A, norm, retarded_clustering)
+        _retarded_local_clustering(N, to_cy(A, ADJ), norm, retarded_clustering)
         return retarded_clustering
 
     def advanced_local_clustering(self):
@@ -274,7 +274,7 @@ class VisibilityGraph(InteractingNetworks):
         #  Prepare normalization factor
         norm = advanced_degree * (advanced_degree - 1) / 2.
 
-        _advanced_local_clustering(N, A, norm, advanced_clustering)
+        _advanced_local_clustering(N, to_cy(A, ADJ), norm, advanced_clustering)
         return advanced_clustering
 
     def retarded_closeness(self):
