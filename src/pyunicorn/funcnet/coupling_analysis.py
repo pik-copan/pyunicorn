@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2022 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 #
@@ -139,7 +139,6 @@ class CouplingAnalysis:
     #  Define methods to estimate similarity measures
     #
     def cross_correlation(self, tau_max=0, lag_mode='max'):
-
         r"""
         Return cross correlation between all pairs of nodes.
 
@@ -209,9 +208,9 @@ class CouplingAnalysis:
 
         for t in range(tau_max + 1):
             #  Remove mean value from time series at each node
-            array[t] = numpy.fastCopyAndTranspose(
+            array[t] = (
                 data[t:t+corr_range, :]
-                - data[t:t+corr_range, :].mean(axis=0).reshape(1, N))
+                - data[t:t+corr_range, :].mean(axis=0).reshape(1, N)).T
 
             #  Normalize the variance of anomalies to one
             array[t] /= array[t].std(axis=1).reshape(N, 1)
@@ -230,7 +229,6 @@ class CouplingAnalysis:
 
     def mutual_information(self, tau_max=0, estimator='knn',
                            knn=10, bins=6, lag_mode='max'):
-
         r"""
         Return mutual information (MI) between all pairs of nodes.
 
@@ -420,7 +418,6 @@ class CouplingAnalysis:
 
     def information_transfer(self, tau_max=0, estimator='knn',
                              knn=10, past=1, cond_mode='ity', lag_mode='max'):
-
         r"""
         Return bivariate information transfer between all pairs of nodes.
 
@@ -581,9 +578,8 @@ class CouplingAnalysis:
                         y = array[1, :]
                         if len(array) > 2:
                             confounds = array[2:, :]
-                            ortho_confounds = linalg.qr(
-                                numpy.fastCopyAndTranspose(confounds),
-                                mode='economic')[0].T
+                            ortho_confounds = linalg.qr(confounds.T.copy(),
+                                                        mode='economic')[0].T
                             x -= numpy.dot(numpy.dot(ortho_confounds, x),
                                            ortho_confounds)
                             y -= numpy.dot(numpy.dot(ortho_confounds, y),
@@ -638,7 +634,6 @@ class CouplingAnalysis:
 
     @staticmethod
     def get_nearest_neighbors(array, xyz, k, standardize=True):
-
         """
         Returns nearest-neighbors for conditional mutual information estimator.
 
@@ -688,7 +683,6 @@ class CouplingAnalysis:
 
     @staticmethod
     def _quantile_bin_array(array, bins=6):
-
         """
         Returns symbolified array with aequi-quantile binning.
 
@@ -723,7 +717,6 @@ class CouplingAnalysis:
 
     @staticmethod
     def bincount_hist(symb_array):
-
         """
         Computes histogram from symbolic array.
 
@@ -761,7 +754,6 @@ class CouplingAnalysis:
 
     @staticmethod
     def create_plogp(T):
-
         """
         Precalculation of p*log(p) needed for entropies.
 

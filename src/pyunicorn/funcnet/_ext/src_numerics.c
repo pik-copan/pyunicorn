@@ -3,12 +3,19 @@
 * -*- coding: utf-8 -*-
 *
 * This file is part of pyunicorn.
-* Copyright (C) 2008--2022 Jonathan F. Donges and pyunicorn authors
+* Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 * URL: <http://www.pik-potsdam.de/members/donges/software>
 * License: BSD (3-clause)
 */
 
 #include <math.h>
+#ifdef _MSC_VER
+    #include <malloc.h>
+    #define ALLOCA(sz) _alloca(sz)
+#else
+    #include <alloca.h>
+    #define ALLOCA(sz) alloca(sz)
+#endif
 
 // coupling_analysis ==========================================================
 
@@ -62,8 +69,8 @@ void _cross_correlation_max_fast(float *array, float *similarity_matrix,
                         argmax = tau;
                     }
                 }
-                similarity_matrix[i*N+j] = max/(float) corr_range;
-                lag_matrix[i*N+j] = tau_max - argmax;
+                similarity_matrix[i*N+j] = (float) (max / corr_range);
+                lag_matrix[i*N+j] = (signed char) (tau_max - argmax);
             }
         }
     }
@@ -88,7 +95,7 @@ void _cross_correlation_all_fast(float *array, float *lagfuncs, int N,
                                array[tau_max*(tau_max+1)+j*N+k];
                 }
                 lagfuncs[i*N+j*N+(tau_max-tau)] =
-                    crossij/(float)(corr_range);
+                    (float) (crossij / corr_range);
             }
         }
     }
@@ -98,9 +105,11 @@ void _cross_correlation_all_fast(float *array, float *lagfuncs, int N,
 void _get_nearest_neighbors_fast(float *array, int T, int dim_x, int dim_y,
         int k, int dim, int *k_xz, int *k_yz, int *k_z)  {
 
-    int i, j, index=0, t, m, n, d, kxz, kyz, kz, indexfound[T];
-    double  dz=0., dxyz=0., dx=0., dy=0., eps, epsmax;
-    double dist[T*dim], dxyzarray[k+1];
+    int i, j, index=0, t, m, n, d, kxz, kyz, kz;
+    int *indexfound = ALLOCA((unsigned int) T * sizeof(int));
+    double dz=0., dxyz=0., dx=0., dy=0., eps, epsmax;
+    double *dist = ALLOCA((unsigned int) (T * dim) * sizeof(double)),
+           *dxyzarray = ALLOCA((unsigned int) (k+1) * sizeof(double));
 
     // Loop over time
     for(i = 0; i < T; i++){
@@ -150,7 +159,7 @@ void _get_nearest_neighbors_fast(float *array, int T, int dim_x, int dim_y,
             dxyzarray[j] = dxyz;
             if ( j > 0 ){
                 // only list of smallest k+1 distances need to be kept!
-                m = fmin(k, j-1);
+                m = (int) fmin(k, j-1);
                 while ( m >= 0 && dxyzarray[m] > dxyz ){
                     dxyzarray[m+1] = dxyzarray[m];
                     m -= 1;

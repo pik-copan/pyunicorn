@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2022 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 #
@@ -147,11 +147,10 @@ class VisibilityGraph(InteractingNetworks):
 
         #  Prepare
         x = self.time_series
-        t = self.timings
         N = len(self.time_series)
         A = np.zeros((N, N), dtype=MASK)
 
-        _visibility_relations_horizontal(x, t, N, A)
+        _visibility_relations_horizontal(x, N, A)
         return A
 
     #

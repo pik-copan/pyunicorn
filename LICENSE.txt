@@ -1,5 +1,5 @@
 
-Copyright (C) 2008-2022, Jonathan F. Donges (Potsdam-Institute for Climate
+Copyright (C) 2008-2023, Jonathan F. Donges (Potsdam-Institute for Climate
 Impact Research), pyunicorn authors
 
 All rights reserved.

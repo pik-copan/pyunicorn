@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2022 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 #
@@ -15,22 +15,24 @@
 # for complex systems science: The pyunicorn package"
 
 cimport cython
-cimport numpy as np
+cimport numpy as cnp
+
+cnp.import_array()
 
 
-ctypedef np.int8_t BOOLTYPE_t
-ctypedef np.int8_t INT8TYPE_t
-ctypedef np.int16_t INT16TYPE_t
-ctypedef np.int32_t INT32TYPE_t
-ctypedef np.int64_t INT64TYPE_t
-ctypedef np.float32_t FLOAT32TYPE_t
-ctypedef np.float64_t FLOAT64TYPE_t
+ctypedef cnp.int8_t BOOLTYPE_t
+ctypedef cnp.int8_t INT8TYPE_t
+ctypedef cnp.int16_t INT16TYPE_t
+ctypedef cnp.int32_t INT32TYPE_t
+ctypedef cnp.int64_t INT64TYPE_t
+ctypedef cnp.float32_t FLOAT32TYPE_t
+ctypedef cnp.float64_t FLOAT64TYPE_t
 
 ctypedef BOOLTYPE_t ADJ_t
 ctypedef BOOLTYPE_t MASK_t
-ctypedef INT32TYPE_t NODE_t
 ctypedef INT8TYPE_t LAG_t
 ctypedef INT16TYPE_t DEGREE_t
+ctypedef INT32TYPE_t NODE_t
 ctypedef FLOAT32TYPE_t WEIGHT_t
 ctypedef FLOAT64TYPE_t DWEIGHT_t
 ctypedef FLOAT32TYPE_t FIELD_t

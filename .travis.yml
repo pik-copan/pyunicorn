@@ -3,20 +3,15 @@ if: branch = master
 
 language: python
 python:
-    - "3.7"
     - "3.8"
     - "3.9"
+    - "3.10"
+    - "3.11"
 
 sudo: false
-dist: xenial
+dist: jammy
 matrix:
     fast_finish: true
-#env:
-    #matrix:
-        #- NUMPY=1.20 SCIPY=1.5
-        #- NUMPY=1.21 SCIPY=1.6
-        #- NUMPY=1.22 SCIPY=1.7
-        #- NUMPY=1.24 SCIPY=1.10
 
 before_install:
     # Python package manager
@@ -24,36 +19,33 @@ before_install:
     - bash miniconda.sh -b -p $HOME/miniconda
     - export PATH="$HOME/miniconda/bin:$PATH"; hash -r
     - conda config --set quiet yes --set always_yes yes --set changeps1 no
-    - conda update -q conda
-    - travis_retry conda update --name base --channel defaults conda
+    - travis_retry conda update -n base -c defaults conda
+    - travis_retry conda update --all
     - conda info -a
 
 install:
     # runtime dependencies
-    - travis_retry conda create -q --name test-env
+    - travis_retry conda create -n test-env
     - eval "$(conda shell.bash hook)"
     - conda activate test-env
-    - conda update --all
-    #- travis_retry conda install python=$TRAVIS_PYTHON_VERSION numpy=$NUMPY scipy=$SCIPY
-    - travis_retry conda install python=$TRAVIS_PYTHON_VERSION numpy scipy
-    - travis_retry conda install --channel conda-forge igraph
-    - travis_retry conda install -c conda-forge tox
-    # testing dependencies
-    # - travis_retry conda install matplotlib basemap sphinx
-    # - travis_retry conda install anaconda networkx
-    # - travis_retry pip install .[testing]
+    - travis_retry conda install -c conda-forge python=$TRAVIS_PYTHON_VERSION
+    - travis_retry conda install -c conda-forge numpy scipy python-igraph
+    - travis_retry conda update  -c conda-forge --all
 
-# before_script:
+    # testing dependencies
+    - travis_retry conda install -c conda-forge tox flake8 pylint pytest-xdist pytest-cov
+    - travis_retry conda install -c conda-forge networkx matplotlib cartopy sphinx
+
+before_script:
     # limit pytest processes within container environment
-    # - sed -i 's/auto/4/' pytest.ini
+    - sed -i 's/-n auto/-n 2/' setup.cfg
 
 script:
     # package
-    - pip install -vv -e .
+    - pip install -vvv -e .
 
     # test suite
-    # (Cython imports dysfunctional inside tox env, unless package installed outside)
-    - tox -vvvv
+    - tox -v
 
 after_success:
     - codecov

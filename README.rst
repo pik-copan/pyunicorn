@@ -2,8 +2,8 @@
 pyunicorn
 =========
 
-.. image:: https://app.travis-ci.com/github/pik-copan/pyunicorn
-    :target: https://app.travis-ci.com/github/pik-copan/pyunicorn
+.. image:: https://app.travis-ci.com/pik-copan/pyunicorn.svg?branch=master
+  :target: https://app.travis-ci.com/github/pik-copan/pyunicorn
 .. image:: https://codecov.io/gh/pik-copan/pyunicorn/branch/master/graph/badge.svg
   :target: https://codecov.io/gh/pik-copan/pyunicorn
 
@@ -87,10 +87,11 @@ using ``Sphinx``::
 
 Dependencies
 ------------
-``pyunicorn`` is implemented in Python 3. The software is written and tested on
-Linux and MacOSX, but it is also in active use on Windows. ``pyunicorn`` relies
-on the following open source or freely available packages, which need to be
-installed on your machine. For exact dependency information, see ``setup.cfg``.
+``pyunicorn`` is implemented in `Python 3 <https://docs.python.org/3/>`_ and
+`Cython 3 <https://cython.org/>`_. The software is written and tested on Linux
+and macOS, but it is also in active use on Windows. ``pyunicorn`` relies on the
+following open source or freely available packages, which need to be installed
+on your machine. For exact dependency information, see ``setup.cfg``.
 
 Required at runtime:
   - `Numpy <http://www.numpy.org/>`_
@@ -125,7 +126,7 @@ required dependencies are installed using your preferred installation method for
 Python libraries. Afterwards, the package can be installed in the standard way
 from the Python Package Index (PyPI).
 
-**Linux, MacOSX**
+**Linux, macOS**
 
 With the ``pip`` package manager::
 
@@ -137,8 +138,9 @@ On Fedora OS, use::
 
 **Windows**
 
-Install the latest version of the `Microsoft C++ Build Tools
-<https://visualstudio.microsoft.com/visual-cpp-build-tools/>`_, and then::
+First follow the instructions for installing the latest version of the
+`Microsoft C++ Build Tools <https://wiki.python.org/moin/WindowsCompilers>`_ in
+order to be able to compile the Cython modules, and then::
 
     $> pip install pyunicorn
 
@@ -167,13 +169,13 @@ The test suite can be run from anywhere in the project tree by issuing::
 To display the defined test environments and target them individually::
 
     $> tox -l
-    $> tox -e units,pylint,docs
+    $> tox -e style,lint,test,docs
 
 To test individual files::
 
-    $> pytest           tests/test_core/TestNetwork.py   # unit tests
-    $> pytest --flake8  pyunicorn/core/network.py        # style
-    $> pylint           pyunicorn/core/network.py        # static code analysis
+    $> flake8 src/pyunicorn/core/network.py     # style check
+    $> pylint src/pyunicorn/core/network.py     # static code analysis
+    $> pytest tests/test_core/TestNetwork.py    # unit tests
 
 
 Mailing list

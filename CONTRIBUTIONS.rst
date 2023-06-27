@@ -1,6 +1,6 @@
 
 **Copyright**
-    |copy| 2008-2022 Jonathan F. Donges and pyunicorn authors.
+    |copy| 2008-2023 Jonathan F. Donges and pyunicorn authors.
 
 **License**
     BSD (3-clause)

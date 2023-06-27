@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2022 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 #
@@ -433,14 +433,12 @@ class RecurrencePlot:
         dim = int(dim)
         tau = int(tau)
         time_series = to_cy(time_series, FIELD)
-
+        if time_series.ndim > 1:
+            time_series = time_series.squeeze(axis=-1)
+        assert time_series.ndim == 1
         n_time = time_series.shape[0]
+
         embedding = np.empty((n_time - (dim - 1) * tau, dim), dtype=FIELD)
-
-        # Reshape time series if it is one dimensional
-        if time_series.ndim == 1:
-            time_series.shape = (time_series.shape[0], -1)
-
         _embed_time_series(n_time, dim, tau, time_series, embedding)
         return embedding
 
@@ -469,7 +467,7 @@ class RecurrencePlot:
 
         entropy = abs(-(P*np.log2(P)).sum())
         if normalize:
-            entropy = entropy / np.log2(np.math.factorial(self.dim))
+            entropy = entropy / np.log2(factorial(self.dim))
 
         return entropy
 
@@ -496,7 +494,7 @@ class RecurrencePlot:
         P = P / ranks.shape[0]
 
         # Calculate factorial of embedding dimension
-        d_fac = np.math.factorial(self.dim)
+        d_fac = factorial(self.dim)
 
         # Calculate permutation entropy
         S_P = abs(-(P*np.log2(P)).sum())

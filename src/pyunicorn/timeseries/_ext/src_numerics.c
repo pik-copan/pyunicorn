@@ -3,7 +3,7 @@
 * -*- coding: utf-8 -*-
 *
 * This file is part of pyunicorn.
-* Copyright (C) 2008--2022 Jonathan F. Donges and pyunicorn authors
+* Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 * URL: <http://www.pik-potsdam.de/members/donges/software>
 * License: BSD (3-clause)
 */
@@ -15,7 +15,7 @@
 void _manhattan_distance_matrix_fast(int ntime_x, int ntime_y, int dim, 
     double *x_embedded, double *y_embedded, float *distance)  {
 
-    float sum;
+    double sum;
     //  Calculate the manhattan distance matrix
     for (int j = 0; j < ntime_x; j++) {
         for (int k = 0; k < ntime_y; k++) {
@@ -24,7 +24,7 @@ void _manhattan_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
                 //  Use manhattan norm
                 sum += fabs(x_embedded[j*ntime_x+l] - y_embedded[k*ntime_y+l]);
             }
-            distance[j*ntime_x+k] = sum;
+            distance[j*ntime_x+k] = (float) sum;
         }
     }
 }
@@ -33,7 +33,7 @@ void _manhattan_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
 void _euclidean_distance_matrix_fast(int ntime_x, int ntime_y, int dim, 
     double *x_embedded, double *y_embedded, float *distance)  {
 
-    float sum, diff;
+    double sum, diff;
     //  Calculate the euclidean distance matrix
     for (int j = 0; j < ntime_x; j++) {
         for (int k = 0; k < ntime_y; k++) {
@@ -44,7 +44,7 @@ void _euclidean_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
                             y_embedded[k*ntime_y+l]);
                 sum += diff * diff;
             }
-            distance[j*ntime_x+k] = sqrt(sum);
+            distance[j*ntime_x+k] = (float) sqrt(sum);
         }
     }
 }
@@ -53,10 +53,9 @@ void _euclidean_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
 void _supremum_distance_matrix_fast(int ntime_x, int ntime_y, int dim, 
     float *x_embedded, float *y_embedded, float *distance)  {
 
-    float temp_diff, diff;
+    double temp_diff, diff;
 
     //  Calculate the supremum distance matrix
-
     for (int j = 0; j < ntime_x; j++) {
         for (int k = 0; k < ntime_y; k++) {
             temp_diff = diff = 0;
@@ -67,7 +66,7 @@ void _supremum_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
                 if (temp_diff > diff)
                     diff = temp_diff;
             }
-            distance[j*ntime_x+k] = diff;
+            distance[j*ntime_x+k] = (float) diff;
         }
     }
 }
@@ -79,7 +78,7 @@ void _test_pearson_correlation_fast(double *original_data, double *surrogates,
     float *correlation, int n_time, int N, double norm)  {
 
     float *p_correlation;
-    double *p_original, *p_surrogates;
+    double *p_original, *p_surrogates, corr;
 
     for (int i = 0; i < N; i++) {
         //  Set pointer to correlation(i,0)
@@ -92,14 +91,15 @@ void _test_pearson_correlation_fast(double *original_data, double *surrogates,
                 //  Set pointer to surrogates(j,0)
                 p_surrogates = surrogates + j*n_time;
 
+                corr = 0;
                 for (int k = 0; k < n_time; k++) {
-                    *p_correlation += (*p_original) * (*p_surrogates);
+                    corr += (*p_original) * (*p_surrogates);
                     //  Set pointer to original_data(i,k+1)
                     p_original++;
                     //  Set pointer to surrogates(j,k+1)
                     p_surrogates++;
                 }
-                *p_correlation *= norm;
+                *p_correlation = (float) (corr * norm);
             }
             p_correlation++;
         }
@@ -145,7 +145,7 @@ void _test_mutual_information_fast(int N, int n_time, int n_bins,
             //  Calculate symbolic trajectories for each time series,
             //  where the symbols are bin numbers.
             if (rescaled < 1.0)
-                *p_symbolic_original = rescaled * n_bins;
+                *p_symbolic_original = (int) (rescaled * n_bins);
             else
                 *p_symbolic_original = n_bins - 1;
 
@@ -161,7 +161,7 @@ void _test_mutual_information_fast(int N, int n_time, int n_bins,
             //  Calculate symbolic trajectories for each time series,
             //  where the symbols are bin numbers.
             if (rescaled < 1.0)
-                *p_symbolic_surrogates = rescaled * n_bins;
+                *p_symbolic_surrogates = (int) (rescaled * n_bins);
             else
                 *p_symbolic_surrogates = n_bins - 1;
 
@@ -246,7 +246,7 @@ void _test_mutual_information_fast(int N, int n_time, int n_bins,
                             if (hpm > 0.0) {
                                 plm = (*p_hist2d) * norm;
                                 if (plm > 0.0)
-                                    *p_mi += plm * log(plm/hpm/hpl);
+                                    *p_mi += (float) (plm * log(plm/hpm/hpl));
                             }
 
                             //  Set pointer to hist_surrogates(j,m+1)

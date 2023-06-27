@@ -1,5 +1,5 @@
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2022 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 #
@@ -12,11 +12,6 @@
 # and J. Kurths, "Unified functional network and nonlinear time series analysis
 # for complex systems science: The pyunicorn package"
 
-import sys
-
-if sys.version_info >= (3, 8):
-    from importlib import metadata
-else:
-    import importlib_metadata as metadata
+from importlib import metadata
 
 __version__ = metadata.version('pyunicorn')

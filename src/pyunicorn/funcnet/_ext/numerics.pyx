@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2022 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 #
@@ -17,9 +17,10 @@
 cimport cython
 
 import numpy as np
-cimport numpy as np
+cimport numpy as cnp
+from numpy cimport ndarray
 
-from ...core._ext.types import LAG, FIELD
+from ...core._ext.types import LAG, FIELD, INT32TYPE
 from ...core._ext.types cimport LAG_t, FIELD_t, INT32TYPE_t
 
 cdef extern from "src_numerics.c":
@@ -36,26 +37,25 @@ cdef extern from "src_numerics.c":
 # coupling_analysis ===========================================================
 
 def _symmetrize_by_absmax(
-    np.ndarray[FIELD_t, ndim=2, mode='c'] similarity_matrix not None,
-    np.ndarray[LAG_t, ndim=2, mode='c'] lag_matrix not None, int N):
+    ndarray[FIELD_t, ndim=2, mode='c'] similarity_matrix not None,
+    ndarray[LAG_t, ndim=2, mode='c'] lag_matrix not None, int N):
 
     _symmetrize_by_absmax_fast(
-        <float*> np.PyArray_DATA(similarity_matrix),
-        <signed char*> np.PyArray_DATA(lag_matrix), N)
+        <FIELD_t*> cnp.PyArray_DATA(similarity_matrix),
+        <LAG_t*> cnp.PyArray_DATA(lag_matrix), N)
 
     return similarity_matrix, lag_matrix
 
 
 def _cross_correlation_max(
-    np.ndarray[FIELD_t, ndim=3, mode='c'] array not None,
+    ndarray[FIELD_t, ndim=3, mode='c'] array not None,
     int N, int tau_max, int corr_range):
 
-    cdef np.ndarray[FIELD_t, ndim=2, mode='c'] similarity_matrix = \
-        np.ones((N, N), dtype=FIELD)
-    cdef np.ndarray[LAG_t, ndim=2, mode='c'] lag_matrix = \
-        np.zeros((N, N), dtype=LAG)
-
     cdef:
+        ndarray[FIELD_t, ndim=2, mode='c'] similarity_matrix = np.ones(
+            (N, N), dtype=FIELD)
+        ndarray[LAG_t, ndim=2, mode='c'] lag_matrix = np.zeros(
+            (N, N), dtype=LAG)
         double crossij, max
         int i,j,tau,k, argmax
 
@@ -77,25 +77,25 @@ def _cross_correlation_max(
                     if abs(crossij) > abs(max):
                         max = crossij
                         argmax = tau
-                similarity_matrix[i,j] = max/(float)(corr_range)
-                lag_matrix[i,j] = tau_max - argmax
+                similarity_matrix[i,j] = <FIELD_t> (max / corr_range)
+                lag_matrix[i,j] = <LAG_t> (tau_max - argmax)
 
     return similarity_matrix, lag_matrix
 
 
 def _cross_correlation_all(
-        np.ndarray[FIELD_t, ndim=3, mode='c'] array not None,
-        int N, int tau_max, int corr_range):
+    ndarray[FIELD_t, ndim=3, mode='c'] array not None,
+    int N, int tau_max, int corr_range):
 
     """
     lagfuncs = np.zeros((N, N, tau_max+1), dtype="float32")
     """
-    cdef np.ndarray[FIELD_t, ndim=3, mode='c'] lagfuncs = \
-        np.zeros((N, N, tau_max+1), dtype=FIELD)
-
     cdef:
         int i, j, tau, k
         double crossij
+        ndarray[FIELD_t, ndim=3, mode='c'] lagfuncs = np.zeros(
+            (N, N, tau_max+1), dtype=FIELD)
+
     # loop over all node pairs, NOT symmetric due to time shifts!
     for i in range(N):
         for j in range(N):
@@ -107,26 +107,27 @@ def _cross_correlation_all(
                 for k in range(corr_range):
                     crossij += array[tau,i,k] * array[tau_max,j,k]
 
-                lagfuncs[i,j,tau_max-tau] = crossij/(float)(corr_range)
+                lagfuncs[i,j,tau_max-tau] = <FIELD_t> (crossij / corr_range)
 
     return lagfuncs
 
 
 def _get_nearest_neighbors(
-        np.ndarray[FIELD_t, ndim=1, mode='c'] array not None,
+        ndarray[FIELD_t, ndim=1, mode='c'] array not None,
         int T, int dim_x, int dim_y, int k, int dim):
 
     # Initialize
-    cdef np.ndarray[INT32TYPE_t, ndim=1, mode='c'] k_xz = \
-            np.zeros((T), dtype='int32')
-    cdef np.ndarray[INT32TYPE_t, ndim=1, mode='c'] k_yz = \
-            np.zeros((T), dtype='int32')
-    cdef np.ndarray[INT32TYPE_t, ndim=1, mode='c'] k_z = \
-            np.zeros((T), dtype='int32')
+    cdef:
+        ndarray[INT32TYPE_t, ndim=1, mode='c'] k_xz = np.zeros(
+            (T), dtype=INT32TYPE)
+        ndarray[INT32TYPE_t, ndim=1, mode='c'] k_yz = np.zeros(
+            (T), dtype=INT32TYPE)
+        ndarray[INT32TYPE_t, ndim=1, mode='c'] k_z = np.zeros(
+            (T), dtype=INT32TYPE)
 
     _get_nearest_neighbors_fast(
-        <float*> np.PyArray_DATA(array), T, dim_x, dim_y, k, dim,
-        <int*> np.PyArray_DATA(k_xz), <int*> np.PyArray_DATA(k_yz),
-        <int*> np.PyArray_DATA(k_z))
+        <FIELD_t*> cnp.PyArray_DATA(array), T, dim_x, dim_y, k, dim,
+        <int*> cnp.PyArray_DATA(k_xz), <int*> cnp.PyArray_DATA(k_yz),
+        <int*> cnp.PyArray_DATA(k_z))
 
     return k_xz, k_yz, k_z

@@ -3,19 +3,23 @@
 * -*- coding: utf-8 -*-
 *
 * This file is part of pyunicorn.
-* Copyright (C) 2008--2022 Jonathan F. Donges and pyunicorn authors
+* Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 * URL: <http://www.pik-potsdam.de/members/donges/software>
 * License: BSD (3-clause)
 */
 
 #include <math.h>
-#if defined(_WIN32) || defined(_WIN64)
-#include <malloc.h>
+#ifdef _MSC_VER
+    #include <malloc.h>
+    #define ALLOCA(sz) _alloca(sz)
+#else
+    #include <alloca.h>
+    #define ALLOCA(sz) alloca(sz)
 #endif
 
 // mutual_info ================================================================
 
-void _cython_calculate_mutual_information(float *anomaly, int n_samples,
+void _mutual_information(float *anomaly, int n_samples,
     int N, int n_bins, float scaling, float range_min, long *symbolic,
     long *hist, long *hist2d, float *mi) {
 
@@ -49,7 +53,7 @@ void _cython_calculate_mutual_information(float *anomaly, int n_samples,
             //  Calculate symbolic trajectories for each time series,
             //  where the symbols are bin numbers.
             if (rescaled < 1.0) {
-                *p_symbolic = (long) rescaled * n_bins;
+                *p_symbolic = (long) (rescaled * n_bins);
             }
             else {
                 *p_symbolic = n_bins - 1;
@@ -125,17 +129,17 @@ void _cython_calculate_mutual_information(float *anomaly, int n_samples,
                     //  Set pointer to hist2d(l,0)
                     p_hist2d = hist2d + ln_bins;
 
-                    hpl = (*p_hist1) * norm;
+                    hpl = (double) (*p_hist1) * norm;
 
                     if (hpl > 0.0) {
                         for (m = 0; m < n_bins; m++) {
 
-                            hpm = (*p_hist2) * norm;
+                            hpm = (double) (*p_hist2) * norm;
 
                             if (hpm > 0.0) {
-                                plm = (*p_hist2d) * norm;
+                                plm = (double) (*p_hist2d) * norm;
                                 if (plm > 0.0) {
-                                    *p_mi += (float) plm * log(plm/hpm/hpl);
+                                    *p_mi += (float) (plm * log(plm/hpm/hpl));
                                 }
                             }
 
@@ -189,15 +193,17 @@ void _cython_calculate_mutual_information(float *anomaly, int n_samples,
 
 // rainfall ===================================================================
 
-void _calculate_corr_fast(int m, int tmax, int *final_mask,
+
+void _spearman_corr(int m, int tmax, int *final_mask,
     float *time_series_ranked, float *spearman_rho)  {
 
     double cov = 0, sigmai = 0, sigmaj = 0, meani = 0, meanj = 0;
     int zerocount = 0;
-    double *rankedi = alloca(tmax * sizeof(double)),
-           *rankedj = alloca(tmax * sizeof(double)),
-           *normalizedi = alloca(tmax * sizeof(double)),
-           *normalizedj = alloca(tmax * sizeof(double));
+    unsigned int T = (unsigned int) tmax;
+    double *rankedi = ALLOCA(T * sizeof(double)),
+           *rankedj = ALLOCA(T * sizeof(double)),
+           *normalizedi = ALLOCA(T * sizeof(double)),
+           *normalizedj = ALLOCA(T * sizeof(double));
 
     for (int i=0; i<m; i++) {
         for (int j=i; j<m; j++) {
@@ -207,8 +213,8 @@ void _calculate_corr_fast(int m, int tmax, int *final_mask,
             }
 
             for (int t=0; t<tmax; t++) {
-                rankedi[t] = time_series_ranked[i*m+t] - zerocount;
-                rankedj[t] = time_series_ranked[j*m+t] - zerocount;
+                rankedi[t] = time_series_ranked[i*m+t] - (float) zerocount;
+                rankedj[t] = time_series_ranked[j*m+t] - (float) zerocount;
             }
 
             for (int t=0; t<tmax; t++) {
@@ -231,7 +237,7 @@ void _calculate_corr_fast(int m, int tmax, int *final_mask,
                 }
             }
             spearman_rho[i*m+j] = spearman_rho[j*m+i] =
-                (float) cov/sqrt(sigmai*sigmaj);
+                (float) (cov/sqrt(sigmai*sigmaj));
             meani = 0;
             meanj = 0;
             cov = 0;

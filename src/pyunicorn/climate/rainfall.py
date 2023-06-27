@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2022 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 #
@@ -26,7 +26,7 @@ Provides classes for generating and analyzing complex climate networks.
 # import numpy as np
 
 from ..core._ext.types import to_cy, MASK, FIELD
-from ._ext.numerics import _calculate_corr
+from ._ext.numerics import spearman_corr
 
 #  Import cnTsonisClimateNetwork for TsonisClimateNetwork class
 from .climate_network import ClimateNetwork
@@ -179,7 +179,7 @@ class RainfallClimateNetwork(ClimateNetwork):
             print("Calculating Spearman-Rho-Matrix using Cython...")
 
         # Return the correlation matrix
-        return self.calculate_corr(final_mask, anomaly)
+        return self.spearman_corr(final_mask, anomaly)
 
     @staticmethod
     def calculate_rainfall(observable, scale_fac, offset):
@@ -262,7 +262,7 @@ class RainfallClimateNetwork(ClimateNetwork):
         rank_time_series = anomaly.argsort(axis=1).argsort(axis=1) + 1.0
         return rank_time_series
 
-    def calculate_corr(self, final_mask, anomaly):
+    def spearman_corr(self, final_mask, anomaly):
         """
         Return the Spearman Correlation Matrix at zero lag.
 
@@ -281,5 +281,5 @@ class RainfallClimateNetwork(ClimateNetwork):
         # Get rank time series
         time_series_ranked = self.rank_time_series(anomaly)
         m, tmax = anomaly.shape
-        return _calculate_corr(
+        return spearman_corr(
             m, tmax, to_cy(final_mask, MASK), to_cy(time_series_ranked, FIELD))
