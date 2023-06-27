@@ -23,7 +23,7 @@ import numpy as np
 import numpy.random as rd
 randint = rd.randint
 
-from ...core._ext.types import NODE, FIELD
+from ...core._ext.types import NODE, DEGREE, FIELD, DFIELD
 from ...core._ext.types cimport \
     ADJ_t, MASK_t, NODE_t, DEGREE_t, WEIGHT_t, DWEIGHT_t, FIELD_t, DFIELD_t
 
@@ -262,9 +262,9 @@ def _nsi_cross_transitivity(
 
 def _cross_local_clustering(
     np.ndarray[ADJ_t, ndim=2] A,
-    np.ndarray[FIELD_t, ndim=1] norm,
+    np.ndarray[DFIELD_t, ndim=1] norm,
     np.ndarray[NODE_t, ndim=1] nodes1, np.ndarray[NODE_t, ndim=1] nodes2,
-    np.ndarray[FIELD_t, ndim=1] cross_clustering):
+    np.ndarray[DFIELD_t, ndim=1] cross_clustering):
 
     cdef:
         unsigned int m = len(nodes1), n = len(nodes2)
@@ -290,15 +290,15 @@ def _cross_local_clustering(
 
 def _nsi_cross_local_clustering(
     np.ndarray[ADJ_t, ndim=2] A,
-    np.ndarray[FIELD_t, ndim=1] nsi_cc,
+    np.ndarray[DFIELD_t, ndim=1] nsi_cc,
     np.ndarray[NODE_t, ndim=1] nodes1, np.ndarray[NODE_t, ndim=1] nodes2,
-    np.ndarray[WEIGHT_t, ndim=1] node_weights):
+    np.ndarray[DWEIGHT_t, ndim=1] node_weights):
 
     cdef:
         unsigned int m = len(nodes1), n = len(nodes2)
         unsigned int v, p, q
         NODE_t node_v, node_p, node_q
-        WEIGHT_t weight_p
+        DWEIGHT_t weight_p
 
     for v in range(m):
         node_v = nodes1[v]
@@ -324,8 +324,8 @@ def _local_cliquishness_4thorder(
         NODE_t node1, node2, node3, degree_i, order = 4
         long counter
         np.ndarray[NODE_t, ndim=1] neighbors = np.zeros(N, dtype=NODE)
-        np.ndarray[FIELD_t, ndim=1] local_cliquishness = \
-            np.zeros(N, dtype=FIELD)
+        np.ndarray[DFIELD_t, ndim=1] local_cliquishness = \
+            np.zeros(N, dtype=DFIELD)
 
     # Iterate over all nodes
     for i in range(N):
@@ -349,8 +349,8 @@ def _local_cliquishness_4thorder(
                             node3 = neighbors[l]
                             if A[node2, node3] == 1 and A[node3, node1] == 1:
                                 counter += 1
-            local_cliquishness[i] = float(counter) / degree_i /\
-                (degree_i - 1) / (degree_i - 2)
+            local_cliquishness[i] = counter /\
+                (degree_i * (degree_i - 1) * (degree_i - 2))
     return local_cliquishness
 
 
@@ -362,8 +362,8 @@ def _local_cliquishness_5thorder(
         NODE_t j, node1, node2, node3, node4, degree_i, order = 5
         long counter
         np.ndarray[NODE_t, ndim=1] neighbors = np.zeros(N, dtype=NODE)
-        np.ndarray[FIELD_t, ndim=1] local_cliquishness = \
-            np.zeros(N, dtype=FIELD)
+        np.ndarray[DFIELD_t, ndim=1] local_cliquishness = \
+            np.zeros(N, dtype=DFIELD)
 
     # Iterate over all nodes
     for i in range(N):
@@ -392,16 +392,16 @@ def _local_cliquishness_5thorder(
                                         A[node2, node4] == 1 and
                                         A[node3, node4] == 1):
                                         counter += 1
-            local_cliquishness[i] = float(counter) / degree_i /\
-                (degree_i - 1) / (degree_i - 2) / (degree_i -3)
+            local_cliquishness[i] = counter /\
+                (degree_i * (degree_i - 1) * (degree_i - 2) * (degree_i -3))
     return local_cliquishness
 
 
 def _nsi_betweenness(
-    int N, int E, np.ndarray[WEIGHT_t, ndim=1] w,
+    int N, int E, np.ndarray[DWEIGHT_t, ndim=1] w,
     np.ndarray[DEGREE_t, ndim=1] k, int j,
-    np.ndarray[FIELD_t, ndim=1] betweenness_to_j,
-    np.ndarray[FIELD_t, ndim=1] excess_to_j,
+    np.ndarray[DFIELD_t, ndim=1] betweenness_to_j,
+    np.ndarray[DFIELD_t, ndim=1] excess_to_j,
     np.ndarray[NODE_t, ndim=1] offsets,
     np.ndarray[NODE_t, ndim=1] flat_neighbors,
     np.ndarray[MASK_t, ndim=1] is_source,
@@ -410,12 +410,12 @@ def _nsi_betweenness(
     cdef:
         unsigned int qi, oi, queue_len, l_index, ql
         NODE_t l, i, next_d, dl, ol, fi
-        FIELD_t base_factor
+        DFIELD_t base_factor
         np.ndarray[NODE_t, ndim=1] distances_to_j =\
             2 * N * np.ones(N, dtype=NODE)
         np.ndarray[NODE_t, ndim=1] n_predecessors = np.zeros(N, dtype=NODE)
         np.ndarray[NODE_t, ndim=1] queue = np.zeros(N, dtype=NODE)
-        np.ndarray[FIELD_t, ndim=1] multiplicity_to_j = np.zeros(N, dtype=FIELD)
+        np.ndarray[DFIELD_t, ndim=1] multiplicity_to_j = np.zeros(N, dtype=DFIELD)
 
     # init distances to j and queue of nodes by distance from j
     for l in range(N):
@@ -481,7 +481,7 @@ def _nsi_betweenness(
 
 
 def _mpi_newman_betweenness(
-    np.ndarray[ADJ_t, ndim=2] this_A, np.ndarray[FIELD_t, ndim=2] V,
+    np.ndarray[ADJ_t, ndim=2] this_A, np.ndarray[DFIELD_t, ndim=2] V,
     int N, int start_i, int end_i):
     """
     This function does the outer loop for a certain range start_i-end_i of
@@ -491,11 +491,11 @@ def _mpi_newman_betweenness(
 
     cdef:
         int i_rel, j, s, t, i_abs
-        float sum_s, sum_j, Vis_minus_Vjs
+        double sum_s, sum_j, Vis_minus_Vjs
 
         int this_N = end_i - start_i
-        np.ndarray[FIELD_t, ndim=1] this_betweenness = \
-            np.zeros(this_N, dtype=FIELD)
+        np.ndarray[DFIELD_t, ndim=1] this_betweenness = \
+            np.zeros(this_N, dtype=DFIELD)
 
     for i_rel in range(this_N):
         # correct i index for V matrix
@@ -519,16 +519,16 @@ def _mpi_newman_betweenness(
 
 def _mpi_nsi_newman_betweenness(
     np.ndarray[ADJ_t, ndim=2] this_A,
-    np.ndarray[FIELD_t, ndim=2] V, int N, np.ndarray[WEIGHT_t, ndim=1] w,
+    np.ndarray[DFIELD_t, ndim=2] V, int N, np.ndarray[DWEIGHT_t, ndim=1] w,
     np.ndarray[MASK_t, ndim=2] this_not_adj_or_equal, int start_i, int end_i):
 
     cdef:
         int i_rel, j, s, t, i_abs
-        float sum_s, sum_j, Vis_minus_Vjs
+        double sum_s, sum_j, Vis_minus_Vjs
 
         int this_N = end_i - start_i
-        np.ndarray[FIELD_t, ndim=1] this_betweenness =\
-            np.zeros(this_N, dtype=FIELD)
+        np.ndarray[DFIELD_t, ndim=1] this_betweenness =\
+            np.zeros(this_N, dtype=DFIELD)
 
     for i_rel in range(this_N):
         i_abs = i_rel + start_i
@@ -552,14 +552,14 @@ def _mpi_nsi_newman_betweenness(
 def _do_nsi_clustering_I(
     int n_cands, np.ndarray[NODE_t, ndim=1] cands,
     np.ndarray[DEGREE_t, ndim=1] D_cluster,
-    np.ndarray[FIELD_t, ndim=1] w, double d0,
+    np.ndarray[DFIELD_t, ndim=1] w, double d0,
     np.ndarray[NODE_t, ndim=1] D_firstpos, np.ndarray[NODE_t, ndim=1] D_nextpos,
     int N, dict dict_D, dict dict_Delta):
 
     cdef:
         int ca, ij, i, j, posh, h, ih, jh
-        float wi, wj, wjd0, Delta_inc, wh, Dih, Djh, Dch_wc, Dch_wc_Dih_wi, \
-            Dch_wc_Dih_wj, whd0, Dch_wc_whd0
+        double wi, wj, wc, wjd0, Delta_inc, wh, whd0, Dih, Djh, Dch_wc, \
+            Dch_wc_Dih_wi, Dch_wc_Djh_wj, Dch_wc_whd0
 
     # loop thru candidates:
     for ca in range(n_cands):
@@ -620,13 +620,13 @@ def _do_nsi_clustering_I(
 
 def _do_nsi_clustering_II(int a, int b,
     np.ndarray[DEGREE_t, ndim=1] D_cluster,
-    np.ndarray[FIELD_t, ndim=1] w, double d0,
+    np.ndarray[DFIELD_t, ndim=1] w, double d0,
     np.ndarray[NODE_t, ndim=1] D_firstpos, np.ndarray[NODE_t, ndim=1] D_nextpos,
     int N, dict dict_D, dict dict_Delta):
 
     cdef:
-        float wa = w[a], wb = w[b], wc = wa+wb, wad0 = wa*d0, wbd0 = wb*d0
-        float wa1, wa1sq, wa1d0, Da1a1, Da1a, Da1b, Da1c, wb1, wb1d0, wb1sq, \
+        double  wa = w[a], wb = w[b], wc = wa+wb, wad0 = wa*d0, wbd0 = wb*d0, \
+                wa1, wa1sq, wa1d0, Da1a1, Da1a, Da1b, Da1c, wb1, wb1d0, wb1sq, \
                 wa1b1, wc1, Db1b1, Da1b1, Dc1c1_wc1sq, \
                 Dc1c1_wc1sq_Da1a1_wa1sq, Dc1c1_wc1sq_Da1a1_wb1sq, \
                 Dc1c1_wc1sq_Da1b1_wa1b1, Delta_new, wc2, Da1c2, Db1c2, \

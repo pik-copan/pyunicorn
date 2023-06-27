@@ -3259,7 +3259,7 @@ class Network:
 
         N, k = self.N, self.degree()
         rN = range(0, N)
-        betweenness_times_w = np.zeros(N, dtype=FIELD)
+        betweenness_times_w = np.zeros(N, dtype=DFIELD)
 
         # initialize node lists:
         is_source = np.zeros(N, dtype=MASK)
@@ -3289,11 +3289,11 @@ class Network:
         for j0 in targets:
             j = int(j0)
 
-            betweenness_to_j = to_cy(w, FIELD)
-            excess_to_j = to_cy(w, FIELD)
+            betweenness_to_j = to_cy(w, DFIELD)
+            excess_to_j = to_cy(w, DFIELD)
             flat_predecessors = np.zeros(E, dtype=NODE)
             _nsi_betweenness(
-                N, E, to_cy(w, WEIGHT), to_cy(k, DEGREE), j,
+                N, E, to_cy(w, DWEIGHT), to_cy(k, DEGREE), j,
                 betweenness_to_j, excess_to_j, offsets, flat_neighbors,
                 is_source, flat_predecessors)
             del flat_predecessors
@@ -4078,7 +4078,7 @@ class Network:
                             print("submitting part from", start_i, "to", end_i)
                         mpi.submit_call(
                             "_mpi_newman_betweenness",
-                            (to_cy(this_A, ADJ), to_cy(V, FIELD),
+                            (to_cy(this_A, ADJ), to_cy(V, DFIELD),
                              N, start_i, end_i),
                             module="pyunicorn", id=index,
                             time_est=this_A.sum())
@@ -4096,7 +4096,7 @@ class Network:
                 else:
                     component_betweenness, start_i, end_i =\
                         _mpi_newman_betweenness(
-                            to_cy(A, ADJ), to_cy(V, FIELD),
+                            to_cy(A, ADJ), to_cy(V, DFIELD),
                             N, 0, N)
 
                 component_betweenness += 2 * (N - 1)
@@ -4204,7 +4204,7 @@ class Network:
                 nodes = comp
 
                 # Extract corresponding area weight vector:
-                w = to_cy(self.node_weights[nodes], WEIGHT)
+                w = to_cy(self.node_weights[nodes], DWEIGHT)
 
                 #  Generate a Network object representing the subgraph
                 subnet = Network(adjacency=A, directed=False, node_weights=w)
@@ -4254,7 +4254,7 @@ class Network:
 
                         mpi.submit_call(
                             "_mpi_nsi_newman_betweenness",
-                            (to_cy(this_A, ADJ), to_cy(V, FIELD), N, w,
+                            (to_cy(this_A, ADJ), to_cy(V, DFIELD), N, w,
                              this_not_adjacent_or_equal, start_i, end_i),
                             module="pyunicorn", id=idx)
 
@@ -4267,7 +4267,7 @@ class Network:
                 else:
                     component_betweenness, start_i, end_i = \
                         _mpi_nsi_newman_betweenness(
-                            to_cy(A, ADJ), to_cy(V, FIELD), N, w,
+                            to_cy(A, ADJ), to_cy(V, DFIELD), N, w,
                             not_adjacent_or_equal, 0, N)
 
                 #  Correction for the fact that we used only s,t not

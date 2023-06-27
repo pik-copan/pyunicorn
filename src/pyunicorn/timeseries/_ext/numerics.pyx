@@ -125,12 +125,12 @@ def _embed_time_series_array(
 
 def _recurrence_plot(
     int n_time, int dimension, float threshold,
-    np.ndarray[FIELD_t, ndim=2] embedding,
+    np.ndarray[DFIELD_t, ndim=2] embedding,
     np.ndarray[ADJ_t, ndim=2] R):
 
     cdef:
         unsigned int j, k, l, T = n_time, D = dimension
-        FIELD_t diff
+        DFIELD_t diff
 
     for j in range(T):
         # Ignore the main diagonal, since every sample is neighbor of itself
@@ -635,8 +635,8 @@ def _diagline_dist_rqa(
 
 
 def _rejection_sampling(
-    np.ndarray[FIELD_t, ndim=1] dist,
-    np.ndarray[FIELD_t, ndim=1] resampled_dist, int N, int M):
+    np.ndarray[DFIELD_t, ndim=1] dist,
+    np.ndarray[DFIELD_t, ndim=1] resampled_dist, int N, int M):
 
     cdef:
         int i = 0, x
@@ -982,8 +982,8 @@ def _visibility(
 
 def _retarded_local_clustering(
     int N, np.ndarray[ADJ_t, ndim=2] A,
-    np.ndarray[FIELD_t, ndim=1] norm,
-    np.ndarray[FIELD_t, ndim=1] retarded_clustering):
+    np.ndarray[DFIELD_t, ndim=1] norm,
+    np.ndarray[DFIELD_t, ndim=1] retarded_clustering):
 
     cdef:
         int i, j, k
@@ -1007,8 +1007,8 @@ def _retarded_local_clustering(
 
 def _advanced_local_clustering(
     int N, np.ndarray[ADJ_t, ndim=2] A,
-    np.ndarray[FIELD_t, ndim=1] norm,
-    np.ndarray[FIELD_t, ndim=1] advanced_clustering):
+    np.ndarray[DFIELD_t, ndim=1] norm,
+    np.ndarray[DFIELD_t, ndim=1] advanced_clustering):
 
     cdef:
         int i, j, k
