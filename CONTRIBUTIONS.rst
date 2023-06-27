@@ -30,8 +30,11 @@
     - Aljoscha Rheinwalt
     - Hannes Kutza
     - `Boyan Beronov <beronov@pik-potsdam.de>`_ (restructured and updated
-      codebase and documentation, consolidated packaging and CI, prepared
-      Cythonization and migration to Python 3, managed open-sourcing)
+      codebase and documentation, consolidated original packaging and CI,
+      prepared Cythonization and migration to Python 3, managed open-sourcing,
+      migrated to PEP 517/518 package format, introduced semantic Cython type
+      aliases, added MSVC compatibility for Cython/C extensions, maintained
+      compilation and testing configuration)
     - `Paul Schultz <pschultz@pik-potsdam.de>`_, `Stefan Schinkel
       <mail@dreeg.org>`_ (supplied ``resistive_network`` and corresponding
       tests)

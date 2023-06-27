@@ -181,5 +181,3 @@ To test individual files::
 Mailing list
 ------------
 Not implemented yet.
-
-test travis
