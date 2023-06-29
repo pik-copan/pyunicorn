@@ -26,7 +26,7 @@ cimport numpy as cnp
 from numpy cimport ndarray
 randint = rd.randint
 
-from ...core._ext.types import NODE, FIELD, DFIELD
+from ...core._ext.types import MASK, NODE, FIELD, DFIELD
 from ...core._ext.types cimport \
     ADJ_t, MASK_t, NODE_t, DEGREE_t, LAG_t, FIELD_t, DFIELD_t
 
@@ -978,11 +978,11 @@ def _visibility(
     i = min(node1,node2)
     j = max(node1,node2)
 
-    test = np.zeros((j-(i+1)), dtype=np.uint8)
+    test = np.zeros((j-(i+1)), dtype=MASK)
     for k in range(i+1,j):
         test[k-(i+1)] = np.less((val[k]-val[i]) / (time[k]-time[i]),
                                 (val[j]-val[i]) / (time[j]-time[i]))
-    return np.invert(np.bool(np.sum(test)))
+    return np.invert(bool(np.sum(test)))
 
 
 def _retarded_local_clustering(
