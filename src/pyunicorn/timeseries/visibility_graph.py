@@ -117,7 +117,8 @@ class VisibilityGraph(InteractingNetworks):
 
     def visibility_relations(self):
         """
-        TODO
+        Returns visibility between all nodes of self.timeseries
+        :rtype: 2D array of MASK
         """
         if self.silence_level <= 1:
             print("Calculating visibility relations...")
@@ -140,7 +141,8 @@ class VisibilityGraph(InteractingNetworks):
     # FIXME: There is no option for missing values
     def visibility_relations_horizontal(self):
         """
-        TODO
+        Returns horizontal visibility between all nodes of self.timeseries
+        :rtype: 2D array of MASK
         """
         if self.silence_level <= 1:
             print("Calculating horizontal visibility relations...")
