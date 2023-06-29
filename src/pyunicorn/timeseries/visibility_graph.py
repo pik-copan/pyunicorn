@@ -26,7 +26,7 @@ import numpy as np
 
 from ..core import InteractingNetworks
 
-from ..core._ext.types import to_cy, MASK, ADJ
+from ..core._ext.types import to_cy, ADJ, MASK, FIELD
 from ._ext.numerics import _visibility_relations_missingvalues, \
     _visibility_relations_no_missingvalues, _visibility_relations_horizontal, \
     _visibility, _retarded_local_clustering, _advanced_local_clustering
@@ -78,13 +78,13 @@ class VisibilityGraph(InteractingNetworks):
            :attr:`time_series`."""
 
         #  Store time series
-        self.time_series = time_series.copy().astype("float32")
+        self.time_series = to_cy(time_series, FIELD)
         """The time series from which the visibility graph is constructed."""
 
         if timings is not None:
-            timings = timings.copy().astype("float32")
+            timings = to_cy(timings, FIELD)
         else:
-            timings = np.arange(len(time_series), dtype="float32")
+            timings = np.arange(len(time_series), dtype=FIELD)
 
         #  Store timings
         self.timings = timings
