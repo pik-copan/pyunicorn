@@ -171,9 +171,11 @@ class VisibilityGraph(InteractingNetworks):
         elif abs(node2-node1) == 1:
             return True
         else:
-            time = self.timings
-            val = self.time_series
-            return _visibility(time, val, node1, node2)
+            x = self.time_series
+            t = self.timings
+            v = 0
+            _visibility(x, t, node1, node2, v)
+            return bool(v)
 
     def visibility_horizontal(self, node1, node2):
         """
