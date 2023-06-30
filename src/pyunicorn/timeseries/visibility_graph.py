@@ -138,10 +138,10 @@ class VisibilityGraph(InteractingNetworks):
 
         return A
 
+    # FIXME: There is no option for missing values
     def visibility_relations_horizontal(self):
         """
         Returns horizontal visibility between all nodes of self.timeseries
-        FIXME: There is no option for missing values
         :rtype: 2D array of MASK
         """
         if self.silence_level <= 1:
