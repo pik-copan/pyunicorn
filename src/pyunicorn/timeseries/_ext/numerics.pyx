@@ -26,7 +26,7 @@ cimport numpy as cnp
 from numpy cimport ndarray
 randint = rd.randint
 
-from ...core._ext.types import NODE, FIELD, DFIELD
+from ...core._ext.types import MASK, NODE, FIELD, DFIELD
 from ...core._ext.types cimport \
     ADJ_t, MASK_t, NODE_t, DEGREE_t, LAG_t, FIELD_t, DFIELD_t
 
@@ -888,7 +888,7 @@ def _twin_surrogates_r(int n_surrogates, int N, int dim, twins,
     return surrogates
 
 
-# visibitly graph =============================================================
+# visibility graph =============================================================
 
 
 def _visibility_relations_missingvalues(
@@ -968,21 +968,25 @@ def _visibility_relations_horizontal(
 
 
 def _visibility(
-        ndarray[FIELD_t, ndim=1] time,
-        ndarray[FIELD_t, ndim=1] val, int node1, int node2):
+        ndarray[FIELD_t, ndim=1] x,
+        ndarray[FIELD_t, ndim=1] t, int node1, int node2, int v):
 
     cdef:
         int i, j, k
-        ndarray[MASK_t, ndim=1] test
+        FIELD_t test
 
     i = min(node1,node2)
     j = max(node1,node2)
 
-    test = np.zeros((j-(i+1)), dtype=np.uint8)
-    for k in range(i+1,j):
-        test[k-(i+1)] = np.less((val[k]-val[i]) / (time[k]-time[i]),
-                                (val[j]-val[i]) / (time[j]-time[i]))
-    return np.invert(np.bool(np.sum(test)))
+    k = i + 1
+
+    test = (x[j] - x[i]) / (t[j] - t[i])
+
+    while (x[k] - x[i]) / (t[k] - t[i]) < test and k < j:
+        k += 1
+
+    if k == j:
+        v = 1
 
 
 def _retarded_local_clustering(
