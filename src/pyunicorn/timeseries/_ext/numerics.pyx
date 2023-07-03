@@ -967,28 +967,6 @@ def _visibility_relations_horizontal(
         A[i, i+1] = A[i+1, i] = 1
 
 
-def _visibility(
-        ndarray[FIELD_t, ndim=1] x,
-        ndarray[FIELD_t, ndim=1] t, int node1, int node2, int v):
-
-    cdef:
-        int i, j, k
-        FIELD_t test
-
-    i = min(node1,node2)
-    j = max(node1,node2)
-
-    k = i + 1
-
-    test = (x[j] - x[i]) / (t[j] - t[i])
-
-    while (x[k] - x[i]) / (t[k] - t[i]) < test and k < j:
-        k += 1
-
-    if k == j:
-        v = 1
-
-
 def _retarded_local_clustering(
     int N, ndarray[ADJ_t, ndim=2] A,
     ndarray[DFIELD_t, ndim=1] norm,

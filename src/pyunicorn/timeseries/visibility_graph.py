@@ -166,33 +166,7 @@ class VisibilityGraph(InteractingNetworks):
         :arg int node2: node index of node 2
         :rtype: bool
         """
-        if node1 == node2:
-            return False
-        elif abs(node2-node1) == 1:
-            return True
-        else:
-            x = self.time_series
-            t = self.timings
-            v = 0
-            _visibility(x, t, node1, node2, v)
-            return bool(v)
-
-    def visibility_horizontal(self, node1, node2):
-        """
-        Returns the horizontal visibility between node 1 and 2 as boolean.
-        :arg int node1: node index of node 1
-        :arg int node2: node index of node 2
-        :rtype: bool
-        """
-        if node1 == node2:
-            return False
-        else:
-            val = self.time_series
-            i, j = min(node1, node2), max(node1, node2)
-            if np.sum(~(val[i+1:j] < min(val[i], val[j]))):
-                return False
-            else:
-                return True
+        return self.adjacency[node1, node2]
 
     def visibility_single(self, node):
         """
@@ -201,20 +175,7 @@ class VisibilityGraph(InteractingNetworks):
         :arg int node: node index of the node
         :rtype: 1D array of bool
         """
-        time_series = self.time_series
-        testfun = lambda j: self.visibility(node, j)
-        return np.array(map(testfun, range(len(time_series[1]))))
-
-    def visibility_horizontal_single(self, node):
-        """
-        Returns the horizontal visibility between all nodes of self.time_series
-        and node as array of booleans.
-        :arg int node: node index of the node
-        :rtype: 1D array of bool
-        """
-        time_series = self.time_series
-        testfun = lambda j: self.visibility_horizontal(node, j)
-        return np.array(map(testfun, range(len(time_series[1]))))
+        return self.adjacency[node, :]
 
     def retarded_degree(self):
         """Return number of neighbors in the past of a node."""
