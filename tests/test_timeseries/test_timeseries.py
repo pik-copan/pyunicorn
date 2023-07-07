@@ -208,30 +208,34 @@ def create_test_timeseries():
 def testVisibility():
     x, t = create_test_timeseries()
     vg = VisibilityGraph(x, timings=t)
+    A = vg.adjacency
 
-    assert vg.adjacency.shape == (len(x), len(x)) 
-    assert vg.adjacency.dtype == np.int16 
+    assert A.shape == (len(x), len(x))
+    assert A.dtype == np.int16
 
 
 def testVisibilityHorizontal():
     x, t = create_test_timeseries()
     vg = VisibilityGraph(x, timings=t, horizontal=True)
+    A = vg.adjacency
 
-    assert vg.adjacency.shape == (len(x), len(x))
-    assert vg.adjacency.dtype == np.int16
+    assert A.shape == (len(x), len(x))
+    assert A.dtype == np.int16
 
 
 def testRetardedLocalClustering():
     x, t = create_test_timeseries()
     vg = VisibilityGraph(x, timings=t)
+    C_ret = vg.retarded_local_clustering()
 
-    assert vg.retarded_local_clustering().shape == x.shape
-    assert vg.retarded_local_clustering().dtype == DFIELD
+    assert C_ret.shape == x.shape
+    assert C_ret.dtype == DFIELD
 
 
 def testAdvancedLocalClustering():
     x, t = create_test_timeseries()
     vg = VisibilityGraph(x, timings=t)
+    C_adv = vg.advanced_local_clustering()
 
-    assert vg.advanced_local_clustering().shape == x.shape
-    assert vg.advanced_local_clustering().dtype == DFIELD
+    assert C_adv.shape == x.shape
+    assert C_adv.dtype == DFIELD
