@@ -24,15 +24,16 @@ multivariate data and generating time series surrogates.
 #  Imports
 #
 
-#  Import NumPy for the array object and fast numerics
 import numpy as np
 
-#  Import netCDF4 for a NetCDF4 reader
 try:
-    import netCDF4
+    from h5netcdf.legacyapi import Dataset
 except ImportError:
-    print("pyunicorn: Package netCDF4 could not be loaded. Some "
-          "functionality in class Data might not be available!")
+    try:
+        from netCDF4 import Dataset
+    except ImportError:
+        print("pyunicorn: Packages netCDF4 or h5netcdf could not be loaded. "
+              "Some functionality in class Data might not be available!")
 
 
 from .geo_grid import GeoGrid
@@ -278,8 +279,8 @@ class Data:
         # Initialize dictionary of results
         res = {}
 
-        # Open netCDF3 or netCDF4 file
-        f = netCDF4.Dataset(file_name, "r")
+        # Open netCDF4 file
+        f = Dataset(file_name, "r")
 
         # Create reference to observable
         observable = f.variables[observable_name][:].astype("float32")
@@ -388,8 +389,8 @@ class Data:
 
     def print_data_info(self):
         """Print information on the data encapsulated by the Data object."""
-        # Open netCDF3 or netCDF4 file
-        f = netCDF4.Dataset(self.file_name, "r")
+        # Open netCDF4 file
+        f = Dataset(self.file_name, "r")
         print("File format:", f.file_format)
         print("Global attributes:")
         for name in f.ncattrs():
