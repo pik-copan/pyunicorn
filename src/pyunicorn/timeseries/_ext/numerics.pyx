@@ -32,11 +32,11 @@ from ...core._ext.types cimport \
 
 cdef extern from "src_numerics.c":
     void _manhattan_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
-        double *x_embedded, double *y_embedded, float *distance)
+        double *x_embedded, double *y_embedded, double *distance)
     void _euclidean_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
-        double *x_embedded, double *y_embedded, float *distance)
+        double *x_embedded, double *y_embedded, double *distance)
     void _supremum_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
-        float *x_embedded, float *y_embedded, float *distance)
+        double *x_embedded, double *y_embedded, double *distance)
     void _test_pearson_correlation_fast(double *original_data,
         double *surrogates, float *correlation, int n_time, int N, double norm)
     void _test_mutual_information_fast(int N, int n_time, int n_bins,
@@ -60,7 +60,7 @@ def _manhattan_distance_matrix_crp(
         ntime_x, ntime_y, dim,
         <DFIELD_t*> cnp.PyArray_DATA(x_embedded),
         <DFIELD_t*> cnp.PyArray_DATA(y_embedded),
-        <FIELD_t*> cnp.PyArray_DATA(distance))
+        <DFIELD_t*> cnp.PyArray_DATA(distance))
 
     return distance
 
@@ -77,24 +77,24 @@ def _euclidean_distance_matrix_crp(
         ntime_x, ntime_y, dim,
         <DFIELD_t*> cnp.PyArray_DATA(x_embedded),
         <DFIELD_t*> cnp.PyArray_DATA(y_embedded),
-        <FIELD_t*> cnp.PyArray_DATA(distance))
+        <DFIELD_t*> cnp.PyArray_DATA(distance))
 
     return distance
 
 
 def _supremum_distance_matrix_crp(
     int ntime_x, int ntime_y, int dim,
-    ndarray[FIELD_t, ndim=2, mode='c'] x_embedded not None,
-    ndarray[FIELD_t, ndim=2, mode='c'] y_embedded not None):
+    ndarray[DFIELD_t, ndim=2, mode='c'] x_embedded not None,
+    ndarray[DFIELD_t, ndim=2, mode='c'] y_embedded not None):
 
-    cdef ndarray[FIELD_t, ndim=2, mode='c'] distance = \
-        np.zeros((ntime_x, ntime_y), dtype=FIELD)
+    cdef ndarray[DFIELD_t, ndim=2, mode='c'] distance = \
+        np.zeros((ntime_x, ntime_y), dtype=DFIELD)
 
     _supremum_distance_matrix_fast(
         ntime_x, ntime_y, dim,
-        <FIELD_t*> cnp.PyArray_DATA(x_embedded),
-        <FIELD_t*> cnp.PyArray_DATA(y_embedded),
-        <FIELD_t*> cnp.PyArray_DATA(distance))
+        <DFIELD_t*> cnp.PyArray_DATA(x_embedded),
+        <DFIELD_t*> cnp.PyArray_DATA(y_embedded),
+        <DFIELD_t*> cnp.PyArray_DATA(distance))
 
     return distance
 
@@ -360,12 +360,12 @@ def _embed_time_series(
 
 
 def _manhattan_distance_matrix_rp(
-    int n_time, int dim, ndarray[FIELD_t, ndim=2] embedding,
-    ndarray[FIELD_t, ndim=2] distance):
+    int n_time, int dim, ndarray[DFIELD_t, ndim=2] embedding,
+    ndarray[DFIELD_t, ndim=2] distance):
 
     cdef:
         int j, k, l, T = n_time, D = dim
-        float sum
+        double sum
 
     # Calculate the manhattan distance matrix
     for j in range(T):
@@ -380,12 +380,12 @@ def _manhattan_distance_matrix_rp(
 
 
 def _euclidean_distance_matrix_rp(
-    int n_time, int dim, ndarray[FIELD_t, ndim=2] embedding,
-    ndarray[FIELD_t, ndim=2] distance):
+    int n_time, int dim, ndarray[DFIELD_t, ndim=2] embedding,
+    ndarray[DFIELD_t, ndim=2] distance):
 
     cdef:
         int j, k, l, T = n_time, D = dim
-        float sum, diff
+        double sum, diff
 
     # Calculate the eucliadean distance matrix
     for j in range(T):
@@ -396,16 +396,16 @@ def _euclidean_distance_matrix_rp(
                 # Use euclidean norm
                 diff = abs(embedding[j, l] - embedding[k, l])
                 sum += diff * diff
-            distance[j, k] = distance[k, j] = sum
+            distance[j, k] = distance[k, j] = sqrt(sum)
 
 
 def _supremum_distance_matrix_rp(
-    int n_time, int dim, ndarray[FIELD_t, ndim=2] embedding,
-    ndarray[FIELD_t, ndim=2] distance):
+    int n_time, int dim, ndarray[DFIELD_t, ndim=2] embedding,
+    ndarray[DFIELD_t, ndim=2] distance):
 
     cdef:
         int j, k, l, T = n_time, D = dim
-        float temp_diff, diff
+        double temp_diff, diff
 
     # Calculate the eucliadean distance matrix
     for j in range(T):
@@ -446,13 +446,13 @@ def _set_adaptive_neighborhood_size(
 
 
 def _bootstrap_distance_matrix_manhattan(
-    int n_time, int dim, ndarray[FIELD_t, ndim=2] embedding,
-    ndarray[FIELD_t, ndim=1] distances, int M):
+    int n_time, int dim, ndarray[DFIELD_t, ndim=2] embedding,
+    ndarray[DFIELD_t, ndim=1] distances, int M):
 
     cdef:
         int i, l
         ndarray[NODE_t, ndim=2] jk = rd.randint(n_time, size=(2,M))
-        float sum
+        double sum
 
     for i in range(M):
         #Compute their distance
@@ -465,13 +465,13 @@ def _bootstrap_distance_matrix_manhattan(
 
 
 def _bootstrap_distance_matrix_euclidean(
-    int n_time, int dim, ndarray[FIELD_t, ndim=2] embedding,
-    ndarray[FIELD_t, ndim=1] distances, int M):
+    int n_time, int dim, ndarray[DFIELD_t, ndim=2] embedding,
+    ndarray[DFIELD_t, ndim=1] distances, int M):
 
     cdef:
         int i, l
         ndarray[NODE_t, ndim=2] jk = rd.randint(n_time, size=(2,M))
-        float sum, diff
+        double sum, diff
 
     for i in range(M):
         #Compute their distance
@@ -481,17 +481,17 @@ def _bootstrap_distance_matrix_euclidean(
             diff = abs(embedding[jk[0, i], l] - embedding[jk[1, i], l])
             sum += diff * diff
 
-        distances[i] = <FIELD_t> sqrt(sum)
+        distances[i] = sqrt(sum)
 
 
 def _bootstrap_distance_matrix_supremum(
-    int n_time, int dim, ndarray[FIELD_t, ndim=2] embedding,
-    ndarray[FIELD_t, ndim=1] distances, int M):
+    int n_time, int dim, ndarray[DFIELD_t, ndim=2] embedding,
+    ndarray[DFIELD_t, ndim=1] distances, int M):
 
     cdef:
         int i, l
         ndarray[NODE_t, ndim=2] jk = rd.randint(n_time, size=(2,M))
-        float temp_diff, diff
+        double temp_diff, diff
 
     for i in range(M):
         #Compute their distance

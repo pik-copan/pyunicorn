@@ -13,7 +13,7 @@
 // cross_recurrence_plot ======================================================
 
 void _manhattan_distance_matrix_fast(int ntime_x, int ntime_y, int dim, 
-    double *x_embedded, double *y_embedded, float *distance)  {
+    double *x_embedded, double *y_embedded, double *distance)  {
 
     double sum;
     //  Calculate the manhattan distance matrix
@@ -24,14 +24,14 @@ void _manhattan_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
                 //  Use manhattan norm
                 sum += fabs(x_embedded[j*ntime_x+l] - y_embedded[k*ntime_y+l]);
             }
-            distance[j*ntime_x+k] = (float) sum;
+            distance[j*ntime_x+k] = sum;
         }
     }
 }
 
 
 void _euclidean_distance_matrix_fast(int ntime_x, int ntime_y, int dim, 
-    double *x_embedded, double *y_embedded, float *distance)  {
+    double *x_embedded, double *y_embedded, double *distance)  {
 
     double sum, diff;
     //  Calculate the euclidean distance matrix
@@ -44,14 +44,14 @@ void _euclidean_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
                             y_embedded[k*ntime_y+l]);
                 sum += diff * diff;
             }
-            distance[j*ntime_x+k] = (float) sqrt(sum);
+            distance[j*ntime_x+k] = sqrt(sum);
         }
     }
 }
 
 
 void _supremum_distance_matrix_fast(int ntime_x, int ntime_y, int dim, 
-    float *x_embedded, float *y_embedded, float *distance)  {
+    double *x_embedded, double *y_embedded, double *distance)  {
 
     double temp_diff, diff;
 
@@ -66,7 +66,7 @@ void _supremum_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
                 if (temp_diff > diff)
                     diff = temp_diff;
             }
-            distance[j*ntime_x+k] = (float) diff;
+            distance[j*ntime_x+k] = diff;
         }
     }
 }
