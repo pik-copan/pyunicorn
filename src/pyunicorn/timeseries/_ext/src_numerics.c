@@ -22,9 +22,9 @@ void _manhattan_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
             sum = 0;
             for (int l = 0; l < dim; l++) {
                 //  Use manhattan norm
-                sum += fabs(x_embedded[j*ntime_x+l] - y_embedded[k*ntime_y+l]);
+                sum += fabs(x_embedded[j*dim+l] - y_embedded[k*dim+l]);
             }
-            distance[j*ntime_x+k] = sum;
+            distance[j*ntime_y+k] = sum;
         }
     }
 }
@@ -40,11 +40,10 @@ void _euclidean_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
             sum = 0;
             for (int l = 0; l < dim; l++) {
                 //  Use euclidean norm
-                diff = fabs(x_embedded[j*ntime_x+l] - 
-                            y_embedded[k*ntime_y+l]);
+                diff = fabs(x_embedded[j*dim+l] - y_embedded[k*dim+l]);
                 sum += diff * diff;
             }
-            distance[j*ntime_x+k] = sqrt(sum);
+            distance[j*ntime_y+k] = sqrt(sum);
         }
     }
 }
@@ -54,19 +53,17 @@ void _supremum_distance_matrix_fast(int ntime_x, int ntime_y, int dim,
     double *x_embedded, double *y_embedded, double *distance)  {
 
     double temp_diff, diff;
-
     //  Calculate the supremum distance matrix
     for (int j = 0; j < ntime_x; j++) {
         for (int k = 0; k < ntime_y; k++) {
             temp_diff = diff = 0;
             for (int l = 0; l < dim; l++) {
                 //  Use supremum norm
-                temp_diff = fabs(x_embedded[j*ntime_x+l] - 
-                    y_embedded[k*ntime_y+l]);
+                temp_diff = fabs(x_embedded[j*dim+l] - y_embedded[k*dim+l]);
                 if (temp_diff > diff)
                     diff = temp_diff;
             }
-            distance[j*ntime_x+k] = diff;
+            distance[j*ntime_y+k] = diff;
         }
     }
 }
