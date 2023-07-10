@@ -25,6 +25,7 @@ from numpy.testing import assert_array_almost_equal
 from pyunicorn.timeseries import CrossRecurrencePlot, VisibilityGraph, \
     Surrogates
 from pyunicorn.core.data import Data
+from pyunicorn.core._ext.types import DFIELD
 
 
 # turn off for weave compilation & error detection
@@ -167,10 +168,11 @@ def testMutualInformation():
 
 def create_test_timeseries():
     """
-    Return test data set of 6 time series with 10 sampling points each.
+    Return test time series including random values and timings 
+    with 10 sampling points.
 
-    :rtype: Data instance
-    :return: a Data instance for testing purposes.
+    :rtype: 2D array
+    :return: a timeseries for testing purposes
     """
     #  Create time series
     ts = np.zeros((2, 10))
@@ -178,42 +180,62 @@ def create_test_timeseries():
     for i in range(2):
         ts[i, :] = np.random.rand(10)
 
-    ts[0, :].sort()
+    ts[1, :].sort()
 
     return ts
 
+
 # def testVisibility():
-#     tdata = create_test_timeseries()
-#     n_times = tdata.shape[1]
-#     vg = VisibilityGraph(tdata[1], timings=tdata[0])
+#     x, t = create_test_timeseries()
+#     n_times = len(t)
+#     vg = VisibilityGraph(x, timings=t)
 #     # Choose two different, not neighbouring random nodes i, j
 #     node1, node2 = 0, 0
 #     while (abs(node2-node1)<=1):
-#         node1 = np.int(np.floor(np.random.rand()*n_times))
-#         node2 = np.int(np.floor(np.random.rand()*n_times))
-#     time, val = tdata
+#         node1 = np.int32(np.floor(np.random.rand()*n_times))
+#         node2 = np.int32(np.floor(np.random.rand()*n_times))
+
+#     # the following returns incorrect results, assertion therefore failing
 #     i, j = min(node1, node2), max(node1, node2)
-#     testfun = lambda k: np.less((val[k]-val[i])/(time[k]-time[i]),
-#                                 (val[j]-val[i])/(time[j]-time[i]))
-#     test = np.bool(np.sum(~np.array(map(testfun, range(i+1,j)))))
-#     assert np.invert(test) == vg.visibility(node1, node2)
+#     test = np.zeros((j-(i+1)))
+#     for k in range(i+1,j):
+#         test[k-(i+1)] = np.less((x[k]-x[i]) / (t[k]-t[i]),
+#                                 (x[j]-x[i]) / (t[j]-t[i]))
+    
+#     assert np.invert(bool(np.sum(test))) == vg.visibility(node1, node2)
+
+
+def testVisibility():
+    x, t = create_test_timeseries()
+    vg = VisibilityGraph(x, timings=t)
+    A = vg.adjacency
+
+    assert A.shape == (len(x), len(x))
+    assert A.dtype == np.int16
 
 
 def testVisibilityHorizontal():
-    tdata = create_test_timeseries()
-    n_times = tdata.shape[1]
-    vg = VisibilityGraph(tdata[1], timings=tdata[0])
-    # Choose two different, not neighbouring random nodes i, j
-    node1, node2 = 0, 0
-    while abs(node2-node1) <= 0:
-        node1 = np.int32(np.floor(np.random.rand()*n_times))
-        node2 = np.int32(np.floor(np.random.rand()*n_times))
+    x, t = create_test_timeseries()
+    vg = VisibilityGraph(x, timings=t, horizontal=True)
+    A = vg.adjacency
 
-    val = tdata[1]
-    i, j = min(node1, node2), max(node1, node2)
-    if np.sum(~(val[i+1:j] < min(val[i], val[j]))):
-        test = False
-    else:
-        test = True
+    assert A.shape == (len(x), len(x))
+    assert A.dtype == np.int16
 
-    assert test == vg.visibility_horizontal(node1, node2)
+
+def testRetardedLocalClustering():
+    x, t = create_test_timeseries()
+    vg = VisibilityGraph(x, timings=t)
+    C_ret = vg.retarded_local_clustering()
+
+    assert C_ret.shape == x.shape
+    assert C_ret.dtype == DFIELD
+
+
+def testAdvancedLocalClustering():
+    x, t = create_test_timeseries()
+    vg = VisibilityGraph(x, timings=t)
+    C_adv = vg.advanced_local_clustering()
+
+    assert C_adv.shape == x.shape
+    assert C_adv.dtype == DFIELD

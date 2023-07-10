@@ -26,7 +26,7 @@ cimport numpy as cnp
 from numpy cimport ndarray
 randint = rd.randint
 
-from ...core._ext.types import NODE, FIELD, DFIELD
+from ...core._ext.types import MASK, NODE, FIELD, DFIELD
 from ...core._ext.types cimport \
     ADJ_t, MASK_t, NODE_t, DEGREE_t, LAG_t, FIELD_t, DFIELD_t
 
@@ -888,7 +888,7 @@ def _twin_surrogates_r(int n_surrogates, int N, int dim, twins,
     return surrogates
 
 
-# visibitly graph =============================================================
+# visibility graph =============================================================
 
 
 def _visibility_relations_missingvalues(
@@ -965,24 +965,6 @@ def _visibility_relations_horizontal(
     # Add trivial connections of subsequent observations in time series
     for i in range(N-1):
         A[i, i+1] = A[i+1, i] = 1
-
-
-def _visibility(
-        ndarray[FIELD_t, ndim=1] time,
-        ndarray[FIELD_t, ndim=1] val, int node1, int node2):
-
-    cdef:
-        int i, j, k
-        ndarray[MASK_t, ndim=1] test
-
-    i = min(node1,node2)
-    j = max(node1,node2)
-
-    test = np.zeros((j-(i+1)), dtype=np.uint8)
-    for k in range(i+1,j):
-        test[k-(i+1)] = np.less((val[k]-val[i]) / (time[k]-time[i]),
-                                (val[j]-val[i]) / (time[j]-time[i]))
-    return np.invert(np.bool(np.sum(test)))
 
 
 def _retarded_local_clustering(

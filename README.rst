@@ -97,12 +97,13 @@ Required at runtime:
   - `Numpy <http://www.numpy.org/>`_
   - `Scipy <http://www.scipy.org/>`_
   - `python-igraph <http://igraph.org/>`_
+  - `h5netcdf <https://h5netcdf.org/>`_ or
+    `netcdf4-python <http://unidata.github.io/netcdf4-python/>`_
+    (for ``Data`` and ``NetCDFDictionary``)
 
 Optional *(used only in certain classes and methods)*:
   - `PyNGL <http://www.pyngl.ucar.edu/Download/>`_
     (for ``NetCDFDictionary``)
-  - `netcdf4-python <http://unidata.github.io/netcdf4-python/>`_
-    (for ``Data`` and ``NetCDFDictionary``)
   - `Matplotlib <http://matplotlib.org/>`_
   - `Matplotlib Basemap Toolkit <http://matplotlib.org/basemap/>`_
     (for drawing maps)
@@ -181,5 +182,3 @@ To test individual files::
 Mailing list
 ------------
 Not implemented yet.
-
-test travis

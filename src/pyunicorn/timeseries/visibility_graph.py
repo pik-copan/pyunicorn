@@ -26,10 +26,10 @@ import numpy as np
 
 from ..core import InteractingNetworks
 
-from ..core._ext.types import MASK
+from ..core._ext.types import to_cy, ADJ, MASK, FIELD
 from ._ext.numerics import _visibility_relations_missingvalues, \
     _visibility_relations_no_missingvalues, _visibility_relations_horizontal, \
-    _visibility, _retarded_local_clustering, _advanced_local_clustering
+    _retarded_local_clustering, _advanced_local_clustering
 
 #
 #  Class definitions
@@ -78,13 +78,13 @@ class VisibilityGraph(InteractingNetworks):
            :attr:`time_series`."""
 
         #  Store time series
-        self.time_series = time_series.copy().astype("float32")
+        self.time_series = to_cy(time_series, FIELD)
         """The time series from which the visibility graph is constructed."""
 
         if timings is not None:
-            timings = timings.copy().astype("float32")
+            timings = to_cy(timings, FIELD)
         else:
-            timings = np.arange(len(time_series), dtype="float32")
+            timings = np.arange(len(time_series), dtype=FIELD)
 
         #  Store timings
         self.timings = timings
@@ -117,7 +117,8 @@ class VisibilityGraph(InteractingNetworks):
 
     def visibility_relations(self):
         """
-        TODO
+        Returns visibility between all nodes of self.timeseries
+        :rtype: 2D array of MASK
         """
         if self.silence_level <= 1:
             print("Calculating visibility relations...")
@@ -140,7 +141,8 @@ class VisibilityGraph(InteractingNetworks):
     # FIXME: There is no option for missing values
     def visibility_relations_horizontal(self):
         """
-        TODO
+        Returns horizontal visibility between all nodes of self.timeseries
+        :rtype: 2D array of MASK
         """
         if self.silence_level <= 1:
             print("Calculating horizontal visibility relations...")
@@ -164,31 +166,7 @@ class VisibilityGraph(InteractingNetworks):
         :arg int node2: node index of node 2
         :rtype: bool
         """
-        if node1 == node2:
-            return False
-        elif abs(node2-node1) == 1:
-            return True
-        else:
-            time = self.timings
-            val = self.time_series
-            return _visibility(time, val, node1, node2)
-
-    def visibility_horizontal(self, node1, node2):
-        """
-        Returns the horizontal visibility between node 1 and 2 as boolean.
-        :arg int node1: node index of node 1
-        :arg int node2: node index of node 2
-        :rtype: bool
-        """
-        if node1 == node2:
-            return False
-        else:
-            val = self.time_series
-            i, j = min(node1, node2), max(node1, node2)
-            if np.sum(~(val[i+1:j] < min(val[i], val[j]))):
-                return False
-            else:
-                return True
+        return self.adjacency[node1, node2]
 
     def visibility_single(self, node):
         """
@@ -197,20 +175,7 @@ class VisibilityGraph(InteractingNetworks):
         :arg int node: node index of the node
         :rtype: 1D array of bool
         """
-        time_series = self.time_series
-        testfun = lambda j: self.visibility(node, j)
-        return np.array(map(testfun, range(len(time_series[1]))))
-
-    def visibility_horizontal_single(self, node):
-        """
-        Returns the horizontal visibility between all nodes of self.time_series
-        and node as array of booleans.
-        :arg int node: node index of the node
-        :rtype: 1D array of bool
-        """
-        time_series = self.time_series
-        testfun = lambda j: self.visibility_horizontal(node, j)
-        return np.array(map(testfun, range(len(time_series[1]))))
+        return self.adjacency[node, :]
 
     def retarded_degree(self):
         """Return number of neighbors in the past of a node."""
@@ -252,7 +217,7 @@ class VisibilityGraph(InteractingNetworks):
         #  Prepare normalization factor
         norm = retarded_degree * (retarded_degree - 1) / 2.
 
-        _retarded_local_clustering(N, A, norm, retarded_clustering)
+        _retarded_local_clustering(N, to_cy(A, ADJ), norm, retarded_clustering)
         return retarded_clustering
 
     def advanced_local_clustering(self):
@@ -273,7 +238,7 @@ class VisibilityGraph(InteractingNetworks):
         #  Prepare normalization factor
         norm = advanced_degree * (advanced_degree - 1) / 2.
 
-        _advanced_local_clustering(N, A, norm, advanced_clustering)
+        _advanced_local_clustering(N, to_cy(A, ADJ), norm, advanced_clustering)
         return advanced_clustering
 
     def retarded_closeness(self):

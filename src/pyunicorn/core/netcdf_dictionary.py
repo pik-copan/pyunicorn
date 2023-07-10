@@ -24,16 +24,17 @@ appropriate Python dictionaries, allowing NetCDF4 compression methods.
 #  Imports
 #
 
-#  Import NumPy for the array object and fast numerics
 import numpy as np
 
-#  Import netCDF4 for Dataset class
 try:
-    from netCDF4 import Dataset
+    from h5netcdf.legacyapi import Dataset
 except ImportError:
-    print("pyunicorn: Package netCDF4 could not be loaded. "
-          "Some functionality in class NetCDFDictionary might not be "
-          "available!")
+    try:
+        from netCDF4 import Dataset
+    except ImportError:
+        print("pyunicorn: Packages netCDF4 or h5netcdf could not be loaded. "
+              "Some functionality in class NetCDFDictionary might not be "
+              "available!")
 
 
 #

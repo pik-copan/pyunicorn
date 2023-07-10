@@ -29,7 +29,7 @@ install:
     - eval "$(conda shell.bash hook)"
     - conda activate test-env
     - travis_retry conda install -c conda-forge python=$TRAVIS_PYTHON_VERSION
-    - travis_retry conda install -c conda-forge numpy scipy python-igraph
+    - travis_retry conda install -c conda-forge numpy scipy python-igraph h5netcdf
     - travis_retry conda update  -c conda-forge --all
 
     # testing dependencies
