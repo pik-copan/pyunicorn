@@ -543,11 +543,8 @@ class RecurrencePlot:
             print("Calculating the manhattan distance matrix...")
 
         (n_time, dim) = embedding.shape
-        distance = np.zeros((n_time, n_time), dtype=DFIELD)
-
-        _manhattan_distance_matrix_rp(n_time, dim, to_cy(embedding, DFIELD),
-                                      distance)
-        return distance
+        return _manhattan_distance_matrix_rp(n_time, dim,
+                                             to_cy(embedding, DFIELD))
 
     def euclidean_distance_matrix(self, embedding):
         """
@@ -563,11 +560,8 @@ class RecurrencePlot:
             print("Calculating the euclidean distance matrix...")
 
         (n_time, dim) = embedding.shape
-        distance = np.zeros((n_time, n_time), dtype=DFIELD)
-
-        _euclidean_distance_matrix_rp(n_time, dim, to_cy(embedding, DFIELD),
-                                      distance)
-        return distance
+        return _euclidean_distance_matrix_rp(n_time, dim,
+                                             to_cy(embedding, DFIELD))
 
     def supremum_distance_matrix(self, embedding):
         """
@@ -583,11 +577,8 @@ class RecurrencePlot:
             print("Calculating the supremum distance matrix...")
 
         (n_time, dim) = embedding.shape
-        distance = np.zeros((n_time, n_time), dtype=DFIELD)
-
-        _supremum_distance_matrix_rp(n_time, dim, to_cy(embedding, DFIELD),
-                                     distance)
-        return distance
+        return _supremum_distance_matrix_rp(n_time, dim,
+                                            to_cy(embedding, DFIELD))
 
     def set_fixed_threshold(self, threshold):
         """
