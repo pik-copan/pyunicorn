@@ -24,7 +24,7 @@ analysis (RQA) and recurrence network analysis.
 # array object and fast numerics
 import numpy as np
 
-from ..core._ext.types import to_cy, FIELD, DFIELD
+from ..core._ext.types import to_cy, DFIELD
 from ._ext.numerics import _manhattan_distance_matrix_crp, \
     _euclidean_distance_matrix_crp, _supremum_distance_matrix_crp
 
