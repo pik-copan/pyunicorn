@@ -27,7 +27,7 @@ from math import factorial
 import numpy as np
 
 # Cython inline code
-from ..core._ext.types import to_cy, NODE, LAG, FIELD
+from ..core._ext.types import to_cy, NODE, LAG, FIELD, DFIELD
 from ._ext.numerics import _embed_time_series, _manhattan_distance_matrix_rp, \
     _euclidean_distance_matrix_rp, _supremum_distance_matrix_rp, \
     _set_adaptive_neighborhood_size, _bootstrap_distance_matrix_manhattan, \
@@ -145,7 +145,7 @@ class RecurrencePlot:
         """Controls sequential calculation of RQA measures."""
 
         #  Store time series
-        self.time_series = time_series.copy().astype(FIELD)
+        self.time_series = to_cy(time_series, FIELD)
         """The time series from which the recurrence plot is constructed."""
 
         #  Reshape time series
@@ -536,18 +536,15 @@ class RecurrencePlot:
 
         :type embedding: 2D array (time, embedding dimension)
         :arg embedding: The phase space trajectory.
-        :rtype: 2D square array ("float32")
+        :rtype: 2D square array
         :return: the manhattan distance matrix.
         """
         if self.silence_level <= 1:
             print("Calculating the manhattan distance matrix...")
 
         (n_time, dim) = embedding.shape
-        distance = np.zeros((n_time, n_time), dtype=FIELD)
-
-        _manhattan_distance_matrix_rp(n_time, dim, to_cy(embedding, FIELD),
-                                      distance)
-        return distance
+        return _manhattan_distance_matrix_rp(n_time, dim,
+                                             to_cy(embedding, DFIELD))
 
     def euclidean_distance_matrix(self, embedding):
         """
@@ -556,19 +553,15 @@ class RecurrencePlot:
 
         :type embedding: 2D array (time, embedding dimension)
         :arg embedding: The phase space trajectory.
-        :rtype: 2D square array ("float32")
+        :rtype: 2D square array
         :return: the euclidean distance matrix.
         """
         if self.silence_level <= 1:
             print("Calculating the euclidean distance matrix...")
 
         (n_time, dim) = embedding.shape
-        distance = np.zeros((n_time, n_time), dtype=FIELD)
-
-        _euclidean_distance_matrix_rp(n_time, dim, to_cy(embedding, FIELD),
-                                      distance)
-        distance = np.sqrt(distance)
-        return distance
+        return _euclidean_distance_matrix_rp(n_time, dim,
+                                             to_cy(embedding, DFIELD))
 
     def supremum_distance_matrix(self, embedding):
         """
@@ -577,18 +570,15 @@ class RecurrencePlot:
         :type embedding: 2D Numpy array (time, embedding dimension)
         :arg embedding: The phase space trajectory.
 
-        :rtype: 2D square Numpy array ("float32")
+        :rtype: 2D square Numpy array
         :return: the supremum distance matrix.
         """
         if self.silence_level <= 1:
             print("Calculating the supremum distance matrix...")
 
         (n_time, dim) = embedding.shape
-        distance = np.zeros((n_time, n_time), dtype=FIELD)
-
-        _supremum_distance_matrix_rp(n_time, dim, to_cy(embedding, FIELD),
-                                     distance)
-        return distance
+        return _supremum_distance_matrix_rp(n_time, dim,
+                                            to_cy(embedding, DFIELD))
 
     def set_fixed_threshold(self, threshold):
         """
@@ -839,8 +829,8 @@ class RecurrencePlot:
         """
         #  Prepare
         M = int(M)
-        embedding = to_cy(embedding, FIELD)
-        distances = np.zeros(M, dtype=FIELD)
+        embedding = to_cy(embedding, DFIELD)
+        distances = np.zeros(M, dtype=DFIELD)
         (n_time, dim) = embedding.shape
 
         if metric == "manhattan":

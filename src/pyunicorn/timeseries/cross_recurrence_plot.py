@@ -221,7 +221,7 @@ class CrossRecurrencePlot(RecurrencePlot):
         :arg x_embedded: The phase space trajectory x.
         :type y_embedded: 2D Numpy array (time, embedding dimension)
         :arg y_embedded: The phase space trajectory y.
-        :rtype: 2D rectangular Numpy array ("float32")
+        :rtype: 2D rectangular Numpy array
         :return: the manhattan distance matrix.
         """
         if self.silence_level <= 1:
@@ -244,7 +244,7 @@ class CrossRecurrencePlot(RecurrencePlot):
         :arg x_embedded: The phase space trajectory x.
         :type y_embedded: 2D Numpy array (time, embedding dimension)
         :arg y_embedded: The phase space trajectory y.
-        :rtype: 2D rectangular Numpy array ("float32")
+        :rtype: 2D rectangular Numpy array
         :return: the euclidean distance matrix.
         """
         if self.silence_level <= 1:
@@ -267,20 +267,20 @@ class CrossRecurrencePlot(RecurrencePlot):
         :arg x_embedded: The phase space trajectory x.
         :type y_embedded: 2D Numpy array (time, embedding dimension)
         :arg y_embedded: The phase space trajectory y.
-        :rtype: 2D rectangular Numpy array ("float32")
+        :rtype: 2D rectangular Numpy array
         :return: the supremum distance matrix.
         """
         if self.silence_level <= 1:
             print("Calculating the supremum distance matrix...")
 
-        x_embedded = to_cy(x_embedded, FIELD)
-        y_embedded = to_cy(y_embedded, FIELD)
+        x_embedded = to_cy(x_embedded, DFIELD)
+        y_embedded = to_cy(y_embedded, DFIELD)
         ntime_x = x_embedded.shape[0]
         ntime_y = y_embedded.shape[0]
         dim = x_embedded.shape[1]
 
-        return _supremum_distance_matrix_crp(ntime_x, ntime_y, dim, x_embedded,
-                                             y_embedded)
+        return _supremum_distance_matrix_crp(ntime_x, ntime_y, dim,
+                                             x_embedded, y_embedded)
 
     def set_fixed_threshold(self, threshold):
         """
@@ -297,7 +297,6 @@ class CrossRecurrencePlot(RecurrencePlot):
         #  Get distance matrix, according to self.metric
         distance = self.distance_matrix(self.x_embedded, self.y_embedded,
                                         self.metric)
-        print(distance)
         #  Get length of time series x and y
         (N, M) = distance.shape
 
