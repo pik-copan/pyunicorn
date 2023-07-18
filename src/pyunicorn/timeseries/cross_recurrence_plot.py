@@ -297,7 +297,7 @@ class CrossRecurrencePlot(RecurrencePlot):
         #  Get distance matrix, according to self.metric
         distance = self.distance_matrix(self.x_embedded, self.y_embedded,
                                         self.metric)
-        
+        print(distance)
         #  Get length of time series x and y
         (N, M) = distance.shape
 
