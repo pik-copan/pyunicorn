@@ -42,7 +42,7 @@ before_script:
 
 script:
     # package
-    - pip install -vvv -e .
+    - pip install -vvv -e ".[testing]"
 
     # test suite
     - tox -v

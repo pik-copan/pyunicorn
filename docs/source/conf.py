@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # pyunicorn documentation build configuration file, created by
 # sphinx-quickstart on Thu Feb 23 19:15:07 2017.
 #
