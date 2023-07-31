@@ -115,10 +115,9 @@ class Data:
         if self.file_name:
             self.print_data_info()
 
-        return ('Data: %i grid points, %i measurements.\n'
-                'Geographical boundaries:\n%s') % (
-                    self.grid.N, self.grid.n_grid_points,
-                    self.grid.print_boundaries())
+        return (f"Data: {self.grid.N} grid points, "
+                f"{self.grid.n_grid_points} measurements.\n"
+                f"Geographical boundaries:\n{self.grid.print_boundaries()}")
 
     def set_silence_level(self, silence_level):
         """
@@ -397,7 +396,7 @@ class Data:
             print(name + ":", getattr(f, name))
         print("Variables (size):")
         for name, obj in f.variables.items():
-            print("%s (%i)" % (name, len(obj)))
+            print(f"{name} ({len(obj)})")
         f.close()
 
     def observable(self):
@@ -592,8 +591,7 @@ class Data:
             array /= scale_factor
             scaled_array = array.astype('uint8')
         else:
-            print("Data type %s variable %s for rescaling array "
-                  "not supported!" % var_type)
+            print(f"Data type {var_type} not supported!")
             scale_factor = 1.
             add_offset = 0.
 

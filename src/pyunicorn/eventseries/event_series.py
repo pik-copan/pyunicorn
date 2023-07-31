@@ -166,9 +166,9 @@ class EventSeries:
         """
         Return a string representation of the EventSeries object.
         """
-        return(f"EventSeries: {self.__N} variables, "
-        f"{self.__T} timesteps, taumax: {self.__taumax:.1f}, "
-        f"lag: {self.__lag:.1f}")
+        return (f"EventSeries: {self.__N} variables, "
+                f"{self.__T} timesteps, taumax: {self.__taumax:.1f}, "
+                f"lag: {self.__lag:.1f}")
 
     def get_event_matrix(self):
         return self.__eventmatrix
@@ -293,7 +293,7 @@ class EventSeries:
                               " 'value' or a 1D array-like object with"
                               " entries 'quantile' or 'value' for each"
                               " variable!")
-        elif threshold_method.shape == ():
+        elif not threshold_method.shape:
             if threshold_method in ['quantile', 'value']:
                 threshold_method = np.array([threshold_method] * data.shape[1])
             else:

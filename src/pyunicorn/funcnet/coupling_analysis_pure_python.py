@@ -106,8 +106,8 @@ class CouplingAnalysisPurePython:
         object.
         """
         shape = self.dataarray.shape
-        return 'CouplingAnalysisPurePython: %i variables, %i timesteps.' % (
-            shape[0], shape[1])
+        return (f'CouplingAnalysisPurePython: {shape[0]} variables, '
+                f'{shape[1]} timesteps.')
 
     #
     #  Define methods to calculate correlation strength and lags
@@ -598,10 +598,10 @@ class CouplingAnalysisPurePython:
                     # here the joint entropy is calculated by summing over all
                     # pattern combinations
                     jointent = 0.0
-                    for l in range(bins):
-                        for m in range(bins):
-                            jointent -= gfunc[hist2D[l, m]]
-                            hist2D[l, m] = 0
+                    for m in range(bins):
+                        for n in range(bins):
+                            jointent -= gfunc[hist2D[m, n]]
+                            hist2D[m, n] = 0
 
                     jointent /= float(corr_range)
                     jointent += numpy.log(float(corr_range))

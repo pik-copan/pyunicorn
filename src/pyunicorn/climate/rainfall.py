@@ -242,7 +242,7 @@ class RainfallClimateNetwork(ClimateNetwork):
 
         up_mask = rainfall <= onelist[uplimit-1]
 
-        no_rain_mask = (rainfall != 0)
+        no_rain_mask = rainfall != 0
 
         final_mask = down_mask & up_mask & no_rain_mask
 

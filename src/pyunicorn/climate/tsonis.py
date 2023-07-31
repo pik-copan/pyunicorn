@@ -121,8 +121,9 @@ class TsonisClimateNetwork(ClimateNetwork):
         Local connections filtered out: False
         Use only data points from winter months: False
         """
-        return (f'TsonisClimateNetwork:\n{ClimateNetwork.__str__(self)}\n' +
-        f'Use only data points from winter months: {self.winter_only()}')
+        return (f'TsonisClimateNetwork:\n{ClimateNetwork.__str__(self)}\n'
+                f'Use only data points from winter months: '
+                f'{self.winter_only()}')
 
     #
     #  Methods for testing purposes

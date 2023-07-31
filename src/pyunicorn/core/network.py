@@ -50,7 +50,7 @@ import igraph                       # high performance graph theory tools
 from ..utils import mpi             # parallelized computations
 
 from ._ext.types import \
-    to_cy, ADJ, MASK, NODE, DEGREE, WEIGHT, DWEIGHT, FIELD, DFIELD
+    to_cy, ADJ, MASK, NODE, DEGREE, DWEIGHT, FIELD, DFIELD
 from ._ext.numerics import \
     _local_cliquishness_4thorder, _local_cliquishness_5thorder, \
     _nsi_betweenness, _mpi_newman_betweenness, _mpi_nsi_newman_betweenness, \
@@ -284,8 +284,8 @@ class Network:
         """
         net_type_prefix = '' if self.directed else 'un'
         return (f"Network: {net_type_prefix}directed, "
-        f"{self.N} nodes, {self.n_links} links, "
-        f"link density {self.link_density:.3f}.")
+                f"{self.N} nodes, {self.n_links} links, "
+                f"link density {self.link_density:.3f}.")
 
     def __len__(self):
         """
@@ -5178,7 +5178,8 @@ class Network:
             part2 = int(result[2])
             if mind < 0:
                 print(united, mind, part1, part2)
-                raise Exception
+                raise ValueError("something went wrong here,"
+                                 "variable 'mind' is negative!")
 
             cluster2rank[np.array(activeIndices)[
                 (-clusterWeights[activeIndices]).argsort()], n2+1-united] = \
@@ -5236,7 +5237,9 @@ class Network:
                 weightProducts[united, united] - linkedWeights[united, united]
             if errors.min() < -1e-10:
                 print(errors)
-                raise Exception
+                raise ValueError("something went wrong here, "
+                                 "some calculated 'errors' have "
+                                 "values below -1e-10")
             lastunited = united
 
         print(time.time()-t0, "seconds")

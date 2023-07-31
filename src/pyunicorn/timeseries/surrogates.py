@@ -88,8 +88,7 @@ class Surrogates:
         """
         Returns a string representation.
         """
-        return 'Surrogates: time series shape %s.' % (
-            self.original_data.shape,)
+        return f"Surrogates: time series shape {self.original_data.shape}."
 
     def clear_cache(self):
         """Clean up cache."""

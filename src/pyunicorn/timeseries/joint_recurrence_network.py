@@ -157,8 +157,9 @@ class JointRecurrenceNetwork(JointRecurrencePlot, Network):
         """
         Returns a string representation.
         """
-        return 'JointRecurrenceNetwork:\n%s\n%s' % (
-            JointRecurrencePlot.__str__(self), Network.__str__(self))
+        return ("JointRecurrenceNetwork:\n"
+                f"{JointRecurrencePlot.__str__(self)}\n"
+                f"{Network.__str__(self)}")
 
     def clear_cache(self):
         """

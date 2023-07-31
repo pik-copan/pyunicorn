@@ -108,8 +108,9 @@ class VisibilityGraph(InteractingNetworks):
         """
         Returns a string representation.
         """
-        return 'VisibilityGraph: time series shape %s.\n%s' % (
-            self.time_series.shape, InteractingNetworks.__str__(self))
+        return ("VisibilityGraph: "
+                f"time series shape {self.time_series.shape}.\n"
+                f"{InteractingNetworks.__str__(self)}")
 
     #
     #  Visibility methods

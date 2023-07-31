@@ -126,8 +126,8 @@ class ClimateNetwork(GeoNetwork):
         Local connections filtered out: False
         """
         return (f'ClimateNetwork:\n{GeoNetwork.__str__(self)}\n' +
-        f'Threshold: {self.threshold()}\n' +
-        f'Local connections filtered out: {self.non_local()}')
+                f'Threshold: {self.threshold()}\n' +
+                f'Local connections filtered out: {self.non_local()}')
 
     def clear_cache(self, irreversible=False):
         """
@@ -164,9 +164,8 @@ class ClimateNetwork(GeoNetwork):
     #  Load and save ClimateNetwork object
     #
 
-    def save(self, filename_network, filename_grid=None,
-             filename_similarity_measure=None, fileformat=None, *args,
-             **kwds):
+    def save(self, filename_network, filename_grid=None, fileformat=None,
+             filename_similarity_measure=None, *args, **kwds):
         """
         Save the ClimateNetwork object to files.
 
@@ -193,8 +192,6 @@ class ClimateNetwork(GeoNetwork):
             object is to be stored.
         :arg str filename_grid:  The name of the file where the GeoGrid object
             is to be stored (including ending).
-        :arg str filename_similarity_measure:  The name of the file where the
-            similarity measure matrix is to be stored.
         :arg str fileformat: the format of the file (if one wants to override
             the format determined from the filename extension, or the filename
             itself is a stream). ``None`` means auto-detection.  Possible
@@ -205,6 +202,8 @@ class ClimateNetwork(GeoNetwork):
             (DIMACS format), ``"edgelist"``, ``"edges"`` or ``"edge"`` (edge
             list), ``"adjacency"`` (adjacency matrix), ``"pickle"`` (Python
             pickled format), ``"svg"`` (Scalable Vector Graphics).
+        :arg str filename_similarity_measure:  The name of the file where the
+            similarity measure matrix is to be stored.
         """
         #  Store GeoNetwork
         GeoNetwork.save(self, filename_network=filename_network,

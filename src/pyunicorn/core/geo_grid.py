@@ -88,8 +88,8 @@ class GeoGrid(Grid):
         """
         Return a string representation of the GeoGrid object.
         """
-        return 'GeoGrid: %i grid points, %i timesteps.' % (
-            self._grid_size['space'], self._grid_size['time'])
+        return (f"GeoGrid: {self._grid_size['space']} grid points, "
+                f"{self._grid_size['time']} timesteps.")
 
     def clear_cache(self):
         """

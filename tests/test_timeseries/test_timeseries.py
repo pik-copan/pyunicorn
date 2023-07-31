@@ -50,11 +50,15 @@ def create_test_data():
 
 @pytest.mark.parametrize("met", ["supremum", "euclidean", "manhattan"])
 @pytest.mark.parametrize(
-    "thresh, rr", [(.2, None)]) # add (None, .2) when #188 solved
+    "thresh, rr", [(.2, None)])  # add (None, .2) when #188 solved
 def testCrossRecurrencePlot(thresh, rr, met):
     # create two instances of the same test dataset
-    tdata1 = create_test_data(); x1 = tdata1[:,0]; y1 = tdata1[:,1]
-    tdata2 = create_test_data(); x2 = tdata2[:,0]; y2 = tdata2[:,1]
+    tdata1 = create_test_data()
+    x1 = tdata1[:, 0]
+    y1 = tdata1[:, 1]
+    tdata2 = create_test_data()
+    x2 = tdata2[:, 0]
+    y2 = tdata2[:, 1]
     # create CrossRecurrencePlot for both
     crp1 = CrossRecurrencePlot(
             x1, y1, threshold=thresh, recurrence_rate=rr, metric=met)
@@ -70,7 +74,7 @@ def testCrossRecurrencePlot(thresh, rr, met):
     assert np.allclose(dist_1, dist_2, atol=1e-04)
     assert CR1.shape == CR2.shape
     assert CR1.shape == (len(x1), len(y1))
-    assert CR1.dtype == CR2.dtype 
+    assert CR1.dtype == CR2.dtype
     assert CR1.dtype == np.int8
 
 
@@ -82,11 +86,15 @@ def testCrossRecurrencePlot(thresh, rr, met):
 @pytest.mark.parametrize("met", ["supremum", "euclidean", "manhattan"])
 @pytest.mark.parametrize(
     "thresh, rr", [((.2, .3, .2), None)]
-    ) # add (None, (.2, .3, .2) when #188 solved
+    )  # add (None, (.2, .3, .2) when #188 solved
 def testInterSystemRecurrenceNetwork(thresh, rr, met):
     # create two instances of the same test dataset
-    tdata1 = create_test_data(); x1 = tdata1[:,0]; y1 = tdata1[:,1]
-    tdata2 = create_test_data(); x2 = tdata2[:,0]; y2 = tdata2[:,1]
+    tdata1 = create_test_data()
+    x1 = tdata1[:, 0]
+    y1 = tdata1[:, 1]
+    tdata2 = create_test_data()
+    x2 = tdata2[:, 0]
+    y2 = tdata2[:, 1]
     # create InterSystemRecurrenceNetwork for both
     isrn1 = InterSystemRecurrenceNetwork(
             x1, y1, threshold=thresh, recurrence_rate=rr, metric=met)
@@ -99,7 +107,7 @@ def testInterSystemRecurrenceNetwork(thresh, rr, met):
     assert np.array_equal(A1, A2)
     assert A1.shape == A2.shape
     assert A1.shape == (len(x1)*2, len(y1)*2)
-    assert A1.dtype == A2.dtype 
+    assert A1.dtype == A2.dtype
     assert A1.dtype == np.int16
 
 
@@ -137,8 +145,8 @@ def testWhiteNoiseSurrogates():
     ts = Surrogates.SmallTestData().original_data
     surrogates = Surrogates.SmallTestData().white_noise_surrogates(ts)
 
-    assert(np.allclose(np.histogram(ts[0, :])[0],
-                       np.histogram(surrogates[0, :])[0]))
+    assert np.allclose(np.histogram(ts[0, :])[0],
+                       np.histogram(surrogates[0, :])[0])
 
 
 def testCorrelatedNoiseSurrogates():
@@ -185,7 +193,7 @@ def testMutualInformation():
 
 def create_test_timeseries():
     """
-    Return test time series including random values and timings 
+    Return test time series including random values and timings
     with 10 sampling points.
 
     :rtype: 2D array
@@ -218,7 +226,7 @@ def create_test_timeseries():
 #     for k in range(i+1,j):
 #         test[k-(i+1)] = np.less((x[k]-x[i]) / (t[k]-t[i]),
 #                                 (x[j]-x[i]) / (t[j]-t[i]))
-    
+
 #     assert np.invert(bool(np.sum(test))) == vg.visibility(node1, node2)
 
 

@@ -1044,9 +1044,9 @@ class GeoNetwork(SpatialNetwork):
             import stripack  # @UnresolvedImport
             # tries to import stripack.so which must have been compiled with
             # f2py -c -m stripack stripack.f90
-        except ImportError:
-            raise RuntimeError("NOTE: stripack.so not available, boundary() \
-                               won't work.")
+        except ImportError as err:
+            raise RuntimeError("NOTE: stripack.so not available, "
+                               "boundary() won't work.") from err
 
         N = self.N
         nodes_set = set(nodes)
@@ -1174,8 +1174,7 @@ class GeoNetwork(SpatialNetwork):
                     rep = self.cartesian2latlon((pos1+pos2)/2)
                     mind2 = d2
             latlon_shape.append(self.cartesian2latlon(partial_shape[-1]))
-            for it, _ in enumerate(partial_fullshape):
-                pos1 = partial_fullshape[it]
+            for pos1 in partial_fullshape:
                 latlon_fullshape.append(self.cartesian2latlon(pos1))
 
             boundary.append(partial_boundary)

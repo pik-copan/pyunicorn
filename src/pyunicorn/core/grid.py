@@ -99,8 +99,8 @@ class Grid:
         """
         Return a string representation of the Grid object.
         """
-        return 'Grid: %i grid points, %i timesteps.' % (
-            self._grid_size['space'], self._grid_size['time'])
+        return (f"Grid: {self._grid_size['space']} grid points, "
+                f"{self._grid_size['time']} timesteps.")
 
     #
     #  Functions for loading and saving the Grid object
@@ -114,9 +114,8 @@ class Grid:
             (including ending).
         """
         try:
-            f = open(filename, 'wb')
-            pickle.dump(self, f)
-            f.close()
+            with open(filename, 'wb') as f:
+                pickle.dump(self, f)
         except IOError:
             print("An error occurred while saving Grid instance to "
                   f"pickle file {filename}")
@@ -132,10 +131,8 @@ class Grid:
         :return: :class:`Grid` instance.
         """
         try:
-            f = open(filename, 'rb')
-            grid = pickle.load(f)
-            f.close()
-
+            with open(filename, 'rb') as f:
+                grid = pickle.load(f)
             return grid
         except IOError:
             print("An error occurred while loading Grid instance from "
