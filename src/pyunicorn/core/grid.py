@@ -127,13 +127,10 @@ class Grid:
         :rtype: Grid object
         :return: :class:`Grid` instance.
         """
-        try:
-            with open(filename, 'rb') as f:
-                grid = pickle.load(f)
-            return grid
-        except IOError:
-            print("An error occurred while loading Grid instance from "
-                  f"pickle file {filename}")
+        with open(filename, 'rb') as f:
+            grid = pickle.load(f)
+
+        return grid
 
     #
     #  Alternative constructors and Grid generation methods

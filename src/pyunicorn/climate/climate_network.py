@@ -507,9 +507,9 @@ class ClimateNetwork(GeoNetwork):
         """
         try:
             return self._similarity_measure
-        except AttributeError:
-            print("The similarity matrix was deleted earlier and cannot be "
-                  "returned.")
+        except AttributeError as e:
+            raise AttributeError("Similarity matrix was deleted "
+                                 "earlier and cannot be retrieved.") from e
 
     def non_local(self):
         """

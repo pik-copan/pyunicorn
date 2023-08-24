@@ -258,9 +258,9 @@ class HavlinClimateNetwork(ClimateNetwork):
         """
         try:
             return self._similarity_measure
-        except AttributeError:
-            print("Correlation strength matrix was deleted earlier and "
-                  "cannot be retrieved.")
+        except AttributeError as e:
+            raise AttributeError("Correlation strength matrix was deleted "
+                                 "earlier and cannot be retrieved.") from e
 
     def correlation_lag(self):
         """
@@ -271,9 +271,9 @@ class HavlinClimateNetwork(ClimateNetwork):
         """
         try:
             return self._correlation_lag
-        except AttributeError:
-            print("Lag matrix was deleted earlier and "
-                  "cannot be retrieved.")
+        except AttributeError as e:
+            raise AttributeError("Lag matrix was deleted "
+                                 "earlier and cannot be retrieved.") from e
 
     #
     #  Methods to calculate weighted network measures
