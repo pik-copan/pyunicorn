@@ -274,12 +274,12 @@ class MapPlots:
         if title_on:
             resources.tiMainString = self.title
 
-        for k in range(len(self.map_mult_data)):
+        for k, map_data in enumerate(self.map_mult_data):
             #  Open a workstation for every map, only wks_type = "ps" allows
             #  multiple workstation
 
             #  Sort dataset, as parallel code will mix it
-            self.map_mult_data[k].sort()
+            map_data.sort()
 
             # Define own levels
             resources.cnLevelSelectionMode = "ExplicitLevels"
@@ -291,7 +291,7 @@ class MapPlots:
             #
             #  Generate map plots
             #
-            for ititle in self.map_mult_data[k]:
+            for ititle in map_data:
                 #  Set title
                 if labels_on:
                     resources.lbTitleString = ititle

@@ -322,9 +322,9 @@ class GeoNetwork(SpatialNetwork):
 
         #  Determine link probabilities
         p_by_dist = {}
-        for d in n_pairs_by_dist:
+        for d, n in n_pairs_by_dist.items():
             try:
-                p_by_dist[d] = n_links_by_dist[d] * 1.0 / n_pairs_by_dist[d]
+                p_by_dist[d] = n_links_by_dist[d] * 1.0 / n
             except KeyError:
                 p_by_dist[d] = 0.0
             print(d, p_by_dist[d])

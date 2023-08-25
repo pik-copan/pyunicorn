@@ -494,13 +494,12 @@ class ClimateNetwork(GeoNetwork):
             print("Extracting network adjacency matrix removing local "
                   "connections...")
 
-        #  This function provides a smooth transition of distance weight
-        #  centered around distance d_min.
-        #  Other sigmoidal type functions could be used as well.
-        f = lambda x, a, b: 0.5 * (np.tanh(a * (x - b)) + 1)
-
         weighted_similarity = similarity_measure * \
-            f(self.grid.angular_distance(), a, d_min)
+            (0.5 * (np.tanh(a * (self.grid.angular_distance() - d_min)) + 1))
+        # The above line is a function that provides a smooth
+        # transition of distance weight, centered around distance d_min.
+        # Other sigmoidal type functions could be used as well.
+
         return self._calculate_threshold_adjacency(weighted_similarity,
                                                    threshold)
 

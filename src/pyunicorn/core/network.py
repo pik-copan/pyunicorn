@@ -1593,7 +1593,7 @@ class Network:
         :arg str attribute_name: Name of node attribute to be deleted.
         """
         # TODO: add example
-        self.graph.es.__delattr__(attribute_name)
+        del self.graph.vs[attribute_name]
 
     #
     #  Methods working with link attributes
@@ -1656,7 +1656,7 @@ class Network:
         # TODO: add example
         if attribute_name in self.cache['paths']:
             self.clear_link_attribute(attribute_name)
-            self.graph.es.__delattr__(attribute_name)
+            del self.graph.es[attribute_name]
         else:
             print("WARNING: Link attribute", attribute_name, "not found!")
 
