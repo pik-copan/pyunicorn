@@ -161,8 +161,7 @@ class ClimateNetwork(GeoNetwork):
     #  Load and save ClimateNetwork object
     #
 
-    def save(self, filename_network, filename_grid=None, fileformat=None,
-             filename_similarity_measure=None, *args, **kwds):
+    def save(self, filename, fileformat=None, *args, **kwds):
         """
         Save the ClimateNetwork object to files.
 
@@ -185,10 +184,9 @@ class ClimateNetwork(GeoNetwork):
         The remaining arguments are passed to the writer method without
         any changes.
 
-        :arg str filename_network:  The name of the file where the Network
-            object is to be stored.
-        :arg str filename_grid:  The name of the file where the GeoGrid object
-            is to be stored (including ending).
+        :arg tuple/list filename: Tuple or list of three strings, namely
+            the paths to the files where the Network object, the
+            GeoGrid object and the similarity measure matrix are to be stored.
         :arg str fileformat: the format of the file (if one wants to override
             the format determined from the filename extension, or the filename
             itself is a stream). ``None`` means auto-detection.  Possible
@@ -202,9 +200,16 @@ class ClimateNetwork(GeoNetwork):
         :arg str filename_similarity_measure:  The name of the file where the
             similarity measure matrix is to be stored.
         """
+        try:
+            (filename_network, filename_grid,
+             filename_similarity_measure) = filename
+        except ValueError as e:
+            raise ValueError("'filename' must be a tuple or list of three "
+                             "items: filename_network, filename_grid, "
+                             "filename_similarity_measure") from e
+
         #  Store GeoNetwork
-        GeoNetwork.save(self, filename_network=filename_network,
-                        filename_grid=filename_grid,
+        GeoNetwork.save(self, filename=(filename_network, filename_grid),
                         fileformat=fileformat,
                         *args, **kwds)
 
@@ -214,8 +219,7 @@ class ClimateNetwork(GeoNetwork):
             similarity_measure.dump(filename_similarity_measure)
 
     @staticmethod
-    def Load(filename_network, filename_grid, filename_similarity_measure,
-             fileformat=None, *args, **kwds):
+    def Load(filename, fileformat=None, silence_level=0, *args, **kwds):
         """
         Return a ClimateNetwork object stored in files.
 
@@ -233,12 +237,10 @@ class ClimateNetwork(GeoNetwork):
         The remaining arguments are passed to the reader method without
         any changes.
 
-        :arg str filename_network:  The name of the file where the Network
-            object is to be stored.
-        :arg str filename_grid:  The name of the file where the GeoGrid object
-            is to be stored (including ending).
-        :arg str filename_similarity_measure:  The name of the file where the
-            similarity measure matrix is to be stored.
+        :arg tuple/list filename: Tuple or list of three strings, namely
+            the paths to the files containing the Network object, the
+            GeoGrid object and the similarity measure matrix.
+            (filename_network, filename_grid, filename_similarity_measure)
         :arg str fileformat: the format of the file (if known in advance)
             ``None`` means auto-detection. Possible values are: ``"ncol"``
             (NCOL format), ``"lgl"`` (LGL format), ``"graphml"``,
@@ -249,6 +251,14 @@ class ClimateNetwork(GeoNetwork):
             pickled format).
         :return: :class:`ClimateNetwork` instance.
         """
+        try:
+            (filename_network, filename_grid,
+             filename_similarity_measure) = filename
+        except ValueError as e:
+            raise ValueError("'filename' must be a tuple or list of three "
+                             "items: filename_network, filename_grid, "
+                             "filename_similarity_measure") from e
+
         #  Load GeoGrid object
         grid = GeoGrid.Load(filename_grid)
 
@@ -271,7 +281,8 @@ class ClimateNetwork(GeoNetwork):
 
         #  Create ClimateNetwork instance
         net = ClimateNetwork(grid=grid, similarity_measure=similarity_measure,
-                             directed=graph.is_directed())
+                             directed=graph.is_directed(),
+                             silence_level=silence_level)
         net.adjacency = A
         net.node_weights = node_weights
 

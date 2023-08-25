@@ -292,7 +292,7 @@ class Data:
             # Create GeoGrid instance
             lat_grid = f.variables[dimension_names["lat"]][:].astype("float32")
             lon_grid = f.variables[dimension_names["lon"]][:].astype("float32")
-            res["grid"] = GeoGrid.RegularGrid(time, lat_grid, lon_grid,
+            res["grid"] = GeoGrid.RegularGrid(time, (lat_grid, lon_grid),
                                               silence_level)
 
             # If 3D data set (time, lat, lon), select whole data set

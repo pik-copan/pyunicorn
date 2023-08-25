@@ -140,8 +140,7 @@ class GeoNetwork(SpatialNetwork):
     #
 
     @staticmethod
-    def Load(filename_network, filename_grid, fileformat=None,
-             silence_level=0, *args, **kwds):
+    def Load(filename, fileformat=None, silence_level=0, *args, **kwds):
         """
         Return a GeoNetwork object stored in files.
 
@@ -159,10 +158,9 @@ class GeoNetwork(SpatialNetwork):
         The remaining arguments are passed to the reader method without
         any changes.
 
-        :arg str filename_network:  The name of the file where the Network
-            object is to be stored.
-        :arg str filename_grid:  The name of the file where the GeoGrid object
-            is to be stored (including ending).
+        :arg tuple/list filename: Tuple or list of two strings, namely
+            the paths to the files containing the Network object
+            and the GeoGrid object (filename_network, filename_grid)
         :arg str fileformat: the format of the file (if known in advance)
           ``None`` means auto-detection. Possible values are: ``"ncol"`` (NCOL
           format), ``"lgl"`` (LGL format), ``"graphml"``, ``"graphmlz"``
@@ -175,6 +173,12 @@ class GeoNetwork(SpatialNetwork):
         :rtype: SpatialNetwork object
         :return: :class:`GeolNetwork` instance.
         """
+        try:
+            (filename_network, filename_grid) = filename
+        except ValueError as e:
+            raise ValueError("'filename' must be a tuple or list of two "
+                             "items: filename_network, filename_grid") from e
+
         #  Load Grid object
         grid = GeoGrid.Load(filename_grid)
         print(grid.__class__)
@@ -188,7 +192,8 @@ class GeoNetwork(SpatialNetwork):
 
         #  Create GeoNetwork instance
         net = GeoNetwork(adjacency=A, grid=grid,
-                         directed=graph.is_directed())
+                         directed=graph.is_directed(),
+                         silence_level=silence_level)
 
         #  Extract node weights
         if "node_weight_nsi" in graph.vs.attribute_names():

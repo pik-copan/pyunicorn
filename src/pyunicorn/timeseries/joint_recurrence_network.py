@@ -217,17 +217,17 @@ class JointRecurrenceNetwork(JointRecurrencePlot, Network):
         Network.__init__(self, A, directed=False,
                          silence_level=self.silence_level)
 
-    def set_fixed_recurrence_rate(self, density):
+    def set_fixed_recurrence_rate(self, recurrence_rate):
         """
         Create a joint recurrence network at fixed link densities (recurrence
         rates).
 
-        :type density: tuple of number
-        :arg density: The link density / recurrence rate. Give for each time
-            series separately.
+        :type recurrence_rate: tuple of number
+        :arg recurrence_rate: The link density / recurrence rate.
+            Give for each time series separately.
         """
         #  Set fixed recurrence rate on recurrence plot level
-        JointRecurrencePlot.set_fixed_recurrence_rate(self, density)
+        JointRecurrencePlot.set_fixed_recurrence_rate(self, recurrence_rate)
 
         #  Set diagonal of JR to zero to avoid self-loops in the joint
         #  recurrence network
