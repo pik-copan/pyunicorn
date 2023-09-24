@@ -146,8 +146,8 @@ class ResNetwork(GeoNetwork):
         """
         Return a short summary of the resistive network.
         """
-        return(f"ResNetwork:\n{GeoNetwork.__str__(self)}\n"
-        f"Average resistance: {self.resistances.mean()}")
+        return (f"ResNetwork:\n{GeoNetwork.__str__(self)}\n"
+                f"Average resistance: {self.resistances.mean()}")
 
 ###############################################################################
 # ##                       PUBLIC FUNCTIONS                                ## #

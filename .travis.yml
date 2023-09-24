@@ -21,7 +21,12 @@ before_install:
     - conda config --set quiet yes --set always_yes yes --set changeps1 no
     - travis_retry conda update -n base -c defaults conda
     - travis_retry conda update --all
+    - travis_retry conda install -n base conda-libmamba-solver
+    - conda config --set solver libmamba
+
+    # debugging info
     - conda info -a
+    - conda list
 
 install:
     # runtime dependencies
@@ -36,8 +41,12 @@ install:
     - travis_retry conda install -c conda-forge tox flake8 pylint pytest-xdist pytest-cov
     - travis_retry conda install -c conda-forge networkx matplotlib cartopy sphinx
 
+    # debugging info
+    - conda info -a
+    - conda list
+
 before_script:
-    # limit pytest processes within container environment
+    # limit Pytest processes within container environment
     - sed -i 's/-n auto/-n 2/' setup.cfg
 
 script:
