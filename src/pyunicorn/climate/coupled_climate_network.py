@@ -143,8 +143,8 @@ class CoupledClimateNetwork(InteractingNetworks, ClimateNetwork):
         """
         Return a string representation of CoupledClimateNetwork object.
         """
-        return f'CoupledClimateNetwork:\n{ClimateNetwork.__str__(self)} \
-                \nN1: {self.N_1}\nN2: self.N_2'
+        return (f'CoupledClimateNetwork:\n{ClimateNetwork.__str__(self)}\n'
+                f'N1: {self.N_1}\nN2: self.N_2')
 
     #
     #  Define methods for handling the coupled network
