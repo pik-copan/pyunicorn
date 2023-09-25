@@ -58,7 +58,7 @@ before_script:
 
 script:
     # package
-    - travis_retry pip install -vv ".[testing,docs]"
+    - travis_retry pip install -vv -e ".[testing,docs]"
 
     # test suite
     - tox -v
