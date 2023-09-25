@@ -65,9 +65,11 @@ class CartopyPlots:
         #
 
         # Specify Coordinate Refference System for Map Projection
+        # pylint: disable-next=abstract-class-instantiated
         self.projection = ccrs.PlateCarree()
 
         # Specify CRS (where data should be plotted)
+        # pylint: disable-next=abstract-class-instantiated
         self.crs = ccrs.PlateCarree()
 
         # get spatial dims
