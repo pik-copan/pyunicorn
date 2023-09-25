@@ -143,7 +143,7 @@ class EventSeriesClimateNetwork(EventSeries, ClimateNetwork):
 
         method_types = ['ES', 'ECA', 'ES_pval', 'ECA_pval']
         if method not in method_types:
-            raise IOError(f"Method input must be:"
+            raise IOError(f"Method input must be: "
                           f"{method_types[0]}, {method_types[1]},"
                           f"{method_types[2]}, or {method_types[3]}!")
 

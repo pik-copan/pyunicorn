@@ -346,9 +346,10 @@ class Navigator(object):
         if self.is_geo:
             for i in range(S):
                 if self.label != str(S-i):
-                    self.boundary[i], self.shape[i], self.fullshape[i],\
-                        self.representative[i] = \
-                        self.network.get_boundary(self.nodes[i], gap=0.1)
+                    (
+                        self.boundary[i], self.shape[i], self.fullshape[i],
+                        self.representative[i]
+                    ) = self.network.get_boundary(self.nodes[i], gap=0.1)
                     self.representative[i].append((0, 0))
                     self.lat[i], self.lon[i] = self.representative[i][0]
         if self.map:

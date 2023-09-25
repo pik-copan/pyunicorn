@@ -191,13 +191,9 @@ class CouplingAnalysis:
         if N > T:
             print(f"Warning: data.shape = {data.shape},"
                   " is it of shape (observations, variables) ?")
-        if numpy.isnan(data).sum() != 0:
-            raise ValueError("NaNs in the data")
-        if tau_max < 0:
-            raise ValueError(f"tau_max = {tau_max}, but 0 <= tau_max")
-        if lag_mode not in ['max', 'all']:
-            raise ValueError(f"lag_mode = {lag_mode},"
-                             " but must be 'max' or 'all'")
+        assert numpy.isnan(data).sum() == 0, "NaNs in the data"
+        assert tau_max >= 0, f"{tau_max = }"
+        assert lag_mode in ['max', 'all'], f"{lag_mode = }"
 
         #  Normalize time series to zero mean and unit variance for all lags
         corr_range = T - tau_max
@@ -313,13 +309,10 @@ class CouplingAnalysis:
         if T < 500:
             print(f"Warning: T = {T} ,"
                   " unreliable estimation using MI estimator")
-        if numpy.isnan(data).sum() != 0:
-            raise ValueError("NaNs in the data")
-        if tau_max < 0:
-            raise ValueError(f"tau_max = {tau_max}, but 0 <= tau_max")
+        assert numpy.isnan(data).sum() == 0, "NaNs in the data"
+        assert tau_max >= 0, f"{tau_max = }"
         if estimator == 'knn':
-            if knn > T/2. or knn < 1:
-                raise ValueError(f"knn = {knn}, should be between 1 and T/2")
+            assert 1 <= knn <= T/2., f"{knn = }"
 
         if lag_mode == 'max':
             similarity_matrix = numpy.ones((N, N), dtype='float32')

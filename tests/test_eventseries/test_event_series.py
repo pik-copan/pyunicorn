@@ -164,8 +164,8 @@ def eca_second_implementaion(eventseriesx, eventseriesy, ts1=None,
         if triggerdummy:
             triggeryx = triggeryx + 1.0
 
-    return precursorxy/(l1-s1p), triggerxy/(l2-s2t),\
-        precursoryx/(l2-s2p), triggeryx/(l1-s1t)
+    return (precursorxy/(l1-s1p), triggerxy/(l2-s2t),
+            precursoryx/(l2-s2p), triggeryx/(l1-s1t))
 
 
 def test_eca():

@@ -5173,10 +5173,7 @@ class Network:
             mind = result[0]
             part1 = int(result[1])
             part2 = int(result[2])
-            if mind < 0:
-                print(united, mind, part1, part2)
-                raise ValueError("something went wrong here,"
-                                 "variable 'mind' is negative!")
+            assert mind >= 0
 
             cluster2rank[np.array(activeIndices)[
                 (-clusterWeights[activeIndices]).argsort()], n2+1-united] = \
@@ -5232,11 +5229,7 @@ class Network:
                     min(lw, weightProducts[united, c] - lw)
             errors[united, united] = \
                 weightProducts[united, united] - linkedWeights[united, united]
-            if errors.min() < -1e-10:
-                print(errors)
-                raise ValueError("something went wrong here, "
-                                 "some calculated 'errors' have "
-                                 "values below -1e-10")
+            assert errors.min() >= -1e-10
             lastunited = united
 
         print(time.time()-t0, "seconds")

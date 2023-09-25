@@ -310,7 +310,7 @@ class EventSeries:
                     raise IOError("'threshold_values' must be either float/int"
                                   " or 1D array-like object of float/int for "
                                   " each variable!")
-            elif threshold_values.shape == ():
+            elif not threshold_values.shape:
                 if isinstance(threshold_values.item(), (int, float)):
                     threshold_values = \
                         np.array([threshold_values] * data.shape[1])
@@ -336,7 +336,7 @@ class EventSeries:
                                   " 'below' or a 1D array-like object with "
                                   "entries 'above' or 'below' for each "
                                   "variable!")
-            elif threshold_types.shape == ():
+            elif not threshold_types.shape:
                 if threshold_types in ['above', 'below']:
                     threshold_types = \
                         np.array([threshold_types] * data.shape[1])
