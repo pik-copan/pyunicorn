@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-#
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
@@ -88,8 +85,7 @@ class Surrogates:
         """
         Returns a string representation.
         """
-        return 'Surrogates: time series shape %s.' % (
-            self.original_data.shape,)
+        return f"Surrogates: time series shape {self.original_data.shape}."
 
     def clear_cache(self):
         """Clean up cache."""

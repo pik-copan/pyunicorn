@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
@@ -24,15 +21,15 @@ from pyunicorn.core.geo_grid import GeoGrid
 
 def test_RegularGrid():
     res = GeoGrid.RegularGrid(time_seq=np.arange(2),
-                              lat_grid=np.array([0., 5.]),
-                              lon_grid=np.array([1., 2.]),
+                              space_grid=(np.array([0., 5.]),
+                                          np.array([1., 2.])),
                               silence_level=2).lat_sequence()
     exp = np.array([0., 0., 5., 5.], dtype=np.float32)
     assert np.allclose(res, exp, atol=1e-04)
 
     res = GeoGrid.RegularGrid(time_seq=np.arange(2),
-                              lat_grid=np.array([0., 5.]),
-                              lon_grid=np.array([1., 2.]),
+                              space_grid=(np.array([0., 5.]),
+                                          np.array([1., 2.])),
                               silence_level=2).lon_sequence()
     exp = np.array([1., 2., 1., 2.], dtype=np.float32)
     assert np.allclose(res, exp, atol=1e-04)

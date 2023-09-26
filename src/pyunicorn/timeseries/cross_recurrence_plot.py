@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-#
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
@@ -24,7 +21,7 @@ analysis (RQA) and recurrence network analysis.
 # array object and fast numerics
 import numpy as np
 
-from ..core._ext.types import to_cy, FIELD, DFIELD
+from ..core._ext.types import to_cy, DFIELD
 from ._ext.numerics import _manhattan_distance_matrix_crp, \
     _euclidean_distance_matrix_crp, _supremum_distance_matrix_crp
 
@@ -167,10 +164,10 @@ class CrossRecurrencePlot(RecurrencePlot):
         """
         Returns a string representation.
         """
-        return ('CrossRecurrencePlot: time series shapes %s, %s.\n'
-                'Embedding dimension %i\nThreshold %s, %s metric') % (
-                    self.x.shape, self.y.shape, self.dim if self.dim else 0,
-                    self.threshold, self.metric)
+        return ("CrossRecurrencePlot: "
+                f"time series shapes {self.x.shape}, {self.y.shape}.\n"
+                f"Embedding dimension {self.dim if self.dim else 0}\n"
+                f"Threshold {self.threshold}, {self.metric} metric")
 
     #
     #  Service methods

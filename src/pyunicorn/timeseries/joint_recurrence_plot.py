@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-#
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
@@ -221,10 +218,10 @@ class JointRecurrencePlot(RecurrencePlot):
         """
         Returns a string representation.
         """
-        return ('JointRecurrencePlot: time series shapes %s.\n'
-                'Embedding dimension %i\nThreshold %s, %s metric') % (
-                    self.x.shape, self.dim if self.dim else 0,
-                    self.threshold, self.metric)
+        return ("JointRecurrencePlot: "
+                f"time series shapes {self.x.shape}.\n"
+                f"Embedding dimension {self.dim if self.dim else 0}\n"
+                f"Threshold {self.threshold}, {self.metric} metric")
 
     #
     #  Service methods

@@ -1,5 +1,4 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 
 """
 Tutorial on analyzing climate networks using Python.
@@ -176,7 +175,3 @@ ax = plt.set_cmap('plasma')
 # Plot with cartopy and matplotlib
 cn_plot.generate_plots(file_name="climate_network_measures",
                                  title_on=False, labels_on=True)
-
-
-
-

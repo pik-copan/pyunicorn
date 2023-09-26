@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-#
 # Copyright (C) 2014 SWIPO Project
 #
 # Authors (this file):
@@ -235,7 +232,7 @@ def testSerialTrivial():
     ER2 = rnw2.effective_resistance(0, 4)
 
     print("Effective resistances (0,2)")
-    print("NW1 %.3f\tNW2 %.3f\t 2*NW1 = %.3f" % (ER1, ER2, 2*ER1))
+    print(f"NW1 {ER1:.3f}\tNW2 {ER2:.3f}\t 2*NW1 = {(2*ER1):.3f}")
 
     assert (ER1*2-ER2) < 1E-6
 

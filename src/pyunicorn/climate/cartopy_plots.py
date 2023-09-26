@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-#
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
@@ -20,23 +17,14 @@ Provides classes for analyzing spatially embedded complex networks, handling
 multivariate data and generating time series surrogates.
 """
 
-import os
-import glob
-# time handling
-# import datetime
-
-import numpy as np
 import matplotlib.pyplot as plt
 
-#  Import Ngl support functions for plotting, map projections etc.
 try:
-    import cartopy
+    import cartopy.crs as ccrs
+    import cartopy.feature as cf
 except ImportError:
     print("climate: Package cartopy could not be loaded. Some functionality "
           "in class MapPlots might not be available!")
-
-import cartopy.crs as ccrs
-import cartopy.feature as cf
 
 #
 #  Define class CartopyPlots
@@ -77,14 +65,15 @@ class CartopyPlots:
         #
 
         # Specify Coordinate Refference System for Map Projection
+        # pylint: disable-next=abstract-class-instantiated
         self.projection = ccrs.PlateCarree()
 
         # Specify CRS (where data should be plotted)
+        # pylint: disable-next=abstract-class-instantiated
         self.crs = ccrs.PlateCarree()
 
         # get spatial dims
         self.lon = self.grid.convert_lon_coordinates(self.grid.lon_sequence())
-        # self.lon = self.grid.lon_sequence()
         self.lat = self.grid.lat_sequence()
         self.gridsize_lon = len(self.lon)
         self.gridsize_lat = len(self.lat)
@@ -92,10 +81,11 @@ class CartopyPlots:
         self.lon_max = self.grid.boundaries()["lon_max"]
         self.lat_min = self.grid.boundaries()["lat_min"]
         self.lat_max = self.grid.boundaries()["lat_max"]
-        
+
         # extent of data will also give extent of world map
-        self.data_extent = [self.lon_min, self.lon_max, self.lat_min, self.lat_max]
-       
+        self.data_extent = [self.lon_min, self.lon_max,
+                            self.lat_min, self.lat_max]
+
         print("Created plot class.")
 
     def add_dataset(self, title, data):
@@ -126,52 +116,50 @@ class CartopyPlots:
             plotted.
         """
 
-        for dataset in self.map_data: 
-            
+        for dataset in self.map_data:
+
             #  Generate figue
             fig = plt.figure()
-            
+
             # create map plot
             ax = plt.axes(projection=self.projection)
-        
+
             # make it a class feature, as to work with it from outside
             # self.ax = ax
-            
+
             # create some standards of plotting that can be adjusted
-            # before calling generate_cartopy_plot    
+            # before calling generate_cartopy_plot
             # adjust size and plot coastlines and borders
             ax.set_extent(self.data_extent, crs=self.crs)
             # ax.set_global()
             ax.add_feature(cf.COASTLINE.with_scale("50m"), lw=0.5)
-            ax.add_feature(cf.BORDERS.with_scale("50m"), lw=0.2)       
-            
+            ax.add_feature(cf.BORDERS.with_scale("50m"), lw=0.2)
+
             # Draw gridlines in degrees over map
             gl = ax.gridlines(crs=self.crs, draw_labels=True,
-                          linewidth=.6, color='gray', alpha=0.5, linestyle='-.')
+                              linewidth=.6, color='gray',
+                              alpha=0.5, linestyle='-.')
             gl.xlabel_style = {"size": 7}
-            gl.ylabel_style = {"size": 7}                
+            gl.ylabel_style = {"size": 7}
             # plot data upon map
-            ax = plt.tricontourf(self.lon, self.lat, dataset["data"], extent = self.data_extent, transform = self.crs)
-                     
+            ax = plt.tricontourf(self.lon, self.lat, dataset["data"],
+                                 extent=self.data_extent, transform=self.crs)
             ax = plt.colorbar(shrink=0.5)
 
             # plot main title
             if title_on:
                 plt.suptitle(self.title)
-            
+
             # plot subtitles
             if labels_on:
                 plt.title(dataset["title"])
-            
+
             # save figures at current dir
             file_extension = dataset["title"] + ".png"
             file_extension = file_extension.replace(" ", "")
-            
+
             fig.savefig(file_name + "_" + file_extension)
-            
-            plt.close()            
-        
+
+            plt.close()
+
         print("Created and saved plots @ current directory.")
-            
-
-

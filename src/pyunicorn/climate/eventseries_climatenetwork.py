@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-#
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
@@ -44,15 +41,9 @@ class EventSeriesClimateNetwork(EventSeries, ClimateNetwork):
     #
     #  Internal methods
 
-    def __init__(self, data, method='ES', taumax=np.inf, lag=0.0,
-                 symmetrization='directed', window_type='symmetric',
-                 threshold_method=None, threshold_values=None,
-                 threshold_types=None, p_value=None,
-                 surrogate='shuffle', n_surr=1000,
-                 non_local=False, node_weight_type='surface',
-                 silence_level=0):
+    def __init__(self, data, method='ES', p_value=None, **kwargs):
 
-        """
+        r"""
         Initialize an instance of EventSeriesClimateNetwork.
 
         For other applications of event series networks please use
@@ -63,82 +54,107 @@ class EventSeriesClimateNetwork(EventSeries, ClimateNetwork):
         :type method: str {'ES', 'ECA', 'ES_pval', 'ECA_pval'}
         :arg method: determines if ES, ECA, or the p-values of one of the
                      methods should be used for network reconstruction.
-        :type taumax: float
-        :arg taumax: maximum time difference between two events to be
-                    considered synchronous. Caution: For ES, the default is
-                    np.inf because of the intrinsic dynamic coincidence
-                    interval in ES. For ECA, taumax is a parameter of the
-                    method that needs to be defined.
-        :type lag: float
-        :arg lag: extra time lag between the event series.
-        :type symmetrization: str {'directed', 'symmetric', 'antisym',
-                                   'mean', 'max', 'min'} for ES,
-                              str {'directed', 'mean', 'max', 'min'} for ECA
-        :arg symmetrization: determines if and if true, which symmetrization
-                             should be used for the ES/ECA score matrix.
-        :type window_type: str {'retarded', 'advanced', 'symmetric'}
-        :arg window_type: Only for ECA. Determines if precursor coincidence
-                          rate ('advanced'), trigger coincidence rate
-                          ('retarded') or a general coincidence rate with the
-                          symmetric interval [-taumax, taumax] are computed
-                          ('symmetric'). Default: 'symmetric'.
-        :type threshold_method: str 'quantile' or 'value' or 1D numpy array or
-                                str 'quantile' or 'value'
-        :arg threshold_method: specifies the method for generating a binary
-                               event matrix from an array of continuous time
-                               series. Default: None.
-        :type threshold_values: 1D Numpy array or float
-        :arg threshold_values: quantile or real number determining threshold
-                               for each variable. Default: None.
-        :type threshold_types: str 'above' or 'below' or 1D list of strings
-                               'above' or 'below'
-        :arg threshold_types: determines for each variable if event is below
-                              or above threshold.
         :type p_value: float in [0,1]
         :arg p_value: determines the p-value threshold for network
                       reconstruction. ES/ECA scores of event time series pairs
                       with p-value higher than threshold are set to zero
                       leading to missing link in climate network.
                       Default: None. No p-value thresholding.
-        :type non_local: bool
-        :arg non_local: determines whether links between spatially close
-                        nodes should be suppressed.
-        :type node_weight_type: str
-        :arg node_weight_type: The type of geographical node weight to be
-                               used.
-        :type silence_level: int
-        :arg silence_level: The inverse level of verbosity of the object.
+        :arg \**kwargs:
+            optional keyword arguments to specify parent classes' behavior,
+            see below for all options.
+
+        :Keyword Arguments:
+            * *taumax* (``float``) --
+              maximum time difference between two events to be
+              considered synchronous. Caution: For ES, the default is
+              np.inf because of the intrinsic dynamic coincidence
+              interval in ES. For ECA, taumax is a parameter of the
+              method that needs to be defined.
+            * *lag* (``float``) --
+              extra time lag between the event series.
+            * *symmetrization* (``str {'directed', 'symmetric', 'antisym',
+                                    'mean', 'max', 'min'}`` for ES,
+                                ``str {'directed', 'mean', 'max', 'min'}``
+                                for ECA) --
+              determines if and if true, which symmetrization
+              should be used for the ES/ECA score matrix.
+            * *window_type* (``str {'retarded', 'advanced', 'symmetric'}``) --
+              Only for ECA. Determines if precursor coincidence
+              rate ('advanced'), trigger coincidence rate
+              ('retarded') or a general coincidence rate with the
+              symmetric interval [-taumax, taumax] are computed
+              ('symmetric'). Default: 'symmetric'.
+            * *threshold_method* (``str 'quantile' or 'value'
+                                  or 1D numpy array of
+                                  'quantile' or 'value'``) --
+              specifies the method for generating a binary
+              event matrix from an array of continuous time
+              series. Default: None.
+            * *threshold_values* (``1D Numpy array or float``) --
+              quantile or real number determining threshold
+              for each variable. Default: None.
+            :type threshold_types: str 'above' or 'below'
+                                or 1D list of strings
+                                'above' or 'below'
+            * *threshold_types* (``str 'above' or 'below'
+                                 or 1D list of strings of
+                                 'above' or 'below'``) --
+              determines for each variable if event is below
+              or above threshold.
+            :type non_local: bool
+            * *non_local* (``bool``) --
+              determines whether links between spatially close
+              nodes should be suppressed.
+            :type node_weight_type: str
+            * *node_weight_type* (``str``) --
+              The type of geographical node weight to be
+              used.
+            * *arg silence_level* (``int``) --
+              The inverse level of verbosity of the object.
         """
+
+        # extract ES and CN related optional keyword arguments from **kwargs
+        ES_kwargs = {
+            "taumax": kwargs.get("taumax", np.inf),
+            "lag": kwargs.get("lag", 0.0),
+            "threshold_method": kwargs.get("threshold_method", None),
+            "threshold_values": kwargs.get("threshold_values", None),
+            "threshold_types": kwargs.get("threshold_types", None)
+        }
+
+        ES_analysis_kwargs = {
+            "symmetrization": kwargs.get("symmetrization", 'directed'),
+            "window_type": kwargs.get("window_type", 'symmetric')
+        }
+
+        ES_significance_kwargs = {
+            "surrogate": kwargs.get("surrogate", 'shuffle'),
+            "n_surr": kwargs.get("n_surr", 1000),
+            "symmetrization": kwargs.get("symmetrization", 'directed'),
+            "window_type": kwargs.get("window_type", 'symmetric')
+        }
+
+        CN_kwargs = {
+            "non_local": kwargs.get("non_local", False),
+            "node_weight_type": kwargs.get("node_weight_type", "surface"),
+            "silence_level": kwargs.get("silence_level", 0)
+        }
 
         method_types = ['ES', 'ECA', 'ES_pval', 'ECA_pval']
         if method not in method_types:
-            raise IOError(f"Method input must be: {method_types[0]},\
-            		   {method_types[1]},\
-                          {method_types[2]}, or {method_types[3]}!")
-
-        etypes = ["directed", "symmetric", "antisym", "mean", "max", "min"]
-        if symmetrization not in etypes:
-            raise IOError(f"wrong symmetry...\n \
-                          Available options: {etypes[0]}, {etypes[1]},\
-                          {etypes[2]}, {etypes[3]},\
-                          {etypes[4]}, or {etypes[5]}")
+            raise IOError(f"Method input must be: "
+                          f"{method_types[0]}, {method_types[1]},"
+                          f"{method_types[2]}, or {method_types[3]}!")
 
         self.__method = method
-        self.__symmetry = symmetrization
-        self.directed = (self.__symmetry == "directed")
-        self.__es_type = method
-        self.__window_type = window_type
         self.__p_value = p_value
-        self.__surrogate = surrogate
-        self.__n_surr = n_surr
-        self.__taumax = taumax
-        self.__lag = lag
+
+        self.__symmetry = kwargs.get("symmetrization", 'directed')
+        self.directed = self.__symmetry == "directed"
 
         # Construct an EventSeries object with the chosen parameters
-        EventSeries.__init__(self, data.observable(), taumax=self.__taumax,
-                             lag=self.__lag, threshold_method=threshold_method,
-                             threshold_values=threshold_values,
-                             threshold_types=threshold_types)
+        EventSeries.__init__(self, data.observable(), **ES_kwargs)
 
         # Compute matrix for link weights of ClimateNetwork from event
         # synchronization or event coincidence analysis with chosen symmetry
@@ -147,11 +163,11 @@ class EventSeriesClimateNetwork(EventSeries, ClimateNetwork):
 
         # If standard ES/ECA measure is chosen, calculate pairwise ES/ECA
         # scores
+
         if self.__method in ['ES', 'ECA']:
             measure_matrix = \
                 self.event_series_analysis(method=self.__method,
-                                           symmetrization=self.__symmetry,
-                                           window_type=self.__window_type)
+                                           **ES_analysis_kwargs)
 
             # Check if a p-value is chosen, then:
             # Set all coupling strengths in the measure matrix with
@@ -164,40 +180,26 @@ class EventSeriesClimateNetwork(EventSeries, ClimateNetwork):
 
                 significance_matrix = \
                     self.event_analysis_significance(
-                        method=self.__method, surrogate=self.__surrogate,
-                        n_surr=self.__n_surr, symmetrization=self.__symmetry,
-                        window_type=self.__window_type)
+                        method=self.__method, **ES_significance_kwargs)
 
                 for i in range(self.__N):
                     for j in range(self.__N):
                         if significance_matrix[i][j] < 1.0 - p_value:
                             measure_matrix[i][j] = 0.0
 
-        elif self.__method == 'ES_pval':
+        elif self.__method in ['ES_pval', 'ECA_pval']:
             measure_matrix = \
                 self.event_analysis_significance(
-                    method='ES', surrogate=self.__surrogate,
-                    n_surr=self.__n_surr, symmetrization=self.__symmetry,
-                    window_type=self.__window_type)
-
-        elif self.__method == 'ECA_pval':
-            measure_matrix = \
-                self.event_analysis_significance(
-                    method='ECA', surrogate=self.__surrogate,
-                    n_surr=self.__n_surr, symmetrization=self.__symmetry,
-                    window_type=self.__window_type)
+                    method=self.__method, **ES_significance_kwargs)
 
         ClimateNetwork.__init__(self, grid=data.grid,
                                 similarity_measure=measure_matrix,
-                                threshold=0,
-                                non_local=non_local,
-                                directed=self.directed,
-                                node_weight_type=node_weight_type,
-                                silence_level=silence_level)
+                                threshold=0, directed=self.directed,
+                                **CN_kwargs)
 
     def __str__(self):
         """
-        Return a string representation of TsonisClimateNetwork.
+        Return a string representation of EventSeriesClimateNetwork.
 
         **Example:**
 
@@ -227,7 +229,7 @@ class EventSeriesClimateNetwork(EventSeries, ClimateNetwork):
                 "%s%s")
         return text % (EventSeries.__str__(self),
                        ClimateNetwork.__str__(self), self.__symmetry,
-                       self.__es_type)
+                       self.__method)
 
     @staticmethod
     def SmallTestData():

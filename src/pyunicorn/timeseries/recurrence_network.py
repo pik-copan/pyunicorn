@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-#
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
@@ -151,8 +148,9 @@ class RecurrenceNetwork(RecurrencePlot, Network):
         """
         Returns a string representation.
         """
-        return 'RecurrenceNetwork:\n%s\n%s' % (
-            RecurrencePlot.__str__(self), Network.__str__(self))
+        return (f"RecurrenceNetwork:\n"
+                f"{RecurrencePlot.__str__(self)}\n"
+                f"{Network.__str__(self)}")
 
     def clear_cache(self):
         """

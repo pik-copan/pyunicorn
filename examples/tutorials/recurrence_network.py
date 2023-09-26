@@ -1,5 +1,4 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 
 """
 Tutorial on how to handle recurrence plots and recurrence networks using

@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-#
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
@@ -143,8 +140,7 @@ class GeoNetwork(SpatialNetwork):
     #
 
     @staticmethod
-    def Load(filename_network, filename_grid, fileformat=None,
-             silence_level=0, *args, **kwds):
+    def Load(filename, fileformat=None, silence_level=0, *args, **kwds):
         """
         Return a GeoNetwork object stored in files.
 
@@ -162,10 +158,9 @@ class GeoNetwork(SpatialNetwork):
         The remaining arguments are passed to the reader method without
         any changes.
 
-        :arg str filename_network:  The name of the file where the Network
-            object is to be stored.
-        :arg str filename_grid:  The name of the file where the GeoGrid object
-            is to be stored (including ending).
+        :arg tuple/list filename: Tuple or list of two strings, namely
+            the paths to the files containing the Network object
+            and the GeoGrid object (filename_network, filename_grid)
         :arg str fileformat: the format of the file (if known in advance)
           ``None`` means auto-detection. Possible values are: ``"ncol"`` (NCOL
           format), ``"lgl"`` (LGL format), ``"graphml"``, ``"graphmlz"``
@@ -178,6 +173,12 @@ class GeoNetwork(SpatialNetwork):
         :rtype: SpatialNetwork object
         :return: :class:`GeolNetwork` instance.
         """
+        try:
+            (filename_network, filename_grid) = filename
+        except ValueError as e:
+            raise ValueError("'filename' must be a tuple or list of two "
+                             "items: filename_network, filename_grid") from e
+
         #  Load Grid object
         grid = GeoGrid.Load(filename_grid)
         print(grid.__class__)
@@ -191,7 +192,8 @@ class GeoNetwork(SpatialNetwork):
 
         #  Create GeoNetwork instance
         net = GeoNetwork(adjacency=A, grid=grid,
-                         directed=graph.is_directed())
+                         directed=graph.is_directed(),
+                         silence_level=silence_level)
 
         #  Extract node weights
         if "node_weight_nsi" in graph.vs.attribute_names():
@@ -320,9 +322,9 @@ class GeoNetwork(SpatialNetwork):
 
         #  Determine link probabilities
         p_by_dist = {}
-        for d in n_pairs_by_dist:
+        for d, n in n_pairs_by_dist.items():
             try:
-                p_by_dist[d] = n_links_by_dist[d] * 1.0 / n_pairs_by_dist[d]
+                p_by_dist[d] = n_links_by_dist[d] * 1.0 / n
             except KeyError:
                 p_by_dist[d] = 0.0
             print(d, p_by_dist[d])
@@ -1044,9 +1046,9 @@ class GeoNetwork(SpatialNetwork):
             import stripack  # @UnresolvedImport
             # tries to import stripack.so which must have been compiled with
             # f2py -c -m stripack stripack.f90
-        except ImportError:
-            raise RuntimeError("NOTE: stripack.so not available, boundary() \
-                               won't work.")
+        except ImportError as err:
+            raise RuntimeError("NOTE: stripack.so not available, "
+                               "boundary() won't work.") from err
 
         N = self.N
         nodes_set = set(nodes)
@@ -1174,8 +1176,7 @@ class GeoNetwork(SpatialNetwork):
                     rep = self.cartesian2latlon((pos1+pos2)/2)
                     mind2 = d2
             latlon_shape.append(self.cartesian2latlon(partial_shape[-1]))
-            for it, _ in enumerate(partial_fullshape):
-                pos1 = partial_fullshape[it]
+            for pos1 in partial_fullshape:
                 latlon_fullshape.append(self.cartesian2latlon(pos1))
 
             boundary.append(partial_boundary)

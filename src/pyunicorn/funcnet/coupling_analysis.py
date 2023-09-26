@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-#
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
@@ -72,8 +69,8 @@ class CouplingAnalysis:
 
     def __str__(self):
         """Return a string representation of the CouplingAnalysis object."""
-        return 'CouplingAnalysis: %i variables, %i timesteps.' % (
-            self.N, self.n_time)
+        return (f'CouplingAnalysis: {self.N} variables, '
+                f'{self.n_time} timesteps.')
 
     @staticmethod
     def test_data():
@@ -132,8 +129,8 @@ class CouplingAnalysis:
         :returns: the value at the absolute maximum and the (pos or neg) lag.
         """
 
-        return _symmetrize_by_absmax(
-            to_cy(similarity_matrix, FIELD), to_cy(lag_matrix, LAG), self.N)
+        return _symmetrize_by_absmax(to_cy(similarity_matrix, FIELD),
+                                     to_cy(lag_matrix, LAG), self.N)
 
     #
     #  Define methods to estimate similarity measures
@@ -194,13 +191,9 @@ class CouplingAnalysis:
         if N > T:
             print(f"Warning: data.shape = {data.shape},"
                   " is it of shape (observations, variables) ?")
-        if numpy.isnan(data).sum() != 0:
-            raise ValueError("NaNs in the data")
-        if tau_max < 0:
-            raise ValueError("tau_max = %d, but 0 <= tau_max" % tau_max)
-        if lag_mode not in ['max', 'all']:
-            raise ValueError("lag_mode = %s, but must be one of 'max', 'all'"
-                             % lag_mode)
+        assert numpy.isnan(data).sum() == 0, "NaNs in the data"
+        assert tau_max >= 0, f"{tau_max = }"
+        assert lag_mode in ['max', 'all'], f"{lag_mode = }"
 
         #  Normalize time series to zero mean and unit variance for all lags
         corr_range = T - tau_max
@@ -316,14 +309,10 @@ class CouplingAnalysis:
         if T < 500:
             print(f"Warning: T = {T} ,"
                   " unreliable estimation using MI estimator")
-        if numpy.isnan(data).sum() != 0:
-            raise ValueError("NaNs in the data")
-        if tau_max < 0:
-            raise ValueError("tau_max = %d, but 0 <= tau_max" % tau_max)
+        assert numpy.isnan(data).sum() == 0, "NaNs in the data"
+        assert tau_max >= 0, f"{tau_max = }"
         if estimator == 'knn':
-            if knn > T/2. or knn < 1:
-                raise ValueError("knn = %s, should be between 1 and T/2"
-                                 % str(knn))
+            assert 1 <= knn <= T/2., f"{knn = }"
 
         if lag_mode == 'max':
             similarity_matrix = numpy.ones((N, N), dtype='float32')
@@ -506,8 +495,8 @@ class CouplingAnalysis:
 
         # Sanity checks
         if not isinstance(data, numpy.ndarray):
-            raise TypeError("data is of type %s, must be numpy.ndarray"
-                            % type(data))
+            raise TypeError(f"data is of type {type(data)},"
+                            " must be numpy.ndarray")
         if N > T:
             print(f"Warning: data.shape = {data.shape},"
                   " is it of shape (observations, variables) ?")
@@ -517,7 +506,7 @@ class CouplingAnalysis:
         if numpy.isnan(data).sum() != 0:
             raise ValueError("NaNs in the data")
         if tau_max < 0:
-            raise ValueError("tau_max = %d, but 0 <= tau_max" % tau_max)
+            raise ValueError(f"tau_max = {tau_max}, but 0 <= tau_max")
         if estimator == 'knn':
             if knn > T/2. or knn < 1:
                 raise ValueError(f"knn = {knn}, should be between 1 and T/2")
@@ -737,8 +726,8 @@ class CouplingAnalysis:
             'Dimension exceeds 3 GB of necessary memory '
             '(change this code line if you got more...)')
         assert D*base**D < 2**65, (
-            'base = %d, D = %d: Histogram failed: '
-            'dimension D*base**D exceeds int64 data type') % (base, D)
+            f'base = {base}, D = {D}: Histogram failed:'
+            ' dimension D*base**D exceeds int64 data type')
 
         flathist = numpy.zeros((base**D), dtype='int16')
         multisymb = numpy.zeros(T, dtype='int64')

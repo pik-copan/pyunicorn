@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-#
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
@@ -50,7 +47,7 @@ import igraph                       # high performance graph theory tools
 from ..utils import mpi             # parallelized computations
 
 from ._ext.types import \
-    to_cy, ADJ, MASK, NODE, DEGREE, WEIGHT, DWEIGHT, FIELD, DFIELD
+    to_cy, ADJ, MASK, NODE, DEGREE, DWEIGHT, FIELD, DFIELD
 from ._ext.numerics import \
     _local_cliquishness_4thorder, _local_cliquishness_5thorder, \
     _nsi_betweenness, _mpi_newman_betweenness, _mpi_nsi_newman_betweenness, \
@@ -284,8 +281,8 @@ class Network:
         """
         net_type_prefix = '' if self.directed else 'un'
         return (f"Network: {net_type_prefix}directed, "
-        f"{self.N} nodes, {self.n_links} links, "
-        f"link density {self.link_density:.3f}.")
+                f"{self.N} nodes, {self.n_links} links, "
+                f"link density {self.link_density:.3f}.")
 
     def __len__(self):
         """
@@ -1596,7 +1593,7 @@ class Network:
         :arg str attribute_name: Name of node attribute to be deleted.
         """
         # TODO: add example
-        self.graph.es.__delattr__(attribute_name)
+        del self.graph.vs[attribute_name]
 
     #
     #  Methods working with link attributes
@@ -1659,7 +1656,7 @@ class Network:
         # TODO: add example
         if attribute_name in self.cache['paths']:
             self.clear_link_attribute(attribute_name)
-            self.graph.es.__delattr__(attribute_name)
+            del self.graph.es[attribute_name]
         else:
             print("WARNING: Link attribute", attribute_name, "not found!")
 
@@ -5176,9 +5173,7 @@ class Network:
             mind = result[0]
             part1 = int(result[1])
             part2 = int(result[2])
-            if mind < 0:
-                print(united, mind, part1, part2)
-                raise Exception
+            assert mind >= 0
 
             cluster2rank[np.array(activeIndices)[
                 (-clusterWeights[activeIndices]).argsort()], n2+1-united] = \
@@ -5234,9 +5229,7 @@ class Network:
                     min(lw, weightProducts[united, c] - lw)
             errors[united, united] = \
                 weightProducts[united, united] - linkedWeights[united, united]
-            if errors.min() < -1e-10:
-                print(errors)
-                raise Exception
+            assert errors.min() >= -1e-10
             lastunited = united
 
         print(time.time()-t0, "seconds")

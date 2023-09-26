@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-#
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
@@ -115,10 +112,9 @@ class Data:
         if self.file_name:
             self.print_data_info()
 
-        return ('Data: %i grid points, %i measurements.\n'
-                'Geographical boundaries:\n%s') % (
-                    self.grid.N, self.grid.n_grid_points,
-                    self.grid.print_boundaries())
+        return (f"Data: {self.grid.N} grid points, "
+                f"{self.grid.n_grid_points} measurements.\n"
+                f"Geographical boundaries:\n{self.grid.print_boundaries()}")
 
     def set_silence_level(self, silence_level):
         """
@@ -296,7 +292,7 @@ class Data:
             # Create GeoGrid instance
             lat_grid = f.variables[dimension_names["lat"]][:].astype("float32")
             lon_grid = f.variables[dimension_names["lon"]][:].astype("float32")
-            res["grid"] = GeoGrid.RegularGrid(time, lat_grid, lon_grid,
+            res["grid"] = GeoGrid.RegularGrid(time, (lat_grid, lon_grid),
                                               silence_level)
 
             # If 3D data set (time, lat, lon), select whole data set
@@ -397,7 +393,7 @@ class Data:
             print(name + ":", getattr(f, name))
         print("Variables (size):")
         for name, obj in f.variables.items():
-            print("%s (%i)" % (name, len(obj)))
+            print(f"{name} ({len(obj)})")
         f.close()
 
     def observable(self):
@@ -592,8 +588,7 @@ class Data:
             array /= scale_factor
             scaled_array = array.astype('uint8')
         else:
-            print("Data type %s variable %s for rescaling array "
-                  "not supported!" % var_type)
+            print(f"Data type {var_type} not supported!")
             scale_factor = 1.
             add_offset = 0.
 

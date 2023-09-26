@@ -1,5 +1,3 @@
-#! /usr/bin/env python2
-
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
@@ -17,8 +15,6 @@
 """
 Generic consistency checks.
 """
-
-import numpy as np
 
 from pyunicorn import __version__, core, climate, timeseries, funcnet
 
@@ -67,8 +63,8 @@ def simple_instances():
         climate.SpearmanClimateNetwork(cd, winter_only=False, **t1),
         climate.MutualInfoClimateNetwork(cd, winter_only=False, **t1),
         climate.CoupledTsonisClimateNetwork(cd, cd, **t1),
-        # climate.EventSynchronizationClimateNetwork(ec, 0.8, 16,
-        #                                           eventsynctype="directedES"),
+        # climate.EventSynchronizationClimateNetwork(
+        #     ec, 0.8, 16, eventsynctype="directedES"),
         timeseries.RecurrencePlot(ts, **t1),
         timeseries.RecurrenceNetwork(ts, **t1),
         timeseries.JointRecurrencePlot(ts, ts, **t2),

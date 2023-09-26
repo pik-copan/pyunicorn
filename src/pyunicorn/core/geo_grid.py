@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-#
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
@@ -88,8 +85,8 @@ class GeoGrid(Grid):
         """
         Return a string representation of the GeoGrid object.
         """
-        return 'GeoGrid: %i grid points, %i timesteps.' % (
-            self._grid_size['space'], self._grid_size['time'])
+        return (f"GeoGrid: {self._grid_size['space']} grid points, "
+                f"{self._grid_size['time']} timesteps.")
 
     def clear_cache(self):
         """
@@ -172,36 +169,43 @@ class GeoGrid(Grid):
                        silence_level=2)
 
     @staticmethod
-    def RegularGrid(time_seq, lat_grid, lon_grid, silence_level=0):
+    def RegularGrid(time_seq, space_grid, silence_level=0):
         """
         Initialize an instance of a regular grid.
 
         **Examples:**
 
         >>> GeoGrid.RegularGrid(
-        ...      time_seq=np.arange(2), lat_grid=np.array([0.,5.]),
-        ...      lon_grid=np.array([1.,2.]), silence_level=2).lat_sequence()
+        ...      time_seq=np.arange(2),
+        ...      space_grid=(np.array([0.,5.]),
+        ...                  np.array([1.,2.])),
+        ...      silence_level=2).lat_sequence()
         array([ 0.,  0.,  5.,  5.], dtype=float32)
         >>> GeoGrid.RegularGrid(
-        ...     time_seq=np.arange(2), lat_grid=np.array([0.,5.]),
-        ...     lon_grid=np.array([1.,2.]), silence_level=2).lon_sequence()
+        ...      time_seq=np.arange(2),
+        ...      space_grid=(np.array([0.,5.]),
+        ...                  np.array([1.,2.])),
+        ...      silence_level=2).lon_sequence()
         array([ 1.,  2.,  1.,  2.], dtype=float32)
 
         :type time_seq: 1D Numpy array [time]
         :arg time_seq: The increasing sequence of temporal sampling points.
-
-        :type lat_grid: 1D Numpy array [n_lat]
-        :arg lat_grid: The latitudinal grid.
-
-        :type lon_grid: 1D Numpy array [n_lon]
-        :arg lon_grid: The longitudinal grid.
-
+        :type space_grid: tuple or list of two 1D Numpy arrays
+            ([n_lat], [n_lon])
+        :arg space_grid: The spatial grid, consisting of the latitudinal
+            and the longitudinal grid.
         :type silence_level: number (int)
         :arg silence_level: The inverse level of verbosity of the object.
 
         :rtype: GeoGrid object
         :return: :class:`GeoGrid` instance.
         """
+        try:
+            (lat_grid, lon_grid) = space_grid
+        except ValueError as e:
+            raise ValueError("'space_grid' must be a tuple or list of two "
+                             "items: lat_grid, lon_grid") from e
+
         #  Generate sequence of latitudes and longitudes for all nodes
         lat_seq, lon_seq = GeoGrid.coord_sequence_from_rect_grid(lat_grid,
                                                                  lon_grid)

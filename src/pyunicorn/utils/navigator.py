@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-#
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
@@ -289,12 +286,12 @@ class Navigator(object):
                       + ["X"+uc[i] for i in range(26)]
                       + ["Y"+uc[i] for i in range(26)]
                       + ["Z"+uc[i] for i in range(26)],
-                      xrange(1, 100),
+                      range(1, 100),
                       [lc[i] for i in range(23)]
                       + ["x"+lc[i] for i in range(26)]
                       + ["y"+lc[i] for i in range(26)]
                       + ["z"+lc[i] for i in range(26)],
-                      xrange(1, 100),
+                      range(1, 100),
                       [lc[i] for i in range(23)]
                       + ["x"+lc[i] for i in range(26)]
                       + ["y"+lc[i] for i in range(26)]
@@ -349,9 +346,10 @@ class Navigator(object):
         if self.is_geo:
             for i in range(S):
                 if self.label != str(S-i):
-                    self.boundary[i], self.shape[i], self.fullshape[i],\
-                        self.representative[i] = \
-                        self.network.get_boundary(self.nodes[i], gap=0.1)
+                    (
+                        self.boundary[i], self.shape[i], self.fullshape[i],
+                        self.representative[i]
+                    ) = self.network.get_boundary(self.nodes[i], gap=0.1)
                     self.representative[i].append((0, 0))
                     self.lat[i], self.lon[i] = self.representative[i][0]
         if self.map:
@@ -422,16 +420,15 @@ class Navigator(object):
                 [[0.02, 1.0], [7.99, 5.0]]))
         return fig
 
-    def write_kml(self,
-                  path="climate-network-analysis",
-                  pathurl=
-                  "http://localhost/~heitzig-j/climate-network-analysis",
-                  title="Climate Network Analysis",
-                  measures=None,
-                  stats=None
-                  ):
+    def write_kml(
+      self,
+      path="climate-network-analysis",
+      pathurl="http://localhost/~heitzig-j/climate-network-analysis",
+      title="Climate Network Analysis",
+      measures=None,
+      stats=None):
         # TODO: kmz, betweenness correctly, i.png, zip, doublettes
-        f = file(path+"/open-this-in-googleearth.kml", "w")
+        f = open(path+"/open-this-in-googleearth.kml", "w")
         f.write("""<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
   <NetworkLink>
@@ -440,19 +437,19 @@ class Navigator(object):
     <open>1</open>
     <Link>
 <!--
-*********************************************************************************
-** if you unzipped the archive into your own (local) webserver,                **
-** change the following to point to the file doc.kml inside it,                **
-** for example:                                                                **
-**    <href>http://localhost/~username/climate-network-analysis/doc.kml</href> **
-*********************************************************************************
+*******************************************************************************
+** if you unzipped the archive into your own (local) webserver,              **
+** change the following to point to the file doc.kml inside it,              **
+** for example:                                                              **
+**  <href>http://localhost/~username/climate-network-analysis/doc.kml</href> **
+*******************************************************************************
 -->
       <href>"""+pathurl+"""/doc.kml</href>
     </Link>
   </NetworkLink>
 </kml>""")
         f.close()
-        f = file(path+"/standard.kml", "w")
+        f = open(path+"/standard.kml", "w")
         f.write("""<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
 <NetworkLinkControl>
@@ -470,7 +467,7 @@ class Navigator(object):
 </NetworkLinkControl>
 </kml>""")
         f.close()
-        f = file(path+"/no-standard.kml", "w")
+        f = open(path+"/no-standard.kml", "w")
         f.write("""<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
 <NetworkLinkControl>
@@ -483,9 +480,10 @@ class Navigator(object):
 </NetworkLinkControl>
 </kml>""")
         # TODO: tour
-        f = file(path+"/doc.kml", "w")
+        f = open(path+"/doc.kml", "w")
         f.write("""<?xml version="1.0" encoding="UTF-8"?>
-<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2">
+<kml xmlns="http://www.opengis.net/kml/2.2" """
+                """xmlns:gx="http://www.google.com/kml/ext/2.2">
   <Document>
     <Style id="check">
       <ListStyle><listItemType>check</listItemType></ListStyle>
@@ -494,13 +492,15 @@ class Navigator(object):
       <ListStyle><listItemType>radioFolder</listItemType></ListStyle>
     </Style>
     <Style id="hide">
-      <ListStyle><listItemType>checkHideChildren</listItemType><ItemIcon/></ListStyle>
+      <ListStyle><listItemType>checkHideChildren</listItemType><ItemIcon/>"""
+                """</ListStyle>
     </Style>
     <Style id="noicon">
       <ListStyle><ItemIcon/></ListStyle>
     </Style>
     <!--<gx:Tour id="intro">
-      <name>&lt;a href=&quot;#intro;flyto&quot;&gt;Introductory tour&lt;/a&gt;</name>
+      <name>&lt;a href=&quot;#intro;flyto&quot;&gt;Introductory tour&lt;"""
+                """/a&gt;</name>
       <gx:Playlist>
         <gx:AnimatedUpdate>
           <Update>
@@ -523,49 +523,56 @@ class Navigator(object):
           <name>&lt;i&gt;show regions only&lt;/i&gt;</name>
           <visibility>0</visibility><styleUrl>#hide</styleUrl>
           <NetworkLink><Link><href>links-off.kml</href></Link></NetworkLink>
-          <NetworkLink><Link><href>hierarchy-regions.kml</href></Link></NetworkLink>
+          <NetworkLink><Link><href>hierarchy-regions.kml</href></Link>"""
+                """</NetworkLink>
         </Folder>
         <Folder>
           <name>&lt;i&gt;regions and links&lt;/i&gt;</name>
           <visibility>0</visibility><styleUrl>#hide</styleUrl>
           <NetworkLink><Link><href>no-standard.kml</href></Link></NetworkLink>
-          <NetworkLink><Link><href>hierarchy-regions.kml</href></Link></NetworkLink>
-          <NetworkLink><Link><href>hierarchy-links.kml</href></Link></NetworkLink>
+          <NetworkLink><Link><href>hierarchy-regions.kml</href></Link>"""
+                """</NetworkLink>
+          <NetworkLink><Link><href>hierarchy-links.kml</href></Link>"""
+                """</NetworkLink>
         </Folder>
         <Folder>
           <name>&lt;i&gt;links only&lt;/i&gt;</name>
           <visibility>0</visibility><styleUrl>#hide</styleUrl>
           <NetworkLink><Link><href>no-standard.kml</href></Link></NetworkLink>
           <NetworkLink><Link><href>regions-off.kml</href></Link></NetworkLink>
-          <NetworkLink><Link><href>hierarchy-links.kml</href></Link></NetworkLink>
+          <NetworkLink><Link><href>hierarchy-links.kml</href></Link>"""
+                """</NetworkLink>
         </Folder>
       </Folder>""")
-        for level in range(len(self.solutions)):
-            l = self.solutions[level]
+        for s in self.solutions:
             f.write("""
       <Folder>
-        <name>Partition into """+str(l)+""" regions...</name>
+        <name>Partition into """+str(s)+""" regions...</name>
         <visibility>0</visibility><styleUrl>#radio</styleUrl>
         <Folder>
           <name>&lt;i&gt;show regions only&lt;/i&gt;</name>
           <visibility>0</visibility><styleUrl>#hide</styleUrl>
           <NetworkLink><Link><href>no-standard.kml</href></Link></NetworkLink>
           <NetworkLink><Link><href>links-off.kml</href></Link></NetworkLink>
-          <NetworkLink><Link><href>partition"""+str(l)+"""-regions.kml</href></Link></NetworkLink>
+          <NetworkLink><Link><href>partition"""+str(s)
+                    + """-regions.kml</href></Link></NetworkLink>
         </Folder>
         <Folder>
           <name>&lt;i&gt;regions and links&lt;/i&gt;</name>
           <visibility>0</visibility><styleUrl>#hide</styleUrl>
           <NetworkLink><Link><href>no-standard.kml</href></Link></NetworkLink>
-          <NetworkLink><Link><href>partition"""+str(l)+"""-regions.kml</href></Link></NetworkLink>
-          <NetworkLink><Link><href>partition"""+str(l)+"""-links.kml</href></Link></NetworkLink>
+          <NetworkLink><Link><href>partition"""+str(s)
+                    + """-regions.kml</href></Link></NetworkLink>
+          <NetworkLink><Link><href>partition"""+str(s)
+                    + """-links.kml</href></Link></NetworkLink>
         </Folder>
         <Folder>
           <name>&lt;i&gt;links only&lt;/i&gt;</name>
           <visibility>0</visibility><styleUrl>#hide</styleUrl>
           <NetworkLink><Link><href>no-standard.kml</href></Link></NetworkLink>
           <NetworkLink><Link><href>regions-off.kml</href></Link></NetworkLink>
-          <NetworkLink><Link><href>partition"""+str(l)+"""-links.kml</href></Link></NetworkLink>
+          <NetworkLink><Link><href>partition"""+str(s)
+                    + """-links.kml</href></Link></NetworkLink>
         </Folder>
       </Folder>""")
         f.write("""
@@ -588,10 +595,16 @@ class Navigator(object):
           <drawOrder>1</drawOrder>
           <Icon><href>measure"""+str(i)+""".png</href></Icon>
           <Region>
-            <LatLonAltBox><north>90</north><south>-90</south><east>180.1</east><west>-180.1</west><minAltitude>0</minAltitude><maxAltitude>0</maxAltitude></LatLonAltBox>
-            <Lod><minLodPixels>5</minLodPixels><maxLodPixels>12000</maxLodPixels><minFadeExtent>5</minFadeExtent><maxFadeExtent>11000</maxFadeExtent></Lod>
+            <LatLonAltBox><north>90</north><south>-90</south><east>180.1"""
+                        """</east><west>-180.1</west><minAltitude>0"""
+                        """</minAltitude><maxAltitude>0</maxAltitude>"""
+                        """</LatLonAltBox>
+            <Lod><minLodPixels>5</minLodPixels><maxLodPixels>12000"""
+                        """</maxLodPixels><minFadeExtent>5</minFadeExtent>"""
+                        """<maxFadeExtent>11000</maxFadeExtent></Lod>
           </Region>
-          <LatLonBox><north>90</north><south>-90</south><east>-180.1</east><west>180.1</west></LatLonBox>
+          <LatLonBox><north>90</north><south>-90</south><east>-180.1</east>"""
+                        """<west>180.1</west></LatLonBox>
         </GroundOverlay>""")
             f.write("""
       </Folder>""")
@@ -608,10 +621,16 @@ class Navigator(object):
           <drawOrder>1</drawOrder>
           <Icon><href>stat"""+str(0)+""".png</href></Icon>
           <Region>
-            <LatLonAltBox><north>90</north><south>-90</south><east>180.1</east><west>-180.1</west><minAltitude>0</minAltitude><maxAltitude>0</maxAltitude></LatLonAltBox>
-            <Lod><minLodPixels>5</minLodPixels><maxLodPixels>12000</maxLodPixels><minFadeExtent>5</minFadeExtent><maxFadeExtent>11000</maxFadeExtent></Lod>
+            <LatLonAltBox><north>90</north><south>-90</south><east>180.1"""
+                        """</east><west>-180.1</west><minAltitude>0"""
+                        """</minAltitude><maxAltitude>0</maxAltitude>"""
+                        """</LatLonAltBox>
+            <Lod><minLodPixels>5</minLodPixels><maxLodPixels>12000"""
+                        """</maxLodPixels><minFadeExtent>5</minFadeExtent>"""
+                        """<maxFadeExtent>11000</maxFadeExtent></Lod>
           </Region>
-          <LatLonBox><north>90</north><south>-90</south><east>-180</east><west>180</west></LatLonBox>
+          <LatLonBox><north>90</north><south>-90</south><east>-180</east>"""
+                        """<west>180</west></LatLonBox>
         </GroundOverlay>""")
             f.write("""
       </Folder>""")
@@ -626,7 +645,8 @@ class Navigator(object):
         if self.B0 is not None:
             f.write("""
         <NetworkLink>
-          <name>&lt;i&gt;colored by centrality and betweenness&lt;/i&gt;</name>
+          <name>&lt;i&gt;colored by centrality and betweenness&lt;/i&gt;"""
+                    """</name>
           <visibility>0</visibility><styleUrl>#noicon</styleUrl>
           <Link><href>nodes-betweenness.kml</href></Link>
         </NetworkLink>
@@ -701,13 +721,14 @@ class Navigator(object):
     </Folder>
     <NetworkLink>
       <name>&lt;small&gt;(don't deselect this)&lt;/small&gt;</name>
-      <open>0</open><visibility>1</visibility><refreshVisibility>0</refreshVisibility><styleUrl>#hide</styleUrl>
+      <open>0</open><visibility>1</visibility><refreshVisibility>0"""
+                """</refreshVisibility><styleUrl>#hide</styleUrl>
       <Link><href>data.kmz</href></Link>
     </NetworkLink>
   </Document>
 </kml>""")
         f.close()
-        f = file(path+"/regions-off.kml", "w")
+        f = open(path+"/regions-off.kml", "w")
         f.write("""<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
 <NetworkLinkControl>
@@ -720,7 +741,7 @@ class Navigator(object):
 </NetworkLinkControl>
 </kml>""")
         f.close()
-        f = file(path+"/links-off.kml", "w")
+        f = open(path+"/links-off.kml", "w")
         f.write("""<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
 <NetworkLinkControl>
@@ -753,7 +774,7 @@ class Navigator(object):
             bmax = np.log(0.0001+max(self.B[self.regions]))
             bmin = np.log(0.0001+min(self.B[self.regions]))
             ccmax = max(self.CC[self.regions])
-            f = file(path+"/nodes-betweenness.kml", "w")
+            f = open(path+"/nodes-betweenness.kml", "w")
             f.write("""<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
 <NetworkLinkControl>
@@ -768,14 +789,15 @@ class Navigator(object):
                     c = "00" + hex(767-b)[-2:] + "ff"
                 a = hex(256+int(self.CC[i]/ccmax*255))[-2:]
                 f.write("""
-<IconStyle targetId="i"""+str(i)+""""><color>"""+a+c+"""</color><scale>1.5</scale></IconStyle>""")
+<IconStyle targetId="i"""+str(i)+""""><color>"""+a+c
+                        + """</color><scale>1.5</scale></IconStyle>""")
             f.write("""
     </Change>
   </Update>
 </NetworkLinkControl>
 </kml>""")
             f.close()
-        f = file(path+"/nodes-yellow.kml", "w")
+        f = open(path+"/nodes-yellow.kml", "w")
         f.write("""<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
 <NetworkLinkControl>
@@ -784,14 +806,16 @@ class Navigator(object):
     <Change>""")
         for i in self.regions:
             f.write("""
-<IconStyle targetId="i"""+str(i)+""""><color>ff00ffff</color><scale>1.5</scale></IconStyle>""")
+<IconStyle targetId="i"""+str(i)
+                    + """"><color>ff00ffff</color><scale>1.5</scale>"""
+                    """</IconStyle>""")
         f.write("""
     </Change>
   </Update>
 </NetworkLinkControl>
 </kml>""")
         f.close()
-        f = file(path+"/nodes-black.kml", "w")
+        f = open(path+"/nodes-black.kml", "w")
         f.write("""<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
 <NetworkLinkControl>
@@ -800,14 +824,16 @@ class Navigator(object):
     <Change>""")
         for i in self.regions:
             f.write("""
-<IconStyle targetId="i"""+str(i)+""""><color>ff000000</color><scale>1.5</scale></IconStyle>""")
+<IconStyle targetId="i"""+str(i)
+                    + """"><color>ff000000</color><scale>1.5</scale>"""
+                    """</IconStyle>""")
         f.write("""
     </Change>
   </Update>
 </NetworkLinkControl>
 </kml>""")
         f.close()
-        f = file(path+"/nodes-off.kml", "w")
+        f = open(path+"/nodes-off.kml", "w")
         f.write("""<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
 <NetworkLinkControl>
@@ -836,7 +862,7 @@ class Navigator(object):
                 for i, j in links:
                     dmax = max(dmax, self.D[i, j])
                 print("DMAX", dmax)
-            f = file(path+"/links-betweenness.kml", "w")
+            f = open(path+"/links-betweenness.kml", "w")
             f.write("""<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
 <NetworkLinkControl>
@@ -857,14 +883,15 @@ class Navigator(object):
                 else:
                     a = hex(511-int((self.D[i, j]-1)/(dmax-1)*255))[-2:]
                 f.write("""
-<LineStyle targetId="a"""+str(i)+"-"+str(j)+""""><color>"""+a+c+"""</color></LineStyle>""")
+<LineStyle targetId="a"""+str(i)+"-"+str(j)+""""><color>"""+a+c
+                        + """</color></LineStyle>""")
             f.write("""
     </Change>
   </Update>
 </NetworkLinkControl>
 </kml>""")
             f.close()
-        f = file(path+"/links-yellow.kml", "w")
+        f = open(path+"/links-yellow.kml", "w")
         f.write("""<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
 <NetworkLinkControl>
@@ -873,14 +900,15 @@ class Navigator(object):
     <Change>""")
         for i, j in links:
             f.write("""
-<LineStyle targetId="a"""+str(i)+"-"+str(j)+""""><color>ff00ffff</color></LineStyle>""")
+<LineStyle targetId="a"""+str(i)+"-"+str(j)
+                    + """"><color>ff00ffff</color></LineStyle>""")
         f.write("""
     </Change>
   </Update>
 </NetworkLinkControl>
 </kml>""")
         f.close()
-        f = file(path+"/links-black.kml", "w")
+        f = open(path+"/links-black.kml", "w")
         f.write("""<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
 <NetworkLinkControl>
@@ -889,14 +917,15 @@ class Navigator(object):
     <Change>""")
         for i, j in links:
             f.write("""
-<LineStyle targetId="a"""+str(i)+"-"+str(j)+""""><color>ff7f0000</color></LineStyle>""")
+<LineStyle targetId="a"""+str(i)+"-"+str(j)
+                    + """"><color>ff7f0000</color></LineStyle>""")
         f.write("""
     </Change>
   </Update>
 </NetworkLinkControl>
 </kml>""")
         f.close()
-        f = file(path+"/labels-large.kml", "w")
+        f = open(path+"/labels-large.kml", "w")
         f.write("""<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
 <NetworkLinkControl>
@@ -905,17 +934,22 @@ class Navigator(object):
     <Change>""")
         for i in self.regions:
             f.write("""
-<Placemark targetId="p"""+str(i)+""""><name>"""+self.label[i]+"""</name></Placemark><LabelStyle targetId="l"""+str(i)+""""><scale>3</scale></LabelStyle>""")
+<Placemark targetId="p"""+str(i)+""""><name>"""+self.label[i]
+                    + """</name></Placemark><LabelStyle targetId="l"""
+                    + str(i)+""""><scale>3</scale></LabelStyle>""")
         for i, j in links:
             f.write("""
-<Placemark targetId="p"""+str(i)+"-"+str(j)+""""><name>"""+self.label[i]+" - "+self.label[j]+"""</name></Placemark><LabelStyle targetId="l"""+str(i)+"-"+str(j)+""""><scale>2</scale></LabelStyle>""")
+<Placemark targetId="p"""+str(i)+"-"+str(j)+""""><name>"""+self.label[i]
+                    + " - "+self.label[j]+"""</name></Placemark><LabelStyle"""
+                    """ targetId="l"""+str(i)+"-"+str(j)
+                    + """"><scale>2</scale></LabelStyle>""")
         f.write("""
     </Change>
   </Update>
 </NetworkLinkControl>
 </kml>""")
         f.close()
-        f = file(path+"/labels-small.kml", "w")
+        f = open(path+"/labels-small.kml", "w")
         f.write("""<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
 <NetworkLinkControl>
@@ -923,7 +957,7 @@ class Navigator(object):
     <targetHref>data.kmz</targetHref>
     <Change>""")
         for i in self.regions:
-            l = self.label[i] + \
+            lab = self.label[i] + \
                 (", dg %(k)6.2f, cls %(C)2d, btw %(B)5.2f" % {
                     "k": self.k[i]*510.07,
                     "C": self.C[i]*100,
@@ -931,9 +965,11 @@ class Navigator(object):
                 replace("  ", " ").replace("  ", " ")
             # TODO: use provided data
             f.write("""
-<Placemark targetId="p"""+str(i)+""""><name>"""+l+"""</name></Placemark><LabelStyle targetId="l"""+str(i)+""""><scale>3</scale></LabelStyle>""")
+<Placemark targetId="p"""+str(i)+""""><name>"""+lab
+                    + """</name></Placemark><LabelStyle targetId="l"""+str(i)
+                    + """"><scale>3</scale></LabelStyle>""")
         for i, j in links:
-            l = self.label[i] + " - " + self.label[j] + \
+            lab = self.label[i] + " - " + self.label[j] + \
                 (", str %(s)5.2f, dst %(l)6.2f, btw %(B)7.4f" % {
                     "s": self.linked_weight[i, j]*510.07**2,
                     "l": self.D[i, j],
@@ -941,14 +977,16 @@ class Navigator(object):
                 replace("  ", " ").replace("  ", " ")
             # TODO: use provided data
             f.write("""
-<Placemark targetId="p"""+str(i)+"-"+str(j)+""""><name>"""+l+"""</name></Placemark><LabelStyle targetId="l"""+str(i)+"-"+str(j)+""""><scale>2</scale></LabelStyle>""")
+<Placemark targetId="p"""+str(i)+"-"+str(j)+""""><name>"""+lab
+                    + """</name></Placemark><LabelStyle targetId="l"""+str(i)
+                    + "-"+str(j)+""""><scale>2</scale></LabelStyle>""")
         f.write("""
     </Change>
   </Update>
 </NetworkLinkControl>
 </kml>""")
         f.close()
-        f = file(path+"/labels-off.kml", "w")
+        f = open(path+"/labels-off.kml", "w")
         f.write("""<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
 <NetworkLinkControl>
@@ -957,29 +995,39 @@ class Navigator(object):
     <Change>""")
         for i in self.regions:
             f.write("""
-<Placemark targetId="p"""+str(i)+""""><name>"""+self.label[i]+"""</name></Placemark><LabelStyle targetId="l"""+str(i)+""""><scale>0</scale></LabelStyle>""")
+<Placemark targetId="p"""+str(i)+""""><name>"""+self.label[i]
+                    + """</name></Placemark><LabelStyle targetId="l"""+str(i)
+                    + """"><scale>0</scale></LabelStyle>""")
         for i, j in links:
             f.write("""
-<Placemark targetId="p"""+str(i)+"-"+str(j)+""""><name>"""+self.label[i]+" - "+self.label[j]+"""</name></Placemark><LabelStyle targetId="l"""+str(i)+"-"+str(j)+""""><scale>0</scale></LabelStyle>""")
+<Placemark targetId="p"""+str(i)+"-"+str(j)+""""><name>"""+self.label[i]
+                    + " - "+self.label[j]+"""</name></Placemark><LabelStyle """
+                    """targetId="l"""+str(i)+"-"+str(j)
+                    + """"><scale>0</scale></LabelStyle>""")
         f.write("""
     </Change>
   </Update>
 </NetworkLinkControl>
 </kml>""")
         f.close()
-        f = file(path+"/hierarchy-regions.kml", "w")
+        f = open(path+"/hierarchy-regions.kml", "w")
         f.write("""<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
 <NetworkLinkControl>
   <Update>
     <targetHref>data.kmz</targetHref>
     <Change>
-      <Style targetId="a"><PolyStyle><outline>1</outline></PolyStyle></Style>""")
+      <Style targetId="a"><PolyStyle><outline>1</outline>"""
+                """</PolyStyle></Style>""")
         for i in self.regions:
             t1 = max(np.min(self.solutions), self.S+1-self.parent[i])
             t2 = min(self.S+1-i, np.max(self.solutions)+1)-1
             f.write("""
-<Placemark targetId="p"""+str(i)+""""><TimeSpan><begin>"""+str(t1)+"""</begin><end>"""+str(t2)+"""-12-31</end></TimeSpan><LookAt><gx:TimeStamp><when>"""+str(t1)+"""</when></gx:TimeStamp></LookAt></Placemark>""")
+<Placemark targetId="p"""+str(i)+""""><TimeSpan><begin>"""+str(t1)
+                    + """</begin><end>"""+str(t2)
+                    + """-12-31</end></TimeSpan><LookAt><gx:TimeStamp><when>"""
+                    + str(t1)
+                    + """</when></gx:TimeStamp></LookAt></Placemark>""")
         f.write("""
       <Folder targetId="regions"><visibility>1</visibility></Folder>
     </Change>
@@ -987,7 +1035,7 @@ class Navigator(object):
 </NetworkLinkControl>
 </kml>""")
         f.close()
-        f = file(path+"/hierarchy-links.kml", "w")
+        f = open(path+"/hierarchy-links.kml", "w")
         f.write("""<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
 <NetworkLinkControl>
@@ -999,7 +1047,9 @@ class Navigator(object):
                      self.S+1-self.parent[j])
             t2 = min(self.S+1-i, self.S+1-j, np.max(self.solutions)+1)-1
             f.write("""
-<Placemark targetId="p"""+str(i)+"-"+str(j)+""""><TimeSpan><begin>"""+str(t1)+"""</begin><end>"""+str(t2)+"""-12-31</end></TimeSpan></Placemark>""")
+<Placemark targetId="p"""+str(i)+"-"+str(j)+""""><TimeSpan><begin>"""+str(t1)
+                    + """</begin><end>"""+str(t2)
+                    + """-12-31</end></TimeSpan></Placemark>""")
         f.write("""
       <Folder targetId="links"><visibility>1</visibility></Folder>
     </Change>
@@ -1007,34 +1057,38 @@ class Navigator(object):
 </NetworkLinkControl>
 </kml>""")
         f.close()
-        for level in range(len(self.solutions)):
-            l = self.solutions[level]
-            f = file(path+"/partition"+str(l)+"-regions.kml", "w")
+        for level, s in enumerate(self.solutions):
+            f = open(path+"/partition"+str(s)+"-regions.kml", "w")
             f.write("""<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
 <NetworkLinkControl>
   <Update>
     <targetHref>data.kmz</targetHref>
     <Change>
-      <Style targetId="a"><PolyStyle><outline>1</outline></PolyStyle></Style>""")
+      <Style targetId="a"><PolyStyle><outline>1</outline>"""
+                    """</PolyStyle></Style>""")
             for i in self.solution_nodes[level]:
                 f.write("""
-<Placemark targetId="p"""+str(i)+""""><TimeSpan><begin/><end/></TimeSpan><LookAt><gx:TimeStamp><when/></gx:TimeStamp></LookAt></Placemark>""")
+<Placemark targetId="p"""+str(i)+""""><TimeSpan><begin/><end/></TimeSpan>"""
+                        """<LookAt><gx:TimeStamp><when/></gx:TimeStamp>"""
+                        """</LookAt></Placemark>""")
             f.write("""
       <Folder targetId="regions"><visibility>1</visibility></Folder>
-      <Folder targetId="regions"""+str(l)+""""><visibility>1</visibility></Folder>
+      <Folder targetId="regions"""+str(s)
+                    + """"><visibility>1</visibility></Folder>
       <Folder targetId="regions0"><visibility>0</visibility></Folder>""")
-            for level2 in range(len(self.solutions)):
+            for level2, s2 in enumerate(self.solutions):
                 if level2 != level:
                     f.write("""
-      <Folder targetId="regions"""+str(self.solutions[level2])+""""><visibility>0</visibility></Folder>""")
+      <Folder targetId="regions"""+str(s2)
+                            + """"><visibility>0</visibility></Folder>""")
             f.write("""
     </Change>
   </Update>
 </NetworkLinkControl>
 </kml>""")
             f.close()
-            f = file(path+"/partition"+str(l)+"-links.kml", "w")
+            f = open(path+"/partition"+str(s)+"-links.kml", "w")
             f.write("""<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
 <NetworkLinkControl>
@@ -1045,24 +1099,29 @@ class Navigator(object):
                 for j in self.solution_nodes[level]:
                     if (i, j) in links:
                         f.write("""
-<Placemark targetId="p"""+str(i)+"-"+str(j)+""""><TimeSpan><begin/><end/></TimeSpan></Placemark>""")
+<Placemark targetId="p"""+str(i)+"-"+str(j)
+                                + """"><TimeSpan><begin/><end/></TimeSpan>"""
+                                """</Placemark>""")
             f.write("""
       <Folder targetId="links"><visibility>1</visibility></Folder>
-      <Folder targetId="links"""+str(l)+""""><visibility>1</visibility></Folder>
+      <Folder targetId="links"""+str(s)
+                    + """"><visibility>1</visibility></Folder>
       <Folder targetId="links0"><visibility>0</visibility></Folder>""")
-            for level2 in range(len(self.solutions)):
+            for level2, s2 in enumerate(self.solutions):
                 if level2 != level:
                     f.write("""
-      <Folder targetId="links"""+str(self.solutions[level2])+""""><visibility>0</visibility></Folder>""")
+      <Folder targetId="links"""+str(s2)
+                            + """"><visibility>0</visibility></Folder>""")
             f.write("""
     </Change>
   </Update>
 </NetworkLinkControl>
 </kml>""")
             f.close()
-        f = file(path+"/data.kml", "w")
+        f = open(path+"/data.kml", "w")
         f.write("""<?xml version="1.0" encoding="UTF-8"?>
-<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2">
+<kml xmlns="http://www.opengis.net/kml/2.2" """
+                """xmlns:gx="http://www.google.com/kml/ext/2.2">
  <Document>
   <Folder><visibility>1</visibility></Folder>
   <Style id="a"><!-- common to regions -->
@@ -1078,8 +1137,11 @@ class Navigator(object):
           <tr><td>Ave. clustering measure</td><td nowrap>$[C] %</td></tr>
           <tr><td>Ave. centrality measure</td><td nowrap>$[CC] %</td></tr>
           <tr><td>Ave. betweenness measure</td><td nowrap>$[B] %</td></tr>
-          <tr><td>contained in region</td><td><a href="#p$[p];balloonFlyto">$[pl]</a></td></tr>
-          <tr><td>largest contained subregions</td><td><a href="#p$[n1];balloonFlyto">$[l1]</a>, <a href="#p$[n2];balloonFlyto">$[l2]</a></td></tr>
+          <tr><td>contained in region</td><td><a href="#p$[p];balloonFlyto">"""
+                """$[pl]</a></td></tr>
+          <tr><td>largest contained subregions</td><td><a href="#p$[n1];"""
+                """balloonFlyto">$[l1]</a>, <a href="#p$[n2];balloonFlyto">"""
+                """$[l2]</a></td></tr>
         </table>
       ]]></text>
     </BalloonStyle>
@@ -1106,8 +1168,11 @@ class Navigator(object):
           <tr><td>Ave. clustering measure</td><td nowrap>$[C] %</td></tr>
           <tr><td>Ave. centrality measure</td><td nowrap>$[CC] %</td></tr>
           <tr><td>Ave. betweenness measure</td><td nowrap>$[B] %</td></tr>
-          <tr><td>contained in region</td><td><a href="#p$[p];balloonFlyto">$[pl]</a></td></tr>
-          <tr><td>largest contained subregions</td><td><a href="#p$[n1];balloonFlyto">$[l1]</a>, <a href="#p$[n2];balloonFlyto">$[l2]</a></td></tr>
+          <tr><td>contained in region</td><td><a href="#p$[p];balloonFlyto">"""
+                """$[pl]</a></td></tr>
+          <tr><td>largest contained subregions</td><td><a href="#p$[n1];"""
+                """balloonFlyto">$[l1]</a>, <a href="#p$[n2];balloonFlyto">"""
+                """$[l2]</a></td></tr>
         </table>
       ]]></text>
     </BalloonStyle>
@@ -1118,9 +1183,11 @@ class Navigator(object):
     </IconStyle>
     <BalloonStyle>
       <text><![CDATA[
-        <b><a href="#p$[n1];balloonFlyto">$[l1]</a> - <a href="#p$[n2];balloonFlyto">$[l2]</a></b><br/>
+        <b><a href="#p$[n1];balloonFlyto">$[l1]</a> - <a href="#p$[n2];"""
+                """balloonFlyto">$[l2]</a></b><br/>
         <table>
-          <tr><td>Strength (total product of linked area)</td><td nowrap>$[w] (Mm²)²</td></tr>
+          <tr><td>Strength (total product of linked area)</td><td nowrap>"""
+                """$[w] (Mm²)²</td></tr>
           <tr><td>Relative strength</td><td nowrap>$[r] %</td></tr>
           <tr><td>Ave. network distance</td><td nowrap>$[l] steps</td></tr>
           <tr><td>Ave. link betweenness measure</td><td nowrap>$[B] %</td></tr>
@@ -1140,9 +1207,11 @@ class Navigator(object):
     </IconStyle>
     <BalloonStyle>
       <text><![CDATA[
-        <b><a href="#p$[n1];balloonFlyto">$[l1]</a> - <a href="#p$[n2];balloonFlyto">$[l2]</a></b><br/>
+        <b><a href="#p$[n1];balloonFlyto">$[l1]</a> - <a href="#p$[n2];"""
+                """balloonFlyto">$[l2]</a></b><br/>
         <table>
-          <tr><td>Strength (total product of linked area)</td><td nowrap>$[w] (Mm²)²</td></tr>
+          <tr><td>Strength (total product of linked area)</td><td nowrap>"""
+                """$[w] (Mm²)²</td></tr>
           <tr><td>Relative strength</td><td nowrap>$[r] %</td></tr>
           <tr><td>Ave. network distance</td><td nowrap>$[l] steps</td></tr>
           <tr><td>Ave. link betweenness measure</td><td nowrap>$[B] %</td></tr>
@@ -1154,10 +1223,9 @@ class Navigator(object):
     <visibility>0</visibility>""")
         intermediate = set(self.regions)
         intermediate_links = set(links)
-        for level in range(len(self.solutions)):
-            l = self.solutions[level]
+        for leve, s in enumerate(self.solutions):
             f.write("""
-    <Folder id="regions"""+str(l)+"""">""")
+    <Folder id="regions"""+str(s)+"""">""")
             sn = set(self.solution_nodes[level])
             for i in sn.intersection(intermediate):
                 self._write_kml_region(f, i)
@@ -1176,10 +1244,9 @@ class Navigator(object):
         limax = -np.inf
         for i, j in links:
             limax = max(limax, self.linked_weight[i, j])
-        for level in range(len(self.solutions)):
-            l = self.solutions[level]
+        for level, s in enumerate(self.solutions):
             f.write("""
-    <Folder id="links"""+str(l)+"""">""")
+    <Folder id="links"""+str(s)+"""">""")
             for i in self.solution_nodes[level]:
                 for j in self.solution_nodes[level]:
                     if (i, j) in intermediate_links:
@@ -1246,22 +1313,29 @@ class Navigator(object):
 """+c2+"""
 </value></Data><Data name="l2"><value>
 """+l2+"""
-</value></Data></ExtendedData><TimeSpan/><LookAt><gx:TimeStamp><when/></gx:TimeStamp><longitude>
+</value></Data></ExtendedData><TimeSpan/><LookAt><gx:TimeStamp><when/>"""
+                """</gx:TimeStamp><longitude>
 """+str(self.lon[i])+"""
 </longitude><latitude>
 """+str(self.lat[i])+"""
-</latitude><range>12000000</range></LookAt><styleUrl>#a</styleUrl><StyleMap><Pair><key>normal</key><Style><IconStyle id="i"""+str(i)+""""><color/>
-<scale>1</scale><Icon><href>i.png</href></Icon></IconStyle><LabelStyle id="l"""+str(i)+""""><color>
+</latitude><range>12000000</range></LookAt><styleUrl>#a</styleUrl><StyleMap>"""
+                """<Pair><key>normal</key><Style><IconStyle id="i"""+str(i)
+                + """"><color/>
+<scale>1</scale><Icon><href>i.png</href></Icon></IconStyle><LabelStyle id="l"""
+                + str(i)+""""><color>
 ff"""+self.color[i][1:7]+"""
 </color><scale>0</scale></LabelStyle><LineStyle><color>
 ff"""+self.color[i][1:7]+"""
-</color><width>6</width></LineStyle></Style></Pair><Pair><key>highlight</key><styleUrl>#b</styleUrl></Pair></StyleMap><MultiGeometry><Point><coordinates>
+</color><width>6</width></LineStyle></Style></Pair><Pair><key>highlight"""
+                """</key><styleUrl>#b</styleUrl></Pair></StyleMap>"""
+                """<MultiGeometry><Point><coordinates>
 """+str(self.lon[i])+","+str(self.lat[i])+"""
 </coordinates></Point>""")
         if self.shape[i] is not None:
             for sh in self.shape[i]:
                 f.write("""
-<Polygon><tessellate>1</tessellate><outerBoundaryIs><LinearRing><coordinates>""")
+<Polygon><tessellate>1</tessellate><outerBoundaryIs>"""
+                        """<LinearRing><coordinates>""")
                 for la, lo in sh:
                     f.write("\n"+str(round(100*lo)/100) +
                             "," + str(round(100*la)/100))
@@ -1294,7 +1368,8 @@ ff"""+self.color[i][1:7]+"""
         else:
             lb = ""
         f.write("""
-<Placemark id="p"""+str(i)+"-"+str(j)+""""><name/><ExtendedData><Data name="w"><value>
+<Placemark id="p"""+str(i)+"-"+str(j)
+                + """"><name/><ExtendedData><Data name="w"><value>
 """+str(round(self.linked_weight[i, j]*510.07**2*100)/100)+"""
 </value></Data><Data name="r"><value>
 """+str(round(self.linked_proportion[i, j]*10000)/100)+"""
@@ -1310,11 +1385,18 @@ ff"""+self.color[i][1:7]+"""
 """+str(i)+"""
 </value></Data><Data name="l2"><value>
 """+self.label[j]+"""
-</value></Data></ExtendedData><TimeSpan/><styleUrl>#e</styleUrl><StyleMap><Pair><key>normal</key><Style><LabelStyle id="l"""+str(i)+"-"+str(j)+""""><color>bf7fffff</color><scale>0</scale></LabelStyle><LineStyle id="a"""+str(i)+"-"+str(j)+""""><color/><width>
+</value></Data></ExtendedData><TimeSpan/><styleUrl>#e</styleUrl><StyleMap>"""
+                """<Pair><key>normal</key><Style><LabelStyle id="l"""+str(i)
+                + "-"+str(j)
+                + """"><color>bf7fffff</color><scale>0</scale></LabelStyle>"""
+                """<LineStyle id="a"""+str(i)+"-"+str(j)+""""><color/><width>
 """+str(relwidth*5+1)+"""
-</width></LineStyle></Style></Pair><Pair><key>highlight</key><styleUrl>#f</styleUrl></Pair></StyleMap><MultiGeometry><Point><altitudeMode>relativeToGround</altitudeMode><coordinates>
+</width></LineStyle></Style></Pair><Pair><key>highlight</key><styleUrl>#f"""
+                """</styleUrl></Pair></StyleMap><MultiGeometry><Point>"""
+                """<altitudeMode>relativeToGround</altitudeMode><coordinates>
 """+hotpos+"""
-</coordinates></Point><LineString><altitudeMode>relativeToGround</altitudeMode><coordinates>""")
+</coordinates></Point><LineString><altitudeMode>relativeToGround"""
+                """</altitudeMode><coordinates>""")
         for s in range(nps):
             la, lo = self.network.cartesian2latlon(pos[s, :])
             f.write("\n" + str(round(100*lo)/100) +
@@ -1479,229 +1561,256 @@ ff"""+self.color[i][1:7]+"""
         self.is_expanded[i] = False
         return True
 
-    def _dummy():
-        f.write("""<?xml version="1.0" encoding="UTF-8"?>
-<kml xmlns="http://www.opengis.net/kml/2.2">
- <Document>
-  <Style id="a"><!-- common to regions -->
-   <PolyStyle>
-    <fill>0</fill>
-    <outline>1</outline>
-   </PolyStyle>
-   <IconStyle>
-    <color>00000000</color>
-   </IconStyle>
-   <BalloonStyle>
-    <text><![CDATA[
-     <b>$[name]</b><br/>
-     <table>
-      <tr><td>Area</td><td><b>a</b></td><td nowrap>$[a] Mm²</td></tr>
-      <tr><td>Ave. linked area (n.s.i. degree)</td><td><b>k</b></td><td nowrap>$[k] Mm²</td></tr>
-      <tr><td>Ave. n.s.i. clustering coeff.</td><td><b>C</b></td><td nowrap>$[C] %</td></tr>
-      <tr><td>Ave. n.s.i. shortest path betweenness</td><td><b>B</b></td><td nowrap>$[B] %</td></tr>
-      <tr><td>contained in region</td><td/><td>$[p]</td></tr>
-      <tr><td>used in solution(s) no.</td><td/><td>$[t]</td></tr>
-      <tr><td>contains regions</td><td/><td>$[ch]</td></tr>
-     </table>
-    ]]></text>
-   </BalloonStyle>
-  </Style>
-  <Style id="b"><!-- highlit regions -->
-   <PolyStyle>
-    <fill>0</fill>
-    <outline>1</outline>
-   </PolyStyle>
-   <LineStyle>
-    <color>ff0000ff</color>
-    <width>12</width>
-   </LineStyle>
-   <LabelStyle>
-    <color>ff3f3fff</color>
-    <scale>4.0</scale>
-   </LabelStyle>
-   <IconStyle>
-    <color>00000000</color>
-   </IconStyle>
-   <BalloonStyle>
-    <text><![CDATA[
-     <b>$[name]</b><br/>
-     <table>
-      <tr><td>Area</td><td><b>a</b></td><td>$[a]&nbsp;Mm²</td></tr>
-      <tr><td>Ave. linked area (n.s.i. degree)</td><td><b>k</b></td><td>$[k]&nbsp;Mm²</td></tr>
-      <tr><td>Ave. n.s.i. clustering coeff.</td><td><b>C</b></td><td nowrap>$[C] %</td></tr>
-      <tr><td>Ave. n.s.i. shortest path betweenness</td><td><b>B</b></td><td nowrap>$[B] %</td></tr>
-      <tr><td>contained in region</td><td/><td>$[p]</td></tr>
-      <tr><td>used in solution(s) no.</td><td/><td>$[t]</td></tr>
-      <tr><td>contains regions</td><td/><td>$[ch]</td></tr>
-     </table>
-    ]]></text>
-   </BalloonStyle>
-  </Style>
-  <Style id="c"><!-- common to nodes -->
-   <IconStyle>
-    <color>00000000</color>
-   </IconStyle>
-  </Style>
-  <Style id="d"><!-- highlit nodes -->
-   <LabelStyle>
-    <color>ff3f3fff</color>
-    <scale>4.0</scale>
-   </LabelStyle>
-   <IconStyle>
-    <color>00000000</color>
-   </IconStyle>
-  </Style>
-  <Style id="e"><!-- arcs -->
-   <LabelStyle>
-    <color>bf7fffff</color>
-    <scale>1.0</scale>
-   </LabelStyle>
-   <IconStyle>
-    <color>00000000</color>
-   </IconStyle>
-   <BalloonStyle/>
-    <!--<text><![CDATA[
-      <b>$[name]</b><br/>
-      <table>
-      <tr><td>Strength</td><td><b>a</b></td><td nowrap>$[s] (Mm²)²</td></tr>
-      <tr><td>Relative strength</td><td><b>a</b></td><td nowrap>$[r] %</td></tr>
-      <tr><td>Ave. network distance</td><td><b>l</b></td><td nowrap>$[l] steps</td></tr>
-      <tr><td>Ave. n.s.i. shortest path betweenness</td><td><b>B</b></td><td nowrap>$[B] %</td></tr>
-      <tr><td>used in solution(s) no.</td><td/><td>$[t]</td></tr>
-      </table>
-    ]]></text>
-   </BalloonStyle>-->
-  </Style>
-  <Style id="f"><!-- highlit arcs -->
-   <LineStyle>
-    <color>ff0000ff</color>
-    <width>4</width>
-   </LineStyle>
-   <LabelStyle>
-    <color>ff3f3fff</color>
-    <scale>1.5</scale>
-   </LabelStyle>
-   <IconStyle>
-    <color>00000000</color>
-    </IconStyle>
-   <BalloonStyle/>
-    <!--<text><![CDATA[
-      <b>$[name]</b><br/>
-      <table>
-      <tr><td>Strength</td><td><b>a</b></td><td nowrap>$[s] (Mm²)²</td></tr>
-      <tr><td>Relative strength</td><td><b>a</b></td><td nowrap>$[r] %</td></tr>
-      <tr><td>Ave. network distance</td><td><b>l</b></td><td nowrap>$[l] steps</td></tr>
-      <tr><td>Ave. n.s.i. shortest path betweenness</td><td><b>B</b></td><td nowrap>$[B] %</td></tr>
-      <tr><td>used in solution(s) no.</td><td/><td>$[t]</td></tr>
-      </table>
-    ]]></text>
-   </BalloonStyle>-->
-  </Style>
-  <Style id="h"><!-- hidden children -->
-   <ListStyle>
-    <listItemType>checkHideChildren</listItemType>
-   </ListStyle>
-  </Style>
-  <Style id="l">
-   <ListStyle>
-    <ItemIcon/>
-   </ListStyle>
-  </Style>
-  <Style id="lh">
-   <ListStyle>
-    <listItemType>checkHideChildren</listItemType>
-   </ListStyle>
-  </Style>
-  <Style id="lr">
-   <ListStyle>
-    <listItemType>radioFolder</listItemType>
-   </ListStyle>
-  </Style>
-  <Folder id="0">
-   <name>"""+title+"""</name>
-   <styleUrl>#lr</styleUrl>
-   <Folder id="h">
-    <name>Slideable Hierarchy of Regions</name>
-    <description><![CDATA[
-     region labels inside subfolders give this information:<br/>
-     <b>round
-      <a href="#h;balloon">code</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      <a href="#h;balloon">a</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      <a href="#h;balloon">k</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      <a href="#h;balloon">C</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      <a href="#h;balloon">B</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      <a href="#h;balloon">location</a>
-     </b><br/><br/>
-     <table>
-      <tr>
-       <td nowrap><i>
-        code<br/>
-        a<br/>
-        k<br/>
-        C<br/>
-        B<br/>
-        location
-       </i></td><td nowrap>
-        is a short unique code,<br/>
-        is the region's area,<br/>
-        is the region's average linked area (n.s.i. degree),<br/>
-        is the region's average n.s.i. clustering coeff.,<br/>
-        is the region's average n.s.i. shortest path betweenness,<br/>
-        gives its approximate location.
-       </td>
-      </tr>
-     </table>
-     <h1>Slideable Hierarchy of Regions</h1>
-     <p>This folder contains a hierarchy of regions covering the Earth's surface.
-     Use the slider on the top-left to successively increase the level of detail
-     from a coarse partition into """+str(len(self.solution_nodes[0]))+""" regions
-     to a fine partition into """+str(len(self.solution_nodes[-1]))+""" regions
-     (if the slider shows a "month" and "day", just ignore them).
-     <p>Expand this folder to get more information on individual regions,
-     ordered into subfolders corresponding to certain selected levels of detail.
-     The hierarchy can be used in combination with third-party overlays that do not themselves use the slider.
-     (For third-party overlays using the slider, use the folder <a href="#p;balloonFlyto">Selected Partitions</a> instead.)
-    ]]></description>
-    <visibility>1</visibility>""")
-        f.write("""
-    </Folder>
-   </Folder>
-   <Folder id="p">
-    <name>Selected Partitions</name>
-    <description><![CDATA[
-     region labels inside subfolders give this information:<br/>
-     <b>
-      <a href="#p;balloon">code</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      <a href="#p;balloon">a</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      <a href="#p;balloon">k</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      <a href="#p;balloon">C</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      <a href="#p;balloon">B</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      <a href="#p;balloon">location</a>
-     </b><br/><br/>
-     <table>
-      <tr>
-       <td nowrap><i>
-        code<br/>
-        a<br/>
-        k<br/>
-        C<br/>
-        B<br/>
-        location
-       </i></td><td nowrap>
-        is a short unique code,<br/>
-        is the region's area,<br/>
-        is the region's average linked area (n.s.i. degree),<br/>
-        is the region's average n.s.i. clustering coeff.,<br/>
-        is the region's average n.s.i. shortest path betweenness,<br/>
-        gives its approximate location.
-       </td>
-      </tr>
-     </table>
-     <h1>Selected Partitions</h1>
-     <p>This folder contains sets of regions that each cover the Earth's surface
-     and correspond to certain selected levels of detail from the above hierarchy.
-     They can be used in combination with third-party overlays that use a slider.
-     Expand the subfolders to get more information on individual regions.
-     <a href="r5063;balloonFlyto">TEST</a>
-    ]]></description>
-    <styleUrl>#lr</styleUrl>""")
+
+#     def _dummy():
+#         f.write("""<?xml version="1.0" encoding="UTF-8"?>
+# <kml xmlns="http://www.opengis.net/kml/2.2">
+#  <Document>
+#   <Style id="a"><!-- common to regions -->
+#    <PolyStyle>
+#     <fill>0</fill>
+#     <outline>1</outline>
+#    </PolyStyle>
+#    <IconStyle>
+#     <color>00000000</color>
+#    </IconStyle>
+#    <BalloonStyle>
+#     <text><![CDATA[
+#      <b>$[name]</b><br/>
+#      <table>
+#       <tr><td>Area</td><td><b>a</b></td><td nowrap>$[a] Mm²</td></tr>
+#       <tr><td>Ave. linked area (n.s.i. degree)</td><td><b>k</b></td>"""
+#                 """<td nowrap>$[k] Mm²</td></tr>
+#       <tr><td>Ave. n.s.i. clustering coeff.</td><td><b>C</b></td>"""
+#                 """<td nowrap>$[C] %</td></tr>
+#       <tr><td>Ave. n.s.i. shortest path betweenness</td><td><b>B</b></td>"""
+#                 """<td nowrap>$[B] %</td></tr>
+#       <tr><td>contained in region</td><td/><td>$[p]</td></tr>
+#       <tr><td>used in solution(s) no.</td><td/><td>$[t]</td></tr>
+#       <tr><td>contains regions</td><td/><td>$[ch]</td></tr>
+#      </table>
+#     ]]></text>
+#    </BalloonStyle>
+#   </Style>
+#   <Style id="b"><!-- highlit regions -->
+#    <PolyStyle>
+#     <fill>0</fill>
+#     <outline>1</outline>
+#    </PolyStyle>
+#    <LineStyle>
+#     <color>ff0000ff</color>
+#     <width>12</width>
+#    </LineStyle>
+#    <LabelStyle>
+#     <color>ff3f3fff</color>
+#     <scale>4.0</scale>
+#    </LabelStyle>
+#    <IconStyle>
+#     <color>00000000</color>
+#    </IconStyle>
+#    <BalloonStyle>
+#     <text><![CDATA[
+#      <b>$[name]</b><br/>
+#      <table>
+#       <tr><td>Area</td><td><b>a</b></td><td>$[a]&nbsp;Mm²</td></tr>
+#       <tr><td>Ave. linked area (n.s.i. degree)</td><td><b>k</b></td><td>"""
+#                 """$[k]&nbsp;Mm²</td></tr>
+#       <tr><td>Ave. n.s.i. clustering coeff.</td><td><b>C</b></td>"""
+#                 """<td nowrap>$[C] %</td></tr>
+#       <tr><td>Ave. n.s.i. shortest path betweenness</td><td><b>B</b></td>"""
+#                 """<td nowrap>$[B] %</td></tr>
+#       <tr><td>contained in region</td><td/><td>$[p]</td></tr>
+#       <tr><td>used in solution(s) no.</td><td/><td>$[t]</td></tr>
+#       <tr><td>contains regions</td><td/><td>$[ch]</td></tr>
+#      </table>
+#     ]]></text>
+#    </BalloonStyle>
+#   </Style>
+#   <Style id="c"><!-- common to nodes -->
+#    <IconStyle>
+#     <color>00000000</color>
+#    </IconStyle>
+#   </Style>
+#   <Style id="d"><!-- highlit nodes -->
+#    <LabelStyle>
+#     <color>ff3f3fff</color>
+#     <scale>4.0</scale>
+#    </LabelStyle>
+#    <IconStyle>
+#     <color>00000000</color>
+#    </IconStyle>
+#   </Style>
+#   <Style id="e"><!-- arcs -->
+#    <LabelStyle>
+#     <color>bf7fffff</color>
+#     <scale>1.0</scale>
+#    </LabelStyle>
+#    <IconStyle>
+#     <color>00000000</color>
+#    </IconStyle>
+#    <BalloonStyle/>
+#     <!--<text><![CDATA[
+#       <b>$[name]</b><br/>
+#       <table>
+#       <tr><td>Strength</td><td><b>a</b></td><td nowrap>$[s] (Mm²)²</td></tr>
+#       <tr><td>Relative strength</td><td><b>a</b></td><td nowrap>$[r] %"""
+#                 """</td></tr>
+#       <tr><td>Ave. network distance</td><td><b>l</b></td><td nowrap>"""
+#                 """$[l] steps</td></tr>
+#       <tr><td>Ave. n.s.i. shortest path betweenness</td><td><b>B</b></td>"""
+#                 """<td nowrap>$[B] %</td></tr>
+#       <tr><td>used in solution(s) no.</td><td/><td>$[t]</td></tr>
+#       </table>
+#     ]]></text>
+#    </BalloonStyle>-->
+#   </Style>
+#   <Style id="f"><!-- highlit arcs -->
+#    <LineStyle>
+#     <color>ff0000ff</color>
+#     <width>4</width>
+#    </LineStyle>
+#    <LabelStyle>
+#     <color>ff3f3fff</color>
+#     <scale>1.5</scale>
+#    </LabelStyle>
+#    <IconStyle>
+#     <color>00000000</color>
+#     </IconStyle>
+#    <BalloonStyle/>
+#     <!--<text><![CDATA[
+#       <b>$[name]</b><br/>
+#       <table>
+#       <tr><td>Strength</td><td><b>a</b></td><td nowrap>$[s] (Mm²)²</td></tr>
+#       <tr><td>Relative strength</td><td><b>a</b></td><td nowrap>$[r] %"""
+#                 """</td></tr>
+#       <tr><td>Ave. network distance</td><td><b>l</b></td><td nowrap>"""
+#                 """$[l] steps</td></tr>
+#       <tr><td>Ave. n.s.i. shortest path betweenness</td><td><b>B</b></td>"""
+#                 """<td nowrap>$[B] %</td></tr>
+#       <tr><td>used in solution(s) no.</td><td/><td>$[t]</td></tr>
+#       </table>
+#     ]]></text>
+#    </BalloonStyle>-->
+#   </Style>
+#   <Style id="h"><!-- hidden children -->
+#    <ListStyle>
+#     <listItemType>checkHideChildren</listItemType>
+#    </ListStyle>
+#   </Style>
+#   <Style id="l">
+#    <ListStyle>
+#     <ItemIcon/>
+#    </ListStyle>
+#   </Style>
+#   <Style id="lh">
+#    <ListStyle>
+#     <listItemType>checkHideChildren</listItemType>
+#    </ListStyle>
+#   </Style>
+#   <Style id="lr">
+#    <ListStyle>
+#     <listItemType>radioFolder</listItemType>
+#    </ListStyle>
+#   </Style>
+#   <Folder id="0">
+#    <name>"""+title+"""</name>
+#    <styleUrl>#lr</styleUrl>
+#    <Folder id="h">
+#     <name>Slideable Hierarchy of Regions</name>
+#     <description><![CDATA[
+#      region labels inside subfolders give this information:<br/>
+#      <b>round
+#       <a href="#h;balloon">code</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"""
+#                 """&nbsp;&nbsp;&nbsp;&nbsp;
+#       <a href="#h;balloon">a</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"""
+#                 """&nbsp;&nbsp;&nbsp;
+#       <a href="#h;balloon">k</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"""
+#                 """&nbsp;&nbsp;&nbsp;
+#       <a href="#h;balloon">C</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"""
+#                 """&nbsp;&nbsp;&nbsp;
+#       <a href="#h;balloon">B</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"""
+#                 """&nbsp;&nbsp;&nbsp;
+#       <a href="#h;balloon">location</a>
+#      </b><br/><br/>
+#      <table>
+#       <tr>
+#        <td nowrap><i>
+#         code<br/>
+#         a<br/>
+#         k<br/>
+#         C<br/>
+#         B<br/>
+#         location
+#        </i></td><td nowrap>
+#         is a short unique code,<br/>
+#         is the region's area,<br/>
+#         is the region's average linked area (n.s.i. degree),<br/>
+#         is the region's average n.s.i. clustering coeff.,<br/>
+#         is the region's average n.s.i. shortest path betweenness,<br/>
+#         gives its approximate location.
+#        </td>
+#       </tr>
+#      </table>
+#      <h1>Slideable Hierarchy of Regions</h1>
+#      <p>This folder contains a hierarchy of regions covering the Earth's
+#      surface. Use the slider on the top-left to successively increase the
+#      level of detail from a coarse partition into """
+#      +str(len(self.solution_nodes[0]))+""" regions to a
+#      fine partition into """+str(len(self.solution_nodes[-1]))+""" regions
+#      (if the slider shows a "month" and "day", just ignore them).
+#      <p>Expand this folder to get more information on individual regions,
+#      ordered into subfolders corresponding to certain selected levels of
+#      detail. The hierarchy can be used in combination with third-party
+#      overlays that do not themselves use the slider. (For third-party
+#      overlays using the slider, use the folder """
+#      """<a href="#p;balloonFlyto">Selected Partitions</a> instead.)
+#     ]]></description>
+#     <visibility>1</visibility>""")
+#         f.write("""
+#     </Folder>
+#    </Folder>
+#    <Folder id="p">
+#     <name>Selected Partitions</name>
+#     <description><![CDATA[
+#      region labels inside subfolders give this information:<br/>
+#      <b>
+#       <a href="#p;balloon">code</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"""
+#                 """&nbsp;&nbsp;&nbsp;&nbsp;
+#       <a href="#p;balloon">a</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"""
+#                 """&nbsp;&nbsp;&nbsp;
+#       <a href="#p;balloon">k</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"""
+#                 """&nbsp;&nbsp;&nbsp;
+#       <a href="#p;balloon">C</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"""
+#                 """&nbsp;&nbsp;&nbsp;
+#       <a href="#p;balloon">B</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"""
+#                 """&nbsp;&nbsp;&nbsp;
+#       <a href="#p;balloon">location</a>
+#      </b><br/><br/>
+#      <table>
+#       <tr>
+#        <td nowrap><i>
+#         code<br/>
+#         a<br/>
+#         k<br/>
+#         C<br/>
+#         B<br/>
+#         location
+#        </i></td><td nowrap>
+#         is a short unique code,<br/>
+#         is the region's area,<br/>
+#         is the region's average linked area (n.s.i. degree),<br/>
+#         is the region's average n.s.i. clustering coeff.,<br/>
+#         is the region's average n.s.i. shortest path betweenness,<br/>
+#         gives its approximate location.
+#        </td>
+#       </tr>
+#      </table>
+#      <h1>Selected Partitions</h1>
+#      <p>This folder contains sets of regions that each cover the Earth's
+#      surface and correspond to certain selected levels of detail from the
+#      above hierarchy. They can be used in combination with third-party
+#      overlays that use a slider. Expand the subfolders to get more
+#      information on individual regions.
+#      <a href="r5063;balloonFlyto">TEST</a>
+#     ]]></description>
+#     <styleUrl>#lr</styleUrl>""")

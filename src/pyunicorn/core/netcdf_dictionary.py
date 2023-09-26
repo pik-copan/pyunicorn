@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-#
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
@@ -84,11 +81,12 @@ class NetCDFDictionary:
         """
         Return a string representation of the object.
         """
-        text = ('NetCDFDictionary:\nGlobal attributes:\n' +
-        f'{self.dict["global_attributes"]}\nVariables:')
+        text = (f'NetCDFDictionary:\nGlobal attributes:\n'
+                f'{self.dict["global_attributes"]}\nVariables:')
+
         for key in self.dict["variables"].keys():
-            text += f'\n\t{key}\t-> array shape\
-             {self.dict["variables"][key]["array"].shape}'
+            text += (f'\n\t{key}\t-> array shape'
+                     f'{self.dict["variables"][key]["array"].shape}')
         return text
 
     #
@@ -96,7 +94,7 @@ class NetCDFDictionary:
     #
 
     @staticmethod
-    def from_file(file_name, with_array=('all')):
+    def from_file(file_name, with_array='all'):
         """
         Load NetCDF4 file into a dictionary.
 
@@ -135,7 +133,7 @@ class NetCDFDictionary:
                 cdf.variables[var].__dict__
 
             #  Load data if wanted
-            if var in with_array or 'all' in with_array:
+            if var in with_array or with_array == 'all':
                 try:
                     content["variables"][var]["array"] = cdf.variables[var][:]
                     print(f"MODULE: Array {var} loaded to dictionary.")

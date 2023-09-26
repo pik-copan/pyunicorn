@@ -1,11 +1,10 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-#
 # Copyright (C) 2014 SWIPO Project
 #
 # Authors (this file):
 #   Stefan Schinkel <stefan.schinkel@gmail.com>
-""" Utils needed for Unit Tests in resistive networks
+
+"""
+Utils needed for Unit Tests in resistive networks
 """
 import numpy as np
 

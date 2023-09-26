@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-#
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
@@ -127,11 +124,9 @@ class ClimateData(Data):
     #
 
     @classmethod
-    def Load(cls, file_name, observable_name, time_cycle,
-             time_name="time", latitude_name="lat", longitude_name="lon",
-             data_source=None,
-             file_type="NetCDF", window=None,
-             vertical_level=None, silence_level=0):
+    def Load(cls, file_name, observable_name, file_type="NetCDF",
+             dimension_names=None, window=None, vertical_level=None,
+             silence_level=0, time_cycle=None, data_source=None):
         """
         Initialize an instance of ClimateData.
 
@@ -148,24 +143,25 @@ class ClimateData(Data):
         :arg str file_name: The name of the data file.
         :arg str observable_name: The short name of the observable within data
             file (particularly relevant for NetCDF).
-        :arg int time_cycle: The annual cycle length of the data (units of
-            samples).
-        :arg str time_name: The name of the time variable within data file.
-        :arg str latitude_name: The name of the latitude variable within data
-            file.
-        :arg str longitude_name: The name of longitude variable within data
-            file.
-        :arg str data_source: The name of the data source (model, reanalysis,
-            station).
         :arg str file_type: The format of the data file.
+        :arg dict dimension_names: The names of the dimensions as used in the
+            NetCDF file. Default: {"lat": "lat", "lon": "lon", "time": "time"}
         :arg dict window: Spatio-temporal window to select a view on the data.
         :arg int vertical_level: The vertical level to be extracted from the
             data file. Is ignored for horizontal data sets. If None, the first
             level in the data file is chosen.
         :arg int silence_level: The inverse level of verbosity of the object.
+        :arg int time_cycle: The annual cycle length of the data (units of
+            samples). NOTE: This is a required argument!
+        :arg str data_source: The name of the data source (model, reanalysis,
+            station).
         """
-        dimension_names = {"time": time_name, "lat": latitude_name,
-                           "lon": longitude_name}
+        if time_cycle is None:
+            raise TypeError("ClimateData.Load() is missing required "
+                            "keyword argument: 'time_cycle'")
+
+        if dimension_names is None:
+            dimension_names = {"lat": "lat", "lon": "lon", "time": "time"}
 
         #  Load data using _load_data method from parent class
         res = cls._load_data(file_name=file_name, file_type=file_type,

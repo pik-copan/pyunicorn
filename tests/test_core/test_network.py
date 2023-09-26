@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
@@ -65,11 +62,13 @@ def compare_permutations(net, permutations, measures):
     if not parallel:
         compare_measures(net, pnets, rev_perms, tasks)
     else:
-        pool, cores = Pool(), cpu_count()
-        pool.map(partial(compare_measures, net, pnets, rev_perms),
-                 (list(islice(tasks, c, None, cores)) for c in range(cores)))
-        pool.close()
-        pool.join()
+        cores = cpu_count()
+        with Pool() as pool:
+            pool.map(partial(compare_measures, net, pnets, rev_perms),
+                     (list(islice(tasks, c, None, cores))
+                      for c in range(cores)))
+            pool.close()
+            pool.join()
 
 
 def compare_nsi(net, nsi_measures):

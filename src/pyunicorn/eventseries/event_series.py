@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-#
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
@@ -166,9 +163,9 @@ class EventSeries:
         """
         Return a string representation of the EventSeries object.
         """
-        return(f"EventSeries: {self.__N} variables, "
-        f"{self.__T} timesteps, taumax: {self.__taumax:.1f}, "
-        f"lag: {self.__lag:.1f}")
+        return (f"EventSeries: {self.__N} variables, "
+                f"{self.__T} timesteps, taumax: {self.__taumax:.1f}, "
+                f"lag: {self.__lag:.1f}")
 
     def get_event_matrix(self):
         return self.__eventmatrix
@@ -293,7 +290,7 @@ class EventSeries:
                               " 'value' or a 1D array-like object with"
                               " entries 'quantile' or 'value' for each"
                               " variable!")
-        elif threshold_method.shape == ():
+        elif not threshold_method.shape:
             if threshold_method in ['quantile', 'value']:
                 threshold_method = np.array([threshold_method] * data.shape[1])
             else:
@@ -313,7 +310,7 @@ class EventSeries:
                     raise IOError("'threshold_values' must be either float/int"
                                   " or 1D array-like object of float/int for "
                                   " each variable!")
-            elif threshold_values.shape == ():
+            elif not threshold_values.shape:
                 if isinstance(threshold_values.item(), (int, float)):
                     threshold_values = \
                         np.array([threshold_values] * data.shape[1])
@@ -339,7 +336,7 @@ class EventSeries:
                                   " 'below' or a 1D array-like object with "
                                   "entries 'above' or 'below' for each "
                                   "variable!")
-            elif threshold_types.shape == ():
+            elif not threshold_types.shape:
                 if threshold_types in ['above', 'below']:
                     threshold_types = \
                         np.array([threshold_types] * data.shape[1])

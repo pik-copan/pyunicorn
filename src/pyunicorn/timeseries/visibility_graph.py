@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-#
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
@@ -108,8 +105,9 @@ class VisibilityGraph(InteractingNetworks):
         """
         Returns a string representation.
         """
-        return 'VisibilityGraph: time series shape %s.\n%s' % (
-            self.time_series.shape, InteractingNetworks.__str__(self))
+        return ("VisibilityGraph: "
+                f"time series shape {self.time_series.shape}.\n"
+                f"{InteractingNetworks.__str__(self)}")
 
     #
     #  Visibility methods

@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-#
 # # Copyright (C) 2014 Paul Schultz and the SWIPO Project
 #
 # Authors (this file):
@@ -149,8 +146,8 @@ class ResNetwork(GeoNetwork):
         """
         Return a short summary of the resistive network.
         """
-        return(f"ResNetwork:\n{GeoNetwork.__str__(self)}\n"
-        f"Average resistance: {self.resistances.mean()}")
+        return (f"ResNetwork:\n{GeoNetwork.__str__(self)}\n"
+                f"Average resistance: {self.resistances.mean()}")
 
 ###############################################################################
 # ##                       PUBLIC FUNCTIONS                                ## #

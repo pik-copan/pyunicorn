@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-#
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
@@ -242,7 +239,7 @@ class RainfallClimateNetwork(ClimateNetwork):
 
         up_mask = rainfall <= onelist[uplimit-1]
 
-        no_rain_mask = (rainfall != 0)
+        no_rain_mask = rainfall != 0
 
         final_mask = down_mask & up_mask & no_rain_mask
 

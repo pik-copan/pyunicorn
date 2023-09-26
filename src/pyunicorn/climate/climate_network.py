@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-#
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
@@ -126,8 +123,8 @@ class ClimateNetwork(GeoNetwork):
         Local connections filtered out: False
         """
         return (f'ClimateNetwork:\n{GeoNetwork.__str__(self)}\n' +
-        f'Threshold: {self.threshold()}\n' +
-        f'Local connections filtered out: {self.non_local()}')
+                f'Threshold: {self.threshold()}\n' +
+                f'Local connections filtered out: {self.non_local()}')
 
     def clear_cache(self, irreversible=False):
         """
@@ -164,9 +161,7 @@ class ClimateNetwork(GeoNetwork):
     #  Load and save ClimateNetwork object
     #
 
-    def save(self, filename_network, filename_grid=None,
-             filename_similarity_measure=None, fileformat=None, *args,
-             **kwds):
+    def save(self, filename, fileformat=None, *args, **kwds):
         """
         Save the ClimateNetwork object to files.
 
@@ -189,12 +184,9 @@ class ClimateNetwork(GeoNetwork):
         The remaining arguments are passed to the writer method without
         any changes.
 
-        :arg str filename_network:  The name of the file where the Network
-            object is to be stored.
-        :arg str filename_grid:  The name of the file where the GeoGrid object
-            is to be stored (including ending).
-        :arg str filename_similarity_measure:  The name of the file where the
-            similarity measure matrix is to be stored.
+        :arg tuple/list filename: Tuple or list of three strings, namely
+            the paths to the files where the Network object, the
+            GeoGrid object and the similarity measure matrix are to be stored.
         :arg str fileformat: the format of the file (if one wants to override
             the format determined from the filename extension, or the filename
             itself is a stream). ``None`` means auto-detection.  Possible
@@ -205,10 +197,19 @@ class ClimateNetwork(GeoNetwork):
             (DIMACS format), ``"edgelist"``, ``"edges"`` or ``"edge"`` (edge
             list), ``"adjacency"`` (adjacency matrix), ``"pickle"`` (Python
             pickled format), ``"svg"`` (Scalable Vector Graphics).
+        :arg str filename_similarity_measure:  The name of the file where the
+            similarity measure matrix is to be stored.
         """
+        try:
+            (filename_network, filename_grid,
+             filename_similarity_measure) = filename
+        except ValueError as e:
+            raise ValueError("'filename' must be a tuple or list of three "
+                             "items: filename_network, filename_grid, "
+                             "filename_similarity_measure") from e
+
         #  Store GeoNetwork
-        GeoNetwork.save(self, filename_network=filename_network,
-                        filename_grid=filename_grid,
+        GeoNetwork.save(self, filename=(filename_network, filename_grid),
                         fileformat=fileformat,
                         *args, **kwds)
 
@@ -218,8 +219,7 @@ class ClimateNetwork(GeoNetwork):
             similarity_measure.dump(filename_similarity_measure)
 
     @staticmethod
-    def Load(filename_network, filename_grid, filename_similarity_measure,
-             fileformat=None, *args, **kwds):
+    def Load(filename, fileformat=None, silence_level=0, *args, **kwds):
         """
         Return a ClimateNetwork object stored in files.
 
@@ -237,12 +237,10 @@ class ClimateNetwork(GeoNetwork):
         The remaining arguments are passed to the reader method without
         any changes.
 
-        :arg str filename_network:  The name of the file where the Network
-            object is to be stored.
-        :arg str filename_grid:  The name of the file where the GeoGrid object
-            is to be stored (including ending).
-        :arg str filename_similarity_measure:  The name of the file where the
-            similarity measure matrix is to be stored.
+        :arg tuple/list filename: Tuple or list of three strings, namely
+            the paths to the files containing the Network object, the
+            GeoGrid object and the similarity measure matrix.
+            (filename_network, filename_grid, filename_similarity_measure)
         :arg str fileformat: the format of the file (if known in advance)
             ``None`` means auto-detection. Possible values are: ``"ncol"``
             (NCOL format), ``"lgl"`` (LGL format), ``"graphml"``,
@@ -253,6 +251,14 @@ class ClimateNetwork(GeoNetwork):
             pickled format).
         :return: :class:`ClimateNetwork` instance.
         """
+        try:
+            (filename_network, filename_grid,
+             filename_similarity_measure) = filename
+        except ValueError as e:
+            raise ValueError("'filename' must be a tuple or list of three "
+                             "items: filename_network, filename_grid, "
+                             "filename_similarity_measure") from e
+
         #  Load GeoGrid object
         grid = GeoGrid.Load(filename_grid)
 
@@ -275,7 +281,8 @@ class ClimateNetwork(GeoNetwork):
 
         #  Create ClimateNetwork instance
         net = ClimateNetwork(grid=grid, similarity_measure=similarity_measure,
-                             directed=graph.is_directed())
+                             directed=graph.is_directed(),
+                             silence_level=silence_level)
         net.adjacency = A
         net.node_weights = node_weights
 
@@ -487,13 +494,12 @@ class ClimateNetwork(GeoNetwork):
             print("Extracting network adjacency matrix removing local "
                   "connections...")
 
-        #  This function provides a smooth transition of distance weight
-        #  centered around distance d_min.
-        #  Other sigmoidal type functions could be used as well.
-        f = lambda x, a, b: 0.5 * (np.tanh(a * (x - b)) + 1)
-
         weighted_similarity = similarity_measure * \
-            f(self.grid.angular_distance(), a, d_min)
+            (0.5 * (np.tanh(a * (self.grid.angular_distance() - d_min)) + 1))
+        # The above line is a function that provides a smooth
+        # transition of distance weight, centered around distance d_min.
+        # Other sigmoidal type functions could be used as well.
+
         return self._calculate_threshold_adjacency(weighted_similarity,
                                                    threshold)
 
@@ -511,9 +517,9 @@ class ClimateNetwork(GeoNetwork):
         """
         try:
             return self._similarity_measure
-        except AttributeError:
-            print("The similarity matrix was deleted earlier and cannot be "
-                  "returned.")
+        except AttributeError as e:
+            raise AttributeError("Similarity matrix was deleted "
+                                 "earlier and cannot be retrieved.") from e
 
     def non_local(self):
         """

@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-#
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
@@ -94,8 +91,7 @@ class SpatialNetwork(Network):
     #  Load and save GeoNetwork object
     #
 
-    def save(self, filename_network, filename_grid=None, fileformat=None,
-             *args, **kwds):
+    def save(self, filename, fileformat=None, *args, **kwds):
         """
         Save the SpatialNetwork object to files.
 
@@ -116,10 +112,9 @@ class SpatialNetwork(Network):
         The remaining arguments are passed to the writer method without
         any changes.
 
-        :arg str filename_network:  The name of the file where the Network
-            object is to be stored.
-        :arg str filename_grid:  The name of the file where the GeoGrid object
-            is to be stored (including ending).
+        :arg tuple/list filename: Tuple or list of two strings, namely
+            the paths to the files where the Network object and the
+            GeoGrid object are to be stored (filename_network, filename_grid)
         :arg str fileformat: the format of the file (if one wants to override
             the format determined from the filename extension, or the filename
             itself is a stream). ``None`` means auto-detection.  Possible
@@ -131,6 +126,11 @@ class SpatialNetwork(Network):
             list), ``"adjacency"`` (adjacency matrix), ``"pickle"`` (Python
             pickled format), ``"svg"`` (Scalable Vector Graphics).
         """
+        try:
+            (filename_network, filename_grid) = filename
+        except ValueError as e:
+            raise ValueError("'filename' must be a tuple or list of two "
+                             "items: filename_network, filename_grid") from e
         #  Store network
         Network.save(self, filename=filename_network, fileformat=fileformat,
                      *args, **kwds)
@@ -140,8 +140,7 @@ class SpatialNetwork(Network):
             self.grid.save(filename=filename_grid)
 
     @staticmethod
-    def Load(filename_network, filename_grid, fileformat=None,
-             silence_level=0, *args, **kwds):
+    def Load(filename, fileformat=None, silence_level=0, *args, **kwds):
         """
         Return a SpatialNetwork object stored in files.
 
@@ -157,12 +156,11 @@ class SpatialNetwork(Network):
         GraphML are able to store both node and link weights.
 
         The remaining arguments are passed to the reader method without
-        any changes.Read
+        any changes.
 
-        :arg str filename_network:  The name of the file where the Network
-            object is to be stored.
-        :arg str filename_grid:  The name of the file where the Grid object
-            is to be stored (including ending).
+        :arg tuple/list filename: Tuple or list of two strings, namely
+            the paths to the files containing the Network object and the
+            Grid object (filename_network, filename_grid)
         :arg str fileformat: the format of the file (if known in advance)
           ``None`` means auto-detection. Possible values are: ``"ncol"`` (NCOL
           format), ``"lgl"`` (LGL format), ``"graphml"``, ``"graphmlz"``
@@ -175,6 +173,12 @@ class SpatialNetwork(Network):
         :rtype: SpatialNetwork object
         :return: :class:`SpatialNetwork` instance.
         """
+        try:
+            (filename_network, filename_grid) = filename
+        except ValueError as e:
+            raise ValueError("'filename' must be a tuple or list of two "
+                             "items: filename_network, filename_grid") from e
+
         #  Load Grid object
         grid = Grid.Load(filename_grid)
 
@@ -187,7 +191,8 @@ class SpatialNetwork(Network):
 
         #  Create GeoNetwork instance
         net = SpatialNetwork(grid=grid, adjacency=A,
-                             directed=graph.is_directed())
+                             directed=graph.is_directed(),
+                             silence_level=silence_level)
 
         #  Extract node weights
         if "node_weight_nsi" in graph.vs.attribute_names():

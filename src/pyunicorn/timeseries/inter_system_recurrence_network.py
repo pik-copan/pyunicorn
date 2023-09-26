@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-#
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
@@ -204,11 +201,11 @@ class InterSystemRecurrenceNetwork(InteractingNetworks):
         """
         Returns a string representation.
         """
-        return ('InterSystemRecurrenceNetwork: time series shapes %s, %s.\n'
-                'Embedding dimension %i\nThreshold %s, %s metric.\n%s') % (
-                    self.x.shape, self.y.shape, self.dim if self.dim else 0,
-                    self.threshold, self.metric,
-                    InteractingNetworks.__str__(self))
+        return ("InterSystemRecurrenceNetwork: "
+                f"time series shapes {self.x.shape}, {self.y.shape}.\n"
+                f"Embedding dimension {self.dim if self.dim else 0}\n"
+                f"Threshold {self.threshold}, {self.metric} metric.\n"
+                f"{InteractingNetworks.__str__(self)}")
 
     #
     #  Service methods

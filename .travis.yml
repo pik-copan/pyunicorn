@@ -1,3 +1,5 @@
+version: ~> 1.0
+
 # require the branch name to be master
 if: branch = master
 
@@ -7,21 +9,28 @@ python:
     - "3.9"
     - "3.10"
     - "3.11"
-
-sudo: false
-dist: jammy
 matrix:
     fast_finish: true
 
+arch: arm64
+virt: lxd
+os: linux
+dist: focal
+sudo: false
+
 before_install:
     # Python package manager
-    - travis_retry wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+    - travis_retry wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh -O miniconda.sh
     - bash miniconda.sh -b -p $HOME/miniconda
     - export PATH="$HOME/miniconda/bin:$PATH"; hash -r
     - conda config --set quiet yes --set always_yes yes --set changeps1 no
     - travis_retry conda update -n base -c defaults conda
     - travis_retry conda update --all
+    - conda config --set solver libmamba
+
+    # debugging info
     - conda info -a
+    - conda list
 
 install:
     # runtime dependencies
@@ -33,16 +42,23 @@ install:
     - travis_retry conda update  -c conda-forge --all
 
     # testing dependencies
-    - travis_retry conda install -c conda-forge tox flake8 pylint pytest-xdist pytest-cov
+    - travis_retry conda install -c conda-forge tox flake8 pylint pytest-xdist pytest-cov codecov
     - travis_retry conda install -c conda-forge networkx matplotlib cartopy sphinx
 
+    # debugging info
+    - conda info -a
+    - conda list
+
 before_script:
-    # limit pytest processes within container environment
-    - sed -i 's/-n auto/-n 2/' setup.cfg
+    # limit parallel processes to available cores (error if pattern not found)
+    - sed -i '/nthreads=./{s//nthreads=2/;h}; ${x;/./{x;q0};x;q1}' setup.py
+    - sed -i '/-n auto/   {s//-n 2/;      h}; ${x;/./{x;q0};x;q1}' setup.cfg
+    - sed -i '/-j ./      {s//-j 2/;      h}; ${x;/./{x;q0};x;q1}' setup.cfg
+    - sed -i '/jobs = ./  {s//jobs = 2/;  h}; ${x;/./{x;q0};x;q1}' pyproject.toml
 
 script:
     # package
-    - pip install -vvv -e .
+    - travis_retry pip install -vv -e ".[testing,docs]"
 
     # test suite
     - tox -v

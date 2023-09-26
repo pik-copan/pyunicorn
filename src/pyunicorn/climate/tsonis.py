@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-#
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
@@ -121,8 +118,9 @@ class TsonisClimateNetwork(ClimateNetwork):
         Local connections filtered out: False
         Use only data points from winter months: False
         """
-        return (f'TsonisClimateNetwork:\n{ClimateNetwork.__str__(self)}\n' +
-        f'Use only data points from winter months: {self.winter_only()}')
+        return (f'TsonisClimateNetwork:\n{ClimateNetwork.__str__(self)}\n'
+                f'Use only data points from winter months: '
+                f'{self.winter_only()}')
 
     #
     #  Methods for testing purposes

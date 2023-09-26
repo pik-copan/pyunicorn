@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-#
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
@@ -237,10 +234,10 @@ class RecurrencePlot:
         """
         Returns a string representation.
         """
-        return ('RecurrencePlot: time series shape %s.\n'
-                'Embedding dimension %i\nThreshold %s, %s metric') % (
-                    self.time_series.shape, self.dim if self.dim else 0,
-                    self.threshold, self.metric)
+        return ("RecurrencePlot: "
+                f"time series shape {self.time_series.shape}.\n"
+                f"Embedding dimension {self.dim if self.dim else 0}\n"
+                f"Threshold {self.threshold}, {self.metric} metric")
 
     def clear_cache(self, irreversible=False):
         """Clean up memory."""
