@@ -67,16 +67,27 @@ def test_symmetrize_by_absmax():
             assert sm_new[i, j] >= similarity_matrix[i, j]
 
 
-def test_cross_correlation():
+def test_cross_correlation_max():
     coup_ana = CouplingAnalysis(CouplingAnalysis.test_data())
     similarity_matrix, lag_matrix = coup_ana.cross_correlation(
         tau_max=5, lag_mode='max')
     res = (similarity_matrix, lag_matrix)
-    exp = (np.array([[1., 0.757, 0.779, 0.7536],
+    exp = (np.array([[1., 0.7570, 0.7790, 0.7536],
                      [0.4847, 1., 0.4502, 0.5197],
                      [0.6219, 0.5844, 1., 0.5992],
                      [0.4827, 0.5509, 0.4996, 1.]]),
            np.array([[0, 4, 1, 2], [0, 0, 0, 0], [0, 3, 0, 1], [0, 2, 0, 0]]))
+    assert np.allclose(res, exp, atol=1e-04)
+
+
+def test_cross_correlation_all():
+    coup_ana = CouplingAnalysis(CouplingAnalysis.test_data())
+    res = coup_ana.cross_correlation(tau_max=1, lag_mode='all')
+    exp = np.array(
+        [[[1., 0.8173], [0.4849, 0.5804], [0.6214, 0.7786], [0.4831, 0.6042]],
+         [[0.4849, 0.4101], [1., 0.9362], [0.4503, 0.3780], [0.5199, 0.4286]],
+         [[0.6214, 0.5178], [0.4503, 0.5376], [1., 0.4962], [0.5004, 0.5996]],
+         [[0.4831, 0.3762], [0.5199, 0.5404], [0.5004, 0.4092], [1., 0.4380]]])
     assert np.allclose(res, exp, atol=1e-04)
 
 

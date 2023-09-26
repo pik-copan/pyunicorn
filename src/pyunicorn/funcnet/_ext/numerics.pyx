@@ -85,9 +85,6 @@ def _cross_correlation_all(
     ndarray[FIELD_t, ndim=3, mode='c'] array not None,
     int N, int tau_max, int corr_range):
 
-    """
-    lagfuncs = np.zeros((N, N, tau_max+1), dtype="float32")
-    """
     cdef:
         int i, j, tau, k
         double crossij
@@ -98,7 +95,7 @@ def _cross_correlation_all(
     for i in range(N):
         for j in range(N):
             # loop over taus INCLUDING the last tau value
-            for tau in range(tau_max):
+            for tau in range(tau_max + 1):
                 crossij = 0
                 # here the actual cross correlation is calculated
                 # assuming standardized arrays
