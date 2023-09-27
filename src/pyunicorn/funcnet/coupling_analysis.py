@@ -23,7 +23,8 @@ from scipy import special, linalg   # special math functions
 
 # import mpi                          # parallelized computations
 
-from ..core._ext.types import to_cy, LAG, FIELD, INT16TYPE, INT32TYPE, INT64TYPE
+from ..core._ext.types import to_cy, LAG, FIELD, \
+    INT16TYPE, INT32TYPE, INT64TYPE
 from ._ext.numerics import _symmetrize_by_absmax, _cross_correlation_max, \
     _cross_correlation_all, _get_nearest_neighbors
 

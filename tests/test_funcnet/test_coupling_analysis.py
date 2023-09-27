@@ -20,7 +20,8 @@ import numpy as np
 from pyunicorn.core.data import Data
 from pyunicorn.funcnet import CouplingAnalysis
 
-from ...src.pyunicorn.core._ext.types import FIELD
+from pyunicorn.core._ext.types import FIELD
+
 
 def create_test_data():
     # Create test time series
