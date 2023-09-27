@@ -12,8 +12,6 @@
 # and J. Kurths, "Unified functional network and nonlinear time series analysis
 # for complex systems science: The pyunicorn package"
 
-cimport cython
-
 import numpy as np
 from numpy cimport ndarray
 
@@ -22,9 +20,10 @@ from ...core._ext.types cimport LAG_t, FIELD_t, DFIELD_t, NODE_t
 
 # coupling_analysis ===========================================================
 
+
 def _symmetrize_by_absmax(
-    ndarray[FIELD_t, ndim=2, mode='c'] similarity_matrix not None,
-    ndarray[LAG_t, ndim=2, mode='c'] lag_matrix not None, int N):
+        ndarray[FIELD_t, ndim=2, mode='c'] similarity_matrix not None,
+        ndarray[LAG_t, ndim=2, mode='c'] lag_matrix not None, int N):
 
     cdef:
         int i, j, I, J
@@ -34,19 +33,19 @@ def _symmetrize_by_absmax(
         for j in range(i+1, N):
             # calculate max and argmax by comparing to
             # previous value and storing max
-            if abs(similarity_matrix[i,j]) > abs(similarity_matrix[j,i]):
+            if abs(similarity_matrix[i, j]) > abs(similarity_matrix[j, i]):
                 I, J = i, j
             else:
                 I, J = j, i
-            similarity_matrix[J,I] = similarity_matrix[I,J]
-            lag_matrix[J,I] = -lag_matrix[I,J]
+            similarity_matrix[J, I] = similarity_matrix[I, J]
+            lag_matrix[J, I] = -lag_matrix[I, J]
 
     return similarity_matrix, lag_matrix
 
 
 def _cross_correlation_max(
-    ndarray[FIELD_t, ndim=3, mode='c'] array not None,
-    int N, int tau_max, int corr_range):
+        ndarray[FIELD_t, ndim=3, mode='c'] array not None,
+        int N, int tau_max, int corr_range):
 
     cdef:
         ndarray[FIELD_t, ndim=2, mode='c'] similarity_matrix = np.ones(
@@ -68,21 +67,21 @@ def _cross_correlation_max(
                     # here the actual cross correlation is calculated
                     # assuming standardized arrays
                     for k in range(corr_range):
-                        crossij += array[tau,i,k] * array[tau_max,j,k]
+                        crossij += array[tau, i, k] * array[tau_max, j, k]
                     # calculate max and argmax by comparing to
                     # previous value and storing max
                     if abs(crossij) > abs(max):
                         max = crossij
                         argmax = tau
-                similarity_matrix[i,j] = <FIELD_t> (max / corr_range)
-                lag_matrix[i,j] = <LAG_t> (tau_max - argmax)
+                similarity_matrix[i, j] = <FIELD_t> (max / corr_range)
+                lag_matrix[i, j] = <LAG_t> (tau_max - argmax)
 
     return similarity_matrix, lag_matrix
 
 
 def _cross_correlation_all(
-    ndarray[FIELD_t, ndim=3, mode='c'] array not None,
-    int N, int tau_max, int corr_range):
+        ndarray[FIELD_t, ndim=3, mode='c'] array not None,
+        int N, int tau_max, int corr_range):
 
     cdef:
         int i, j, tau, k
@@ -99,8 +98,8 @@ def _cross_correlation_all(
                 # here the actual cross correlation is calculated
                 # assuming standardized arrays
                 for k in range(corr_range):
-                    crossij += array[tau,i,k] * array[tau_max,j,k]
-                lagfuncs[i,j,tau_max-tau] = <FIELD_t> (crossij / corr_range)
+                    crossij += array[tau, i, k] * array[tau_max, j, k]
+                lagfuncs[i, j, tau_max-tau] = <FIELD_t> (crossij / corr_range)
 
     return lagfuncs
 
@@ -139,7 +138,7 @@ def _get_nearest_neighbors(
             # Loop through all points
             for t in range(T):
                 d = 0
-                while d < dim and abs(array[d,i] - array[d,t]) < eps:
+                while d < dim and abs(array[d, i] - array[d, t]) < eps:
                     d += 1
 
                 # If all distances are within eps, the point t lies
@@ -156,8 +155,8 @@ def _get_nearest_neighbors(
             # calculate maximum metric distance to point
             dxyz = 0.
             for d in range(dim):
-                dist[d,j] = abs(array[d,i] - array[d,index])
-                dxyz = max(dist[d,j], dxyz)
+                dist[d, j] = abs(array[d, i] - array[d, index])
+                dxyz = max(dist[d, j], dxyz)
 
             # insertion-sort current distance into 'dxyzarray'
             # if it is among the currently smallest k+1 distances
@@ -189,22 +188,22 @@ def _get_nearest_neighbors(
         for j in range(T):
 
             # X-subspace
-            dx = abs(array[0,i] - array[0,j])
+            dx = abs(array[0, i] - array[0, j])
             for d in range(1, dim_x):
-                dist[d,j] = abs(array[d,i] - array[d,j])
-                dx = max(dist[d,j], dx)
+                dist[d, j] = abs(array[d, i] - array[d, j])
+                dx = max(dist[d, j], dx)
 
             # Y-subspace
-            dy = abs(array[dim_x,i] - array[dim_x,j])
+            dy = abs(array[dim_x, i] - array[dim_x, j])
             for d in range(dim_x, dim_x + dim_y):
-                dist[d,j] = abs(array[d,i] - array[d,j])
-                dy = max(dist[d,j], dy)
+                dist[d, j] = abs(array[d, i] - array[d, j])
+                dy = max(dist[d, j], dy)
 
             # Z-subspace, if empty, dz stays 0
             dz = 0.
             for d in range(dim_x + dim_y, dim):
-                dist[d,j] = abs(array[d,i] - array[d,j])
-                dz = max(dist[d,j], dz)
+                dist[d, j] = abs(array[d, i] - array[d, j])
+                dz = max(dist[d, j], dz)
 
             # For no conditions, kz is counted up to T
             if dz < epsmax:
