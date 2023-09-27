@@ -643,7 +643,6 @@ class CouplingAnalysis:
         :rtype: tuple of arrays
         :returns: nearest neighbors for each sample point.
         """
-
         dim, T = array.shape
 
         if standardize:
@@ -658,17 +657,14 @@ class CouplingAnalysis:
                                  constant array!")
 
         # Add noise to destroy ties...
-        array += 1E-10 * numpy.random.rand(array.shape[0], array.shape[1])
-
-        # Flatten for fast cython access
-        array = array.flatten()
+        array += 1E-10 * numpy.random.rand(dim, T)
 
         dim_x = int(numpy.where(xyz == 0)[0][-1] + 1)
         dim_y = int(numpy.where(xyz == 1)[0][-1] + 1 - dim_x)
         # dim_z = maxdim - dim_x - dim_y
 
         return _get_nearest_neighbors(
-            to_cy(array, FIELD), T, dim_x, dim_y, k, dim)
+            to_cy(array, FIELD), dim, T, dim_x, dim_y, k)
 
     @staticmethod
     def _quantile_bin_array(array, bins=6):
