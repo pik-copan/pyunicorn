@@ -20,11 +20,11 @@ import numpy as np
 from pyunicorn.core.data import Data
 from pyunicorn.funcnet import CouplingAnalysis
 
+from ...src.pyunicorn.core._ext.types import FIELD
 
 def create_test_data():
     # Create test time series
     tdata = Data.SmallTestData().observable()
-    n_index, n_times = tdata.shape
     # subtract means form the input data
     tdata -= np.mean(tdata, axis=1)[:, None]
     # normalize the data
@@ -59,7 +59,7 @@ def test_symmetrize_by_absmax():
     tdata = create_test_data()
     n_index, n_times = tdata.shape
     coup_ana = CouplingAnalysis(tdata)
-    similarity_matrix = np.random.rand(n_index, n_times).astype('float32')
+    similarity_matrix = np.random.rand(n_index, n_times).astype(FIELD)
     lag_matrix = np.random.rand(n_index, n_times).astype(np.int8)
     sm_new = coup_ana.symmetrize_by_absmax(similarity_matrix, lag_matrix)[0]
     for i in range(n_index):
