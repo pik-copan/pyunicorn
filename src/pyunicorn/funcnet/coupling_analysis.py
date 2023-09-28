@@ -23,7 +23,8 @@ from scipy import special, linalg   # special math functions
 
 # import mpi                          # parallelized computations
 
-from ..core._ext.types import to_cy, LAG, FIELD
+from ..core._ext.types import to_cy, LAG, FIELD, \
+    INT16TYPE, INT32TYPE, INT64TYPE
 from ._ext.numerics import _symmetrize_by_absmax, _cross_correlation_max, \
     _cross_correlation_all, _get_nearest_neighbors
 
@@ -315,10 +316,10 @@ class CouplingAnalysis:
             assert 1 <= knn <= T/2., f"{knn = }"
 
         if lag_mode == 'max':
-            similarity_matrix = numpy.ones((N, N), dtype='float32')
-            lag_matrix = numpy.zeros((N, N), dtype='int8')
+            similarity_matrix = numpy.ones((N, N), dtype=FIELD)
+            lag_matrix = numpy.zeros((N, N), dtype=LAG)
         elif lag_mode == 'all':
-            lagfuncs = numpy.zeros((N, N, tau_max+1), dtype='float32')
+            lagfuncs = numpy.zeros((N, N, tau_max+1), dtype=FIELD)
 
         if estimator == 'binning':
             self.plogp = self.create_plogp(T)
@@ -512,10 +513,10 @@ class CouplingAnalysis:
                 raise ValueError(f"knn = {knn}, should be between 1 and T/2")
 
         if lag_mode == 'max':
-            similarity_matrix = numpy.ones((N, N), dtype='float32')
-            lag_matrix = numpy.zeros((N, N), dtype='int8')
+            similarity_matrix = numpy.ones((N, N), dtype=FIELD)
+            lag_matrix = numpy.zeros((N, N), dtype=LAG)
         elif lag_mode == 'all':
-            lagfuncs = numpy.zeros((N, N, tau_max+1), dtype='float32')
+            lagfuncs = numpy.zeros((N, N, tau_max+1), dtype=FIELD)
 
         for i in range(N):
             for j in range(N):
@@ -643,12 +644,11 @@ class CouplingAnalysis:
         :rtype: tuple of arrays
         :returns: nearest neighbors for each sample point.
         """
-
         dim, T = array.shape
 
         if standardize:
             # Standardize
-            array = array.astype('float32')
+            array = array.astype(FIELD)
             array -= array.mean(axis=1).reshape(dim, 1)
             array /= array.std(axis=1).reshape(dim, 1)
             # If the time series is constant, return nan rather than raising
@@ -658,17 +658,14 @@ class CouplingAnalysis:
                                  constant array!")
 
         # Add noise to destroy ties...
-        array += 1E-10 * numpy.random.rand(array.shape[0], array.shape[1])
-
-        # Flatten for fast cython access
-        array = array.flatten()
+        array += 1E-10 * numpy.random.rand(dim, T)
 
         dim_x = int(numpy.where(xyz == 0)[0][-1] + 1)
         dim_y = int(numpy.where(xyz == 1)[0][-1] + 1 - dim_x)
         # dim_z = maxdim - dim_x - dim_y
 
         return _get_nearest_neighbors(
-            to_cy(array, FIELD), T, dim_x, dim_y, k, dim)
+            to_cy(array, FIELD), dim, T, dim_x, dim_y, k)
 
     @staticmethod
     def _quantile_bin_array(array, bins=6):
@@ -692,7 +689,7 @@ class CouplingAnalysis:
         # get the bin quantile steps
         bin_edge = numpy.ceil(T/float(bins))
 
-        symb_array = numpy.zeros((dim, T), dtype='int32')
+        symb_array = numpy.zeros((dim, T), dtype=INT32TYPE)
 
         # get the lower edges of the bins for every time series
         edges = numpy.sort(array, axis=1)[:, ::bin_edge]
@@ -729,8 +726,8 @@ class CouplingAnalysis:
             f'base = {base}, D = {D}: Histogram failed:'
             ' dimension D*base**D exceeds int64 data type')
 
-        flathist = numpy.zeros((base**D), dtype='int16')
-        multisymb = numpy.zeros(T, dtype='int64')
+        flathist = numpy.zeros((base**D), dtype=INT16TYPE)
+        multisymb = numpy.zeros(T, dtype=INT64TYPE)
 
         for i in range(D):
             multisymb += symb_array[i, :]*base**i

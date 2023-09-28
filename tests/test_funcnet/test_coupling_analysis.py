@@ -20,11 +20,12 @@ import numpy as np
 from pyunicorn.core.data import Data
 from pyunicorn.funcnet import CouplingAnalysis
 
+from pyunicorn.core._ext.types import FIELD
+
 
 def create_test_data():
     # Create test time series
     tdata = Data.SmallTestData().observable()
-    n_index, n_times = tdata.shape
     # subtract means form the input data
     tdata -= np.mean(tdata, axis=1)[:, None]
     # normalize the data
@@ -59,7 +60,7 @@ def test_symmetrize_by_absmax():
     tdata = create_test_data()
     n_index, n_times = tdata.shape
     coup_ana = CouplingAnalysis(tdata)
-    similarity_matrix = np.random.rand(n_index, n_times).astype('float32')
+    similarity_matrix = np.random.rand(n_index, n_times).astype(FIELD)
     lag_matrix = np.random.rand(n_index, n_times).astype(np.int8)
     sm_new = coup_ana.symmetrize_by_absmax(similarity_matrix, lag_matrix)[0]
     for i in range(n_index):
@@ -67,16 +68,27 @@ def test_symmetrize_by_absmax():
             assert sm_new[i, j] >= similarity_matrix[i, j]
 
 
-def test_cross_correlation():
+def test_cross_correlation_max():
     coup_ana = CouplingAnalysis(CouplingAnalysis.test_data())
     similarity_matrix, lag_matrix = coup_ana.cross_correlation(
         tau_max=5, lag_mode='max')
     res = (similarity_matrix, lag_matrix)
-    exp = (np.array([[1., 0.757, 0.779, 0.7536],
+    exp = (np.array([[1., 0.7570, 0.7790, 0.7536],
                      [0.4847, 1., 0.4502, 0.5197],
                      [0.6219, 0.5844, 1., 0.5992],
                      [0.4827, 0.5509, 0.4996, 1.]]),
            np.array([[0, 4, 1, 2], [0, 0, 0, 0], [0, 3, 0, 1], [0, 2, 0, 0]]))
+    assert np.allclose(res, exp, atol=1e-04)
+
+
+def test_cross_correlation_all():
+    coup_ana = CouplingAnalysis(CouplingAnalysis.test_data())
+    res = coup_ana.cross_correlation(tau_max=1, lag_mode='all')
+    exp = np.array(
+        [[[1., 0.8173], [0.4849, 0.5804], [0.6214, 0.7786], [0.4831, 0.6042]],
+         [[0.4849, 0.4101], [1., 0.9362], [0.4503, 0.3780], [0.5199, 0.4286]],
+         [[0.6214, 0.5178], [0.4503, 0.5376], [1., 0.4962], [0.5004, 0.5996]],
+         [[0.4831, 0.3762], [0.5199, 0.5404], [0.5004, 0.4092], [1., 0.4380]]])
     assert np.allclose(res, exp, atol=1e-04)
 
 
