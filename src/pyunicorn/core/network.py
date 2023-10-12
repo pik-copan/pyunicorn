@@ -41,6 +41,7 @@ from scipy import linalg            # solvers
 from scipy.linalg import expm
 from scipy import sparse as sp      # fast sparse matrices
 from scipy.sparse.linalg import eigsh, inv, splu
+from tqdm import tqdm, trange       # easy progress bar handling
 
 import igraph                       # high performance graph theory tools
 
@@ -52,8 +53,6 @@ from ._ext.numerics import \
     _local_cliquishness_4thorder, _local_cliquishness_5thorder, \
     _nsi_betweenness, _mpi_newman_betweenness, _mpi_nsi_newman_betweenness, \
     _do_nsi_clustering_I, _do_nsi_clustering_II, _do_nsi_hamming_clustering
-
-from ..utils import progressbar     # easy progress bar handling
 
 
 # =============================================================================
@@ -1153,8 +1152,7 @@ class Network:
                     cum += link_prob[i]
                 return i
 
-            progress = progressbar.ProgressBar(maxval=N).start()
-            for j in range(n_initials, N):
+            for j in trange(n_initials, N):
                 # add node j with unit weight:
                 link_prob[j] = kstar[j] = w[j] = 1
                 total_link_prob += 1
@@ -1215,11 +1213,6 @@ class Network:
                     link_prob[j2] = w[j2] * kstar[j2]**preferential_exponent
                     total_link_prob += link_prob[i] + link_prob[j2]
                 # print(total_link_prob, link_prob.sum())
-
-                if j % 10:
-                    progress.update(j)
-
-            progress.finish()
 
         else:
             link_target = []
@@ -1321,30 +1314,28 @@ class Network:
             return i
 
         this_N = n_initials
-        progress = progressbar.ProgressBar(maxval=N).start()
         it = 0
-        while this_N < N and it < n_increases:
-            it += 1
-            i = _inc_target()
-            total_inc_prob -= inc_prob[i]
-            w[i] += 1
-            inc_prob[i] = w[i]**exponent
-            total_inc_prob += inc_prob[i]
-            if (mode == "exp" and random.uniform() > hold_prob**w[i]) or \
-                    (mode == "rec" and random.uniform()
-                     < w[i]*1.0/(split_weight+w[i])):  # reciprocal
-                # split i into i,this_N:
+        with tqdm(total=N) as pbar:
+            while this_N < N and it < n_increases:
+                it += 1
+                i = _inc_target()
                 total_inc_prob -= inc_prob[i]
-                w[this_N] = w[i]*random.beta(beta, beta)
-                w[i] -= w[this_N]
-                inc_prob[this_N] = w[this_N]**exponent
+                w[i] += 1
                 inc_prob[i] = w[i]**exponent
-                total_inc_prob += inc_prob[this_N] + inc_prob[i]
-                this_N += 1
-            if this_N % 10:
-                progress.update(this_N)
+                total_inc_prob += inc_prob[i]
+                if (mode == "exp" and random.uniform() > hold_prob**w[i]) or \
+                        (mode == "rec" and random.uniform()
+                         < w[i]*1.0/(split_weight+w[i])):  # reciprocal
+                    # split i into i,this_N:
+                    total_inc_prob -= inc_prob[i]
+                    w[this_N] = w[i]*random.beta(beta, beta)
+                    w[i] -= w[this_N]
+                    inc_prob[this_N] = w[this_N]**exponent
+                    inc_prob[i] = w[i]**exponent
+                    total_inc_prob += inc_prob[this_N] + inc_prob[i]
+                    this_N += 1
+                    pbar.update()
 
-        progress.finish()
         return w
 
     def randomly_rewire(self, iterations):
@@ -4440,16 +4431,10 @@ class Network:
         if self.silence_level <= 1:
             print("Calculating (weighted) node vulnerabilities...")
 
-        #  Initialize progress bar
-        if self.silence_level <= 1:
-            progress = progressbar.ProgressBar(maxval=self.N).start()
+        #  Toggle progress bar
+        silence = self.silence_level > 1
 
-        for i in range(self.N):
-            # Update progress bar every 10 steps
-            if self.silence_level <= 1:
-                if (i % 10) == 0:
-                    progress.update(i)
-
+        for i in trange(self.N, disable=silence):
             #  Remove vertex i from graph
             graph = self.graph - i
 
@@ -4466,10 +4451,6 @@ class Network:
 
             #  Clean up
             del graph, network
-
-        #  Terminate progress bar
-        if self.silence_level <= 1:
-            progress.finish()
 
         return vulnerability
 

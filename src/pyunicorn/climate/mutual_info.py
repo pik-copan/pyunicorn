@@ -23,11 +23,11 @@ Provides classes for generating and analyzing complex climate networks.
 # array object and fast numerics
 import numpy as np
 
+#  easy progress bar handling
+from tqdm import trange
+
 from ..core._ext.types import to_cy, FIELD
 from ._ext.numerics import mutual_information
-
-#  Import progress bar for easy progress bar handling
-from ..utils import progressbar
 
 #  Import cnNetwork for Network base class
 from .climate_network import ClimateNetwork
@@ -216,18 +216,12 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         #  Compute the information entropies of each time series
         H = - (p * log(p)).sum(axis=1)
 
-        # Initialize progress bar
-        if self.silence_level <= 1:
-            progress = progressbar.ProgressBar(maxval=self.N**2).start()
+        # Toggle progress bar
+        silence = self.silence_level > 1
 
         #  Calculate only the lower half of the MI matrix, since MI is
         #  symmetric with respect to X and Y.
-        for i in range(self.N):
-            # Update progress bar every 10 steps
-            if self.silence_level <= 1:
-                if (i % 10) == 0:
-                    progress.update(i**2)
-
+        for i in trange(self.N, disable=silence):
             for j in range(i):
                 #  Calculate the joint probability distribution
                 pxy = histogram2d(
@@ -245,9 +239,6 @@ class MutualInfoClimateNetwork(ClimateNetwork):
                 #  ... and store the result
                 mi.itemset((i, j), H.item(i) + H.item(j) - HXY)
                 mi.itemset((j, i), mi.item((i, j)))
-
-        if self.silence_level <= 1:
-            progress.finish()
 
         return mi
 
