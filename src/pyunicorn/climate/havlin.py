@@ -175,7 +175,7 @@ class HavlinClimateNetwork(ClimateNetwork):
         #  Calculate the inverse Fourier transform of all time series
         ifft = np.fft.ifft(anomaly, axis=0)
 
-        for i in trange(N, disable=(self.silence_level > 1)):
+        for i in trange(N, disable=self.silence_level > 1):
             #  Calculate the cross correlation function of node i to all other
             #  nodes which is not normalized yet.
             #  The real part has to be taken to get rid of small imaginary

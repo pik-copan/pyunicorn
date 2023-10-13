@@ -704,7 +704,7 @@ class Surrogates:
         #  Initialize density estimate
         density_estimate = np.zeros(n_bins)
 
-        for _ in trange(realizations, disable=(self.silence_level > 2)):
+        for _ in trange(realizations, disable=self.silence_level > 2):
             #  Get the surrogate
             #  Mean and variance are conserved by all surrogates
             surrogates = surrogate_function(original_data)

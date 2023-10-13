@@ -4431,7 +4431,7 @@ class Network:
         if self.silence_level <= 1:
             print("Calculating (weighted) node vulnerabilities...")
 
-        for i in trange(self.N, disable=(self.silence_level > 1)):
+        for i in trange(self.N, disable=self.silence_level > 1):
             #  Remove vertex i from graph
             graph = self.graph - i
 
