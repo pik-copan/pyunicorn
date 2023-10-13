@@ -216,12 +216,9 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         #  Compute the information entropies of each time series
         H = - (p * log(p)).sum(axis=1)
 
-        # Toggle progress bar
-        silence = self.silence_level > 1
-
         #  Calculate only the lower half of the MI matrix, since MI is
         #  symmetric with respect to X and Y.
-        for i in trange(self.N, disable=silence):
+        for i in trange(self.N, disable=(self.silence_level > 1)):
             for j in range(i):
                 #  Calculate the joint probability distribution
                 pxy = histogram2d(
