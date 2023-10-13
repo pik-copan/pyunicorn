@@ -120,9 +120,9 @@ class CoupledClimateNetwork(InteractingNetworks, ClimateNetwork):
             """(number (int)) - The number of nodes in the second layer."""
 
             #  Create lists of node indices for both layers
-            self.nodes_1 = range(self.N_1)
+            self.nodes_1 = list(range(self.N_1))
             """(list (int)) - List of node indices for first layer"""
-            self.nodes_2 = range(self.N_1, self.N)
+            self.nodes_2 = list(range(self.N_1, self.N))
             """(list (int)) - List of node indices for second layer"""
 
             #  Call the constructor of the parent class ClimateNetwork
