@@ -59,9 +59,6 @@
     - `Numpy <http://www.numpy.org/>`_
     - `Cython <http://cython.org/>`_
 
-**Included**
-    - `progressbar <http://pypi.python.org/pypi/progressbar/>`_
-
 **To Do**
   - A lot - See current product backlog.
 

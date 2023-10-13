@@ -21,18 +21,18 @@ multivariate data and generating time series surrogates.
 import numpy as np
 from numpy import random
 
+# easy progress bar handling
+from tqdm import trange
+
 from ..core._ext.types import to_cy, ADJ, DEGREE, FIELD, DFIELD
 from ._ext.numerics import _embed_time_series_array, _recurrence_plot, \
     _twins_s, _twin_surrogates_s, _test_pearson_correlation, \
     _test_mutual_information
 
-# easy progress bar handling
-from ..utils import progressbar
-
-
 #
 #  Define class Surrogates
 #
+
 
 class Surrogates:
 
@@ -704,15 +704,7 @@ class Surrogates:
         #  Initialize density estimate
         density_estimate = np.zeros(n_bins)
 
-        #  Initialize progress bar
-        if self.silence_level <= 2:
-            progress = progressbar.ProgressBar(maxval=realizations).start()
-
-        for i in range(realizations):
-            #  Update progress bar
-            if self.silence_level <= 2:
-                progress.update(i)
-
+        for _ in trange(realizations, disable=self.silence_level > 2):
             #  Get the surrogate
             #  Mean and variance are conserved by all surrogates
             surrogates = surrogate_function(original_data)
@@ -737,9 +729,6 @@ class Surrogates:
             #  Clean up (should be done automatically by Python,
             #  but you never know...)
             del surrogates, correlation_measure_test
-
-        if self.silence_level <= 2:
-            progress.finish()
 
         #  Normalize density estimate
         density_estimate /= density_estimate.sum()

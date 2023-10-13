@@ -18,9 +18,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.pylint.main]
 ignore = [
-    "CVS", ".cache", ".tox", ".ropeproject", "build", "mpi.py", "progressbar"
+    "CVS", ".cache", ".tox", ".ropeproject", "build", "mpi.py"
 ]
-ignore-patterns = ["navigator", "progressbar", "numerics"]
+ignore-patterns = ["navigator", "numerics"]
 persistent = false
 jobs = 0
 
