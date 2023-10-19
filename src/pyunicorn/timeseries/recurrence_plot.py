@@ -149,6 +149,7 @@ class RecurrencePlot:
         self.time_series.shape = (self.time_series.shape[0], -1)
 
         #  Store type of metric
+        assert metric in ("manhattan", "euclidean", "supremum")
         self.metric = metric
         """The metric used for measuring distances in phase space."""
 
@@ -282,7 +283,6 @@ class RecurrencePlot:
         :rtype: 2D square array
         :return: the phase space distance matrix :math:`D`
         """
-
         if not self._distance_matrix_cached:
             #  Return distance matrix according to chosen metric:
             if metric == "manhattan":
@@ -294,6 +294,8 @@ class RecurrencePlot:
             elif metric == "supremum":
                 self._distance_matrix = \
                     RecurrencePlot.supremum_distance_matrix(self, embedding)
+            else:
+                raise ValueError(f"unknown metric: {metric}")
 
             self._distance_matrix_cached = True
 

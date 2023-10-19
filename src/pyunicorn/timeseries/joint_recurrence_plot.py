@@ -127,10 +127,17 @@ class JointRecurrencePlot(RecurrencePlot):
         threshold_std = kwds.get("threshold_std")
         recurrence_rate = kwds.get("recurrence_rate")
 
+        assert len(metric) == 2
+        assert all(m in ("manhattan", "euclidean", "supremum") for m in metric)
+
+        # initialise base class using dummy values (bad OO design)
         RecurrencePlot.__init__(
             self, np.empty((2, 0)), metric=metric[0], normalize=normalize,
             threshold=threshold[0] if threshold else 0,
             recurrence_rate=recurrence_rate, silence_level=silence_level)
+
+        #  Store type of metric
+        self.metric = metric
 
         self._distance_matrix_cached = False
         self.JR = None
