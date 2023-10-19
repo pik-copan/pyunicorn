@@ -733,7 +733,7 @@ class InteractingNetworks(Network):
         :return float: the density of links within a subnetwork.
         """
         N = len(node_list)
-        n_links = self.number_internal_links(node_list)
+        n_links = InteractingNetworks.number_internal_links(self, node_list)
         if self.directed:
             return float(n_links) / (N * (N - 1))
         else:
