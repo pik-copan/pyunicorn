@@ -45,6 +45,7 @@ from tqdm import tqdm, trange       # easy progress bar handling
 
 import igraph                       # high performance graph theory tools
 
+from multiprocess import Pool, cpu_count
 from ..utils import mpi             # parallelized computations
 
 from ._ext.types import \
@@ -261,8 +262,8 @@ class Network:
         elif edge_list is not None:
             self.set_edge_list(edge_list, n_nodes)
         else:
-            raise NetworkError("An adjacency matrix or edge list has to be \
-                               given to initialize an instance of Network.")
+            raise NetworkError("An adjacency matrix or edge list has to be "
+                               "given to initialize an instance of Network.")
 
         self._set_node_weights(node_weights)
         self.degree()
@@ -854,7 +855,8 @@ class Network:
             graph = igraph.Graph.Erdos_Renyi(n=n_nodes, m=n_links)
 
         else:
-            return None
+            raise ValueError("`ErdosRenyi()` requires either a "
+                             "`link_probability` or `n_links` argument.")
 
         # return adjacency matrix
         return np.array(graph.get_adjacency(type=2).data)
@@ -2681,7 +2683,7 @@ class Network:
         >>> r(Network.SmallTestNetwork().assortativity())
         -0.4737
 
-        :rtype: float between 0 and 1
+        :rtype: float
         """
         degrees = self.graph.degree()
         degrees_sq = [deg**2 for deg in degrees]
@@ -3067,7 +3069,7 @@ class Network:
          [ 0.   2.   0.   0.   3.   0. ] [ 3.5  3.5  0.   0.   0.   0. ]
          [ 5.5  2.5  3.   0.   0.   0. ] [ 5.   0.   0.   0.   0.   0. ]]
 
-        :rtype:  square numpy array [node,node] of floats between 0 and 1
+        :rtype:  square numpy array [node,node] of floats
         :return: Entry [i,j] is the betweenness of the link between i and j,
                  or 0 if i is not linked to j.
         """
@@ -3106,7 +3108,7 @@ class Network:
          [ 0.   2.   0.   0.   3.   0. ] [ 3.5  3.5  0.   0.   0.   0. ]
          [ 5.5  2.5  3.   0.   0.   0. ] [ 5.   0.   0.   0.   0.   0. ]]
 
-        :rtype:  square numpy array [node,node] of floats between 0 and 1
+        :rtype:  square numpy array [node,node] of floats
         :return: Entry [i,j] is the betweenness of the link between i and j,
                  or 0 if i is not linked to j.
         """
@@ -3172,7 +3174,7 @@ class Network:
         :type targets: 1d numpy array or list of ints from 0 to n_nodes-1
         :arg  targets: Set of target node indices.
 
-        :rtype: 1d numpy array [node] of floats between 0 and 1
+        :rtype: 1d numpy array [node] of floats
         """
         return self.nsi_betweenness(sources=sources, targets=targets,
                                     aw=0, silent=1)
@@ -3201,13 +3203,13 @@ class Network:
         Calculating interregional betweenness...
         array([ 1.,  1.,  0.,  0.,  1.,  0.])
 
-        :rtype: 1d numpy array [node] of floats between 0 and 1
+        :rtype: 1d numpy array [node] of floats
         """
         return self.nsi_betweenness(sources=sources, targets=targets, silent=1)
 
-    def nsi_betweenness(self, **kwargs):
+    def nsi_betweenness(self, parallelize: bool = False, **kwargs):
         """
-        For each node, return its n.s.i. betweenness.
+        For each node, return its n.s.i. betweenness. [Newman2001]_
 
         This measures roughly how many shortest paths pass through the node,
         taking node weights into account.
@@ -3232,7 +3234,7 @@ class Network:
         Calculating node betweenness...
         array([ 8.5,  1.5,  0. ,  1.5,  4.5,  0. ,  0. ])
 
-        :rtype: 1d numpy array [node] of floats between 0 and 1
+        :rtype: 1d numpy array [node] of floats
         """
         if self.silence_level <= 1:
             if "silent" not in kwargs:
@@ -3242,50 +3244,39 @@ class Network:
         if "aw" in kwargs:
             if kwargs["aw"] == 0:
                 w = np.ones_like(w)
-
         N, k = self.N, self.degree()
-        rN = range(0, N)
-        betweenness_times_w = np.zeros(N, dtype=DFIELD)
 
-        # initialize node lists:
+        # initialize node lists
         is_source = np.zeros(N, dtype=MASK)
         if "sources" in kwargs and kwargs["sources"] is not None:
             is_source[kwargs["sources"]] = 1
         else:
-            is_source[rN] = 1
+            is_source[range(0, N)] = 1
         if "targets" in kwargs and kwargs["targets"] is not None:
-            targets = kwargs["targets"]
+            targets = np.array(list(map(int, kwargs["targets"])))
         else:
-            targets = rN
+            targets = np.arange(0, N)
 
-        # node offsets for flat arrays:
-        # NOTE: We don't use k.cumsum() since that uses too much memory!
-        offsets = np.zeros(N, dtype=NODE)
-        for i in range(1, N):
-            offsets[i] = offsets[i-1] + k[i-1]
-
-        # sort links by node indices (contains each link twice!):
+        # sort links by node indices (contains each link twice!)
         links = nz_coords(self.sp_A)
 
-        # neighbours of each node:
+        # neighbours of each node
         flat_neighbors = to_cy(np.array(links)[:, 1], NODE)
-        E = len(flat_neighbors)
+        assert k.sum() == len(flat_neighbors) == 2 * self.n_links
+        w, k = to_cy(w, DWEIGHT), to_cy(k, DEGREE)
 
-        # this main loop might be parallelized:
-        for j0 in targets:
-            j = int(j0)
+        def worker(batch):
+            return _nsi_betweenness(N, w, k, batch, flat_neighbors, is_source)
 
-            betweenness_to_j = to_cy(w, DFIELD)
-            excess_to_j = to_cy(w, DFIELD)
-            flat_predecessors = np.zeros(E, dtype=NODE)
-            _nsi_betweenness(
-                N, to_cy(w, DWEIGHT), to_cy(k, DEGREE), j,
-                betweenness_to_j, excess_to_j, offsets, flat_neighbors,
-                is_source, flat_predecessors)
-            del flat_predecessors
-            betweenness_times_w += w[j] * (betweenness_to_j - excess_to_j)
-
-        return betweenness_times_w / w
+        if parallelize:
+            # (naively) parallelize loop over nodes
+            n_workers = cpu_count()
+            batches = np.array_split(to_cy(targets, NODE), n_workers)
+            pool = Pool()
+            betw_w = np.sum(pool.map(worker, batches), axis=0)
+        else:
+            betw_w = worker(to_cy(targets, NODE))
+        return betw_w / w
 
     def _eigenvector_centrality_slow(self, link_attribute=None):
         """

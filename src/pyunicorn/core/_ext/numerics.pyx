@@ -411,85 +411,101 @@ def _local_cliquishness_5thorder(
 
 def _nsi_betweenness(
     int N, ndarray[DWEIGHT_t, ndim=1] w,
-    ndarray[DEGREE_t, ndim=1] k, int j,
-    ndarray[DFIELD_t, ndim=1] betweenness_to_j,
-    ndarray[DFIELD_t, ndim=1] excess_to_j,
-    ndarray[NODE_t, ndim=1] offsets,
+    ndarray[DEGREE_t, ndim=1] k,
+    ndarray[NODE_t, ndim=1] targets,
     ndarray[NODE_t, ndim=1] flat_neighbors,
-    ndarray[MASK_t, ndim=1] is_source,
-    ndarray[NODE_t, ndim=1] flat_predecessors):
+    ndarray[MASK_t, ndim=1] is_source):
+    """
+    Performs Newman's algorithm. [Newman2001]_
+    """
 
     cdef:
-        int qi, oi, queue_len, l_index, ql
+        long int E = len(flat_neighbors)
+        int j, qi, oi, queue_len, l_index, ql
         NODE_t l, i, next_d, dl, ol, fi
         DFIELD_t base_factor
-        ndarray[NODE_t, ndim=1] distances_to_j =\
-            2 * N * np.ones(N, dtype=NODE)
+        ndarray[NODE_t, ndim=1] offsets = np.zeros(N, dtype=NODE)
+        ndarray[NODE_t, ndim=1] distances_to_j = np.ones(N, dtype=NODE)
         ndarray[NODE_t, ndim=1] n_predecessors = np.zeros(N, dtype=NODE)
+        ndarray[NODE_t, ndim=1] flat_predecessors = np.zeros(E, dtype=NODE)
         ndarray[NODE_t, ndim=1] queue = np.zeros(N, dtype=NODE)
         ndarray[DFIELD_t, ndim=1] multiplicity_to_j = np.zeros(N, dtype=DFIELD)
+        ndarray[DFIELD_t, ndim=1] betweenness_to_j = np.zeros(N, dtype=DFIELD)
+        ndarray[DFIELD_t, ndim=1] excess_to_j = np.zeros(N, dtype=DFIELD)
+        ndarray[DFIELD_t, ndim=1] betweenness_times_w = np.zeros(N, dtype=DFIELD)
 
-    # init distances to j and queue of nodes by distance from j
-    for l in range(N):
-        # distances_to_j[l] = 2 * N
-        # n_predecessors[l] = 0
-        # multiplicity_to_j[l] = 0.0
-        # initialize contribution of paths ending in j to the betweenness of l
-        excess_to_j[l] = betweenness_to_j[l] = is_source[l] * w[l]
+    # init node offsets
+    # NOTE: We don't use k.cumsum() since that uses too much memory!
+    for i in range(1, N):
+        offsets[i] = offsets[i-1] + k[i-1]
 
-    distances_to_j[j] = 0
-    queue[0] = j
-    queue_len = 1
-    multiplicity_to_j[j] = w[j]
+    for j in targets:
+        # init distances to j and queue of nodes by distance from j
+        distances_to_j.fill(2 * N)
+        n_predecessors.fill(0)
+        flat_predecessors.fill(0)
+        queue.fill(0)
+        multiplicity_to_j.fill(0)
 
-    # process the queue forward and grow it on the way: (this is the standard
-    # breadth-first search giving all the shortest paths to j)
-    qi = 0
-    while qi < queue_len:
-    #for qi in range(queue_len):
-        i = queue[qi]
-        if i == -1:
-            # this should never happen ...
-            print("Opps: %d,%d,%d\n" % qi, queue_len, i)
-            break
-        next_d = distances_to_j[i] + 1
-        #iterate through all neighbors l of i
-        oi = offsets[i]
-        for l_index in range(oi, oi+k[i]):
-            # if on a shortes j-l-path, register i as predecessor of l
-            l = flat_neighbors[l_index]
-            dl = distances_to_j[l]
-            if dl >= next_d:
-                fi = offsets[l] + n_predecessors[l]
-                n_predecessors[l] += 1
-                flat_predecessors[fi] = i
-                multiplicity_to_j[l] += w[l] * multiplicity_to_j[i]
-                if dl > next_d:
-                    distances_to_j[l] = next_d
-                    queue[queue_len] = l
-                    queue_len += 1
-        qi += 1
+        # init contribution of paths ending in j to the betweenness of l
+        for l in range(N):
+            excess_to_j[l] = betweenness_to_j[l] = is_source[l] * w[l]
 
-    # process the queue again backward: (this is Newman's 2nd part where
-    # the contribution of paths ending in j to the betweenness of all nodes
-    # is computed recursively by traversing the shortest paths backwards)
-    for ql in range(queue_len-1, -1, -1):
-        l = queue[ql]
-        if l == -1:
-            print("Opps: %d,%d,%d\n" % ql, queue_len, l)
-            break
-        if l == j:
-            # set betweenness and excess to zero
-            betweenness_to_j[l] = excess_to_j[l] = 0
-        else:
-            # otherwise, iterate through all predecessors i of l:
-            base_factor = w[l] / multiplicity_to_j[l]
-            ol = offsets[l]
-            for fi in range(ol, ol+n_predecessors[l]):
-                # add betweenness to predecessor
-                i = flat_predecessors[fi]
-                betweenness_to_j[i] += betweenness_to_j[l] * base_factor * \
-                    multiplicity_to_j[i]
+        distances_to_j[j] = 0
+        queue[0] = j
+        queue_len = 1
+        multiplicity_to_j[j] = w[j]
+
+        # process the queue forward and grow it on the way: (this is the
+        # standard breadth-first search giving all the shortest paths to j)
+        qi = 0
+        while qi < queue_len:
+            i = queue[qi]
+            if i == -1:
+                # this should never happen ...
+                print("Opps: %d,%d,%d\n" % qi, queue_len, i)
+                break
+            next_d = distances_to_j[i] + 1
+            # iterate through all neighbors l of i
+            oi = offsets[i]
+            for l_index in range(oi, oi+k[i]):
+                # if on a shortest j-l-path, register i as predecessor of l
+                l = flat_neighbors[l_index]
+                dl = distances_to_j[l]
+                if dl >= next_d:
+                    fi = offsets[l] + n_predecessors[l]
+                    n_predecessors[l] += 1
+                    flat_predecessors[fi] = i
+                    multiplicity_to_j[l] += w[l] * multiplicity_to_j[i]
+                    if dl > next_d:
+                        distances_to_j[l] = next_d
+                        queue[queue_len] = l
+                        queue_len += 1
+            qi += 1
+
+        # process the queue again backward: (this is Newman's 2nd part where the
+        # contribution of paths ending in j to the betweenness of all nodes is
+        # computed recursively by traversing the shortest paths backwards)
+        for ql in range(queue_len-1, -1, -1):
+            l = queue[ql]
+            if l == -1:
+                print("Opps: %d,%d,%d\n" % ql, queue_len, l)
+                break
+            if l == j:
+                # set betweenness and excess to zero
+                betweenness_to_j[l] = excess_to_j[l] = 0
+            else:
+                # otherwise, iterate through all predecessors i of l:
+                base_factor = w[l] / multiplicity_to_j[l]
+                ol = offsets[l]
+                for fi in range(ol, ol+n_predecessors[l]):
+                    # add betweenness to predecessor
+                    i = flat_predecessors[fi]
+                    betweenness_to_j[i] += betweenness_to_j[l] * base_factor * \
+                        multiplicity_to_j[i]
+
+        betweenness_times_w += w[j] * (betweenness_to_j - excess_to_j)
+    return betweenness_times_w
 
 
 def _mpi_newman_betweenness(

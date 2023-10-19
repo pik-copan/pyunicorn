@@ -16,7 +16,7 @@ Simple tests for the Network class.
 """
 from functools import partial
 from itertools import islice, product, repeat
-from multiprocessing import Pool, cpu_count
+from multiprocess import Pool, cpu_count
 
 import numpy as np
 import scipy.sparse as sp
@@ -27,9 +27,6 @@ from pyunicorn import Network
 # -----------------------------------------------------------------------------
 # utilities
 # -----------------------------------------------------------------------------
-
-# turn off for weave compilation & error detection
-parallel = False
 
 
 def compare_results(desired, actual, rev_perm=None):
@@ -59,16 +56,12 @@ def compare_permutations(net, permutations, measures):
         *((net.permuted_copy(p), p.argsort()) for p in
           map(np.random.permutation, repeat(net.N, permutations))))
     tasks = list(product(measures, range(permutations)))
-    if not parallel:
-        compare_measures(net, pnets, rev_perms, tasks)
-    else:
-        cores = cpu_count()
-        with Pool() as pool:
-            pool.map(partial(compare_measures, net, pnets, rev_perms),
-                     (list(islice(tasks, c, None, cores))
-                      for c in range(cores)))
-            pool.close()
-            pool.join()
+    cores = cpu_count()
+    with Pool() as pool:
+        pool.map(partial(compare_measures, net, pnets, rev_perms),
+                 (list(islice(tasks, c, None, cores)) for c in range(cores)))
+        pool.close()
+        pool.join()
 
 
 def compare_nsi(net, nsi_measures):
@@ -733,8 +726,7 @@ def test_nsi_betweenness():
     assert np.allclose(res, exp)
 
     res = net.splitted_copy().nsi_betweenness()
-    exp = np.array([29.68541738, 7.7128677, 0., 3.09090906, 9.69960462, 0.,
-                    0.])
+    exp = np.append(exp, [0.])
     assert np.allclose(res, exp)
 
 
