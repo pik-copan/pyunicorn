@@ -15,9 +15,62 @@
 """
 Simple tests for the RecurrencePlot class.
 """
+import pytest
 import numpy as np
 
-from pyunicorn.timeseries.recurrence_plot import RecurrencePlot
+from pyunicorn.timeseries import RecurrencePlot
+from pyunicorn.core import Data
+from pyunicorn.core._ext.types import NODE, DFIELD
+
+
+@pytest.fixture(
+    scope='session',
+    params=[
+        (0, None, "supremum"), (.5, None, "supremum"),
+        (1.5, None, "supremum"), (None, .2, "supremum"),
+        (0, None, "euclidean"), (.5, None, "euclidean"),
+        (1.5, None, "euclidean"), (None, .2, "euclidean"),
+        (0, None, "manhattan"), (.5, None, "manhattan"),
+        (1.5, None, "manhattan"), (None, .2, "manhattan")],
+    ids=[
+        '0-None-supremum', '.5-None-supremum"',
+        '1.5-None-supremum', 'None-.2-supremum',
+        '0-None-euclidean', '.5-None-euclidean-',
+        '1.5-None-euclidean', 'None-.2-euclidean"',
+        '0-None-manhattan', '.5-None-manhattan',
+        '1.5-None-manhattan', 'None-.2-manhattan'],
+    name="test_RP")
+def test_RP_fixture(request):
+    x = Data.SmallTestData().observable()
+    RP = RecurrencePlot(x,
+                        threshold=request.param[0],
+                        recurrence_rate=request.param[1],
+                        metric=request.param[2])
+    return RP
+
+
+def test_d_dist(test_RP):
+    d_dist = test_RP.diagline_dist()
+    assert d_dist.dtype == NODE
+    assert d_dist.shape[0] == test_RP.N
+
+
+def test_vertline_dist(test_RP):
+    v_dist = test_RP.vertline_dist()
+    assert v_dist.dtype == NODE
+    assert v_dist.shape[0] == test_RP.N
+
+
+def test_white_vertline_dist(test_RP):
+    wv_dist = test_RP.white_vertline_dist()
+    assert wv_dist.dtype == NODE
+    assert wv_dist.shape[0] == test_RP.N
+
+
+def test_rqa_summary(test_RP):
+    res = test_RP.rqa_summary()
+    measures = ['RR', 'DET', 'L', 'LAM']
+    assert all(res[m].dtype == DFIELD for m in measures)
 
 
 def test_permutation_entropy():

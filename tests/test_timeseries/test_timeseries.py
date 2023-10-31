@@ -26,10 +26,6 @@ from pyunicorn.core.data import Data
 from pyunicorn.core._ext.types import DFIELD
 
 
-# turn off for weave compilation & error detection
-parallel = False
-
-
 def create_test_data():
     # Create test time series
     tdata = Data.SmallTestData().observable()
