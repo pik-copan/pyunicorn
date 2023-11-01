@@ -15,84 +15,53 @@
 """
 Simple tests for the RecurrencePlot class.
 """
+
+from itertools import chain, product
+
 import pytest
 import numpy as np
 
-from pyunicorn.timeseries import RecurrencePlot
 from pyunicorn.core import Data
 from pyunicorn.core._ext.types import NODE, DFIELD
+from pyunicorn.timeseries import RecurrencePlot
 
 
-@pytest.fixture(
-    scope='session',
-    params=[
-        (0, None, "supremum"), (.5, None, "supremum"),
-        (1.5, None, "supremum"), (None, .2, "supremum"),
-        (0, None, "euclidean"), (.5, None, "euclidean"),
-        (1.5, None, "euclidean"), (None, .2, "euclidean"),
-        (0, None, "manhattan"), (.5, None, "manhattan"),
-        (1.5, None, "manhattan"), (None, .2, "manhattan")],
-    ids=[
-        '0-None-supremum', '.5-None-supremum"',
-        '1.5-None-supremum', 'None-.2-supremum',
-        '0-None-euclidean', '.5-None-euclidean-',
-        '1.5-None-euclidean', 'None-.2-euclidean"',
-        '0-None-manhattan', '.5-None-manhattan',
-        '1.5-None-manhattan', 'None-.2-manhattan'],
-    name="test_RP")
-def test_RP_fixture(request):
+@pytest.fixture(scope="module", name="recurrence_crit", ids=str,
+                params=list(chain(product(np.arange(0, 2, .5), [None]),
+                                  product([None], [.2]))))
+def recurrence_crit_fixture(request):
+    threshold, rate = request.param
+    assert np.sum([threshold is None, rate is None]) == 1
+    return request.param
+
+
+@pytest.fixture(scope="module", name="small_RP")
+def small_RP_fixture(metric, recurrence_crit):
     x = Data.SmallTestData().observable()
-    RP = RecurrencePlot(x,
-                        threshold=request.param[0],
-                        recurrence_rate=request.param[1],
-                        metric=request.param[2])
-    return RP
+    threshold, rate = recurrence_crit
+    return RecurrencePlot(
+        x, threshold=threshold, recurrence_rate=rate, metric=metric)
 
 
-def test_d_dist(test_RP):
-    d_dist = test_RP.diagline_dist()
-    assert d_dist.dtype == NODE
-    assert d_dist.shape[0] == test_RP.N
+@pytest.mark.parametrize("measure", ["diagline", "vertline", "white_vertline"])
+def test_dist(measure: str, small_RP):
+    res = getattr(small_RP, f"{measure}_dist")()
+    assert res.dtype == NODE
+    assert res.shape[0] == small_RP.N
+    assert (0 <= res).all() and (res <= small_RP.N).all()
 
 
-def test_vertline_dist(test_RP):
-    v_dist = test_RP.vertline_dist()
-    assert v_dist.dtype == NODE
-    assert v_dist.shape[0] == test_RP.N
-
-
-def test_white_vertline_dist(test_RP):
-    wv_dist = test_RP.white_vertline_dist()
-    assert wv_dist.dtype == NODE
-    assert wv_dist.shape[0] == test_RP.N
-
-
-def test_rqa_summary(test_RP):
-    res = test_RP.rqa_summary()
+def test_rqa_summary(small_RP):
+    res = small_RP.rqa_summary()
     measures = ['RR', 'DET', 'L', 'LAM']
     assert all(res[m].dtype == DFIELD for m in measures)
 
 
-def test_permutation_entropy():
-    ts = np.array([[4], [7], [9], [10], [6], [11], [3]])
-    rp = RecurrencePlot(ts, threshold=1, dim=3, tau=1)
-
-    res = rp.permutation_entropy()
-    exp = 0.5888
-    assert np.isclose(res, exp, atol=1e-04)
-
-
-def test_complexity_entropy():
-    ts = np.array([[4], [7], [9], [10], [6], [11], [3]])
-    rp = RecurrencePlot(ts, threshold=1, dim=3, tau=1)
-
-    res = rp.complexity_entropy()
-    exp = 0.29
-    assert np.isclose(res, exp, atol=1e-04)
-
-    ts = np.array([[1], [2], [3], [4], [5], [6], [7]])
-    rp = RecurrencePlot(ts, threshold=1, dim=3, tau=1)
-
-    res = rp.complexity_entropy()
-    exp = 0.0
-    assert np.isclose(res, exp, atol=1e-04)
+@pytest.mark.parametrize(
+    "ts, measure, value",
+    [(np.array([4, 7, 9, 10, 6, 11, 3]), m, v)
+     for m, v in [("permutation", 0.5888), ("complexity", 0.29)]]
+    + [(np.arange(20), "complexity", 0.0)])
+def test_entropy(ts: np.ndarray, measure: str, value: float):
+    rp = RecurrencePlot(ts[:, np.newaxis], threshold=1, dim=3, tau=1)
+    assert np.isclose(getattr(rp, f"{measure}_entropy")(), value, atol=1e-04)

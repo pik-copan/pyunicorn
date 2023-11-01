@@ -877,16 +877,15 @@ class RecurrencePlot:
 
         :return number: the recurrence rate :math:`RR`.
         """
-        #  Prepare
         N = self.N
-
         if not self.sparse_rqa:
             R = self.recurrence_matrix()
             RR = R.sum() / float(N ** 2)
-        elif self.sparse_rqa and self.metric == "supremum":
+        elif self.metric == "supremum":
             RR = (self.vertline_dist() * np.arange(N)).sum() / \
                 float(N ** 2)
-
+        else:
+            raise NotImplementedError
         return RR
 
     def recurrence_probability(self, lag=0):
