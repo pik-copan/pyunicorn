@@ -27,8 +27,8 @@ from pyunicorn.timeseries import RecurrencePlot
 
 
 @pytest.fixture(scope="module", name="recurrence_crit", ids=str,
-                params=list(chain(product(np.arange(0, 2, .5), [None]),
-                                  product([None], [.2]))))
+                params=list(chain(product(np.arange(0, 2.1, .5), [None]),
+                                  product([None], np.arange(0, 1.1, .2)))))
 def recurrence_crit_fixture(request):
     threshold, rate = request.param
     assert np.sum([threshold is None, rate is None]) == 1

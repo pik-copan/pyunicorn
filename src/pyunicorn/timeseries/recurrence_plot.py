@@ -750,7 +750,7 @@ class RecurrencePlot:
         self.R = recurrence
 
     @staticmethod
-    def threshold_from_recurrence_rate(distance, recurrence_rate):
+    def threshold_from_recurrence_rate(distance, recurrence_rate: float):
         """
         Return the threshold for recurrence plot construction given the
         recurrence rate.
@@ -770,7 +770,9 @@ class RecurrencePlot:
         flat_distance.sort()
 
         #  Get threshold
-        threshold = flat_distance[int(recurrence_rate * len(flat_distance))]
+        assert 0 <= recurrence_rate <= 1
+        N = len(flat_distance)
+        threshold = flat_distance[int(recurrence_rate * (N - 1))]
 
         #  Clean up
         del flat_distance
