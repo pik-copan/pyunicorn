@@ -46,8 +46,7 @@ def create_test_data():
 
 
 @pytest.mark.parametrize("met", ["supremum", "euclidean", "manhattan"])
-@pytest.mark.parametrize(
-    "thresh, rr", [(.2, None)])  # add (None, .2) when #188 solved
+@pytest.mark.parametrize("thresh, rr", [(.2, None), (None, .2)])
 def testCrossRecurrencePlot(thresh, rr, met):
     # create two instances of the same test dataset
     tdata1 = create_test_data()
@@ -81,9 +80,8 @@ def testCrossRecurrencePlot(thresh, rr, met):
 
 
 @pytest.mark.parametrize("met", ["supremum", "euclidean", "manhattan"])
-@pytest.mark.parametrize(
-    "thresh, rr", [((.2, .3, .2), None)]
-    )  # add (None, (.2, .3, .2) when #188 solved
+@pytest.mark.parametrize("thresh, rr", [((.2, .3, .2), None),
+                                        (None, (.2, .3, .2))])
 def testInterSystemRecurrenceNetwork(thresh, rr, met):
     # create two instances of the same test dataset
     tdata1 = create_test_data()

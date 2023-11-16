@@ -647,7 +647,8 @@ class RecurrencePlot:
             print("Calculating recurrence plot at fixed recurrence rate...")
 
         #  Get distance matrix, according to self.metric
-        distance = self.distance_matrix(self.embedding, self.metric)
+        distance = RecurrencePlot.distance_matrix(
+            self, self.embedding, self.metric)
 
         #  Get number of nodes
         n_time = distance.shape[0]
