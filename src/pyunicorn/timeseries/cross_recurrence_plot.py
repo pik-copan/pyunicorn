@@ -108,8 +108,8 @@ class CrossRecurrencePlot(RecurrencePlot):
 
         RecurrencePlot.__init__(
             self, np.empty((2, 0)), metric=metric, normalize=normalize,
-            sparse_rqa=sparse_rqa, threshold=threshold,
-            recurrence_rate=recurrence_rate, silence_level=silence_level)
+            sparse_rqa=sparse_rqa, silence_level=silence_level,
+            overr_recmat=True)
 
         self.CR = None
         """The cross recurrence matrix."""
