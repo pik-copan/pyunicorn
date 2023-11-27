@@ -111,8 +111,8 @@ class RecurrencePlot:
             :attr:`.RecurrencePlot.time_series`.
         :arg bool sparse_rqa: Toggles sequential RQA computation using less
             memory for use with long time series.
-        :arg bool overr_recmat: Toggle when calling from child class to skip
-            overridden calculation of recurrence matrix
+        :arg bool skip_recurrence: Skip calculation of recurrence matrix within
+            RP class (e.g. when overloading respective methods in child class)
         :arg int silence_level: Inverse level of verbosity of the object.
         :arg number threshold: The recurrence threshold keyword for generating
             the recurrence plot using a fixed threshold.
@@ -204,9 +204,9 @@ class RecurrencePlot:
 
         #  Precompute recurrence matrix only if sequential RQA is switched off,
         #  and not calling from child class with respective overriding methods.
-        overr_recmat = kwds.get("overr_recmat")
+        skip_recurrence = kwds.get("skip_recurrence")
 
-        if not sparse_rqa and not overr_recmat:
+        if not sparse_rqa and not skip_recurrence:
             if self.threshold is not None:
                 #  Calculate the recurrence matrix R using the radius of
                 #  neighborhood threshold
