@@ -115,7 +115,7 @@ def test_set_link_density():
 
 
 def test_correlation_distance():
-    res = ClimateNetwork.SmallTestNetwork().correlation_distance().round(2)
+    res = ClimateNetwork.SmallTestNetwork().correlation_distance.round(2)
     exp = np.array([[0., 0.01, 0.04, 0.18, 0.27, 0.27],
                     [0.01, 0., 0.05, 0.18, 0.29, 0.12],
                     [0.04, 0.05, 0., 0.02, 0.16, 0.03],

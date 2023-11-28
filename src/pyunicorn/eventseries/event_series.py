@@ -28,13 +28,12 @@ point processes as a null model (for ECA only) or a Monte Carlo approach.
 #
 # Imports
 #
+
 import warnings
+from functools import cached_property       # decorator for memoization
 
 import numpy as np
-
 from scipy import stats
-
-from .. import cached_const
 
 
 class EventSeries:
@@ -144,10 +143,6 @@ class EventSeries:
         # save number of events
         NrOfEvs = np.array(np.sum(self.__eventmatrix, axis=0), dtype=int)
         self.__nrofevents = NrOfEvs
-
-        # Dictionary for chached constants
-        self.cache = {'base': {}}
-        """(dict) cache of re-usable computation results"""
 
         # Dictionary of symmetrization functions for later use
         self.symmetrization_options = {
@@ -747,7 +742,7 @@ class EventSeries:
                               "'symmetric', 'antisym', 'mean', 'max' or"
                               "'min' for event synchronization!")
 
-            directedESMatrix = self._ndim_event_synchronization()
+            directedESMatrix = self._ndim_event_synchronization
 
         elif method == 'ECA':
             if self.__taumax is np.inf:
@@ -769,7 +764,7 @@ class EventSeries:
         # Use symmetrization functions for symmetrization and return result
         return self.symmetrization_options[symmetrization](directedESMatrix)
 
-    @cached_const('base', 'directedES')
+    @cached_property
     def _ndim_event_synchronization(self):
         """
         Compute NxN event synchronization matrix [i,j] with event

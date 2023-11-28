@@ -20,6 +20,9 @@ Provides classes for generating and analyzing complex climate networks.
 #  Import essential packages
 #
 
+# Import decorator for memoization
+from functools import cached_property
+
 #  Import NumPy for the array object and fast numerics
 import numpy as np
 
@@ -28,7 +31,6 @@ import igraph
 
 #  Import GeoNetwork and GeoGrid classes
 from ..core import GeoNetwork, GeoGrid
-from ..core.network import cached_const
 
 
 #
@@ -626,7 +628,7 @@ class ClimateNetwork(GeoNetwork):
         threshold = self.threshold_from_link_density(link_density)
         self.set_threshold(threshold)
 
-    @cached_const('base', 'correlation_distance')
+    @cached_property
     def correlation_distance(self):
         """
         Return correlation weighted distances between nodes.
@@ -658,14 +660,14 @@ class ClimateNetwork(GeoNetwork):
         """
         return self.similarity_measure() * self.grid.angular_distance()
 
-    @cached_const('base', 'inv_correlation_distance')
+    @cached_property
     def inv_correlation_distance(self):
         """
         Return correlation weighted distances between nodes.
 
         :rtype: 2D matrix [index, index]
         """
-        m = self.correlation_distance()
+        m = self.correlation_distance
         np.fill_diagonal(m, np.inf)
         self.set_link_attribute('inv_correlation_distance', 1 / m)
         return 1 / m
@@ -694,7 +696,8 @@ class ClimateNetwork(GeoNetwork):
         :rtype: 1D Numpy array [index]
         :return: the correlation distance weighted closeness sequence.
         """
-        self.inv_correlation_distance()
+        self.set_link_attribute(
+            'inv_correlation_distance', self.inv_correlation_distance)
         return self.closeness('inv_correlation_distance')
 
     def local_correlation_distance_weighted_vulnerability(self):
@@ -717,5 +720,6 @@ class ClimateNetwork(GeoNetwork):
         :return: the local correlation distance weighted vulnerability
                  sequence.
         """
-        self.inv_correlation_distance()
+        self.set_link_attribute(
+            'inv_correlation_distance', self.inv_correlation_distance)
         return self.local_vulnerability('inv_correlation_distance')

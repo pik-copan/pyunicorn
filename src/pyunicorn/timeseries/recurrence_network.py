@@ -326,4 +326,4 @@ class RecurrenceNetwork(RecurrencePlot, Network):
         :rtype: 1d numpy array [node] of float
         :return: the single scale transitivity dimension.
         """
-        return np.log(self.local_clustering()) / np.log(3. / 4.)
+        return np.log(self.local_clustering) / np.log(3. / 4.)

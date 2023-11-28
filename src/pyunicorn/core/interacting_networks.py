@@ -768,7 +768,7 @@ class InteractingNetworks(Network):
         :return float: the internal global clustering coefficient for a
             subnetwork.
         """
-        clustering = self.local_clustering()
+        clustering = self.local_clustering
         internal_clustering = clustering[node_list].mean()
         return internal_clustering
 

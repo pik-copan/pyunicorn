@@ -16,6 +16,8 @@
 Provides class for analyzing spatially embedded complex networks.
 """
 
+# decorator for memoization
+from functools import cached_property
 # array object and fast numerics
 import numpy as np
 # random number generation
@@ -27,7 +29,6 @@ from ._ext.types import to_cy, ADJ, NODE, FIELD, DEGREE
 from ._ext.numerics import _randomly_rewire_geomodel_I, \
     _randomly_rewire_geomodel_II, _randomly_rewire_geomodel_III
 
-from .network import cached_const
 from .network import Network
 from .grid import Grid
 
@@ -669,7 +670,7 @@ class SpatialNetwork(Network):
     #  Link weighted network measures
     #
 
-    @cached_const('base', 'distance')
+    @cached_property
     def distance(self):
         """
         Return the distance matrix.
@@ -694,7 +695,7 @@ class SpatialNetwork(Network):
         :rtype: number (float)
         :return: the average distance weighted path length.
         """
-        self.distance()
+        self.set_link_attribute('distance', self.distance)
         return self.average_path_length('distance')
 
     def distance_weighted_closeness(self):
@@ -713,7 +714,7 @@ class SpatialNetwork(Network):
         :rtype: 1D Numpy array [index]
         :return: the distance weighted closeness sequence.
         """
-        self.distance()
+        self.set_link_attribute('distance', self.distance)
         return self.closeness('distance')
 
     def local_distance_weighted_vulnerability(self):
@@ -732,5 +733,5 @@ class SpatialNetwork(Network):
         :rtype: 1D Numpy array [index]
         :return: the local distance weighted vulnerability sequence.
         """
-        self.distance()
+        self.set_link_attribute('distance', self.distance)
         return self.local_vulnerability('distance')
