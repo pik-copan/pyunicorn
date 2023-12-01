@@ -111,6 +111,8 @@ class RecurrencePlot:
             :attr:`.RecurrencePlot.time_series`.
         :arg bool sparse_rqa: Toggles sequential RQA computation using less
             memory for use with long time series.
+        :arg bool skip_recurrence: Skip calculation of recurrence matrix within
+            RP class (e.g. when overloading respective methods in child class)
         :arg int silence_level: Inverse level of verbosity of the object.
         :arg number threshold: The recurrence threshold keyword for generating
             the recurrence plot using a fixed threshold.
@@ -200,8 +202,11 @@ class RecurrencePlot:
         self._vertline_dist_cached = False
         self._vertline_dist = None
 
-        #  Precompute recurrence matrix only if sequential RQA is switched off.
-        if not sparse_rqa:
+        #  Precompute recurrence matrix only if sequential RQA is switched off,
+        #  and not calling from child class with respective overriding methods.
+        skip_recurrence = kwds.get("skip_recurrence")
+
+        if not sparse_rqa and not skip_recurrence:
             if self.threshold is not None:
                 #  Calculate the recurrence matrix R using the radius of
                 #  neighborhood threshold
@@ -647,7 +652,8 @@ class RecurrencePlot:
             print("Calculating recurrence plot at fixed recurrence rate...")
 
         #  Get distance matrix, according to self.metric
-        distance = self.distance_matrix(self.embedding, self.metric)
+        distance = RecurrencePlot.distance_matrix(
+            self, self.embedding, self.metric)
 
         #  Get number of nodes
         n_time = distance.shape[0]
