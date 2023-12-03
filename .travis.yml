@@ -5,11 +5,12 @@ if: branch = master
 
 language: python
 python:
+    # https://docs.travis-ci.com/user/languages/python/#python-versions
     - "3.8"
     - "3.9"
     - "3.10"
     - "3.11"
-    - "3.12"
+    - "3.12-dev"
 matrix:
     fast_finish: true
 
@@ -59,7 +60,7 @@ before_script:
 
 script:
     # package
-    - travis_retry pip install -vv -e ".[testing,docs]"
+    - travis_retry pip install -v -e ".[testing,docs]"
 
     # test suite
     - tox -v
