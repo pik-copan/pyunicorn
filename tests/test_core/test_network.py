@@ -57,7 +57,7 @@ def compare_permutations(net, permutations, measures):
           map(np.random.permutation, repeat(net.N, permutations))))
     tasks = list(product(measures, range(permutations)))
     cores = cpu_count()
-    with Pool() as pool:
+    with Pool() as pool:  # pylint: disable=not-callable
         pool.map(partial(compare_measures, net, pnets, rev_perms),
                  (list(islice(tasks, c, None, cores)) for c in range(cores)))
         pool.close()

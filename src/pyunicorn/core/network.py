@@ -3272,7 +3272,7 @@ class Network:
             # (naively) parallelize loop over nodes
             n_workers = cpu_count()
             batches = np.array_split(to_cy(targets, NODE), n_workers)
-            pool = Pool()
+            pool = Pool()  # pylint: disable=not-callable
             betw_w = np.sum(pool.map(worker, batches), axis=0)
         else:
             betw_w = worker(to_cy(targets, NODE))
