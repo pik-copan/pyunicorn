@@ -104,9 +104,6 @@ def cached_var(cat, msg=None):
     """
     Cache result of decorated method in a variable subdict of
     :attr:`self.cache`, specified as first argument to the decorated method.
-    
-    FIXME: if decorated method's return value depends on arguments, 
-    this cached value might be wrong!!
     """
     def wrapper(func):
         @wraps(func)
@@ -1922,18 +1919,18 @@ class Network:
         """
         For each node, return its n.s.i.bilateraldegree
 
-        If a link attribute key is specified, return the associated nsi bilateral
-        strength
+        If a link attribute key is specified, return the associated
+        nsi bilateral strength
 
         :arg str key: link attribute key [optional]
         """
         assert key is None, "nsi_bildegree is not implemented with key yet"
-        res = (self.sp_Aplus() * sp.diags(self.node_weights) * self.sp_Aplus()).diagonal() 
+        res = (self.sp_Aplus()
+               * sp.diags(self.node_weights) * self.sp_Aplus()).diagonal()
         if typical_weight is None:
             return res
         else:
             return res/typical_weight - 1.0
-
 
     @cached_const('base', 'degree df', 'the degree frequency distribution')
     def degree_distribution(self):
@@ -2232,7 +2229,8 @@ class Network:
         """
         return self.local_clustering().mean()
 
-    def _motif_clustering_helper(self, t_func, T, key=None, nsi=False, typical_weight=None, ksum=None):
+    def _motif_clustering_helper(self, t_func, T, key=None, nsi=False,
+                                 typical_weight=None, ksum=None):
         """
         Helper function to compute the local motif clustering coefficients.
         For each node, returns a specific clustering coefficient, depending
@@ -2264,7 +2262,8 @@ class Network:
         else:
             bilk = self.nsi_bildegree(typical_weight=typical_weight)
             numerator = t / self.node_weights
-            return (numerator/typical_weight**2 - 3.0*bilk - 1.0) / (T - ksum/typical_weight - bilk + 2)
+            return ((numerator/typical_weight**2 - 3.0*bilk - 1.0)
+                    / (T - ksum/typical_weight - bilk + 2))
 
     @cached_var('local cyclemotif', 'local cycle motif clustering coefficient')
     def local_cyclemotif_clustering(self, key=None):
@@ -2398,7 +2397,9 @@ class Network:
         outk = self.nsi_outdegree(typical_weight=typical_weight)
         T = ink * outk
         ksum = ink + outk
-        return self._motif_clustering_helper(t_func, T, key=key, nsi=True, typical_weight=typical_weight, ksum=ksum)
+        return self._motif_clustering_helper(
+            t_func, T, key=key, nsi=True,
+            typical_weight=typical_weight, ksum=ksum)
 
 #    @cached_var('nsi local midemotif',
 #                'local nsi mid. motif clustering coefficient')
@@ -2440,7 +2441,9 @@ class Network:
         outk = self.nsi_outdegree(typical_weight=typical_weight)
         T = ink * outk
         ksum = ink + outk
-        return self._motif_clustering_helper(t_func, T, key=key, nsi=True, typical_weight=typical_weight, ksum=ksum)
+        return self._motif_clustering_helper(
+            t_func, T, key=key, nsi=True,
+            typical_weight=typical_weight, ksum=ksum)
 
 #    @cached_var('nsi local inemotif',
 #                'local nsi in motif clustering coefficient')
@@ -2482,7 +2485,9 @@ class Network:
         ink = self.nsi_indegree(typical_weight=typical_weight)
         T = ink**2
         ksum = ink * 2
-        return self._motif_clustering_helper(t_func, T, key=key, nsi=True, typical_weight=typical_weight, ksum=ksum)
+        return self._motif_clustering_helper(
+            t_func, T, key=key, nsi=True,
+            typical_weight=typical_weight, ksum=ksum)
 
 #    @cached_var('nsi local outemotif',
 #                'local nsi out motif clustering coefficient')
@@ -2523,7 +2528,9 @@ class Network:
         outk = self.nsi_outdegree(typical_weight=typical_weight)
         T = outk**2
         ksum = outk * 2
-        return self._motif_clustering_helper(t_func, T, key=key, nsi=True, typical_weight=typical_weight, ksum=ksum)
+        return self._motif_clustering_helper(
+            t_func, T, key=key, nsi=True,
+            typical_weight=typical_weight, ksum=ksum)
 
     @cached_const('base', 'transitivity', 'transitivity coefficient (C_1)')
     def transitivity(self):
@@ -3388,9 +3395,9 @@ class Network:
         This is the load on this node from the eigenvector corresponding to the
         largest eigenvalue of the n.s.i. adjacency matrix, divided by
         sqrt(node weight) and normalized to a maximum of 1.
-        
-        For a directed network, this uses the right eigenvectors. To get the 
-        values for the left eigenvectors, apply this to the inverse network!  
+
+        For a directed network, this uses the right eigenvectors. To get the
+        values for the left eigenvectors, apply this to the inverse network!
 
         **Example:**
 
