@@ -303,8 +303,8 @@ Time series analysis and synchronization
 ========================================
 *General*
 ~~~~~~~~~
-[Pecora1998]_, [Schreiber2000]_, [Kraskov2004]_, [Kantz2006]_, [Thiel2006]_,
-[Bergner2008]_, [Pompe2011]_, [Runge2012b]_.
+[Pecora1998]_, [Schreiber2000]_, [Bandt2002]_, [Kraskov2004]_, [Kantz2006]_, [Thiel2006]_,
+[Bergner2008]_, [Pompe2011]_, [Ribeiro2011]_, [Runge2012b]_.
 
 .. [Pecora1998] L.M. Pecora and T.L. Carroll.
     "Master Stability Functions for Synchronized Coupled Systems".
@@ -317,6 +317,12 @@ Time series analysis and synchronization
     In *Physica D* vol. 142 (no. 3-4), p346-382 (2000)
     `doi:10.1016/S0167-2789(00)00043-9
     <http://dx.doi.org/10.1016/S0167-2789(00)00043-9>`__
+
+.. [Bandt2002] C. Bandt, B. Pompe
+    "Permutation Entropy: A Natural Complexity Measure for Time Series".
+    In *Phys. Rev. Lett.*, vol. 88(17), 174102 (2002)
+    `doi:10.1103/PhysRevLett.88.174102
+    <http://dx.doi.org/10.1103/PhysRevLett.88.174102>`__
 
 .. [Kraskov2004] A. Kraskov, H. Stögbauer, P. Grassberger.
     "Estimating mutual information".
@@ -347,6 +353,14 @@ Time series analysis and synchronization
     In *Physical Review E* vol. 83, 051122 (2011)
     `doi:10.1103/PhysRevE.83.051122
     <http://dx.doi.org/10.1103/PhysRevE.83.051122>`__
+
+.. [Ribeiro2011] H.V. Ribeiro, L. Zunino, R.S. Mendes and E.K. Lenzi
+    "Complexity–entropy causality plane: A useful approach for
+    distinguishing songs",
+    In *Physica A: Statistical Mechanics and its Applications*,
+    vol. 391, p2421-2428 (2011)
+    `doi:10.1016/j.physa.2011.12.009
+    <http://dx.doi.org/10.1016/j.physa.2011.12.009>`__
 
 .. [Runge2012b] J. Runge, J. Heitzig, N. Marwan, J. Kurths.
     "Quantifying causal coupling strength: A lag-specific measure for

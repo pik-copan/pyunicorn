@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # pyunicorn documentation build configuration file, created by
 # sphinx-quickstart on Thu Feb 23 19:15:07 2017.
 #
@@ -21,7 +19,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath('../..'))
-from setup import __version__
+from pyunicorn import __version__
 
 
 # -- General configuration ------------------------------------------------
@@ -56,7 +54,7 @@ master_doc = 'sitemap'
 
 # General information about the project.
 project = u'pyunicorn'
-copyright = u'2008-2019, Jonathan F. Donges and pyunicorn authors'
+copyright = u'2008-2023, Jonathan F. Donges and pyunicorn authors'
 author = u'Jonathan F. Donges'
 
 # The version info for the project you're documenting, acts as replacement for

@@ -1,7 +1,5 @@
-#! /usr/bin/env python2
-
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2019 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 #
@@ -18,8 +16,14 @@
 Generic consistency checks.
 """
 
-import numpy as np
-from pyunicorn import core, climate, timeseries, funcnet
+from pyunicorn import __version__, core, climate, timeseries, funcnet
+
+
+def test_version():
+    """
+    Valid version information.
+    """
+    assert isinstance(__version__, str)
 
 
 def test_init_str():
@@ -38,11 +42,13 @@ def simple_instances():
     ca = funcnet.CouplingAnalysis.test_data()[:50]
     ts = ca[:, 0]
     t1, t2, t3 = [{'threshold': t} for t in [0.2, (0.2, 0.2), (0.2, 0.2, 0.2)]]
-    es = 1-(np.random.rand(100, 10) > 0.4).astype(int)
-    ec = climate.EventSynchronizationClimateNetwork.SmallTestData()
+    # es = 1-(np.random.rand(100, 10) > 0.4).astype(int)
+    # ec = climate.EventSynchronizationClimateNetwork.SmallTestData()
     return [
         core.Network.SmallTestNetwork(),
         core.Grid.SmallTestGrid(),
+        core.SpatialNetwork.SmallTestNetwork(),
+        core.GeoGrid.SmallTestGrid(),
         core.GeoNetwork.SmallTestNetwork(),
         core.InteractingNetworks.SmallTestNetwork(),
         core.ResNetwork.SmallTestNetwork(),
@@ -57,8 +63,8 @@ def simple_instances():
         climate.SpearmanClimateNetwork(cd, winter_only=False, **t1),
         climate.MutualInfoClimateNetwork(cd, winter_only=False, **t1),
         climate.CoupledTsonisClimateNetwork(cd, cd, **t1),
-        climate.EventSynchronizationClimateNetwork(ec, 0.8, 16,
-                                                   eventsynctype="directedES"),
+        # climate.EventSynchronizationClimateNetwork(
+        #     ec, 0.8, 16, eventsynctype="directedES"),
         timeseries.RecurrencePlot(ts, **t1),
         timeseries.RecurrenceNetwork(ts, **t1),
         timeseries.JointRecurrencePlot(ts, ts, **t2),
@@ -69,5 +75,5 @@ def simple_instances():
         timeseries.VisibilityGraph(ts),
         funcnet.CouplingAnalysis(ca),
         funcnet.CouplingAnalysisPurePython(ca),
-        funcnet.EventSynchronization(es, 16)
+        # funcnet.EventSynchronization(es, 16)
     ]

@@ -1,11 +1,10 @@
 include MANIFEST.in
-include *.rst *.txt
+recursive-exclude src/pyunicorn/*/_ext *.c
+recursive-include src/pyunicorn/*/_ext *.pxd *.pyx src_*.c
 
-include docs/Makefile
-recursive-include docs/source *
-
-include *.ini pylintrc
-recursive-include pyunicorn *.pyx
-recursive-include pyunicorn */_ext/*.c
-recursive-include tests *.py
+include *.rst *.txt docs/Makefile
+graft docs/source
 recursive-include examples *.py
+
+recursive-include tests *.py
+include pylintrc

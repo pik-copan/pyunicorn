@@ -2,11 +2,10 @@
 pyunicorn
 =========
 
-.. image:: https://travis-ci.org/pik-copan/pyunicorn.svg?branch=master
-    :target: https://travis-ci.org/pik-copan/pyunicorn
+.. image:: https://app.travis-ci.com/pik-copan/pyunicorn.svg?branch=master
+  :target: https://app.travis-ci.com/github/pik-copan/pyunicorn
 .. image:: https://codecov.io/gh/pik-copan/pyunicorn/branch/master/graph/badge.svg
   :target: https://codecov.io/gh/pik-copan/pyunicorn
-
 
 ``pyunicorn`` (**Uni**\ fied **Co**\ mplex Network and **R**\ ecurre\ **N**\ ce
 analysis toolbox) is a fully object-oriented Python package for the advanced
@@ -27,6 +26,7 @@ nonlinear analysis of single and pairs of time series such as recurrence
 quantification analysis (RQA), recurrence network analysis and visibility
 graphs.
 
+
 Reference
 ---------
 **Please acknowledge and cite the use of this software and its authors when
@@ -43,9 +43,9 @@ following reference:**
     `Preprint: arxiv.org:1507.01571 [physics.data-an].
     <http://arxiv.org/abs/1507.01571>`_
 
+
 Funding
 -------
-
 The development of ``pyunicorn`` has been supported by various funding sources,
 notably the `German Federal Ministry for Education and Research
 <https://www.bmbf.de/en/index.html>`_ (projects `GOTHAM
@@ -58,9 +58,11 @@ and the `Stordalen Foundation <http://www.stordalenfoundation.no/>`_ via the
 `Planetary Boundary Research Network <http://www.pb-net.org>`_ (PB.net) among
 others.
 
+
 License
 -------
 ``pyunicorn`` is `BSD-licensed <LICENSE.txt>`_ (3 clause).
+
 
 Code
 ----
@@ -68,6 +70,7 @@ Code
 `Development version <https://github.com/pik-copan/pyunicorn>`_
 
 `Changelog <docs/source/changelog.rst>`_, `Contributions <CONTRIBUTIONS.rst>`_
+
 
 Documentation
 -------------
@@ -78,89 +81,103 @@ For extensive HTML documentation, jump right to the `pyunicorn homepage
 On a local development version, HTML and PDF documentation can be generated
 using ``Sphinx``::
 
-    $> pip install --user -e .
+    $> pip install --user .[docs]
     $> cd docs; make clean html latexpdf
+
 
 Dependencies
 ------------
-``pyunicorn`` is written in Python 3.7. The software is quite flexible, we have
-it running on Linux and MacOSX machines, the institute's IBM iDataPlex cluster
-and even on Windows. It relies on the following open source or freely available
-packages which have to be installed on your machine.
+``pyunicorn`` is implemented in `Python 3 <https://docs.python.org/3/>`_ and
+`Cython 3 <https://cython.org/>`_. The software is written and tested on Linux
+and macOS, but it is also in active use on Windows. ``pyunicorn`` relies on the
+following open source or freely available packages, which need to be installed
+on your machine. For exact dependency information, see ``setup.cfg``.
 
-Required:
-  - `Numpy <http://www.numpy.org/>`_ 1.14+
-  - `Scipy <http://www.scipy.org/>`_ 1.0+
-  - `igraph, python-igraph <http://igraph.org/>`_ 0.7+
+Required at runtime:
+  - `Numpy <http://www.numpy.org/>`_
+  - `Scipy <http://www.scipy.org/>`_
+  - `python-igraph <http://igraph.org/>`_
+  - `h5netcdf <https://h5netcdf.org/>`_ or
+    `netcdf4-python <http://unidata.github.io/netcdf4-python/>`_
+    (for ``Data`` and ``NetCDFDictionary``)
 
 Optional *(used only in certain classes and methods)*:
-  - `PyNGL <http://www.pyngl.ucar.edu/Download/>`_ (for class NetCDFDictionary)
-  - `netcdf4-python <http://unidata.github.io/netcdf4-python/>`_ (for classes
-    Data and NetCDFDictionary)
-  - `Matplotlib <http://matplotlib.org/>`_ 2.0+
-  - `Matplotlib Basemap Toolkit <http://matplotlib.org/basemap/>`_ (for drawing
-    maps)
-  - `mpi4py <https://bitbucket.org/mpi4py/mpi4py>`_ (for parallelizing costly
-    computations)
-  - `Sphinx <http://sphinx-doc.org/>`_ (for generating documentation)
-  - `Cython <http://cython.org/>`_ 0.27+ (for compiling code during
-    development)
+  - `PyNGL <http://www.pyngl.ucar.edu/Download/>`_
+    (for ``NetCDFDictionary``)
+  - `Matplotlib <http://matplotlib.org/>`_
+  - `Matplotlib Basemap Toolkit <http://matplotlib.org/basemap/>`_
+    (for drawing maps)
+  - `Cartopy <https://scitools.org.uk/cartopy/docs/latest/index.html>`_
+    (for some plotting features)
+  - `mpi4py <https://bitbucket.org/mpi4py/mpi4py>`_
+    (for parallelizing costly computations)
+  - `Sphinx <http://sphinx-doc.org/>`_
+    (for generating documentation)
+  
+To install these dependencies, please follow the instructions for your system's
+package manager or consult the libraries' homepages. An easy way to go may be a
+Python distribution like `Anaconda <https://www.anaconda.com/distribution/>`_
+that already includes many libraries.
 
-``Numpy``, ``Scipy``, ``Matplotlib``, ``igraph`` and other packages should be
-available via a package management system on Linux or MacOSX. All packages can
-be downloaded, compiled and installed following the instructions on their
-homepages.
-
-An easy way to go may be a Python distribution like `Anaconda
-<https://www.anaconda.com/distribution/>`_ that already includes many
-libraries.
 
 Installation
 ------------
-**Stable release**
-    Via the Python Package Index::
+Before installing ``pyunicorn`` itself, we recommend to make sure that the
+required dependencies are installed using your preferred installation method for
+Python libraries. Afterwards, the package can be installed in the standard way
+from the Python Package Index (PyPI).
 
-        $> pip install pyunicorn
+**Linux, macOS**
+
+With the ``pip`` package manager::
+
+    $> pip install pyunicorn
+        
+On Fedora OS, use::
+
+    $> dnf install python3-pyunicorn
+
+**Windows**
+
+First follow the instructions for installing the latest version of the
+`Microsoft C++ Build Tools <https://wiki.python.org/moin/WindowsCompilers>`_ in
+order to be able to compile the Cython modules, and then::
+
+    $> pip install pyunicorn
 
 **Development version**
-    For a simple system-wide installation::
 
-        $> pip install -r requirements.txt .
+To use a newer version of ``pyunicorn`` than the latest official release on
+PyPI, download the source code from the Github repository and, instead of the
+above, execute::
 
-    Depending on your system, you may need root privileges. On UNIX-based
-    operating systems (Linux, Mac OS X etc.) this is achieved with ``sudo``.
+    $> pip install -e .
 
-    For development, especially if you want to test ``pyunicorn`` from within
-    the source directory::
-
-        $> pip install -r requirements.txt --user -e .
 
 Test suite
 ----------
-Before committing changes to the code base, please make sure that all tests
-pass. The test suite is managed by `tox <http://tox.readthedocs.io/>`_ and
-configured to use system-wide packages when available. Thus to avoid frequent
-waiting, we recommend you to install the current versions of the following
-packages::
+Before committing changes or opening a pull request (PR) to the code base,
+please make sure that all tests pass. The test suite is managed by `tox
+<http://tox.readthedocs.io/>`_ and configured to use system-wide packages when
+available. Install the test dependencies as follows::
 
-    $> pip install networkx matplotlib basemap Sphinx
-    $> pip install tox pylint pytest pytest-xdist pytest-flake8
+    $> pip install .[testing]
 
 The test suite can be run from anywhere in the project tree by issuing::
 
     $> tox
 
-To expose the defined test environments and target them independently::
+To display the defined test environments and target them individually::
 
     $> tox -l
-    $> tox -e units,style
+    $> tox -e style,lint,test,docs
 
 To test individual files::
 
-    $> py.test                   tests/test_core/TestNetwork.py  # unit tests
-    $> py.test --doctest-modules pyunicorn/core/network.py       # doctests
-    $> py.test --flake8          pyunicorn/core/network.py       # style
-    $> pylint                    pyunicorn/core/network.py       # code analysis
+    $> flake8 src/pyunicorn/core/network.py     # style check
+    $> pylint src/pyunicorn/core/network.py     # static code analysis
+    $> pytest tests/test_core/TestNetwork.py    # unit tests
+
 
 Mailing list
 ------------

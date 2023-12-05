@@ -1,6 +1,6 @@
 
 **Copyright**
-    |copy| 2008-2019 Jonathan F. Donges and pyunicorn authors.
+    |copy| 2008-2023 Jonathan F. Donges and pyunicorn authors.
 
 **License**
     BSD (3-clause)
@@ -29,32 +29,41 @@
     - `Jan Feldhoff <feldhoff@pik-potsdam.de>`_ (extended ``timeseries``)
     - Aljoscha Rheinwalt
     - Hannes Kutza
-    - `Boyan Beronov <beronov@pik-potsdam.de>`_ (restructured,
-      consolidated and updated codebase during an internship at PIK)
+    - `Boyan Beronov <beronov@pik-potsdam.de>`_ (restructured and updated
+      codebase and documentation, consolidated original packaging and CI,
+      prepared Cythonization and migration to Python 3, managed open-sourcing,
+      migrated to PEP 517/518 package format, introduced semantic Cython type
+      aliases, added MSVC compatibility for Cython/C extensions, maintained
+      compilation and testing configuration)
     - `Paul Schultz <pschultz@pik-potsdam.de>`_, `Stefan Schinkel
       <mail@dreeg.org>`_ (supplied ``resistive_network`` and corresponding
       tests)
     - `Wolfram Barfuss <barfuss@pik-potsdam.de>`_ (package extensions and maintenance)
     - Nils Harmening (cythonized ``weave.inline`` functions, extended testing
       framework, migrated from Python 2.7 to 3.6)
-    - Jonathan Krönke (extending test framework, package extensions and maintenance)
+    - Jonathan Kroenke (extending test framework, package extensions and maintenance)
+    - Lena Schmidt (writing ipynb tutorials, maintenance)
+    - `Max Bechthold <max.bechthold@stud.uni-heidelberg.de>`_
+      (reenabling CI, update to cartopy plotting, writing ipynb tutorials,
+      style improvements, maintenance)
 
 **Related publications**
     See `Publications <docs/source/publications.rst>`_.
 
-**Dependencies**
-    - Python 3.7
-    - `Numpy <http://www.numpy.org/>`_ 1.14+
-    - `Scipy <http://www.scipy.org/>`_ 1.0+
-    - `Cython <http://cython.org/>`_ 0.27+
-    - `Matplotlib <http://matplotlib.org/>`_ 2.0+
-    - `igraph, python-igraph <http://igraph.org/>`_ 0.7+
+**Essential runtime dependencies**
+    - `Numpy <http://www.numpy.org/>`_
+    - `Scipy <http://www.scipy.org/>`_
+    - `python-igraph <http://igraph.org/>`_
 
-**Included**
-    - `progressbar <http://pypi.python.org/pypi/progressbar/>`_ 2.3
+**Essential compile time dependencies**
+    - `Numpy <http://www.numpy.org/>`_
+    - `Cython <http://cython.org/>`_
 
 **To Do**
   - A lot - See current product backlog.
 
 **Known Bugs**:
   - See GitHub issues list.
+  
+**Acknowledgements**:
+  - Travis-CI (https://www.travis-ci.com/) for providing free builds for this open source project.

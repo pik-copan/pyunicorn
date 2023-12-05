@@ -1,8 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2019 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 #
@@ -48,14 +45,16 @@ def test_observable():
     isequal = np.allclose(obs, obs_ref)
     assert isequal
 
+
 def test_window():
     lon_min = Data.SmallTestData().window()["lon_min"]
     lon_max = Data.SmallTestData().window()["lon_max"]
     lon_min_ref = 2.5
     lon_max_ref = 15.0
     isequal = np.allclose(lon_min, lon_min_ref) and \
-              np.allclose(lon_max, lon_max_ref)
+        np.allclose(lon_max, lon_max_ref)
     assert isequal
+
 
 def test_set_window():
     data = Data.SmallTestData()
@@ -70,6 +69,7 @@ def test_set_window():
 
     isequal = np.allclose(obs, obs_ref)
     assert isequal
+
 
 def test_set_global_window():
     data = Data.SmallTestData()
@@ -87,6 +87,7 @@ def test_set_global_window():
     isequal = np.allclose(lat1, lat1_ref) and np.allclose(lat2, lat2_ref)
     assert isequal
 
+
 def test_normalize_time_series_array():
     ts = np.arange(16).reshape(4, 4).astype("float")
     Data.normalize_time_series_array(ts)
@@ -100,12 +101,14 @@ def test_normalize_time_series_array():
     ts_ref = np.array([-1.34164079, -0.4472136, 0.4472136, 1.34164079])
 
     isequal = np.allclose(mean, mean_ref) and np.allclose(std, std_ref) and \
-              np.allclose(ts, ts_ref)
+        np.allclose(ts, ts_ref)
     assert isequal
+
 
 def test_next_power_2():
     isequal = np.allclose(Data.next_power_2(253), 256)
     assert isequal
+
 
 def test_zero_pad_data():
     ts = np.arange(20).reshape(5, 4)
@@ -118,6 +121,7 @@ def test_zero_pad_data():
 
     isequal = np.allclose(zpd, zpd_ref)
     assert isequal
+
 
 def test_cos_window():
     ts = np.arange(24).reshape(12, 2)

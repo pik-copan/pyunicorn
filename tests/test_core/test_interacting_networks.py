@@ -1,8 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2019 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 #
@@ -36,6 +33,7 @@ def test_RandomlyRewireCrossLinks():
     exp = [1, 1, 0]
     assert (res == exp).all()
 
+
 def test_internal_adjacency():
     net = InteractingNetworks.SmallTestNetwork()
     res = net.internal_adjacency([0, 3, 5])
@@ -45,6 +43,7 @@ def test_internal_adjacency():
     res = net.internal_adjacency([1, 2, 4])
     exp = np.array([[0, 1, 1], [1, 0, 1], [1, 1, 0]], dtype=np.int8)
     assert (res == exp).all()
+
 
 def test_cross_adjacency():
     net = InteractingNetworks.SmallTestNetwork()
@@ -57,12 +56,14 @@ def test_cross_adjacency():
     exp = np.array([[0, 0], [0, 0], [1, 0], [1, 0]])
     assert (res == exp).all()
 
+
 def test_cross_adjacency_sparse():
     net = InteractingNetworks.SmallTestNetwork()
 
     res = net.cross_adjacency_sparse([1, 2, 4], [0, 3, 5])
     exp = [[0, 1, 0], [0, 0, 0], [1, 0, 0]]
     assert (res == exp).all()
+
 
 def test_internal_link_attribute():
     net = InteractingNetworks.SmallTestNetwork()
@@ -73,6 +74,7 @@ def test_internal_link_attribute():
                     [2.9, 0., 0.]])
     assert np.allclose(res, exp, atol=1e-04)
 
+
 def test_cross_link_attribute():
     net = InteractingNetworks.SmallTestNetwork()
 
@@ -81,6 +83,7 @@ def test_cross_link_attribute():
                     [0., 1.5],
                     [1.3, 0.]])
     assert np.allclose(res, exp, atol=1e-04)
+
 
 def test_internal_path_lengths():
     net = InteractingNetworks.SmallTestNetwork()
@@ -93,6 +96,7 @@ def test_internal_path_lengths():
     exp = np.array([[0., 1., 1.], [1., 0., 1.], [1., 1., 0.]])
     assert np.allclose(res, exp, atol=1e-04)
 
+
 def test_cross_path_lengths():
     net = InteractingNetworks.SmallTestNetwork()
 
@@ -103,6 +107,7 @@ def test_cross_path_lengths():
     res = net.cross_path_lengths([0, 5], [1, 2, 3, 4], None)
     exp = np.array([[2., 2., 1., 1.], [3., 3., 2., 2.]])
     assert np.allclose(res, exp, atol=1e-04)
+
 
 def test_number_cross_links():
     net = InteractingNetworks.SmallTestNetwork()
@@ -115,6 +120,19 @@ def test_number_cross_links():
     exp = 2
     assert res == exp
 
+
+def test_total_cross_degree():
+    net = InteractingNetworks.SmallTestNetwork()
+
+    res = net.total_cross_degree([0, 3, 5], [1, 2, 4])
+    exp = 0.6667
+    assert np.isclose(res, exp, atol=1e-04)
+
+    res = net.total_cross_degree([0, 5], [1, 2, 3, 4])
+    exp = 1.0
+    assert np.isclose(res, exp, atol=1e-04)
+
+
 def test_number_internal_links():
     net = InteractingNetworks.SmallTestNetwork()
 
@@ -125,6 +143,15 @@ def test_number_internal_links():
     res = net.number_internal_links([1, 2, 4])
     exp = 3
     assert res == exp
+
+
+def test_cross_degree_density():
+    net = InteractingNetworks.SmallTestNetwork()
+
+    res = net.cross_degree_density([0, 3, 5], [1, 2, 4])
+    exp = np.array([0.33333333, 0.33333333, 0.])
+    assert np.allclose(res, exp, atol=1e-04)
+
 
 def test_cross_link_density():
     net = InteractingNetworks.SmallTestNetwork()
@@ -137,6 +164,7 @@ def test_cross_link_density():
     exp = 0.25
     assert np.isclose(res, exp, atol=1e-04)
 
+
 def test_internal_link_density():
     net = InteractingNetworks.SmallTestNetwork()
 
@@ -148,6 +176,7 @@ def test_internal_link_density():
     exp = 0.6667
     assert np.isclose(res, exp, atol=1e-04)
 
+
 def test_internal_global_clustering():
     net = InteractingNetworks.SmallTestNetwork()
 
@@ -158,6 +187,7 @@ def test_internal_global_clustering():
     res = net.internal_global_clustering([1, 2, 4])
     exp = 0.5556
     assert np.isclose(res, exp, atol=1e-04)
+
 
 def test_cross_global_clustering():
     net = InteractingNetworks.SmallTestNetwork()
@@ -174,6 +204,7 @@ def test_cross_global_clustering():
     exp = 0.5
     assert np.isclose(res, exp, atol=1e-04)
 
+
 def test_cross_global_clustering_sparse():
     net = InteractingNetworks.SmallTestNetwork()
 
@@ -189,6 +220,7 @@ def test_cross_global_clustering_sparse():
     exp = 0.5
     assert np.isclose(res, exp, atol=1e-04)
 
+
 def test_cross_transitivity():
     net = InteractingNetworks.SmallTestNetwork()
 
@@ -202,6 +234,7 @@ def test_cross_transitivity():
 
     res = net.cross_transitivity([3, 4], [1, 2])
     exp = 1.0
+
 
 def test_cross_transitivity_sparse():
     net = InteractingNetworks.SmallTestNetwork()
@@ -218,6 +251,7 @@ def test_cross_transitivity_sparse():
     exp = 1.0
     assert np.isclose(res, exp, atol=1e-04)
 
+
 def test_cross_average_path_length():
     net = InteractingNetworks.SmallTestNetwork()
 
@@ -229,6 +263,7 @@ def test_cross_average_path_length():
     exp = 2.0
     assert np.isclose(res, exp, atol=1e-04)
 
+
 def test_internal_average_path_length():
     net = InteractingNetworks.SmallTestNetwork()
 
@@ -239,6 +274,23 @@ def test_internal_average_path_length():
     res = net.internal_average_path_length([1, 2, 4], None)
     exp = 1.0
     assert np.isclose(res, exp, atol=1e-04)
+
+
+def test_average_cross_closeness():
+    net = InteractingNetworks.SmallTestNetwork()
+
+    res = net.average_cross_closeness([0, 5], [1, 2, 3, 4])
+    exp = 0.5333
+    assert np.isclose(res, exp, atol=1e-04)
+
+
+def test_global_efficiency():
+    net = InteractingNetworks.SmallTestNetwork()
+
+    res = net.global_efficiency([0, 5], [1, 2, 3, 4])
+    exp = 1.7143
+    assert np.isclose(res, exp, atol=1e-04)
+
 
 def test_cross_degree():
     net = InteractingNetworks.SmallTestNetwork()
@@ -255,6 +307,7 @@ def test_cross_degree():
     exp = np.array([0, 0, 1, 1])
     assert (res == exp).all()
 
+
 def test_cross_indegree():
     net = InteractingNetworks.SmallDirectedTestNetwork()
 
@@ -262,12 +315,14 @@ def test_cross_indegree():
     exp = np.array([2, 1])
     assert (res == exp).all()
 
+
 def test_cross_outdegree():
     net = InteractingNetworks.SmallDirectedTestNetwork()
 
     res = net.cross_outdegree([1, 2], [0, 3, 4])
     exp = np.array([1, 0])
     assert (res == exp).all()
+
 
 def test_internal_degree():
     net = InteractingNetworks.SmallDirectedTestNetwork()
@@ -280,6 +335,7 @@ def test_internal_degree():
     exp = np.array([2, 2, 2])
     assert (res == exp).all()
 
+
 def test_internal_indegree():
     net = InteractingNetworks.SmallDirectedTestNetwork()
 
@@ -287,12 +343,14 @@ def test_internal_indegree():
     exp = np.array([0, 2, 1])
     assert (res == exp).all()
 
+
 def test_internal_outdegree():
     net = InteractingNetworks.SmallDirectedTestNetwork()
 
     res = net.internal_outdegree([0, 1, 3])
     exp = np.array([2, 0, 1])
     assert (res == exp).all()
+
 
 def test_cross_local_clustering():
     net = InteractingNetworks.SmallTestNetwork()
@@ -309,6 +367,7 @@ def test_cross_local_clustering():
     exp = np.array([0., 1.])
     assert np.allclose(res, exp, atol=1e-04)
 
+
 def test_cross_local_clustering_sparse():
     net = InteractingNetworks.SmallTestNetwork()
 
@@ -324,6 +383,7 @@ def test_cross_local_clustering_sparse():
     exp = np.array([0., 1.])
     assert np.allclose(res, exp, atol=1e-04)
 
+
 def test_cross_closeness():
     net = InteractingNetworks.SmallTestNetwork()
 
@@ -334,6 +394,7 @@ def test_cross_closeness():
     res = net.cross_closeness([0, 5], [1, 2, 3, 4], None)
     exp = np.array([0.66666667, 0.4])
     assert np.allclose(res, exp, atol=1e-04)
+
 
 def test_internal_closeness():
     net = InteractingNetworks.SmallTestNetwork()
@@ -346,6 +407,7 @@ def test_internal_closeness():
     exp = np.array([1., 1., 1.])
     assert np.allclose(res, exp, atol=1e-04)
 
+
 def test_cross_betweenness():
     net = InteractingNetworks.SmallTestNetwork()
 
@@ -357,12 +419,22 @@ def test_cross_betweenness():
     exp = np.array([9., 3., 0., 2., 6., 0.])
     assert np.allclose(res, exp, atol=1e-04)
 
+
 def test_internal_betweenness():
     net = InteractingNetworks.SmallTestNetwork()
 
     res = net.internal_betweenness(range(0, 6))
     exp = np.array([9., 3., 0., 2., 6., 0.])
     assert np.allclose(res, exp, atol=1e-04)
+
+
+def test_local_efficiency():
+    net = InteractingNetworks.SmallTestNetwork()
+
+    res = net.local_efficiency([0, 5], [1, 2, 3, 4])
+    exp = np.array([0.75, 0.41666667])
+    assert np.allclose(res, exp, atol=1e-04)
+
 
 def test_nsi_cross_degree():
     net = InteractingNetworks.SmallTestNetwork()
@@ -375,6 +447,7 @@ def test_nsi_cross_degree():
     exp = np.array([1.4, 2.2, 0.])
     assert np.allclose(res, exp, atol=1e-04)
 
+
 def test_nsi_cross_mean_degree():
     net = InteractingNetworks.SmallTestNetwork()
 
@@ -385,6 +458,7 @@ def test_nsi_cross_mean_degree():
     res = net.nsi_cross_mean_degree([0, 2, 5], [1, 4])
     exp = 0.95
     assert np.isclose(res, exp, atol=1e-04)
+
 
 def test_nsi_internal_degree():
     net = InteractingNetworks.SmallTestNetwork()
@@ -397,6 +471,7 @@ def test_nsi_internal_degree():
     exp = np.array([3.4, 2., 2.6, 2.2])
     assert np.allclose(res, exp, atol=1e-04)
 
+
 def test_nsi_cross_local_clustering():
     net = InteractingNetworks.SmallTestNetwork()
 
@@ -407,6 +482,7 @@ def test_nsi_cross_local_clustering():
     res = net.nsi_cross_local_clustering([0, 2, 5], [1, 4])
     exp = np.array([1., 1., 0.])
     assert np.allclose(res, exp, atol=1e-04)
+
 
 def test_nsi_cross_closeness_centrality():
     net = InteractingNetworks.SmallTestNetwork()
@@ -419,6 +495,7 @@ def test_nsi_cross_closeness_centrality():
     exp = np.array([0.73333333, 1., 0.42307692])
     assert np.allclose(res, exp, atol=1e-04)
 
+
 def test_nsi_internal_closeness_centrality():
     net = InteractingNetworks.SmallTestNetwork()
 
@@ -430,12 +507,14 @@ def test_nsi_internal_closeness_centrality():
     exp = np.array([0.84, 0.525, 0.72413793, 0.6])
     assert np.allclose(res, exp, atol=1e-04)
 
+
 def test_nsi_cross_global_clustering():
     net = InteractingNetworks.SmallTestNetwork()
 
     res = net.nsi_cross_global_clustering([0, 1, 2], [3, 4, 5])
     exp = 0.6688
     assert np.isclose(res, exp, atol=1e-04)
+
 
 def test_nsi_internal_local_clustering():
     net = InteractingNetworks.SmallTestNetwork()
@@ -448,6 +527,7 @@ def test_nsi_internal_local_clustering():
     exp = np.array([1., 1., 0.86666667])
     assert np.allclose(res, exp, atol=1e-04)
 
+
 def test_nsi_cross_betweenness():
     net = InteractingNetworks.SmallTestNetwork()
 
@@ -458,6 +538,7 @@ def test_nsi_cross_betweenness():
     res = net.nsi_cross_betweenness([0, 1], [2, 3, 4, 5])
     exp = np.array([2.1333, 0., 0., 0.4923, 0.9209, 0.])
     assert np.allclose(res, exp, atol=1e-04)
+
 
 def test_nsi_cross_edge_density():
     net = InteractingNetworks.SmallTestNetwork()
@@ -470,6 +551,7 @@ def test_nsi_cross_edge_density():
     exp = 0.7895
     assert np.isclose(res, exp, atol=1e-04)
 
+
 def test_nsi_cross_transitivity():
     net = InteractingNetworks.SmallTestNetwork()
 
@@ -480,6 +562,7 @@ def test_nsi_cross_transitivity():
     res = net.nsi_cross_transitivity([0, 2, 3], [1])
     exp = 1.0
     assert np.isclose(res, exp, atol=1e-04)
+
 
 def test_nsi_cross_average_path_length():
     net = InteractingNetworks.SmallTestNetwork()

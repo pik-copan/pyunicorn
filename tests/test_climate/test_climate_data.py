@@ -1,8 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2019 Jonathan F. Donges and pyunicorn authors
+# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
 # URL: <http://www.pik-potsdam.de/members/donges/software>
 # License: BSD (3-clause)
 #
@@ -25,6 +22,8 @@ from pyunicorn.climate.climate_data import ClimateData
 # -----------------------------------------------------------------------------
 # Class member tests
 # -----------------------------------------------------------------------------
+
+
 def test_SmallTestData():
     res = Data.SmallTestData().observable()
     exp = np.array([[0., 1., 0., -1., -0., 1.],
@@ -39,15 +38,18 @@ def test_SmallTestData():
                     [0.309, -0.9511, -0.309, 0.9511, 0.309, -0.9511]])
     assert np.allclose(res, exp, atol=1e-04)
 
+
 def test_phase_indices():
     res = ClimateData.SmallTestData().phase_indices()
     exp = np.array([[0, 5], [1, 6], [2, 7], [3, 8], [4, 9]])
     assert (res == exp).all()
 
+
 def test_indices_selected_phases():
     res = ClimateData.SmallTestData().indices_selected_phases([0, 1, 4])
     exp = np.array([0, 1, 4, 5, 6, 9])
     assert (res == exp).all()
+
 
 def test_phase_mean():
     res = ClimateData.SmallTestData().phase_mean()
@@ -58,11 +60,13 @@ def test_phase_mean():
                     [0.63, -0.321, -0.63, 0.321, 0.63, -0.321]])
     assert np.allclose(res, exp, atol=1e-04)
 
+
 def test_anomaly():
     res = ClimateData.SmallTestData().anomaly()[:, 0]
     exp = np.array([-0.5, -0.321, -0.1106, 0.1106, 0.321,
                     0.5, 0.321, 0.1106, -0.1106, -0.321])
     assert np.allclose(res, exp, atol=1e-04)
+
 
 def test_shuffled_anomaly():
     res = ClimateData.SmallTestData().anomaly().std(axis=0)
@@ -72,6 +76,7 @@ def test_shuffled_anomaly():
     res = ClimateData.SmallTestData().shuffled_anomaly().std(axis=0)
     exp = np.array([0.31, 0.6355, 0.31, 0.6355, 0.31, 0.6355])
     assert np.allclose(res, exp, atol=1e-04)
+
 
 def test_window():
     data = ClimateData.SmallTestData()
@@ -84,6 +89,7 @@ def test_window():
                     [-0.321, 0.63], [-0.1106, 0.6984], [0.1106, 0.6984],
                     [0.321, 0.63]])
     assert np.allclose(res, exp, atol=1e-04)
+
 
 def test_set_global_window():
     data = ClimateData.SmallTestData()
