@@ -20,8 +20,8 @@ multivariate data and generating time series surrogates.
 # general TODO:
 # - find segfault problem in a.w. shortest path betweenness
 # - rename aw... to nsi... (node splitting invariant)
-# - implement "corrected" node splitting invariant measures named cnsi...
-#   (see paper)
+# - add `typical_weight` argument in all nsi measures
+#   to implement calculation of "corrected" nsi measures(see paper)
 # - implement Newman modularity and iterative division
 # - treat type-related ambiguities more thoroughly
 #   (flatten(), list(...), astype(...) etc.)
@@ -1769,34 +1769,14 @@ class Network:
             w = self.link_attribute(key)
             return (w @ w).diagonal()
 
-#    @cached_var('nsi_degree', 'n.s.i. degree')
-    def nsi_degree_uncorr(self, key=None):
-        """
-        For each node, return its uncorrected n.s.i. degree.
-
-        If a link attribute key is specified, return the associated nsi
-        strength
-
-        :arg str key: link attribute key [optional]
-        :rtype: array([float])
-        """
-        if self.directed:
-            return self.nsi_indegree(key) + self.nsi_outdegree(key)
-        else:
-            if key is None:
-                return self.sp_Aplus() * self.node_weights
-            else:
-                w = self.link_attribute(key)
-                return (self.node_weights @ w).squeeze()
-
     def sp_nsi_diag_k(self):
         """Sparse diagonal matrix of n.s.i. degrees"""
-        return sp.diags([self.nsi_degree_uncorr()], [0],
+        return sp.diags([self.nsi_degree()], [0],
                         shape=(self.N, self.N), format='csc')
 
     def sp_nsi_diag_k_inv(self):
         """Sparse diagonal matrix of inverse n.s.i. degrees"""
-        return sp.diags([np.power(self.nsi_degree_uncorr(), -1)], [0],
+        return sp.diags([np.power(self.nsi_degree(), -1)], [0],
                         shape=(self.N, self.N), format='csc')
 
     def nsi_degree(self, key=None, typical_weight=None):
@@ -1837,10 +1817,19 @@ class Network:
 
         :rtype: array([float])
         """
-        if typical_weight is None:
-            return self.nsi_degree_uncorr(key)
+        if self.directed:
+            res = self.nsi_indegree(key) + self.nsi_outdegree(key)
         else:
-            return self.nsi_degree_uncorr(key)/typical_weight - 1.0
+            if key is None:
+                res = self.sp_Aplus() * self.node_weights
+            else:
+                w = self.link_attribute(key)
+                res = (self.node_weights @ w).squeeze()
+
+        if typical_weight is None:
+            return res
+        else:
+            return res/typical_weight - 1.0
 
 #    @cached_var('nsi_indegree')
     def nsi_indegree(self, key=None, typical_weight=None):
@@ -2800,24 +2789,7 @@ class Network:
         num2 = (num2 / (2 * m)) ** 2
         return (num1 - num2) / (den1 - num2)
 
-    @cached_const('nsi', 'local clustering')
-    def nsi_local_clustering_uncorr(self):
-        """
-        For each node, return its uncorrected n.s.i. clustering coefficient
-        (between 0 and 1).
-
-        (not yet implemented for directed networks)
-
-        :rtype: array([float])
-        """
-        if self.directed:
-            raise NotImplementedError("Not implemented for directed networks.")
-
-        w, k = self.node_weights, self.nsi_degree()
-        A_Dw = self.sp_A * self.sp_diag_w()
-        numerator = (A_Dw * self.sp_Aplus() * A_Dw.T).diagonal()
-        return (numerator + 2*k*w - w**2) / k**2
-
+#     @cached_var('nsi', 'local clustering')
     def nsi_local_clustering(self, typical_weight=None):
         """
         For each node, return its uncorrected (between 0 and 1) or corrected
@@ -2852,14 +2824,23 @@ class Network:
 
         :rtype: array([float])
         """
+        if self.directed:
+            raise NotImplementedError("Not implemented for directed networks.")
+
+        k = self.nsi_degree(typical_weight=typical_weight)
+
         if typical_weight is None:
-            return self.nsi_local_clustering_uncorr()
+            if self.silence_level <= 1:
+                print("Calculating uncorrected n.s.i. "
+                      "local clustering coefficients...")
+            w = self.node_weights
+            A_Dw = self.sp_A * self.sp_diag_w()
+            numerator = (A_Dw * self.sp_Aplus() * A_Dw.T).diagonal()
+            return (numerator + 2*k*w - w**2) / k**2
         else:
-            k = self.nsi_degree(typical_weight=typical_weight)
             if self.silence_level <= 1:
                 print("Calculating corrected n.s.i. "
                       "local clustering coefficients...")
-
             Ap = self.sp_Aplus()
             Ap_Dw = Ap * self.sp_diag_w()
             numerator = (Ap_Dw * Ap_Dw * Ap).diagonal()
