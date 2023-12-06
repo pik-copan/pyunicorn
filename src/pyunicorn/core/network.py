@@ -1799,7 +1799,7 @@ class Network:
         return sp.diags([np.power(self.nsi_degree_uncorr(), -1)], [0],
                         shape=(self.N, self.N), format='csc')
 
-    def nsi_degree(self, typical_weight=None, key=None):
+    def nsi_degree(self, key=None, typical_weight=None):
         """
         For each node, return its uncorrected or corrected n.s.i. degree.
 
@@ -1830,11 +1830,11 @@ class Network:
         >>> r(net.splitted_copy().degree())
         array([4, 3, 2, 2, 3, 2, 2])
 
-        :type typical_weight: float > 0
-        :arg  typical_weight: Optional typical node weight to be used for
-                              correction. If None, the uncorrected measure is
-                              returned. (Default: None)
         :arg str key: link attribute key (optional)
+        :arg float typical_weight: Optional typical node weight to be used for
+            correction. If None, the uncorrected measure is
+            returned. (Default: None)
+
         :rtype: array([float])
         """
         if typical_weight is None:
@@ -1867,6 +1867,12 @@ class Network:
         array([3, 2, 2, 1, 1, 1, 1])
 
         :arg str key: link attribute key [optional]
+        :type typical_weight: float > 0
+        :arg  typical_weight: Optional typical node weight to be used for
+            correction. If None, the uncorrected measure is
+            returned. (Default: None)
+
+        :rtype: array([float])
         """
         if key is None:
             res = self.node_weights * self.sp_Aplus()
@@ -1903,6 +1909,12 @@ class Network:
         array([2, 2, 0, 1, 2, 2, 2])
 
         :arg str key: link attribute key [optional]
+        :type typical_weight: float > 0
+        :arg  typical_weight: Optional typical node weight to be used for
+            correction. If None, the uncorrected measure is
+            returned. (Default: None)
+
+        :rtype: array([float])
         """
         if key is None:
             res = self.sp_Aplus() * self.node_weights
@@ -1923,6 +1935,12 @@ class Network:
         nsi bilateral strength
 
         :arg str key: link attribute key [optional]
+        :type typical_weight: float > 0
+        :arg  typical_weight: Optional typical node weight to be used for
+            correction. If None, the uncorrected measure is
+            returned. (Default: None)
+
+        :rtype: array([float])
         """
         assert key is None, "nsi_bildegree is not implemented with key yet"
         res = (self.sp_Aplus()
@@ -2050,6 +2068,11 @@ class Network:
         (array([ 0.3333, 0.1667, 0.5 ]), array([ 0.1179, 0.1667, 0.0962]),
          array([ 4. , 5.4667, 6.9333]))
 
+        :type typical_weight: float > 0
+        :arg  typical_weight: Optional typical node weight to be used for
+            correction. If None, the uncorrected measure is
+            returned. (Default: None)
+
         :rtype:  tuple (list,list)
         :return: List of frequencies and list of lower bin bounds.
         """
@@ -2070,6 +2093,11 @@ class Network:
         Calculating a cumulative n.s.i. degree frequency histogram...
         Calculating n.s.i. degree...
         (array([ 1. , 0.6667, 0.5 ]), array([ 4. , 5.4667, 6.9333]))
+
+        :type typical_weight: float > 0
+        :arg  typical_weight: Optional typical node weight to be used for
+            correction. If None, the uncorrected measure is
+            returned. (Default: None)
 
         :rtype:  tuple (list,list)
         :return: List of cumulative frequencies and list of lower bin bounds.
@@ -2240,6 +2268,10 @@ class Network:
         :arg 1d numpy array [node]: denominator made out of (in/out/bil)degrees
         :arg str key: link attribute key (optional)
         :arg bool nsi: flag for nsi calculation (default: False)
+        :arg float typical_weight: Optional typical node weight to be used for
+            correction. If None, the uncorrected measure is
+            returned. (Default: None)
+
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
         if nsi:
@@ -2390,6 +2422,9 @@ class Network:
         array([ 0.3333,  0.125 ,  0.    ,  0.    ,  0.5   ,  0.    ,  0.125 ])
 
         :arg str key: link attribute key (optional)
+        :arg float typical_weight: Optional typical node weight to be used for
+            correction. If None, the uncorrected measure is
+            returned. (Default: None)
         """
         def t_func(x, xT):
             return x * x * x
@@ -2434,6 +2469,9 @@ class Network:
         array([ 0. ,  0. ,  0. ,  1. ,  0.8,  0. ,  0.8])
 
         :arg str key: link attribute key (optional)
+        :arg float typical_weight: Optional typical node weight to be used for
+            correction. If None, the uncorrected measure is
+            returned. (Default: None)
         """
         def t_func(x, xT):
             return x * xT * x
@@ -2479,6 +2517,9 @@ class Network:
 
 
         :arg str key: link attribute key (optional)
+        :arg float typical_weight: Optional typical node weight to be used for
+            correction. If None, the uncorrected measure is
+            returned. (Default: None)
         """
         def t_func(x, xT):
             return xT * x * x
@@ -2522,6 +2563,9 @@ class Network:
         array([ 0.5   ,  0.5   ,  0.    ,  0.    ,  0.3333,  1.    ,  0.5   ])
 
         :arg str key: link attribute key (optional)
+        :arg float typical_weight: Optional typical node weight to be used for
+            correction. If None, the uncorrected measure is
+            returned. (Default: None)
         """
         def t_func(x, xT):
             return x * x * xT
@@ -2803,8 +2847,8 @@ class Network:
 
         :type typical_weight: float > 0
         :arg  typical_weight: Optional typical node weight to be used for
-                              correction. If None, the uncorrected measure is
-                              returned. (Default: None)
+            correction. If None, the uncorrected measure is
+            returned. (Default: None)
 
         :rtype: array([float])
         """
@@ -3288,6 +3332,8 @@ class Network:
         >>> net.splitted_copy().betweenness()
         Calculating node betweenness...
         array([ 8.5,  1.5,  0. ,  1.5,  4.5,  0. ,  0. ])
+
+        :arg bool parallelize: Toggle parallelized computation
 
         :rtype: 1d numpy array [node] of floats
         """
