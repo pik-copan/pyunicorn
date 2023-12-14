@@ -13,7 +13,6 @@
 # for complex systems science: The pyunicorn package"
 
 from libc.math cimport sqrt, floor
-from libc.stdlib cimport rand, RAND_MAX
 
 from datetime import datetime
 import random
@@ -22,9 +21,8 @@ import numpy as np
 import numpy.random as rd
 cimport numpy as cnp
 from numpy cimport ndarray
-randint = rd.randint
 
-from ...core._ext.types import MASK, NODE, FIELD, DFIELD
+from ...core._ext.types import NODE, FIELD, DFIELD
 from ...core._ext.types cimport \
     ADJ_t, MASK_t, NODE_t, DEGREE_t, LAG_t, FIELD_t, DFIELD_t
 
@@ -523,13 +521,13 @@ def _diagline_dist_norqa_missingvalues(
 
     for i in range(n_time):
         if k != 0 and not missing_flag:
-            diagline[k] += 1
+            diagline[k-1] += 1
             k = 0
 
         missing_flag = False
 
         for j in range(i+1):
-            # Check if curren tpoint in RP belongs to a mising value
+            # Check if current point in RP belongs to a mising value
             if mv_indices[n_time-1-i+j] or mv_indices[j]:
                 missing_flag = True
                 k = 0
@@ -537,14 +535,14 @@ def _diagline_dist_norqa_missingvalues(
                 missing_flag = False
 
             if not missing_flag:
-                # Only incease k if some previous point in diagonal was not a
+                # Only increase k if some previous point in diagonal was not a
                 # missing value!
                 if recmat[n_time-1-i+j, j] == 1:
                     k += 1
                 # Only count diagonal lines that are not followed by a missing
                 # point in the recurrence plot
                 elif k != 0:
-                    diagline[k] += 1
+                    diagline[k-1] += 1
                     k = 0
 
 
@@ -557,13 +555,13 @@ def _diagline_dist_norqa(
 
     for i in range(n_time):
         if k != 0:
-            diagline[k] += 1
+            diagline[k-1] += 1
             k = 0
         for j in range(i+1):
             if recmat[n_time-1-i+j, j] == 1:
                 k += 1
             elif k != 0:
-                diagline[k] += 1
+                diagline[k-1] += 1
                 k = 0
 
 
@@ -579,13 +577,13 @@ def _diagline_dist_rqa_missingvalues(
 
     for i in range(n_time):
         if k != 0 and not missing_flag:
-            diagline[k] += 1
+            diagline[k-1] += 1
             k = 0
 
         missing_flag = False
 
         for j in range(i+1):
-            # Compute supreumum distance between state vectors
+            # Compute supremum distance between state vectors
             diff = 0
             for l in range(dim):
                 # Use supremum norm
@@ -593,7 +591,7 @@ def _diagline_dist_rqa_missingvalues(
                 if temp_diff > diff:
                     diff = temp_diff
 
-            # Check if curren tpoint in RP belongs to a missing value
+            # Check if current point in RP belongs to a missing value
             if mv_indices[n_time-1-i+j] or mv_indices[j]:
                 missing_flag = True
                 k = 0
@@ -609,7 +607,7 @@ def _diagline_dist_rqa_missingvalues(
                 # Only count diagonal lines that are not followed by a missing
                 # value point in the recurrenc plot
                 elif k != 0:
-                    diagline[k] += 1
+                    diagline[k-1] += 1
                     k = 0
 
 
@@ -623,7 +621,7 @@ def _diagline_dist_rqa(
 
     for i in range(n_time):
         if k != 0:
-            diagline[k] += 1
+            diagline[k-1] += 1
             k = 0
 
         for j in range(i+1):
@@ -639,7 +637,7 @@ def _diagline_dist_rqa(
             if diff < eps:
                 k += 1
             elif k != 0:
-                diagline[k] += 1
+                diagline[k-1] += 1
                 k = 0
 
 
@@ -669,7 +667,7 @@ def _vertline_dist_norqa_missingvalues(
 
     for i in range(n_time):
         if (k != 0 and not missing_flag):
-            vertline[k] += 1
+            vertline[k-1] += 1
             k = 0
 
         missing_flag = False
@@ -686,7 +684,7 @@ def _vertline_dist_norqa_missingvalues(
                 if recmat[i, j] != 0:
                     k += 1
                 elif k != 0:
-                    vertline[k] += 1
+                    vertline[k-1] += 1
                     k = 0
 
 
@@ -698,14 +696,14 @@ def _vertline_dist_norqa(
 
     for i in range(n_time):
         if k != 0:
-            vertline[k] += 1
+            vertline[k-1] += 1
             k = 0
 
         for j in range(n_time):
             if recmat[i, j] != 0:
                 k += 1
             elif k != 0:
-                vertline[k] += 1
+                vertline[k-1] += 1
                 k = 0
 
 
@@ -721,7 +719,7 @@ def _vertline_dist_rqa_missingvalues(
 
     for i in range(n_time):
         if k != 0 and not missing_flag:
-            vertline[k] += 1
+            vertline[k-1] += 1
             k = 0
 
         missing_flag = False
@@ -748,7 +746,7 @@ def _vertline_dist_rqa_missingvalues(
                 if diff < eps:
                     k += 1
                 elif k != 0:
-                    vertline[k] += 1
+                    vertline[k-1] += 1
                     k = 0
 
 
@@ -762,7 +760,7 @@ def _vertline_dist_rqa(
 
     for i in range(n_time):
         if k != 0:
-            vertline[k] += 1
+            vertline[k-1] += 1
             k = 0
 
         for j in range(n_time):
@@ -779,7 +777,7 @@ def _vertline_dist_rqa(
             if diff < eps:
                 k += 1
             elif k != 0:
-                vertline[k] += 1
+                vertline[k-1] += 1
                 k = 0
 
 
@@ -791,14 +789,14 @@ def _white_vertline_dist(
 
     for i in range(n_time):
         if k != 0:
-            white_vertline[k] += 1
+            white_vertline[k-1] += 1
             k = 0
 
         for j in range(n_time):
             if R[i, j] == 0:
                 k += 1
             elif k != 0:
-                white_vertline[k] += 1
+                white_vertline[k-1] += 1
                 k = 0
 
 

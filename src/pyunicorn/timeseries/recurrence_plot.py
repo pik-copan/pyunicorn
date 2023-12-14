@@ -918,10 +918,13 @@ class RecurrencePlot:
     def diagline_dist(self):
         """
         Return the :index:`frequency distribution of diagonal line lengths
-        <triple: frequency distribution; diagonal; line length>` :math:`P(l)`.
+        <triple: frequency distribution; diagonal; line length>`
+        :math:`P(l-1)`.
 
-        The :math:`l` th entry of :math:`P(l)` contains the number of
+        Note that entry :math:`P(l-1)` contains the number of
         :index:`diagonal lines <pair: diagonal; lines>` of length :math:`l`.
+        Thus, :math:`P(0)` counts lines of length :math:`1`,
+        :math:`P(1)` counts lines of length :math:`2`, asf.
 
         .. note::
            Experimental handling of missing values. Diagonal lines
@@ -930,7 +933,7 @@ class RecurrencePlot:
 
         :rtype: 1D array (int32)
         :return: the frequency distribution of diagonal line lengths
-            :math:`P(l)`.
+            :math:`P(l-1)`.
         """
         if self._diagline_dist_cached:
             return self._diagline_dist
@@ -1025,8 +1028,8 @@ class RecurrencePlot:
 
         #  Get resampled distribution
         resampled_dist = np.zeros(len(diagline))
-        resampled_dist[:L_max + 1] = RecurrencePlot.\
-            rejection_sampling(diagline[:L_max + 1], M)
+        resampled_dist[:L_max] = RecurrencePlot.\
+            rejection_sampling(diagline[:L_max], M)
 
         return resampled_dist
 
@@ -1044,8 +1047,8 @@ class RecurrencePlot:
         n_time = self.N
         lmax = 1
 
-        for i in range(1, n_time):
-            if diagline[i] != 0:
+        for i in range(1, n_time+1):
+            if diagline[i-1] != 0:
                 lmax = i
 
         return lmax
@@ -1074,11 +1077,11 @@ class RecurrencePlot:
 
         #  Number of recurrence points that form diagonal structures (of at
         #  least length l_min)
-        partial_sum = (np.arange(l_min, n_time) * diagline[l_min:]).sum()
+        partial_sum = (np.arange(l_min, n_time+1) * diagline[l_min-1:]).sum()
 
         #  Number of all recurrence points that form diagonal lines (except
         #  the main diagonal)
-        full_sum = (np.arange(n_time) * diagline).sum()
+        full_sum = (np.arange(1, n_time+1) * diagline).sum()
 
         return partial_sum / float(full_sum + self._epsilon)
 
@@ -1105,10 +1108,10 @@ class RecurrencePlot:
 
         #  Number of recurrence points that form diagonal structures (of at
         #  least length l_min)
-        partial_sum = (np.arange(l_min, n_time) * diagline[l_min:]).sum()
+        partial_sum = (np.arange(l_min, n_time+1) * diagline[l_min-1:]).sum()
 
         #  Total number of diagonal lines of at least length l_min
-        number_diagline = diagline[l_min:].sum()
+        number_diagline = diagline[l_min-1:].sum()
 
         return partial_sum / float(number_diagline + self._epsilon)
 
@@ -1134,7 +1137,7 @@ class RecurrencePlot:
 
         #  Creates a reduced array of the values (not 0) of the diagonal line
         #  length (langer than l_min)
-        diagline = diagline[l_min:]
+        diagline = diagline[l_min-1:]
         diagline = np.extract(diagline != 0, diagline)
 
         #  Normalized array of the number of all diagonal lines = probability
@@ -1150,14 +1153,17 @@ class RecurrencePlot:
     def vertline_dist(self):
         """
         Return the :index:`frequency distribution of vertical line lengths
-        <triple: frequency distribution; vertical; line length>` :math:`P(v)`.
+        <triple: frequency distribution; vertical; line length>`
+        :math:`P(v-1)`.
 
-        The :math:`v` th entry of :math:`P(v)` contains the number of
+        Note that entry :math:`P(v-1)` contains the number of
         :index:`vertical lines <pair: vertical; lines>` of length :math:`v`.
+        Thus, :math:`P(0)` counts lines of length :math:`1`,
+        :math:`P(1)` counts lines of length :math:`2`, asf.
 
         :rtype: 1D array (int32)
         :return: the frequency distribution of vertical line lengths
-            :math:`P(v)`.
+            :math:`P(v-1)`.
         """
         if self._vertline_dist_cached:
             return self._vertline_dist
@@ -1225,8 +1231,8 @@ class RecurrencePlot:
 
         #  Get resampled distribution
         resampled_dist = np.zeros(len(vertline))
-        resampled_dist[:L_max + 1] = RecurrencePlot.\
-            rejection_sampling(vertline[:L_max + 1], M)
+        resampled_dist[:L_max] = RecurrencePlot.\
+            rejection_sampling(vertline[:L_max], M)
 
         return resampled_dist
 
@@ -1244,9 +1250,9 @@ class RecurrencePlot:
         n_time = self.N
         vmax = 1
 
-        for i in range(1, n_time):
-            if vertline[i] != 0:
-                vmax = i
+        for v in range(1, n_time+1):
+            if vertline[v-1] != 0:
+                vmax = v
 
         return vmax
 
@@ -1273,10 +1279,10 @@ class RecurrencePlot:
 
         #  Number of recurrence points that form vertical structures (of at
         #  least length v_min)
-        partial_sum = (np.arange(v_min, n_time) * vertline[v_min:]).sum()
+        partial_sum = (np.arange(v_min, n_time+1) * vertline[v_min-1:]).sum()
 
         #  Number of all recurrence points that form vertical lines
-        full_sum = (np.arange(n_time) * vertline).sum()
+        full_sum = (np.arange(1, n_time+1) * vertline).sum()
 
         return partial_sum / float(full_sum + self._epsilon)
 
@@ -1304,10 +1310,10 @@ class RecurrencePlot:
 
         #  Number of recurrence points that form vertical structures (of at
         #  least length v_min)
-        partial_sum = (np.arange(v_min, n_time) * vertline[v_min:]).sum()
+        partial_sum = (np.arange(v_min, n_time+1) * vertline[v_min-1:]).sum()
 
         #  Total number of vertical lines of at least length v_min
-        number_vertline = vertline[v_min:].sum()
+        number_vertline = vertline[v_min-1:].sum()
 
         return partial_sum / (float(number_vertline) + self._epsilon)
 
@@ -1339,7 +1345,7 @@ class RecurrencePlot:
 
         #  Creates a reduced array of the values (not 0) of the vertical line
         #  length (langer than v_min)
-        vertline = vertline[v_min:]
+        vertline = vertline[v_min-1:]
         vertline = np.extract(vertline != 0, vertline)
 
         #  Normalized array of the number of all vertical lines = probability
@@ -1356,18 +1362,19 @@ class RecurrencePlot:
         """
         Return the :index:`frequency distribution of white vertical line
         lengths <triple: frequency distribution; white vertical; line length>`
-        :math:`P(w)`.
+        :math:`P(w-1)`.
 
-        The :math:`w` th entry of :math:`P(w)` contains the number of
+        Note that entry :math:`P(w-1)` contains the number of
         :index:`white vertical lines <pair: white vertical; lines>` of length
-        :math:`w`.
+        :math:`w`. Thus, :math:`P(0)` counts lines of length :math:`1`,
+        :math:`P(1)` counts lines of length :math:`2`, asf.
 
         The length of a white vertical line in a recurrence plot corresponds to
         the time the system takes to return close to an earlier state.
 
         :rtype: 1D array (int32)
         :return: the frequency distribution of white vertical line lengths
-            :math:`P(w)`.
+            :math:`P(w-1)`.
         """
         R = self.recurrence_matrix()
         n_time = self.N
@@ -1390,14 +1397,14 @@ class RecurrencePlot:
         :return number: the maximal white vertical line length.
         """
         white_vertline = self.white_vertline_dist()
-        N = self.N
-        vmax = 1
+        n_times = self.N
+        wmax = 1
 
-        for i in range(1, N):
-            if white_vertline[i] != 0:
-                vmax = i
+        for w in range(1, n_times+1):
+            if white_vertline[w-1] != 0:
+                wmax = w
 
-        return vmax
+        return wmax
 
     def average_white_vertlength(self, w_min=1):
         """
@@ -1417,10 +1424,11 @@ class RecurrencePlot:
 
         #  Number of recurrence points that form white vertical structures
         #  (of at least length w_min)
-        partial_sum = (np.arange(w_min, n_time) * white_vertline[w_min:]).sum()
+        partial_sum = (
+            np.arange(w_min, n_time+1) * white_vertline[w_min-1:]).sum()
 
         #  Total number of white vertical lines of at least length v_min
-        number_white_vertline = white_vertline[w_min:].sum()
+        number_white_vertline = white_vertline[w_min-1:].sum()
 
         return partial_sum / float(number_white_vertline + self._epsilon)
 
@@ -1445,7 +1453,7 @@ class RecurrencePlot:
         #  Creates a reduced array of the values (not 0) of the vertical line
         #  length (langer than v_min)
         white_vertline = self.white_vertline_dist()
-        white_vertline = white_vertline[w_min:]
+        white_vertline = white_vertline[w_min-1:]
         white_vertline = np.extract(white_vertline != 0, white_vertline)
 
         #  Normalized array of the number of all vertical lines = probability
