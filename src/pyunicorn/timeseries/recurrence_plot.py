@@ -925,6 +925,8 @@ class RecurrencePlot:
         :index:`diagonal lines <pair: diagonal; lines>` of length :math:`l`.
         Thus, :math:`P(0)` counts lines of length :math:`1`,
         :math:`P(1)` counts lines of length :math:`2`, asf.
+        The main diagonal is not counted,
+        hence :math:`P(N)` will always be :math:`0`.
 
         .. note::
            Experimental handling of missing values. Diagonal lines

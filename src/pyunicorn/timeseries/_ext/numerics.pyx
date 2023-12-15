@@ -519,31 +519,34 @@ def _diagline_dist_norqa_missingvalues(
         int i, j, k = 0
         MASK_t missing_flag = False
 
-    for i in range(n_time):
+    # excluding main diagonal by stopping loop at n_time-1
+    for i in range(n_time-1):
+        for j in range(i+1):
+            # Check if current point in RP is a missing value
+            if mv_indices[n_time-1-i+j] or mv_indices[j]:
+                missing_flag = True
+                k = 0
+            # or if previous point was one, reset flag if not within line
+            elif recmat[n_time-1-i+j, j] == 0 and missing_flag:
+                missing_flag = False
+
+            # only count line if it does not contain,
+            # directly follow or is followed by a missing value
+            if not missing_flag:
+                # if within line, increment length
+                if recmat[n_time-1-i+j, j] == 1:
+                    k += 1
+                # if end of line, count line and reset length
+                elif k != 0:
+                    diagline[k-1] += 1
+                    k = 0
+
+        # count line and reset length at end of subdiagonal
         if k != 0 and not missing_flag:
             diagline[k-1] += 1
             k = 0
 
         missing_flag = False
-
-        for j in range(i+1):
-            # Check if current point in RP belongs to a mising value
-            if mv_indices[n_time-1-i+j] or mv_indices[j]:
-                missing_flag = True
-                k = 0
-            elif recmat[n_time-1-i+j, j] == 0 and missing_flag:
-                missing_flag = False
-
-            if not missing_flag:
-                # Only increase k if some previous point in diagonal was not a
-                # missing value!
-                if recmat[n_time-1-i+j, j] == 1:
-                    k += 1
-                # Only count diagonal lines that are not followed by a missing
-                # point in the recurrence plot
-                elif k != 0:
-                    diagline[k-1] += 1
-                    k = 0
 
 
 def _diagline_dist_norqa(
@@ -553,16 +556,21 @@ def _diagline_dist_norqa(
     cdef:
         int i, j, k = 0
 
-    for i in range(n_time):
-        if k != 0:
-            diagline[k-1] += 1
-            k = 0
+    # excluding main diagonal by stopping loop at n_time-1
+    for i in range(n_time-1):
         for j in range(i+1):
+            # if within line, increment length
             if recmat[n_time-1-i+j, j] == 1:
                 k += 1
+            # if end of line, count line and reset length
             elif k != 0:
                 diagline[k-1] += 1
                 k = 0
+
+        # count line and reset length at end of subdiagonal
+        if k != 0:
+            diagline[k-1] += 1
+            k = 0
 
 
 def _diagline_dist_rqa_missingvalues(
@@ -575,40 +583,41 @@ def _diagline_dist_rqa_missingvalues(
         FIELD_t temp_diff, diff
         MASK_t missing_flag = False
 
-    for i in range(n_time):
+    # excluding main diagonal by stopping loop at n_time-1
+    for i in range(n_time-1):
+        for j in range(i+1):
+            # Compute supremum distance between state vectors
+            diff = 0
+            for l in range(dim):
+                temp_diff = abs(embedding[j, l] - embedding[n_time-1-i+j, l])
+                if temp_diff > diff:
+                    diff = temp_diff
+
+            # Check if current point in RP is a missing value
+            if mv_indices[n_time-1-i+j] or mv_indices[j]:
+                missing_flag = True
+                k = 0
+            # or if previous point was one, reset flag if not within line
+            elif diff > eps and missing_flag:
+                missing_flag = False
+
+            # only count line if it does not contain,
+            # directly follow or is followed by a missing value
+            if not missing_flag:
+                # if within line, increment length
+                if diff < eps:
+                    k += 1
+                # if end of line, count line and reset length
+                elif k != 0:
+                    diagline[k-1] += 1
+                    k = 0
+
+        # count line and reset length at end of subdiagonal
         if k != 0 and not missing_flag:
             diagline[k-1] += 1
             k = 0
 
         missing_flag = False
-
-        for j in range(i+1):
-            # Compute supremum distance between state vectors
-            diff = 0
-            for l in range(dim):
-                # Use supremum norm
-                temp_diff = abs(embedding[j, l] - embedding[n_time-1-i+j, l])
-                if temp_diff > diff:
-                    diff = temp_diff
-
-            # Check if current point in RP belongs to a missing value
-            if mv_indices[n_time-1-i+j] or mv_indices[j]:
-                missing_flag = True
-                k = 0
-            elif diff > eps and missing_flag:
-                missing_flag = False
-
-            if not missing_flag:
-                # Only increase k if some previous point in diagonal was not a
-                # missig value!
-                if diff < eps:
-                    k += 1
-
-                # Only count diagonal lines that are not followed by a missing
-                # value point in the recurrenc plot
-                elif k != 0:
-                    diagline[k-1] += 1
-                    k = 0
 
 
 def _diagline_dist_rqa(
@@ -619,26 +628,28 @@ def _diagline_dist_rqa(
         int i, j, k = 0, l
         FIELD_t temp_diff, diff
 
-    for i in range(n_time):
-        if k != 0:
-            diagline[k-1] += 1
-            k = 0
-
+    # excluding main diagonal by stopping loop at n_time-1
+    for i in range(n_time-1):
         for j in range(i+1):
             # Compute supremum distance between state vectors
             diff = 0
             for l in range(dim):
-                # Use supremum norm
                 temp_diff = abs(embedding[j, l] - embedding[n_time-1-i+j, l])
                 if temp_diff > diff:
                     diff = temp_diff
 
-            # check if R(j, n_time-q-i+j) == 1 -> recurrence
+            # if within line, increment length
             if diff < eps:
                 k += 1
+            # if end of line, count line and reset length
             elif k != 0:
                 diagline[k-1] += 1
                 k = 0
+
+        # count line and reset length at end of subdiagonal
+        if k != 0:
+            diagline[k-1] += 1
+            k = 0
 
 
 def _rejection_sampling(
@@ -666,26 +677,32 @@ def _vertline_dist_norqa_missingvalues(
         MASK_t missing_flag = False
 
     for i in range(n_time):
-        if (k != 0 and not missing_flag):
+        for j in range(n_time):
+            # check if current point in RP is a missing value
+            if mv_indices[i] or mv_indices[j]:
+                missing_flag = True
+                k = 0
+            # or if previous point was one, reset flag if not within line
+            elif recmat[i, j] == 0 and missing_flag:
+                missing_flag = False
+
+            # only count line if it does not contain,
+            # directly follow or is followed by a missing value
+            if not missing_flag:
+                # if within line, increment length
+                if recmat[i, j] != 0:
+                    k += 1
+                # if end of line, count line and reset length
+                elif k != 0:
+                    vertline[k-1] += 1
+                    k = 0
+
+        # count line and reset length at end of row
+        if k != 0 and not missing_flag:
             vertline[k-1] += 1
             k = 0
 
         missing_flag = False
-
-        for j in range(n_time):
-            # check if current point in RP belongs to a missing value
-            if mv_indices[i] or mv_indices[j]:
-                missing_flag = True
-                k = 0
-            elif recmat[i, j] == 0 and missing_flag:
-                missing_flag = False
-
-            if not missing_flag:
-                if recmat[i, j] != 0:
-                    k += 1
-                elif k != 0:
-                    vertline[k-1] += 1
-                    k = 0
 
 
 def _vertline_dist_norqa(
@@ -695,16 +712,19 @@ def _vertline_dist_norqa(
     cdef int i, j, k = 0
 
     for i in range(n_time):
-        if k != 0:
-            vertline[k-1] += 1
-            k = 0
-
         for j in range(n_time):
+            # if within line, increment length
             if recmat[i, j] != 0:
                 k += 1
+            # if end of line, count line and reset length
             elif k != 0:
                 vertline[k-1] += 1
                 k = 0
+
+        # count line and reset length at end of row
+        if k != 0:
+            vertline[k-1] += 1
+            k = 0
 
 
 def _vertline_dist_rqa_missingvalues(
@@ -718,36 +738,37 @@ def _vertline_dist_rqa_missingvalues(
         MASK_t missing_flag = False
 
     for i in range(n_time):
+        for j in range(n_time):
+            # Compute supremum distance between state vectors
+            diff = 0
+            for l in range(dim):
+                temp_diff = abs(embedding[i, l] - embedding[j, l])
+                if temp_diff > diff:
+                    diff = temp_diff
+
+            # Check if current point in RP is a missing value
+            if mv_indices[i] or mv_indices[j]:
+                missing_flag = True
+                k = 0
+            # or if previous point was one, reset flag if not within line
+            elif diff > eps and missing_flag:
+                missing_flag = True
+
+            if not missing_flag:
+                # if within line, increment length
+                if diff < eps:
+                    k += 1
+                # if end of line, count line and reset length
+                elif k != 0:
+                    vertline[k-1] += 1
+                    k = 0
+
+        # count line and reset length at end of row
         if k != 0 and not missing_flag:
             vertline[k-1] += 1
             k = 0
 
         missing_flag = False
-
-        for j in range(n_time):
-            # Compute supremum distance between state vectors
-            diff = 0
-            for l in range(dim):
-                # Use supremum norm
-                temp_diff = abs(embedding[i, l] - embedding[j, l])
-
-                if temp_diff > diff:
-                    diff = temp_diff
-
-            # Check if current point in RP belongs to a missing values
-            if mv_indices[i] or mv_indices[j]:
-                missing_flag = True
-                k = 0
-            elif diff > eps and missing_flag:
-                missing_flag = True
-
-            if not missing_flag:
-                # Check if recurrent point has been reached
-                if diff < eps:
-                    k += 1
-                elif k != 0:
-                    vertline[k-1] += 1
-                    k = 0
 
 
 def _vertline_dist_rqa(
@@ -759,26 +780,26 @@ def _vertline_dist_rqa(
         FIELD_t temp_diff, diff
 
     for i in range(n_time):
-        if k != 0:
-            vertline[k-1] += 1
-            k = 0
-
         for j in range(n_time):
             # Compute supremum distance between state vectors
             diff = 0
             for l in range(dim):
-                # Use supremum norm
                 temp_diff = abs(embedding[i, l] - embedding[j, l])
-
                 if temp_diff > diff:
                     diff = temp_diff
 
-            # Check if recurrent point has been reached
+            # if within line, increment length
             if diff < eps:
                 k += 1
+            # if end of line, count line and reset length
             elif k != 0:
                 vertline[k-1] += 1
                 k = 0
+
+        # count line and reset length at end of row
+        if k != 0:
+            vertline[k-1] += 1
+            k = 0
 
 
 def _white_vertline_dist(
@@ -788,16 +809,19 @@ def _white_vertline_dist(
     cdef int i, j, k = 0
 
     for i in range(n_time):
-        if k != 0:
-            white_vertline[k-1] += 1
-            k = 0
-
         for j in range(n_time):
+            # if within line, increment length
             if R[i, j] == 0:
                 k += 1
+            # if end of line, count line and reset length
             elif k != 0:
                 white_vertline[k-1] += 1
                 k = 0
+
+        # count line and reset length at end of row
+        if k != 0:
+            white_vertline[k-1] += 1
+            k = 0
 
 
 def _twins_r(
