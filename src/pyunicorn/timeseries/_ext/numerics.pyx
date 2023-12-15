@@ -510,7 +510,7 @@ def _bootstrap_distance_matrix_supremum(
             distances[i] = diff
 
 
-def _diagline_dist_norqa_missingvalues(
+def _diagline_dist_missingvalues(
     int n_time, ndarray[NODE_t, ndim=1] diagline,
     ndarray[LAG_t, ndim=2] recmat,
     ndarray[MASK_t, ndim=1, cast=True] mv_indices):
@@ -549,7 +549,7 @@ def _diagline_dist_norqa_missingvalues(
         missing_flag = False
 
 
-def _diagline_dist_norqa(
+def _diagline_dist(
     int n_time, ndarray[NODE_t, ndim=1] diagline,
     ndarray[LAG_t, ndim=2] recmat):
 
@@ -573,7 +573,7 @@ def _diagline_dist_norqa(
             k = 0
 
 
-def _diagline_dist_rqa_missingvalues(
+def _diagline_dist_sequential_missingvalues(
     int n_time, ndarray[NODE_t, ndim=1] diagline,
     ndarray[MASK_t, ndim=1, cast=True] mv_indices,
     ndarray[FIELD_t, ndim=2] embedding, float eps, int dim):
@@ -620,7 +620,7 @@ def _diagline_dist_rqa_missingvalues(
         missing_flag = False
 
 
-def _diagline_dist_rqa(
+def _diagline_dist_sequential(
     int n_time, ndarray[NODE_t, ndim=1] diagline,
     ndarray[FIELD_t, ndim=2] embedding, float eps, int dim):
 
@@ -667,7 +667,7 @@ def _rejection_sampling(
             i += 1
 
 
-def _vertline_dist_norqa_missingvalues(
+def _vertline_dist_missingvalues(
     int n_time, ndarray[NODE_t, ndim=1] vertline,
     ndarray[LAG_t, ndim=2] recmat,
     ndarray[MASK_t, ndim=1, cast=True] mv_indices):
@@ -705,7 +705,7 @@ def _vertline_dist_norqa_missingvalues(
         missing_flag = False
 
 
-def _vertline_dist_norqa(
+def _vertline_dist(
     int n_time, ndarray[NODE_t, ndim=1] vertline,
     ndarray[LAG_t, ndim=2] recmat):
 
@@ -727,7 +727,7 @@ def _vertline_dist_norqa(
             k = 0
 
 
-def _vertline_dist_rqa_missingvalues(
+def _vertline_dist_sequential_missingvalues(
     int n_time, ndarray[NODE_t, ndim=1] vertline,
     ndarray[MASK_t, ndim=1, cast=True] mv_indices,
     ndarray[FIELD_t, ndim=2] embedding, float eps, int dim):
@@ -771,7 +771,7 @@ def _vertline_dist_rqa_missingvalues(
         missing_flag = False
 
 
-def _vertline_dist_rqa(
+def _vertline_dist_sequential(
     int n_time, ndarray[NODE_t, ndim=1] vertline,
     ndarray[FIELD_t, ndim=2] embedding, float eps, int dim):
 

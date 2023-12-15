@@ -22,6 +22,7 @@ from math import factorial
 
 # array object and fast numerics
 import numpy as np
+from numpy.typing import NDArray
 
 # Cython inline code
 from ..core._ext.types import to_cy, NODE, LAG, FIELD, DFIELD
@@ -30,10 +31,10 @@ from ._ext.numerics import _embed_time_series, _manhattan_distance_matrix_rp, \
     _set_adaptive_neighborhood_size, _bootstrap_distance_matrix_manhattan, \
     _bootstrap_distance_matrix_euclidean, \
     _bootstrap_distance_matrix_supremum, \
-    _diagline_dist_norqa_missingvalues, _diagline_dist_norqa, \
-    _diagline_dist_rqa_missingvalues, _diagline_dist_rqa, \
-    _vertline_dist_norqa_missingvalues, _vertline_dist_norqa, \
-    _vertline_dist_rqa_missingvalues, _vertline_dist_rqa, \
+    _diagline_dist_missingvalues, _diagline_dist, \
+    _diagline_dist_sequential_missingvalues, _diagline_dist_sequential, \
+    _vertline_dist_missingvalues, _vertline_dist, \
+    _vertline_dist_sequential_missingvalues, _vertline_dist_sequential, \
     _rejection_sampling, _white_vertline_dist, _twins_r, _twin_surrogates_r
 
 
@@ -82,9 +83,10 @@ class RecurrencePlot:
     #  Internal methods
     #
 
-    def __init__(self, time_series, metric="supremum", normalize=False,
-                 missing_values=False, sparse_rqa=False, silence_level=0,
-                 **kwds):
+    def __init__(self, time_series: NDArray, metric: str = "supremum",
+                 normalize: bool = False, missing_values: bool = False,
+                 sparse_rqa: bool = False, silence_level: int = 0,
+                 **kwargs):
         """
         Initialize an instance of RecurrencePlot.
 
@@ -162,9 +164,9 @@ class RecurrencePlot:
         if normalize:
             self.normalize_time_series(self.time_series)
 
-        #  Get embedding dimension and delay from **kwds
-        self.dim = kwds.get("dim")
-        self.tau = kwds.get("tau")
+        #  Get embedding dimension and delay from **kwargs
+        self.dim = kwargs.get("dim")
+        self.tau = kwargs.get("tau")
 
         if self.dim is not None and self.tau is not None:
             #  Embed the time series
@@ -184,15 +186,15 @@ class RecurrencePlot:
             self.missing_value_indices = \
                 np.isnan(self.embedding).sum(axis=1) != 0
 
-        #  Get threshold or recurrence rate from **kwds, construct recurrence
+        #  Get threshold or recurrence rate from **kwargs, construct recurrence
         #  plot accordingly
-        self.threshold = kwds.get("threshold")
-        self.threshold_std = kwds.get("threshold_std")
+        self.threshold = kwargs.get("threshold")
+        self.threshold_std = kwargs.get("threshold_std")
         #  Make sure not to overwrite the method recurrence_rate()
-        recurrence_rate = kwds.get("recurrence_rate")
-        self.local_recurrence_rate = kwds.get("local_recurrence_rate")
+        recurrence_rate = kwargs.get("recurrence_rate")
+        self.local_recurrence_rate = kwargs.get("local_recurrence_rate")
         self.adaptive_neighborhood_size = \
-            kwds.get("adaptive_neighborhood_size")
+            kwargs.get("adaptive_neighborhood_size")
 
         #  Initialize cache
         self._distance_matrix_cached = False
@@ -204,7 +206,7 @@ class RecurrencePlot:
 
         #  Precompute recurrence matrix only if sequential RQA is switched off,
         #  and not calling from child class with respective overriding methods.
-        skip_recurrence = kwds.get("skip_recurrence")
+        skip_recurrence = kwargs.get("skip_recurrence")
 
         if not sparse_rqa and not skip_recurrence:
             if self.threshold is not None:
@@ -950,13 +952,13 @@ class RecurrencePlot:
 
                 if self.missing_values:
                     mv_indices = self.missing_value_indices
-                    _diagline_dist_norqa_missingvalues(n_time, diagline,
-                                                       recmat, mv_indices)
+                    _diagline_dist_missingvalues(
+                        n_time, diagline, recmat, mv_indices)
                 else:
-                    _diagline_dist_norqa(n_time, diagline, recmat)
+                    _diagline_dist(n_time, diagline, recmat)
 
             #  Calculations for sequential RQA
-            elif self.sparse_rqa and self.metric == "supremum":
+            elif self.metric == "supremum" and self.threshold:
                 #  Get embedding
                 embedding = self.embedding
                 #  Get time series dimension
@@ -966,11 +968,16 @@ class RecurrencePlot:
 
                 if self.missing_values:
                     mv_indices = self.missing_value_indices
-                    _diagline_dist_rqa_missingvalues(n_time, diagline,
-                                                     mv_indices, embedding,
-                                                     eps, dim)
+                    _diagline_dist_sequential_missingvalues(
+                        n_time, diagline, mv_indices, embedding, eps, dim)
                 else:
-                    _diagline_dist_rqa(n_time, diagline, embedding, eps, dim)
+                    _diagline_dist_sequential(
+                        n_time, diagline, embedding, eps, dim)
+
+            else:
+                raise NotImplementedError(
+                    "Sequential RQA is currently only available for "
+                    "fixed threshold and the supremum metric.")
 
             #  Function just runs over the upper triangular matrix
             self._diagline_dist = 2*diagline
@@ -1180,13 +1187,13 @@ class RecurrencePlot:
 
                 if self.missing_values:
                     mv_indices = self.missing_value_indices
-                    _vertline_dist_norqa_missingvalues(n_time, vertline,
-                                                       recmat, mv_indices)
+                    _vertline_dist_missingvalues(
+                        n_time, vertline, recmat, mv_indices)
                 else:
-                    _vertline_dist_norqa(n_time, vertline, recmat)
+                    _vertline_dist(n_time, vertline, recmat)
 
             #  Calculations for sequential RQA
-            elif self.sparse_rqa and self.metric == "supremum":
+            elif self.metric == "supremum" and self.threshold:
                 #  Get embedding
                 embedding = self.embedding
                 #  Get time series dimension
@@ -1196,12 +1203,17 @@ class RecurrencePlot:
 
                 if self.missing_values:
                     mv_indices = self.missing_value_indices
-                    _vertline_dist_rqa_missingvalues(n_time, vertline,
-                                                     mv_indices, embedding,
-                                                     eps, dim)
+                    _vertline_dist_sequential_missingvalues(
+                        n_time, vertline, mv_indices, embedding, eps, dim)
 
                 else:
-                    _vertline_dist_rqa(n_time, vertline, embedding, eps, dim)
+                    _vertline_dist_sequential(
+                        n_time, vertline, embedding, eps, dim)
+
+            else:
+                raise NotImplementedError(
+                    "Sequential RQA is currently only available for "
+                    "fixed threshold and the supremum metric.")
 
             #  Function covers the whole recurrence matrix
             self._vertline_dist = vertline
