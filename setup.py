@@ -25,11 +25,9 @@ import numpy as np
 win = system() == 'Windows'
 c_args = {
     'include_dirs': [np.get_include()],
-    'extra_compile_args': ['-D_GNU_SOURCE'] + (
-        ['/O2']
-        if win else
-        ['-O3', '-std=c99', '-Wall', '-Wconversion']),
-    'define_macros': [('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION')]}
+    'extra_compile_args': ['/O2'] if win else ['-O3', '-std=c99', '-Wall'],
+    'define_macros': [('_GNU_SOURCE', None),
+                      ('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION')]}
 cy_args = {
     'language_level': '3str', 'embedsignature': True,
     'boundscheck': True, 'wraparound': False,
