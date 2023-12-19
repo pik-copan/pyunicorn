@@ -22,25 +22,168 @@ import pytest
 import numpy as np
 
 from pyunicorn.core import Data
-from pyunicorn.core._ext.types import NODE, DFIELD
+from pyunicorn.core._ext.types import NODE, ADJ, DFIELD
 from pyunicorn.timeseries import RecurrencePlot
 
 
+# -----------------------------------------------------------------------------
+# test RecurrencePlot instantiation
+# -----------------------------------------------------------------------------
+
+# test non-default metrics
+
+def test_RP_euclidean():
+    x = Data.SmallTestData().observable()
+    RP = RecurrencePlot(x[:, :-3], threshold=1.2, metric='euclidean')
+    res = RP.recurrence_matrix()
+    assert res.dtype == ADJ
+    exp = np.array([
+        [1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 1, 1, 0, 0, 0, 0],
+        [0, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+        [0, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+        [0, 0, 1, 1, 1, 1, 1, 1, 1, 0],
+        [0, 0, 0, 1, 1, 1, 1, 1, 1, 1],
+        [0, 0, 0, 1, 1, 1, 1, 1, 1, 1],
+        [0, 0, 0, 0, 0, 1, 1, 1, 1, 1],
+        [0, 0, 0, 0, 0, 0, 1, 1, 1, 1]
+    ])
+    assert np.array_equal(res, exp)
+
+
+def test_RP_manhattan():
+    x = Data.SmallTestData().observable()
+    RP = RecurrencePlot(x, threshold=3.5, metric='manhattan')
+    res = RP.recurrence_matrix()
+    assert res.dtype == ADJ
+    exp = np.array([
+        [1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+        [0, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+        [0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+        [0, 0, 0, 1, 1, 1, 1, 1, 0, 0],
+        [0, 0, 0, 1, 1, 1, 1, 1, 1, 0],
+        [0, 0, 0, 0, 1, 1, 1, 1, 1, 1],
+        [0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
+        [0, 0, 0, 0, 0, 0, 0, 1, 1, 1]
+    ])
+    assert np.array_equal(res, exp)
+
+
+# test thresholding variations
+
+def test_RP_threshold_std():
+    x = Data.SmallTestData().observable()
+    RP = RecurrencePlot(x, threshold_std=.8)
+    res = RP.recurrence_matrix()
+    assert res.dtype == ADJ
+    exp = np.array([
+        [1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+        [0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+        [0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+        [0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 1, 1, 0, 0, 0],
+        [0, 0, 0, 0, 0, 1, 1, 1, 1, 0],
+        [0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
+        [0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
+        [0, 0, 0, 0, 0, 0, 0, 1, 1, 1]
+    ])
+    assert np.array_equal(res, exp)
+
+
+def test_RP_recurrence_rate():
+    x = Data.SmallTestData().observable()
+    RP = RecurrencePlot(x, recurrence_rate=.4)
+    res = RP.recurrence_matrix()
+    assert res.dtype == ADJ
+    exp = np.array([
+        [1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+        [0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+        [0, 1, 1, 1, 1, 1, 0, 0, 0, 0],
+        [0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
+        [0, 0, 0, 1, 1, 1, 1, 0, 0, 0],
+        [0, 0, 0, 0, 0, 1, 1, 1, 1, 0],
+        [0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
+        [0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
+        [0, 0, 0, 0, 0, 0, 0, 1, 1, 1]
+    ])
+    assert np.array_equal(res, exp)
+
+
+def test_RP_local_recurrence_rate():
+    x = Data.SmallTestData().observable()
+    RP = RecurrencePlot(x, local_recurrence_rate=.6)
+    res = RP.recurrence_matrix()
+    assert res.dtype == ADJ
+    exp = np.array([
+        [1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+        [0, 1, 1, 1, 1, 1, 0, 0, 0, 0],
+        [0, 0, 1, 1, 1, 1, 1, 0, 0, 0],
+        [0, 0, 0, 1, 1, 1, 1, 1, 0, 0],
+        [0, 0, 0, 0, 1, 1, 1, 1, 1, 0],
+        [0, 0, 0, 0, 0, 1, 1, 1, 1, 1],
+        [0, 0, 0, 0, 0, 1, 1, 1, 1, 1],
+        [0, 0, 0, 0, 0, 1, 1, 1, 1, 1]
+    ])
+    assert np.array_equal(res, exp)
+
+
+# -----------------------------------------------------------------------------
+# prepare fixtures
+# -----------------------------------------------------------------------------
+
+
 @pytest.fixture(scope="module", name="recurrence_crit", ids=str,
-                params=list(chain(product(np.arange(0, 2.1, .5), [None]),
-                                  product([None], np.arange(0, 1.1, .2)))))
+                params=list(chain(product(np.arange(0, 1.7, .8), [None]),
+                                  product([None], np.arange(0, 1.1, .4)))))
 def recurrence_crit_fixture(request):
     threshold, rate = request.param
     assert np.sum([threshold is None, rate is None]) == 1
     return request.param
 
 
+# RP fixture, parametrized to cover various settings
 @pytest.fixture(scope="module", name="small_RP")
 def small_RP_fixture(metric, recurrence_crit):
     x = Data.SmallTestData().observable()
     threshold, rate = recurrence_crit
     return RecurrencePlot(
         x, threshold=threshold, recurrence_rate=rate, metric=metric)
+
+
+# RP fixture with single basic setting to test numerical results
+@pytest.fixture(scope="module", name="small_RP_basic")
+def small_RP_basic_fixture():
+    x = Data.SmallTestData().observable()
+    RP = RecurrencePlot(x, threshold=.8, metric='supremum')
+    res = RP.recurrence_matrix()
+    assert res.dtype == ADJ
+    exp = np.array([
+        [1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+        [0, 1, 1, 1, 1, 1, 0, 0, 0, 0],
+        [0, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+        [0, 0, 0, 1, 1, 1, 1, 1, 0, 0],
+        [0, 0, 0, 0, 1, 1, 1, 1, 1, 1],
+        [0, 0, 0, 0, 0, 1, 1, 1, 1, 1],
+        [0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
+        [0, 0, 0, 0, 0, 0, 1, 1, 1, 1]
+    ])
+    assert np.array_equal(res, exp)
+
+    return RP
+
+
+# -----------------------------------------------------------------------------
+# test RecurrencePlot RQA
+# -----------------------------------------------------------------------------
 
 
 @pytest.mark.parametrize("measure", ["diagline", "vertline", "white_vertline"])
@@ -56,6 +199,62 @@ def test_rqa_summary(small_RP):
     measures = ['RR', 'DET', 'L', 'LAM']
     assert all(res[m].dtype == DFIELD for m in measures)
 
+
+def test_rqa_summary_numeric(small_RP_basic):
+    res = small_RP_basic.rqa_summary()
+    measures = ['RR', 'DET', 'L', 'LAM']
+    exp = {
+        'RR': 0.48, 'DET': 0.8947368418698061,
+        'L': 8.499999978750001, 'LAM': 0.9999999997916666
+    }
+    assert all(np.isclose(res[m], exp[m]) for m in measures)
+
+
+def test_diagline_dist_numeric(small_RP_basic):
+    res = small_RP_basic.diagline_dist()
+    assert res.dtype == NODE
+    exp = np.array([4, 0, 0, 0, 0, 0, 0, 2, 2, 0])
+    assert np.array_equal(res, exp)
+
+
+def test_vertline_dist_numeric(small_RP_basic):
+    res = small_RP_basic.vertline_dist()
+    assert res.dtype == NODE
+    exp = np.array([0, 0, 1, 2, 5, 2, 0, 0, 0, 0])
+    assert np.array_equal(res, exp)
+
+
+def test_white_vertline_dist_numeric(small_RP_basic):
+    res = small_RP_basic.white_vertline_dist()
+    assert res.dtype == NODE
+    exp = np.array([2, 1, 2, 2, 3, 2, 1, 0, 0, 0])
+    assert np.array_equal(res, exp)
+
+
+def test_dist_edgecases():
+    x = Data.SmallTestData().observable()
+
+    RP = RecurrencePlot(x, threshold=0.)
+    assert RP.max_diaglength() == 0
+    assert RP.max_vertlength() == 0
+    assert RP.max_white_vertlength() == RP.N
+
+    RP = RecurrencePlot(x, threshold=2.)
+    assert RP.max_diaglength() == (RP.N - 1)
+    assert RP.max_vertlength() == RP.N
+    assert RP.max_white_vertlength() == 0
+
+
+@pytest.mark.parametrize('measure', ['diagline', 'vertline'])
+@pytest.mark.parametrize('M', np.arange(5, 90, 40).tolist())
+def test_resample_dist(measure: str, M: int, small_RP):
+    res = getattr(small_RP, f"resample_{measure}_dist")(M)
+    assert res.dtype == NODE
+    assert res.shape[0] == small_RP.N
+    assert (0 <= res).all()
+
+
+# test entropy
 
 @pytest.mark.parametrize(
     "ts, measure, value",

@@ -18,4 +18,8 @@ import pytest
 @pytest.fixture(scope="session",
                 params=["supremum", "euclidean", "manhattan"])
 def metric(request):
+    '''
+    A fixture for creating parametrized fixtures of classes that have a
+    `metric` argument, as in `RecurrencePlot` and its child classes.
+    '''
     return request.param
