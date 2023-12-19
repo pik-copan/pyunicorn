@@ -1003,10 +1003,10 @@ class RecurrencePlot:
         N = len(dist)
 
         #  Prepare
-        resampled_dist = np.zeros(N, dtype=FIELD)
+        resampled_dist = np.zeros(N, dtype=NODE)
 
         #  Prescribed distribution
-        dist = to_cy(dist, FIELD)
+        dist = to_cy(dist, DFIELD)
         #  Normalize distribution
         dist /= dist.sum()
 
@@ -1036,9 +1036,12 @@ class RecurrencePlot:
         L_max = self.max_diaglength()
 
         #  Get resampled distribution
-        resampled_dist = np.zeros(len(diagline))
-        resampled_dist[:L_max] = RecurrencePlot.\
-            rejection_sampling(diagline[:L_max], M)
+        if L_max == 0:
+            resampled_dist = diagline
+        else:
+            resampled_dist = np.zeros(len(diagline), dtype=NODE)
+            resampled_dist[:L_max] = RecurrencePlot.\
+                rejection_sampling(diagline[:L_max], M)
 
         return resampled_dist
 
@@ -1054,7 +1057,7 @@ class RecurrencePlot:
         """
         diagline = self.diagline_dist()
         n_time = self.N
-        lmax = 1
+        lmax = 0
 
         for i in range(1, n_time+1):
             if diagline[i-1] != 0:
@@ -1244,9 +1247,12 @@ class RecurrencePlot:
         L_max = self.max_vertlength()
 
         #  Get resampled distribution
-        resampled_dist = np.zeros(len(vertline))
-        resampled_dist[:L_max] = RecurrencePlot.\
-            rejection_sampling(vertline[:L_max], M)
+        if L_max == 0:
+            resampled_dist = vertline
+        else:
+            resampled_dist = np.zeros(len(vertline), dtype=NODE)
+            resampled_dist[:L_max] = RecurrencePlot.\
+                rejection_sampling(vertline[:L_max], M)
 
         return resampled_dist
 
@@ -1262,7 +1268,7 @@ class RecurrencePlot:
         """
         vertline = self.vertline_dist()
         n_time = self.N
-        vmax = 1
+        vmax = 0
 
         for v in range(1, n_time+1):
             if vertline[v-1] != 0:
@@ -1412,7 +1418,7 @@ class RecurrencePlot:
         """
         white_vertline = self.white_vertline_dist()
         n_times = self.N
-        wmax = 1
+        wmax = 0
 
         for w in range(1, n_times+1):
             if white_vertline[w-1] != 0:

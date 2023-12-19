@@ -654,7 +654,7 @@ def _diagline_dist_sequential(
 
 def _rejection_sampling(
     ndarray[DFIELD_t, ndim=1] dist,
-    ndarray[DFIELD_t, ndim=1] resampled_dist, int N, int M):
+    ndarray[NODE_t, ndim=1] resampled_dist, int N, int M):
 
     cdef:
         int i = 0, x
@@ -663,7 +663,7 @@ def _rejection_sampling(
         x = int(floor(random.random() * N))
 
         if (random.random() < dist[x]):
-            resampled_dist[x] += <FIELD_t> 1
+            resampled_dist[x] += <NODE_t> 1
             i += 1
 
 
