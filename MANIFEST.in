@@ -7,4 +7,3 @@ graft docs/source
 recursive-include examples *.py
 
 recursive-include tests *.py
-include pylintrc
