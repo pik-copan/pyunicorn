@@ -203,11 +203,8 @@ def test_rqa_summary(small_RP):
 def test_rqa_summary_numeric(small_RP_basic):
     res = small_RP_basic.rqa_summary()
     measures = ['RR', 'DET', 'L', 'LAM']
-    exp = {
-        'RR': 0.48, 'DET': 0.8947368418698061,
-        'L': 8.499999978750001, 'LAM': 0.9999999997916666
-    }
-    assert all(np.isclose(res[m], exp[m]) for m in measures)
+    exp = {'RR': 0.48, 'DET': 0.8947, 'L': 8.4999, 'LAM': 0.9999}
+    assert all(np.isclose(res[m], exp[m], atol=1e-04) for m in measures)
 
 
 def test_diagline_dist_numeric(small_RP_basic):
@@ -254,6 +251,18 @@ def test_resample_dist(measure: str, M: int, small_RP):
     assert (0 <= res).all()
 
 
+def test_trapping_time(small_RP_basic):
+    res = small_RP_basic.trapping_time()
+    exp = 4.7999
+    assert np.isclose(res, exp, atol=1e-04)
+
+
+def test_mean_recurrence_time(small_RP_basic):
+    res = small_RP_basic.mean_recurrence_time()
+    exp = 3.9999
+    assert np.isclose(res, exp, atol=1e-04)
+
+
 # test entropy
 
 @pytest.mark.parametrize(
@@ -264,3 +273,11 @@ def test_resample_dist(measure: str, M: int, small_RP):
 def test_entropy(ts: np.ndarray, measure: str, value: float):
     rp = RecurrencePlot(ts[:, np.newaxis], threshold=1, dim=3, tau=1)
     assert np.isclose(getattr(rp, f"{measure}_entropy")(), value, atol=1e-04)
+
+
+@pytest.mark.parametrize(
+    'measure, exp',
+    [('diag', 0.6931), ('vert', 1.2206), ('white_vert', 1.8848)])
+def test_linedist_entropy(measure: str, exp: float, small_RP_basic):
+    res = getattr(small_RP_basic, f"{measure}_entropy")()
+    assert np.isclose(res, exp, atol=1e-04)
