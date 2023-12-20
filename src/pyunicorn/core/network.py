@@ -17,19 +17,9 @@ Provides classes for analyzing spatially embedded complex networks, handling
 multivariate data and generating time series surrogates.
 """
 
-# general TODO:
-# - find segfault problem in a.w. shortest path betweenness
-# - rename aw... to nsi... (node splitting invariant)
-# - add `typical_weight` argument in all nsi measures
-#   to implement calculation of "corrected" nsi measures(see paper)
-# - implement Newman modularity and iterative division
-# - treat type-related ambiguities more thoroughly
-#   (flatten(), list(...), astype(...) etc.)
-
 #
 #  Import essential packages
 #
-
 
 import sys                          # performance testing
 import time
@@ -1381,7 +1371,6 @@ class Network:
         """
         return nz_coords(self.sp_A)
 
-    # TODO: deprecate this and rather use undirected_copy()
     def undirected_adjacency(self):
         """
         Return the adjacency matrix of the undirected version of the network
@@ -1554,12 +1543,7 @@ class Network:
         :type values: 1D Numpy array [node]
         :arg values: The node attribute sequence.
         """
-        # TODO: add example
-
-        #  Test whether the data vector has the same length as the number of
-        #  nodes in the graph.
         if len(values) == self.N:
-            #  Add node property to igraph Graph object
             self.graph.vs.set_attribute_values(attrname=attribute_name,
                                                values=values)
         else:
@@ -1578,7 +1562,6 @@ class Network:
         :rtype: 1D Numpy array [node]
         :return: The node attribute sequence.
         """
-        # TODO: add example
         return np.array(self.graph.vs.get_attribute_values(attribute_name))
 
     def del_node_attribute(self, attribute_name):
@@ -1587,14 +1570,11 @@ class Network:
 
         :arg str attribute_name: Name of node attribute to be deleted.
         """
-        # TODO: add example
         del self.graph.vs[attribute_name]
 
     #
     #  Methods working with link attributes
     #
-
-    # TODO: verify whether return types are list or numpy array
 
     def average_link_attribute(self, attribute_name):
         """
@@ -1605,7 +1585,6 @@ class Network:
 
         :rtype: 1d numpy array [node] of floats
         """
-        # TODO: add example
         return self.link_attribute(attribute_name).mean(axis=1)
 
     def link_attribute(self, attribute_name):
@@ -1617,8 +1596,6 @@ class Network:
         :rtype:  square numpy array [node,node]
         :return: Entry [i,j] is the attribute of the link from i to j.
         """
-        # TODO: add example
-        # TODO: test this for directed graphs
         #  Initialize weights array
         weights = np.zeros((self.N, self.N))
 
@@ -1648,7 +1625,6 @@ class Network:
 
         :arg str attribute_name: name of link attribute to be deleted
         """
-        # TODO: add example
         if attribute_name in self.cache['paths']:
             self.clear_link_attribute(attribute_name)
             del self.graph.es[attribute_name]
@@ -1670,9 +1646,6 @@ class Network:
         :type values: square numpy array [node,node]
         :arg  values: Entry [i,j] is the attribute of the link from i to j.
         """
-        # TODO: add example and sparse version
-        # TODO: test this for directed graphs
-        #  Set link attribute in igraph
         for e in self.graph.es:
             e[attribute_name] = values[e.tuple]
 
@@ -1704,7 +1677,6 @@ class Network:
         else:
             return self.outdegree(key)
 
-    # TODO: use directed example here and elsewhere
     @cached_var('indegree')
     def indegree(self, key=None):
         """
@@ -3364,36 +3336,6 @@ class Network:
             betw_w = worker(to_cy(targets, NODE))
         return betw_w / w
 
-    def _eigenvector_centrality_slow(self, link_attribute=None):
-        """
-        For each node, return its (weighted) eigenvector centrality.
-
-        This is the load on this node from the eigenvector corresponding to the
-        largest eigenvalue of the (weighted) adjacency matrix, normalized to a
-        maximum of 1.
-
-        :arg str link_attribute: Optional name of the link attribute to be used
-            as the links' weight. If None, links have weight 1. (Default: None)
-        :rtype: 1d numpy array [node] of floats
-        """
-        if link_attribute == "topological":
-            print("WARNING: link_attribute='topological' is deprecated.\n"
-                  + "Use link_attribute=None instead.")
-            link_attribute = None
-
-        if link_attribute is None:
-            if self.silence_level <= 1:
-                print("Calculating topological eigenvector centrality...")
-
-            return np.array(self.graph.eigenvector_centrality(weights=None))
-        else:
-            if self.silence_level <= 1:
-                print("Calculating weighted eigenvector centrality...")
-
-            return np.array(self.graph.eigenvector_centrality(
-                weights=link_attribute))
-
-    # faster version of the above:
     @cached_const('base', 'ev centrality', 'eigenvector centrality')
     def eigenvector_centrality(self):
         """
@@ -3509,7 +3451,7 @@ class Network:
             as the links' length. If None, links have length 1. (Default: None)
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
-        # TODO: check and describe behaviour for unconnected networks.
+        # TODO: check and describe behaviour for unconnected networks
         if link_attribute == "topological":
             print("WARNING: link_attribute='topological' is deprecated.\n"
                   + "Use link_attribute=None instead.")
@@ -3738,92 +3680,6 @@ class Network:
             print("...took", time.time()-t0, "seconds")
 
         return arenas_betweenness
-
-    # TODO: remove this slow version after regression test:
-    def _arenas_betweenness_slow(self):
-        print("WARNING: _arenas_betweenness_slow() is deprecated!")
-
-        t0 = time.time()
-
-        #  Initialize the array to hold random walk betweenness
-        awRandomWalkBetweenness = np.zeros(self.N)
-
-        #  Random walk betweenness has to be calculated for each component
-        #  separately. Therefore get different components of the graph first
-        components = self.graph.connected_components()
-
-        #  Print giant component size
-        if self.silence_level <= 1:
-            print("   (giant component size: "
-                  + str(components.giant().vcount()) + " ("
-                  + str(components.giant().vcount()
-                        / float(self.graph.vcount())) + "))")
-
-        for i, comp in enumerate(components):
-            #  If the component has size 1, set random walk betweenness to zero
-            if len(comp) == 1:
-                awRandomWalkBetweenness[comp[0]] = 0
-            #  For larger components, continue with the calculation
-            else:
-                #  Get the subgraph corresponding to component i
-                subgraph = components.subgraph(i)
-
-                #  Get the subgraph adjacency matrix
-                adjacency = np.array(subgraph.get_adjacency(type=2).data)
-
-                #  Get the list of vertex numbers in the subgraph
-                vertexList = comp
-
-                # Extract corresponding area weight vector:
-                aw = np.zeros(len(vertexList))
-                for j, vs in enumerate(vertexList):
-                    aw[j] = self.node_weights[vs]
-
-                #  Generate a Network object representing the subgraph
-                subnetwork = Network(adjacency, directed=False)
-
-                #  Get the number of nodes of the subgraph (the component size)
-                nNodes = subnetwork.N
-
-                #  Initialize the RWB array
-                rwb = np.zeros(nNodes)
-
-                #  Get the subnetworks degree sequence
-                awDegreeSequence = subnetwork.nsi_degree()
-
-                #  Clean up
-                del subgraph, subnetwork
-
-                #  Get the pMatrix that is modified and inverted
-                Identity = np.identity(nNodes)
-                Ap = adjacency + Identity
-                pMatrix = np.diag(1/awDegreeSequence).dot(Ap).dot(np.diag(aw))
-
-                for k in range(nNodes):
-                    #  For k and each neighbour of it, set the corresponding
-                    #  row of the pMatrix to zero to account for the absorption
-                    #  of random walkers at their destination
-                    mask = 1-Ap[k, :]
-                    pMk = pMatrix*(mask.reshape((nNodes, 1)))
-
-                    #  Calculate the b^k matrix
-                    bMatrix = np.dot(np.linalg.inv(Identity-pMk), pMk)
-
-                    #  Perform the summation over source node i
-                    rwb += aw[k] * np.dot(aw.reshape((1, self.N)),
-                                          bMatrix).flatten() * mask
-
-                rwb /= aw
-
-                #  Copy results into randomWalkBetweennessArray at the correct
-                #  positions
-                for j, vs in enumerate(vertexList):
-                    awRandomWalkBetweenness[vs] = rwb[j]
-
-        if self.silence_level <= 1:
-            print("...took", time.time()-t0, "seconds")
-
-        return awRandomWalkBetweenness
 
     # parallelized main loop
     @staticmethod
@@ -4407,7 +4263,6 @@ class Network:
 
         :rtype: float
         """
-        # TODO: check results of examples!
         w = self.node_weights
         #  Set path lengths on diagonal to 1
         nsi_dist = self.path_lengths() + np.identity(self.N)
