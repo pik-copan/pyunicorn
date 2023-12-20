@@ -1689,7 +1689,7 @@ class Network:
         """
         Return list of degrees.
 
-        If a link attribute key is specified, return the associated strength
+        If a link attribute key is specified, return the associated strength.
 
         **Example:**
 
@@ -1710,7 +1710,8 @@ class Network:
         """
         Return list of in-degrees.
 
-        If a link attribute key is specified, return the associated in strength
+        If a link attribute key is specified, return the associated
+        in-strength.
 
         **Example:**
 
@@ -1730,8 +1731,8 @@ class Network:
         """
         Return list of out-degrees.
 
-        If a link attribute key is specified, return the associated out
-        strength
+        If a link attribute key is specified, return the associated
+        out-strength.
 
         **Example:**
 
@@ -1753,7 +1754,7 @@ class Network:
         and out-going edges.
 
         If a link attribute key is specified, return the associated bilateral
-        strength
+        strength.
 
         **Exmaple:**
 
@@ -1779,13 +1780,13 @@ class Network:
         return sp.diags([np.power(self.nsi_degree(), -1)], [0],
                         shape=(self.N, self.N), format='csc')
 
+#    @cached_var('nsi_degree')
     def nsi_degree(self, key=None, typical_weight=None):
         """
         For each node, return its uncorrected or corrected n.s.i. degree.
 
-        If a link attribute key is specified, return the associated nsi
-        strength
-
+        If a link attribute key is specified, return the associated n.s.i.
+        strength.
 
         **Examples:**
 
@@ -1811,6 +1812,7 @@ class Network:
         array([4, 3, 2, 2, 3, 2, 2])
 
         :arg str key: link attribute key (optional)
+        :type typical_weight: float > 0
         :arg float typical_weight: Optional typical node weight to be used for
             correction. If None, the uncorrected measure is
             returned. (Default: None)
@@ -1834,10 +1836,10 @@ class Network:
 #    @cached_var('nsi_indegree')
     def nsi_indegree(self, key=None, typical_weight=None):
         """
-        For each node, return its n.s.i. indegree
+        For each node, return its n.s.i. indegree.
 
-        If a link attribute key is specified, return the associated nsi in
-        strength
+        If a link attribute key is specified, return the associated n.s.i.
+        in-strength.
 
         **Examples:**
 
@@ -1866,8 +1868,7 @@ class Network:
         if key is None:
             res = self.node_weights * self.sp_Aplus()
         else:
-            w = self.link_attribute(key)
-            res = (self.node_weights @ w).squeeze()
+            res = (self.node_weights @ self.link_attribute(key)).squeeze()
         if typical_weight is None:
             return res
         else:
@@ -1876,10 +1877,10 @@ class Network:
 #    @cached_var('nsi_outdegree')
     def nsi_outdegree(self, key=None, typical_weight=None):
         """
-        For each node, return its n.s.i.outdegree
+        For each node, return its n.s.i. outdegree.
 
-        If a link attribute key is specified, return the associated nsi out
-        strength
+        If a link attribute key is specified, return the associated n.s.i.
+        out-strength.
 
         **Examples:**
 
@@ -1908,20 +1909,19 @@ class Network:
         if key is None:
             res = self.sp_Aplus() * self.node_weights
         else:
-            w = self.link_attribute(key)
-            res = (w @ self.node_weights.transpose()).transpose().squeeze()
+            res = (self.link_attribute(key) @ self.node_weights).squeeze()
         if typical_weight is None:
             return res
         else:
             return res/typical_weight - 1.0
 
-#    @cached_var('nsi_outdegree')
+#    @cached_var('nsi_bildegree')
     def nsi_bildegree(self, key=None, typical_weight=None):
         """
-        For each node, return its n.s.i.bilateraldegree
+        For each node, return its n.s.i. bilateral degree.
 
-        If a link attribute key is specified, return the associated
-        nsi bilateral strength
+        If a link attribute key is specified, return the associated n.s.i.
+        bilateral strength.
 
         :arg str key: link attribute key [optional]
         :type typical_weight: float > 0
@@ -1932,8 +1932,8 @@ class Network:
         :rtype: array([float])
         """
         assert key is None, "nsi_bildegree is not implemented with key yet"
-        res = (self.sp_Aplus()
-               * sp.diags(self.node_weights) * self.sp_Aplus()).diagonal()
+        Ap = self.sp_Aplus()
+        res = (Ap * sp.diags(self.node_weights) * Ap).diagonal()
         if typical_weight is None:
             return res
         else:
@@ -2257,6 +2257,7 @@ class Network:
         :arg 1d numpy array [node]: denominator made out of (in/out/bil)degrees
         :arg str key: link attribute key (optional)
         :arg bool nsi: flag for nsi calculation (default: False)
+        :type typical_weight: float > 0
         :arg float typical_weight: Optional typical node weight to be used for
             correction. If None, the uncorrected measure is
             returned. (Default: None)
@@ -2411,6 +2412,7 @@ class Network:
         array([ 0.3333,  0.125 ,  0.    ,  0.    ,  0.5   ,  0.    ,  0.125 ])
 
         :arg str key: link attribute key (optional)
+        :type typical_weight: float > 0
         :arg float typical_weight: Optional typical node weight to be used for
             correction. If None, the uncorrected measure is
             returned. (Default: None)
@@ -2458,6 +2460,7 @@ class Network:
         array([ 0. ,  0. ,  0. ,  1. ,  0.8,  0. ,  0.8])
 
         :arg str key: link attribute key (optional)
+        :type typical_weight: float > 0
         :arg float typical_weight: Optional typical node weight to be used for
             correction. If None, the uncorrected measure is
             returned. (Default: None)
@@ -2506,6 +2509,7 @@ class Network:
 
 
         :arg str key: link attribute key (optional)
+        :type typical_weight: float > 0
         :arg float typical_weight: Optional typical node weight to be used for
             correction. If None, the uncorrected measure is
             returned. (Default: None)
@@ -2552,6 +2556,7 @@ class Network:
         array([ 0.5   ,  0.5   ,  0.    ,  0.    ,  0.3333,  1.    ,  0.5   ])
 
         :arg str key: link attribute key (optional)
+        :type typical_weight: float > 0
         :arg float typical_weight: Optional typical node weight to be used for
             correction. If None, the uncorrected measure is
             returned. (Default: None)
@@ -3314,8 +3319,7 @@ class Network:
         Calculating node betweenness...
         array([ 8.5,  1.5,  0. ,  1.5,  4.5,  0. ,  0. ])
 
-        :arg bool parallelize: Toggle parallelized computation
-
+        :arg bool parallelize: Toggle multiprocessing
         :rtype: 1d numpy array [node] of floats
         """
         if self.silence_level <= 1:

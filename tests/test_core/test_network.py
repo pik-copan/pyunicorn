@@ -370,7 +370,6 @@ def test_nsi_degree():
     ])
 def test_nsi_indegree(tw, exp, exp_split):
     net = Network.SmallDirectedTestNetwork()
-
     assert np.allclose(net.nsi_indegree(typical_weight=tw), exp)
     assert np.allclose(
         net.splitted_copy().nsi_indegree(typical_weight=tw), exp_split)
@@ -386,10 +385,9 @@ def test_nsi_indegree(tw, exp, exp_split):
     ])
 def test_nsi_outdegree(tw, exp, exp_split):
     net = Network.SmallDirectedTestNetwork()
-
     assert np.allclose(net.nsi_outdegree(typical_weight=tw), exp)
-    assert np.allclose(
-        net.splitted_copy().nsi_outdegree(typical_weight=tw), exp_split)
+    assert np.allclose(net.splitted_copy().nsi_outdegree(typical_weight=tw),
+                       exp_split)
 
 
 @pytest.mark.parametrize("tw, exp, exp_split", [
@@ -402,10 +400,9 @@ def test_nsi_outdegree(tw, exp, exp_split):
     ])
 def test_nsi_bildegree(tw, exp, exp_split):
     net = Network.SmallDirectedTestNetwork()
-
     assert np.allclose(net.nsi_bildegree(typical_weight=tw), exp)
-    assert np.allclose(
-        net.splitted_copy().nsi_bildegree(typical_weight=tw), exp_split)
+    assert np.allclose(net.splitted_copy().nsi_bildegree(typical_weight=tw),
+                       exp_split)
 
 
 def test_degree_distribution():
@@ -536,13 +533,12 @@ def test_local_outmotif_clustering():
     ])
 def test_nsi_local_cyclemotif_clustering(tw, exp, exp_split):
     net = Network.SmallDirectedTestNetwork()
-
+    assert np.allclose(net.nsi_local_cyclemotif_clustering(typical_weight=tw),
+                       exp)
     assert np.allclose(
-        net.nsi_local_cyclemotif_clustering(typical_weight=tw), exp)
-
-    assert np.allclose(
-        net.splitted_copy(node=1)
-        .nsi_local_cyclemotif_clustering(typical_weight=tw), exp_split)
+        net.splitted_copy(node=1).nsi_local_cyclemotif_clustering(
+            typical_weight=tw),
+        exp_split)
 
 
 def test_nsi_local_midmotif_clustering():
