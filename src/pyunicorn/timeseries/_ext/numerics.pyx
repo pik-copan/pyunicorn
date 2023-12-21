@@ -541,7 +541,7 @@ def _diagline_dist_missingvalues(
                     diagline[k-1] += 1
                     k = 0
 
-        # count line and reset length at end of subdiagonal
+        # count the last uncounted line and reset length at end of subdiagonal
         if k != 0 and not missing_flag:
             diagline[k-1] += 1
             k = 0
@@ -567,7 +567,7 @@ def _diagline_dist(
                 diagline[k-1] += 1
                 k = 0
 
-        # count line and reset length at end of subdiagonal
+        # count the last uncounted line and reset length at end of subdiagonal
         if k != 0:
             diagline[k-1] += 1
             k = 0
@@ -612,7 +612,7 @@ def _diagline_dist_sequential_missingvalues(
                     diagline[k-1] += 1
                     k = 0
 
-        # count line and reset length at end of subdiagonal
+        # count the last uncounted line and reset length at end of subdiagonal
         if k != 0 and not missing_flag:
             diagline[k-1] += 1
             k = 0
@@ -646,7 +646,7 @@ def _diagline_dist_sequential(
                 diagline[k-1] += 1
                 k = 0
 
-        # count line and reset length at end of subdiagonal
+        # count the last uncounted line and reset length at end of subdiagonal
         if k != 0:
             diagline[k-1] += 1
             k = 0
@@ -663,7 +663,7 @@ def _rejection_sampling(
         x = int(floor(random.random() * N))
 
         if (random.random() < dist[x]):
-            resampled_dist[x] += <NODE_t> 1
+            resampled_dist[x] += 1
             i += 1
 
 
@@ -697,7 +697,7 @@ def _vertline_dist_missingvalues(
                     vertline[k-1] += 1
                     k = 0
 
-        # count line and reset length at end of row
+        # count the last uncounted line and reset length at end of row
         if k != 0 and not missing_flag:
             vertline[k-1] += 1
             k = 0
@@ -721,7 +721,7 @@ def _vertline_dist(
                 vertline[k-1] += 1
                 k = 0
 
-        # count line and reset length at end of row
+        # count the last uncounted line and reset length at end of row
         if k != 0:
             vertline[k-1] += 1
             k = 0
@@ -763,7 +763,7 @@ def _vertline_dist_sequential_missingvalues(
                     vertline[k-1] += 1
                     k = 0
 
-        # count line and reset length at end of row
+        # count the last uncounted line and reset length at end of row
         if k != 0 and not missing_flag:
             vertline[k-1] += 1
             k = 0
@@ -796,7 +796,7 @@ def _vertline_dist_sequential(
                 vertline[k-1] += 1
                 k = 0
 
-        # count line and reset length at end of row
+        # count the last uncounted line and reset length at end of row
         if k != 0:
             vertline[k-1] += 1
             k = 0
@@ -818,7 +818,7 @@ def _white_vertline_dist(
                 white_vertline[k-1] += 1
                 k = 0
 
-        # count line and reset length at end of row
+        # count the last uncounted line and reset length at end of row
         if k != 0:
             white_vertline[k-1] += 1
             k = 0

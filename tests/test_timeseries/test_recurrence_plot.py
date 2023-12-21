@@ -148,18 +148,22 @@ def recurrence_crit_fixture(request):
     return request.param
 
 
-# RP fixture, parametrized to cover various settings
 @pytest.fixture(scope="module", name="small_RP")
 def small_RP_fixture(metric, recurrence_crit):
+    """
+    RP fixture, parametrized to cover various settings.
+    """
     x = Data.SmallTestData().observable()
     threshold, rate = recurrence_crit
     return RecurrencePlot(
         x, threshold=threshold, recurrence_rate=rate, metric=metric)
 
 
-# RP fixture with single basic setting to test numerical results
 @pytest.fixture(scope="module", name="small_RP_basic")
 def small_RP_basic_fixture():
+    """
+    RP fixture with single basic setting to test numerical results.
+    """
     x = Data.SmallTestData().observable()
     RP = RecurrencePlot(x, threshold=.8, metric='supremum')
     res = RP.recurrence_matrix()
@@ -177,7 +181,6 @@ def small_RP_basic_fixture():
         [0, 0, 0, 0, 0, 0, 1, 1, 1, 1]
     ])
     assert np.array_equal(res, exp)
-
     return RP
 
 
@@ -187,48 +190,26 @@ def small_RP_basic_fixture():
 
 
 @pytest.mark.parametrize("measure", ["diagline", "vertline", "white_vertline"])
-def test_dist(measure: str, small_RP):
+def test_line_dist(measure: str, small_RP):
     res = getattr(small_RP, f"{measure}_dist")()
     assert res.dtype == NODE
     assert res.shape[0] == small_RP.N
     assert (0 <= res).all() and (res <= small_RP.N).all()
 
 
-def test_rqa_summary(small_RP):
-    res = small_RP.rqa_summary()
-    measures = ['RR', 'DET', 'L', 'LAM']
-    assert all(res[m].dtype == DFIELD for m in measures)
-
-
-def test_rqa_summary_numeric(small_RP_basic):
-    res = small_RP_basic.rqa_summary()
-    measures = ['RR', 'DET', 'L', 'LAM']
-    exp = {'RR': 0.48, 'DET': 0.8947, 'L': 8.4999, 'LAM': 0.9999}
-    assert all(np.isclose(res[m], exp[m], atol=1e-04) for m in measures)
-
-
-def test_diagline_dist_numeric(small_RP_basic):
-    res = small_RP_basic.diagline_dist()
+@pytest.mark.parametrize(
+    "measure, exp",
+    [("diagline", [4, 0, 0, 0, 0, 0, 0, 2, 2, 0]),
+     ("vertline", [0, 0, 1, 2, 5, 2, 0, 0, 0, 0]),
+     ("white_vertline", [2, 1, 2, 2, 3, 2, 1, 0, 0, 0])])
+def test_line_dist_numeric(measure: str, small_RP_basic, exp):
+    res = getattr(small_RP_basic, f"{measure}_dist")()
     assert res.dtype == NODE
-    exp = np.array([4, 0, 0, 0, 0, 0, 0, 2, 2, 0])
+    assert res.shape[0] == small_RP_basic.N
     assert np.array_equal(res, exp)
 
 
-def test_vertline_dist_numeric(small_RP_basic):
-    res = small_RP_basic.vertline_dist()
-    assert res.dtype == NODE
-    exp = np.array([0, 0, 1, 2, 5, 2, 0, 0, 0, 0])
-    assert np.array_equal(res, exp)
-
-
-def test_white_vertline_dist_numeric(small_RP_basic):
-    res = small_RP_basic.white_vertline_dist()
-    assert res.dtype == NODE
-    exp = np.array([2, 1, 2, 2, 3, 2, 1, 0, 0, 0])
-    assert np.array_equal(res, exp)
-
-
-def test_dist_edgecases():
+def test_line_dist_edgecases():
     x = Data.SmallTestData().observable()
 
     RP = RecurrencePlot(x, threshold=0.)
@@ -242,24 +223,32 @@ def test_dist_edgecases():
     assert RP.max_white_vertlength() == 0
 
 
+def test_rqa_summary(small_RP):
+    res = small_RP.rqa_summary()
+    measures = ['RR', 'DET', 'L', 'LAM']
+    assert all(res[m].dtype == DFIELD for m in measures)
+
+
+def test_rqa_summary_numeric(small_RP_basic):
+    res = small_RP_basic.rqa_summary()
+    exp = {'RR': 0.48, 'DET': 0.8947, 'L': 8.4999, 'LAM': 0.9999}
+    assert all(np.isclose(res[m], val, atol=1e-04)
+               for m, val in exp.items())
+
+
 @pytest.mark.parametrize('measure', ['diagline', 'vertline'])
 @pytest.mark.parametrize('M', np.arange(5, 90, 40).tolist())
-def test_resample_dist(measure: str, M: int, small_RP):
+def test_resample_line_dist(measure: str, M: int, small_RP):
     res = getattr(small_RP, f"resample_{measure}_dist")(M)
     assert res.dtype == NODE
     assert res.shape[0] == small_RP.N
     assert (0 <= res).all()
 
 
-def test_trapping_time(small_RP_basic):
-    res = small_RP_basic.trapping_time()
-    exp = 4.7999
-    assert np.isclose(res, exp, atol=1e-04)
-
-
-def test_mean_recurrence_time(small_RP_basic):
-    res = small_RP_basic.mean_recurrence_time()
-    exp = 3.9999
+@pytest.mark.parametrize(
+    "var, exp", [("trapping", 4.7999), ("mean_recurrence", 3.9999)])
+def test_time(small_RP_basic, var, exp):
+    res = getattr(small_RP_basic, f"{var}_time")()
     assert np.isclose(res, exp, atol=1e-04)
 
 
@@ -278,6 +267,6 @@ def test_entropy(ts: np.ndarray, measure: str, value: float):
 @pytest.mark.parametrize(
     'measure, exp',
     [('diag', 0.6931), ('vert', 1.2206), ('white_vert', 1.8848)])
-def test_linedist_entropy(measure: str, exp: float, small_RP_basic):
+def test_line_dist_entropy(measure: str, exp: float, small_RP_basic):
     res = getattr(small_RP_basic, f"{measure}_entropy")()
     assert np.isclose(res, exp, atol=1e-04)
