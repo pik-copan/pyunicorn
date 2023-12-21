@@ -11,12 +11,14 @@
 # L. Tupikina, V. Stolbova, R.V. Donner, N. Marwan, H.A. Dijkstra,
 # and J. Kurths, "Unified functional network and nonlinear time series analysis
 # for complex systems science: The pyunicorn package"
+
 """
 Simple tests for the Network class.
 """
+
 from functools import partial
 from itertools import islice, product, repeat
-from multiprocess import Pool, cpu_count
+from multiprocessing import get_context, cpu_count
 
 import pytest
 import numpy as np
@@ -58,7 +60,7 @@ def compare_permutations(net, permutations, measures):
           map(np.random.permutation, repeat(net.N, permutations))))
     tasks = list(product(measures, range(permutations)))
     cores = cpu_count()
-    with Pool() as pool:  # pylint: disable=not-callable
+    with get_context("spawn").Pool() as pool:
         pool.map(partial(compare_measures, net, pnets, rev_perms),
                  (list(islice(tasks, c, None, cores)) for c in range(cores)))
         pool.close()

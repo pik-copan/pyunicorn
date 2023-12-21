@@ -23,7 +23,8 @@ multivariate data and generating time series surrogates.
 
 import sys                          # performance testing
 import time
-from functools import wraps         # helper function for decorators
+from functools import partial, wraps
+from multiprocessing import get_context, cpu_count
 
 import numpy as np                  # array object and fast numerics
 from numpy import random
@@ -35,7 +36,6 @@ from tqdm import tqdm, trange       # easy progress bar handling
 
 import igraph                       # high performance graph theory tools
 
-from multiprocess import Pool, cpu_count
 from ..utils import mpi             # parallelized computations
 
 from ._ext.types import \
@@ -3323,15 +3323,15 @@ class Network:
         assert k.sum() == len(flat_neighbors) == 2 * self.n_links
         w, k = to_cy(w, DWEIGHT), to_cy(k, DEGREE)
 
-        def worker(batch):
-            return _nsi_betweenness(N, w, k, batch, flat_neighbors, is_source)
-
+        worker = partial(_nsi_betweenness, N, w, k, flat_neighbors, is_source)
         if parallelize:
             # (naively) parallelize loop over nodes
             n_workers = cpu_count()
             batches = np.array_split(to_cy(targets, NODE), n_workers)
-            pool = Pool()  # pylint: disable=not-callable
-            betw_w = np.sum(pool.map(worker, batches), axis=0)
+            with get_context("spawn").Pool() as pool:
+                betw_w = np.sum(pool.map(worker, batches), axis=0)
+                pool.close()
+                pool.join()
         else:
             betw_w = worker(to_cy(targets, NODE))
         return betw_w / w
