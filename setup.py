@@ -32,7 +32,7 @@ cy_args = {
     'language_level': '3str', 'embedsignature': True,
     'boundscheck': True, 'wraparound': False,
     'initializedcheck': True, 'nonecheck': True,
-    'warn.unused': True, 'warn.unused_arg': True}
+    'warn.unused': True, 'warn.unused_arg': False, 'warn.unused_result': False}
 
 
 # ==============================================================================

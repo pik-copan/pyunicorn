@@ -159,28 +159,30 @@ def small_RP_fixture(metric, recurrence_crit):
         x, threshold=threshold, recurrence_rate=rate, metric=metric)
 
 
-@pytest.fixture(scope="module", name="small_RP_basic")
-def small_RP_basic_fixture():
+@pytest.fixture(scope="module", name="small_RP_basic", params=[False, True])
+def small_RP_basic_fixture(request):
     """
     RP fixture with single basic setting to test numerical results.
     """
+    sparse = request.param
     x = Data.SmallTestData().observable()
-    RP = RecurrencePlot(x, threshold=.8, metric='supremum')
-    res = RP.recurrence_matrix()
-    assert res.dtype == ADJ
-    exp = np.array([
-        [1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-        [1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
-        [1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
-        [0, 1, 1, 1, 1, 1, 0, 0, 0, 0],
-        [0, 1, 1, 1, 1, 1, 1, 0, 0, 0],
-        [0, 0, 0, 1, 1, 1, 1, 1, 0, 0],
-        [0, 0, 0, 0, 1, 1, 1, 1, 1, 1],
-        [0, 0, 0, 0, 0, 1, 1, 1, 1, 1],
-        [0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
-        [0, 0, 0, 0, 0, 0, 1, 1, 1, 1]
-    ])
-    assert np.array_equal(res, exp)
+    RP = RecurrencePlot(x, threshold=.8, metric='supremum', sparse_rqa=sparse)
+    if not sparse:
+        res = RP.recurrence_matrix()
+        assert res.dtype == ADJ
+        exp = np.array([
+            [1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+            [1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+            [1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+            [0, 1, 1, 1, 1, 1, 0, 0, 0, 0],
+            [0, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+            [0, 0, 0, 1, 1, 1, 1, 1, 0, 0],
+            [0, 0, 0, 0, 1, 1, 1, 1, 1, 1],
+            [0, 0, 0, 0, 0, 1, 1, 1, 1, 1],
+            [0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
+            [0, 0, 0, 0, 0, 0, 1, 1, 1, 1]
+        ])
+        assert np.array_equal(res, exp)
     return RP
 
 
@@ -189,9 +191,9 @@ def small_RP_basic_fixture():
 # -----------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("measure", ["diagline", "vertline", "white_vertline"])
+@pytest.mark.parametrize("measure", ["diag", "vert", "white_vert"])
 def test_line_dist(measure: str, small_RP):
-    res = getattr(small_RP, f"{measure}_dist")()
+    res = getattr(small_RP, f"{measure}line_dist")()
     assert res.dtype == NODE
     assert res.shape[0] == small_RP.N
     assert (0 <= res).all() and (res <= small_RP.N).all()
@@ -199,28 +201,33 @@ def test_line_dist(measure: str, small_RP):
 
 @pytest.mark.parametrize(
     "measure, exp",
-    [("diagline", [4, 0, 0, 0, 0, 0, 0, 2, 2, 0]),
-     ("vertline", [0, 0, 1, 2, 5, 2, 0, 0, 0, 0]),
-     ("white_vertline", [2, 1, 2, 2, 3, 2, 1, 0, 0, 0])])
+    [("diag", [4, 0, 0, 0, 0, 0, 0, 2, 2, 0]),
+     ("vert", [0, 0, 1, 2, 5, 2, 0, 0, 0, 0]),
+     ("white_vert", [2, 1, 2, 2, 3, 2, 1, 0, 0, 0])])
 def test_line_dist_numeric(measure: str, small_RP_basic, exp):
-    res = getattr(small_RP_basic, f"{measure}_dist")()
+    if small_RP_basic.sparse_rqa and measure == "white_vert":
+        return
+    res = getattr(small_RP_basic, f"{measure}line_dist")()
     assert res.dtype == NODE
     assert res.shape[0] == small_RP_basic.N
     assert np.array_equal(res, exp)
 
 
-def test_line_dist_edgecases():
+@pytest.mark.parametrize("sparse", [False, True])
+def test_line_dist_edgecases(sparse):
     x = Data.SmallTestData().observable()
 
-    RP = RecurrencePlot(x, threshold=0.)
+    RP = RecurrencePlot(x, metric="supremum", threshold=0., sparse_rqa=sparse)
     assert RP.max_diaglength() == 0
     assert RP.max_vertlength() == 0
-    assert RP.max_white_vertlength() == RP.N
+    if not sparse:
+        assert RP.max_white_vertlength() == RP.N
 
-    RP = RecurrencePlot(x, threshold=2.)
+    RP = RecurrencePlot(x, metric="supremum", threshold=2., sparse_rqa=sparse)
     assert RP.max_diaglength() == (RP.N - 1)
     assert RP.max_vertlength() == RP.N
-    assert RP.max_white_vertlength() == 0
+    if not sparse:
+        assert RP.max_white_vertlength() == 0
 
 
 def test_rqa_summary(small_RP):
@@ -248,6 +255,8 @@ def test_resample_line_dist(measure: str, M: int, small_RP):
 @pytest.mark.parametrize(
     "var, exp", [("trapping", 4.7999), ("mean_recurrence", 3.9999)])
 def test_time(small_RP_basic, var, exp):
+    if small_RP_basic.sparse_rqa and var == "mean_recurrence":
+        return
     res = getattr(small_RP_basic, f"{var}_time")()
     assert np.isclose(res, exp, atol=1e-04)
 
@@ -268,5 +277,7 @@ def test_entropy(ts: np.ndarray, measure: str, value: float):
     'measure, exp',
     [('diag', 0.6931), ('vert', 1.2206), ('white_vert', 1.8848)])
 def test_line_dist_entropy(measure: str, exp: float, small_RP_basic):
+    if small_RP_basic.sparse_rqa and measure == "white_vert":
+        return
     res = getattr(small_RP_basic, f"{measure}_entropy")()
     assert np.isclose(res, exp, atol=1e-04)

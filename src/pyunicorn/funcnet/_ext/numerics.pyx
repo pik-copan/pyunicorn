@@ -110,8 +110,8 @@ def _get_nearest_neighbors(
 
     # Initialize
     cdef:
-        int i, j, index=0, t, m, n, d, kxz, kyz, kz
-        double dz=0., dxyz=0., dx=0., dy=0., eps, epsmax
+        int i, j, index, t, m, n, d, kxz, kyz, kz
+        double dz, dxyz, dx, dy, eps, epsmax
         ndarray[NODE_t, ndim=1, mode='c'] indexfound = np.zeros(T, dtype=NODE)
         ndarray[DFIELD_t, ndim=2, mode='c'] dist = np.zeros((dim, T), dtype=DFIELD)
         ndarray[DFIELD_t, ndim=1, mode='c'] dxyzarray = np.zeros(k+1, dtype=DFIELD)

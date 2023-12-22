@@ -40,33 +40,28 @@ cdef extern from "src_numerics.c":
 # geo_network =================================================================
 
 
-ctypedef bint (*rewire_cond_len)(
-    ndarray[FIELD_t, ndim=2], float, int, int, int, int)
-ctypedef bint (*rewire_cond_deg)(
-    ndarray[DEGREE_t, ndim=1], int, int, int, int)
+# parameters for `_randomly_rewire_geomodel()`
+ctypedef bint (*rewire_cond_len)(FIELD_t[:,:], float, int, int, int, int)
+ctypedef bint (*rewire_cond_deg)(DEGREE_t[:], int, int, int, int)
 
-
-# condition C1
-cdef bint cond_len_c1(
-    ndarray[FIELD_t, ndim=2] D, float eps, int s, int t, int k, int l):
-    return (
-        (abs(D[s,t] - D[k,t]) < eps and abs(D[k,l] - D[s,l]) < eps) or
-        (abs(D[s,t] - D[s,l]) < eps and abs(D[k,l] - D[k,t]) < eps))
-
-# condition C2
-cdef bint cond_len_c2(
-    ndarray[FIELD_t, ndim=2] D, float eps, int s, int t, int k, int l):
-    return (
-        abs(D[s,t] - D[s,l]) < eps and abs(D[t,s] - D[t,k]) < eps and
-        abs(D[k,l] - D[k,t]) < eps and abs(D[l,k] - D[l,s]) < eps)
-
-# invariance of degree-degree correlations
-cdef bint cond_deg_corr(
-    ndarray[DEGREE_t, ndim=1] degree, int s, int t, int k, int l):
-    return (degree[s] == degree[k] and degree[t] == degree[l])
-
-# tautology
-cdef rewire_cond_deg cond_deg_true = NULL
+cdef:
+    # condition C1
+    inline bint cond_len_c1(
+        FIELD_t[:,:] D, float eps, int s, int t, int k, int l):
+        return (
+            (abs(D[s,t] - D[k,t]) < eps and abs(D[k,l] - D[s,l]) < eps) or
+            (abs(D[s,t] - D[s,l]) < eps and abs(D[k,l] - D[k,t]) < eps))
+    # condition C2
+    inline bint cond_len_c2(
+        FIELD_t[:,:] D, float eps, int s, int t, int k, int l):
+        return (
+            abs(D[s,t] - D[s,l]) < eps and abs(D[t,s] - D[t,k]) < eps and
+            abs(D[k,l] - D[k,t]) < eps and abs(D[l,k] - D[l,s]) < eps)
+    # invariance of degree-degree correlations
+    inline bint cond_deg_corr(DEGREE_t[:] degree, int s, int t, int k, int l):
+        return (degree[s] == degree[k] and degree[t] == degree[l])
+    # tautology
+    rewire_cond_deg cond_deg_true = NULL
 
 
 cdef void _randomly_rewire_geomodel(int iterations, float eps,
@@ -105,27 +100,22 @@ cdef void _randomly_rewire_geomodel(int iterations, float eps,
 def _randomly_rewire_geomodel_I(int iterations, float eps,
     ndarray[ADJ_t, ndim=2] A, ndarray[FIELD_t, ndim=2] D, int E,
     ndarray[NODE_t, ndim=2] edges):
-
-    cdef ndarray[DEGREE_t, ndim=1] null = np.array([], dtype=DEGREE)
-
+    cdef:
+        ndarray[DEGREE_t, ndim=1] null = np.array([], dtype=DEGREE)
     _randomly_rewire_geomodel(iterations, eps, A, D, E, edges, null,
                               cond_len_c1, cond_deg_true)
-
 
 def _randomly_rewire_geomodel_II(int iterations, float eps,
     ndarray[ADJ_t, ndim=2] A, ndarray[FIELD_t, ndim=2] D, int E,
     ndarray[NODE_t, ndim=2] edges):
-
-    cdef ndarray[DEGREE_t, ndim=1] null = np.array([], dtype=DEGREE)
-
+    cdef:
+        ndarray[DEGREE_t, ndim=1] null = np.array([], dtype=DEGREE)
     _randomly_rewire_geomodel(iterations, eps, A, D, E, edges, null,
                               cond_len_c2, cond_deg_true)
-
 
 def _randomly_rewire_geomodel_III(int iterations, float eps,
     ndarray[ADJ_t, ndim=2] A, ndarray[FIELD_t, ndim=2] D, int E,
     ndarray[NODE_t, ndim=2] edges, ndarray[DEGREE_t, ndim=1] degree):
-
     _randomly_rewire_geomodel(iterations, eps, A, D, E, edges, degree,
                               cond_len_c2, cond_deg_corr)
 

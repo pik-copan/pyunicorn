@@ -22,7 +22,7 @@ import numpy.random as rd
 cimport numpy as cnp
 from numpy cimport ndarray
 
-from ...core._ext.types import NODE, FIELD, DFIELD
+from ...core._ext.types import MASK, NODE, LAG, FIELD, DFIELD
 from ...core._ext.types cimport \
     ADJ_t, MASK_t, NODE_t, DEGREE_t, LAG_t, FIELD_t, DFIELD_t
 
@@ -93,7 +93,7 @@ def _supremum_distance_matrix_crp(
 
     for j in range(ntime_x):
         for k in range(ntime_y):
-            temp_diff = diff = 0
+            diff = 0
             for l in range(dim):
                 temp_diff = abs(x_embedded[j,l] - y_embedded[k,l])
                 if temp_diff > diff:
@@ -338,7 +338,7 @@ def _test_mutual_information(
     return mi
 
 
-# recurrence plot==============================================================
+# recurrence plot =============================================================
 
 
 def _embed_time_series(
@@ -510,148 +510,6 @@ def _bootstrap_distance_matrix_supremum(
             distances[i] = diff
 
 
-def _diagline_dist_missingvalues(
-    int n_time, ndarray[NODE_t, ndim=1] diagline,
-    ndarray[LAG_t, ndim=2] recmat,
-    ndarray[MASK_t, ndim=1, cast=True] mv_indices):
-
-    cdef:
-        int i, j, k = 0
-        MASK_t missing_flag = False
-
-    # excluding main diagonal by stopping loop at n_time-1
-    for i in range(n_time-1):
-        for j in range(i+1):
-            # Check if current point in RP is a missing value
-            if mv_indices[n_time-1-i+j] or mv_indices[j]:
-                missing_flag = True
-                k = 0
-            # or if previous point was one, reset flag if not within line
-            elif recmat[n_time-1-i+j, j] == 0 and missing_flag:
-                missing_flag = False
-
-            # only count line if it does not contain,
-            # directly follow or is followed by a missing value
-            if not missing_flag:
-                # if within line, increment length
-                if recmat[n_time-1-i+j, j] == 1:
-                    k += 1
-                # if end of line, count line and reset length
-                elif k != 0:
-                    diagline[k-1] += 1
-                    k = 0
-
-        # count the last uncounted line and reset length at end of subdiagonal
-        if k != 0 and not missing_flag:
-            diagline[k-1] += 1
-            k = 0
-
-        missing_flag = False
-
-
-def _diagline_dist(
-    int n_time, ndarray[NODE_t, ndim=1] diagline,
-    ndarray[LAG_t, ndim=2] recmat):
-
-    cdef:
-        int i, j, k = 0
-
-    # excluding main diagonal by stopping loop at n_time-1
-    for i in range(n_time-1):
-        for j in range(i+1):
-            # if within line, increment length
-            if recmat[n_time-1-i+j, j] == 1:
-                k += 1
-            # if end of line, count line and reset length
-            elif k != 0:
-                diagline[k-1] += 1
-                k = 0
-
-        # count the last uncounted line and reset length at end of subdiagonal
-        if k != 0:
-            diagline[k-1] += 1
-            k = 0
-
-
-def _diagline_dist_sequential_missingvalues(
-    int n_time, ndarray[NODE_t, ndim=1] diagline,
-    ndarray[MASK_t, ndim=1, cast=True] mv_indices,
-    ndarray[FIELD_t, ndim=2] embedding, float eps, int dim):
-
-    cdef:
-        int i, j, k = 0, l
-        FIELD_t temp_diff, diff
-        MASK_t missing_flag = False
-
-    # excluding main diagonal by stopping loop at n_time-1
-    for i in range(n_time-1):
-        for j in range(i+1):
-            # Compute supremum distance between state vectors
-            diff = 0
-            for l in range(dim):
-                temp_diff = abs(embedding[j, l] - embedding[n_time-1-i+j, l])
-                if temp_diff > diff:
-                    diff = temp_diff
-
-            # Check if current point in RP is a missing value
-            if mv_indices[n_time-1-i+j] or mv_indices[j]:
-                missing_flag = True
-                k = 0
-            # or if previous point was one, reset flag if not within line
-            elif diff > eps and missing_flag:
-                missing_flag = False
-
-            # only count line if it does not contain,
-            # directly follow or is followed by a missing value
-            if not missing_flag:
-                # if within line, increment length
-                if diff < eps:
-                    k += 1
-                # if end of line, count line and reset length
-                elif k != 0:
-                    diagline[k-1] += 1
-                    k = 0
-
-        # count the last uncounted line and reset length at end of subdiagonal
-        if k != 0 and not missing_flag:
-            diagline[k-1] += 1
-            k = 0
-
-        missing_flag = False
-
-
-def _diagline_dist_sequential(
-    int n_time, ndarray[NODE_t, ndim=1] diagline,
-    ndarray[FIELD_t, ndim=2] embedding, float eps, int dim):
-
-    cdef:
-        int i, j, k = 0, l
-        FIELD_t temp_diff, diff
-
-    # excluding main diagonal by stopping loop at n_time-1
-    for i in range(n_time-1):
-        for j in range(i+1):
-            # Compute supremum distance between state vectors
-            diff = 0
-            for l in range(dim):
-                temp_diff = abs(embedding[j, l] - embedding[n_time-1-i+j, l])
-                if temp_diff > diff:
-                    diff = temp_diff
-
-            # if within line, increment length
-            if diff < eps:
-                k += 1
-            # if end of line, count line and reset length
-            elif k != 0:
-                diagline[k-1] += 1
-                k = 0
-
-        # count the last uncounted line and reset length at end of subdiagonal
-        if k != 0:
-            diagline[k-1] += 1
-            k = 0
-
-
 def _rejection_sampling(
     ndarray[DFIELD_t, ndim=1] dist,
     ndarray[NODE_t, ndim=1] resampled_dist, int N, int M):
@@ -665,163 +523,6 @@ def _rejection_sampling(
         if (random.random() < dist[x]):
             resampled_dist[x] += 1
             i += 1
-
-
-def _vertline_dist_missingvalues(
-    int n_time, ndarray[NODE_t, ndim=1] vertline,
-    ndarray[LAG_t, ndim=2] recmat,
-    ndarray[MASK_t, ndim=1, cast=True] mv_indices):
-
-    cdef:
-        int i, j, k = 0
-        MASK_t missing_flag = False
-
-    for i in range(n_time):
-        for j in range(n_time):
-            # check if current point in RP is a missing value
-            if mv_indices[i] or mv_indices[j]:
-                missing_flag = True
-                k = 0
-            # or if previous point was one, reset flag if not within line
-            elif recmat[i, j] == 0 and missing_flag:
-                missing_flag = False
-
-            # only count line if it does not contain,
-            # directly follow or is followed by a missing value
-            if not missing_flag:
-                # if within line, increment length
-                if recmat[i, j] != 0:
-                    k += 1
-                # if end of line, count line and reset length
-                elif k != 0:
-                    vertline[k-1] += 1
-                    k = 0
-
-        # count the last uncounted line and reset length at end of row
-        if k != 0 and not missing_flag:
-            vertline[k-1] += 1
-            k = 0
-
-        missing_flag = False
-
-
-def _vertline_dist(
-    int n_time, ndarray[NODE_t, ndim=1] vertline,
-    ndarray[LAG_t, ndim=2] recmat):
-
-    cdef int i, j, k = 0
-
-    for i in range(n_time):
-        for j in range(n_time):
-            # if within line, increment length
-            if recmat[i, j] != 0:
-                k += 1
-            # if end of line, count line and reset length
-            elif k != 0:
-                vertline[k-1] += 1
-                k = 0
-
-        # count the last uncounted line and reset length at end of row
-        if k != 0:
-            vertline[k-1] += 1
-            k = 0
-
-
-def _vertline_dist_sequential_missingvalues(
-    int n_time, ndarray[NODE_t, ndim=1] vertline,
-    ndarray[MASK_t, ndim=1, cast=True] mv_indices,
-    ndarray[FIELD_t, ndim=2] embedding, float eps, int dim):
-
-    cdef:
-        int i, j, k = 0, l
-        FIELD_t temp_diff, diff
-        MASK_t missing_flag = False
-
-    for i in range(n_time):
-        for j in range(n_time):
-            # Compute supremum distance between state vectors
-            diff = 0
-            for l in range(dim):
-                temp_diff = abs(embedding[i, l] - embedding[j, l])
-                if temp_diff > diff:
-                    diff = temp_diff
-
-            # Check if current point in RP is a missing value
-            if mv_indices[i] or mv_indices[j]:
-                missing_flag = True
-                k = 0
-            # or if previous point was one, reset flag if not within line
-            elif diff > eps and missing_flag:
-                missing_flag = True
-
-            if not missing_flag:
-                # if within line, increment length
-                if diff < eps:
-                    k += 1
-                # if end of line, count line and reset length
-                elif k != 0:
-                    vertline[k-1] += 1
-                    k = 0
-
-        # count the last uncounted line and reset length at end of row
-        if k != 0 and not missing_flag:
-            vertline[k-1] += 1
-            k = 0
-
-        missing_flag = False
-
-
-def _vertline_dist_sequential(
-    int n_time, ndarray[NODE_t, ndim=1] vertline,
-    ndarray[FIELD_t, ndim=2] embedding, float eps, int dim):
-
-    cdef:
-        int i, j, k = 0, l
-        FIELD_t temp_diff, diff
-
-    for i in range(n_time):
-        for j in range(n_time):
-            # Compute supremum distance between state vectors
-            diff = 0
-            for l in range(dim):
-                temp_diff = abs(embedding[i, l] - embedding[j, l])
-                if temp_diff > diff:
-                    diff = temp_diff
-
-            # if within line, increment length
-            if diff < eps:
-                k += 1
-            # if end of line, count line and reset length
-            elif k != 0:
-                vertline[k-1] += 1
-                k = 0
-
-        # count the last uncounted line and reset length at end of row
-        if k != 0:
-            vertline[k-1] += 1
-            k = 0
-
-
-def _white_vertline_dist(
-    int n_time, ndarray[NODE_t, ndim=1] white_vertline,
-    ndarray[LAG_t, ndim=2] R):
-
-    cdef int i, j, k = 0
-
-    for i in range(n_time):
-        for j in range(n_time):
-            # if within line, increment length
-            if R[i, j] == 0:
-                k += 1
-            # if end of line, count line and reset length
-            elif k != 0:
-                white_vertline[k-1] += 1
-                k = 0
-
-        # count the last uncounted line and reset length at end of row
-        if k != 0:
-            white_vertline[k-1] += 1
-            k = 0
 
 
 def _twins_r(
@@ -914,6 +615,182 @@ def _twin_surrogates_r(int n_surrogates, int N, int dim, twins,
             j += 1
 
     return surrogates
+
+
+
+# recurrence line distributions ===============================================
+
+
+# parameters for `_line_dist()`
+ctypedef int     (*line_type_i2J) (int, int)
+ctypedef int     (*line_type_ij2I)(int, int, int)
+ctypedef FIELD_t (*metric_type)(int, int, int, FIELD_t[:,:])
+
+cdef:
+    inline int i2J_vertline(int i, int N): return N
+    inline int i2J_diagline(int i, int N): return i+1
+    inline int ij2I_vertline(int i, int j, int N): return i
+    inline int ij2I_diagline(int i, int j, int N): return N - i + j
+    metric_type metric_null = NULL
+    inline FIELD_t metric_supremum(int I, int j, int dim, FIELD_t[:,:] E):
+        cdef:
+            int l
+            FIELD_t diff = 0, tmp_diff
+        for l in range(dim):
+            tmp_diff = abs(E[I, l] - E[j, l])
+            if tmp_diff > diff:
+                diff = tmp_diff
+        return diff
+
+
+cdef void _line_dist(
+    int n_time, ndarray[NODE_t, ndim=1] hist,
+    ndarray[LAG_t, ndim=2] R, ndarray[FIELD_t, ndim=2] E, float eps, int dim,
+    metric_type metric, bint black,
+    ndarray[MASK_t, ndim=1, cast=True] M, bint missing_values,
+    line_type_i2J i2J, line_type_ij2I ij2I, bint skip_main):
+    """
+    Recurrence line distributions, parametrised by the following arguments:
+
+      - `R` | `E (dim > 0)`: recurrence computation (cached vs. raw embedding)
+      - `metric`: embedding metric (currently only supremum)
+      - `black`: RQA colour (black vs. white)
+      - `M (missing_values == 1)`: missing input values (ignore vs. account)
+      - `line_type_*`, `skip_main`: line type (vertical vs. diagonal)
+    """
+
+    cdef:
+        int i, I, j, k = 0, N = n_time
+        FIELD_t d
+        bint line, missing_flag = False
+
+    if skip_main:
+        # exclude main diagonal by skipping last outer loop iteration
+        N -= 1
+    for i in range(N):
+        for j in range(i2J(i, N)):
+            I = ij2I(i, j, N)
+
+            if dim == 0:
+                line = R[I, j] == black
+            else:
+                # compute distance between embedding vectors
+                d = metric(I, j, dim, E)
+                line = (d < eps) == black
+
+            if missing_values:
+                # check if current point in RP is a missing value
+                if M[I] or M[j]:
+                    missing_flag = True
+                    k = 0
+                # or if previous point was one, reset flag if not within line
+                elif missing_flag and not line:
+                    missing_flag = False
+
+                # only count line if it does not contain,
+                # directly follow or is followed by a missing value
+                if missing_flag:
+                    continue
+
+            if line:
+                # if within line, increment length
+                k += 1
+            elif k != 0:
+                # if end of line, count line and reset length
+                hist[k-1] += 1
+                k = 0
+
+        if k != 0 and not missing_flag:
+            # at end of subspace, count the last uncounted line and reset length
+            hist[k-1] += 1
+            k = 0
+        missing_flag = False
+
+
+def _vertline_dist(
+        int n_time, ndarray[NODE_t, ndim=1] hist, ndarray[LAG_t, ndim=2] R):
+    cdef:
+        ndarray[FIELD_t, ndim=2] E_null = np.array([[]], dtype=FIELD)
+        ndarray[MASK_t, ndim=1] M_null = np.array([], dtype=MASK)
+    _line_dist(
+        n_time, hist, R, E_null, 0, 0, metric_null, True, M_null, False,
+        i2J_vertline, ij2I_vertline, False)
+
+def _diagline_dist(
+        int n_time, ndarray[NODE_t, ndim=1] hist, ndarray[LAG_t, ndim=2] R):
+    cdef:
+        ndarray[FIELD_t, ndim=2] E_null = np.array([[]], dtype=FIELD)
+        ndarray[MASK_t, ndim=1] M_null = np.array([], dtype=MASK)
+    _line_dist(
+        n_time, hist, R, E_null, 0, 0, metric_null, True, M_null, False,
+        i2J_diagline, ij2I_diagline, True)
+
+def _white_vertline_dist(
+        int n_time, ndarray[NODE_t, ndim=1] hist, ndarray[LAG_t, ndim=2] R):
+    cdef:
+        ndarray[FIELD_t, ndim=2] E_null = np.array([[]], dtype=FIELD)
+        ndarray[MASK_t, ndim=1] M_null = np.array([], dtype=MASK)
+    _line_dist(
+        n_time, hist, R, E_null, 0, 0, metric_null, False, M_null, False,
+        i2J_vertline, ij2I_vertline, False)
+
+def _vertline_dist_sequential(
+        int n_time, ndarray[NODE_t, ndim=1] hist,
+        ndarray[FIELD_t, ndim=2] E, float eps, int dim):
+    cdef:
+        ndarray[LAG_t, ndim=2] null_R = np.array([[]], dtype=LAG)
+        ndarray[MASK_t, ndim=1] M_null = np.array([], dtype=MASK)
+    _line_dist(
+        n_time, hist, null_R, E, eps, dim, metric_supremum, True, M_null, False,
+        i2J_vertline, ij2I_vertline, False)
+
+def _diagline_dist_sequential(
+        int n_time, ndarray[NODE_t, ndim=1] hist,
+        ndarray[FIELD_t, ndim=2] E, float eps, int dim):
+    cdef:
+        ndarray[LAG_t, ndim=2] null_R = np.array([[]], dtype=LAG)
+        ndarray[MASK_t, ndim=1] M_null = np.array([], dtype=MASK)
+    _line_dist(
+        n_time, hist, null_R, E, eps, dim, metric_supremum, True, M_null, False,
+        i2J_diagline, ij2I_diagline, True)
+
+def _vertline_dist_missingvalues(
+        int n_time, ndarray[NODE_t, ndim=1] hist, ndarray[LAG_t, ndim=2] R,
+        ndarray[MASK_t, ndim=1, cast=True] M):
+    cdef:
+        ndarray[FIELD_t, ndim=2] E_null = np.array([[]], dtype=FIELD)
+    _line_dist(
+        n_time, hist, R, E_null, 0, 0, metric_null, True, M, True,
+        i2J_vertline, ij2I_vertline, False)
+
+def _diagline_dist_missingvalues(
+        int n_time, ndarray[NODE_t, ndim=1] hist, ndarray[LAG_t, ndim=2] R,
+        ndarray[MASK_t, ndim=1, cast=True] M):
+    cdef:
+        ndarray[FIELD_t, ndim=2] E_null = np.array([[]], dtype=FIELD)
+    _line_dist(
+        n_time, hist, R, E_null, 0, 0, metric_null, True, M, True,
+        i2J_diagline, ij2I_diagline, True)
+
+def _vertline_dist_sequential_missingvalues(
+        int n_time, ndarray[NODE_t, ndim=1] hist,
+        ndarray[MASK_t, ndim=1, cast=True] M,
+        ndarray[FIELD_t, ndim=2] E, float eps, int dim):
+    cdef:
+        ndarray[LAG_t, ndim=2] null_R = np.array([[]], dtype=LAG)
+    _line_dist(
+        n_time, hist, null_R, E, eps, dim, metric_supremum, True, M, True,
+        i2J_vertline, ij2I_vertline, False)
+
+def _diagline_dist_sequential_missingvalues(
+        int n_time, ndarray[NODE_t, ndim=1] hist,
+        ndarray[MASK_t, ndim=1, cast=True] M,
+        ndarray[FIELD_t, ndim=2] E, float eps, int dim):
+    cdef:
+        ndarray[LAG_t, ndim=2] null_R = np.array([[]], dtype=LAG)
+    _line_dist(
+        n_time, hist, null_R, E, eps, dim, metric_supremum, True, M, True,
+        i2J_diagline, ij2I_diagline, True)
 
 
 # visibility graph =============================================================
