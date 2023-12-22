@@ -4,6 +4,7 @@ License
 
 .. include:: <isonum.txt>
 .. include:: ../../CONTRIBUTIONS.rst
-    :end-before: **Mail**
+    :start-after: =============
+    :end-before: Mail
 
 .. literalinclude:: ../../LICENSE.txt
