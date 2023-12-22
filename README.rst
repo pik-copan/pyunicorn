@@ -1,6 +1,10 @@
 
+=========
 pyunicorn
 =========
+
+About
+=====
 
 .. image:: https://app.travis-ci.com/pik-copan/pyunicorn.svg?branch=master
   :target: https://app.travis-ci.com/github/pik-copan/pyunicorn
@@ -8,30 +12,33 @@ pyunicorn
   :target: https://codecov.io/gh/pik-copan/pyunicorn
 
 ``pyunicorn`` (**Uni**\ fied **Co**\ mplex Network and **R**\ ecurre\ **N**\ ce
-analysis toolbox) is a fully object-oriented Python package for the advanced
-analysis and modeling of complex networks. Above the standard measures of
-complex network theory such as degree, betweenness and clustering coefficient
-it provides some **uncommon but interesting statistics** like Newman's random
-walk betweenness. ``pyunicorn`` features novel **node-weighted (node splitting
-invariant)** network statistics as well as measures designed for analyzing
-**networks of interacting/interdependent networks**.
+analysis toolbox) is an object-oriented Python package for the advanced analysis
+and modeling of complex networks. Beyond the standard measures of complex
+network theory, such as degree, betweenness and clustering coefficients, it
+provides some *uncommon but interesting statistics* like Newman's random walk
+betweenness. ``pyunicorn`` also features novel *node-weighted (node splitting
+invariant)* network statistics as well as measures designed for analyzing
+*networks of interacting/interdependent networks*.
 
-Moreover, ``pyunicorn`` allows to easily **construct networks from uni- and
-multivariate time series and event data** (functional (climate) networks and
-recurrence networks). This involves linear and nonlinear measures of time
-series analysis for constructing functional networks from multivariate data
-(e.g. Pearson correlation, mutual information, event synchronization and event
+Moreover, ``pyunicorn`` allows one to easily *construct networks from uni- and
+multivariate time series and event data* (functional (climate) networks and
+recurrence networks). This involves linear and nonlinear measures of time series
+analysis for constructing functional networks from multivariate data (e.g.,
+Pearson correlation, mutual information, event synchronization and event
 coincidence analysis). ``pyunicorn`` also features modern techniques of
-nonlinear analysis of single and pairs of time series such as recurrence
+nonlinear analysis of single and pairs of time series, such as recurrence
 quantification analysis (RQA), recurrence network analysis and visibility
 graphs.
 
+License
+-------
+``pyunicorn`` is `BSD-licensed <LICENSE.txt>`_ (3 clause).
 
 Reference
 ---------
-**Please acknowledge and cite the use of this software and its authors when
+*Please acknowledge and cite the use of this software and its authors when
 results are used in publications or published elsewhere. You can use the
-following reference:**
+following reference:*
 
     J.F. Donges, J. Heitzig, B. Beronov, M. Wiedermann, J. Runge, Q.-Y. Feng,
     L. Tupikina, V. Stolbova, R.V. Donner, N. Marwan, H.A. Dijkstra, and J.
@@ -42,7 +49,6 @@ following reference:**
     <http://dx.doi.org/10.1063/1.4934554>`_
     `Preprint: arxiv.org:1507.01571 [physics.data-an].
     <http://arxiv.org/abs/1507.01571>`_
-
 
 Funding
 -------
@@ -58,44 +64,28 @@ and the `Stordalen Foundation <http://www.stordalenfoundation.no/>`_ via the
 `Planetary Boundary Research Network <http://www.pb-net.org>`_ (PB.net) among
 others.
 
-
-License
--------
-``pyunicorn`` is `BSD-licensed <LICENSE.txt>`_ (3 clause).
-
-
-Code
-----
-`Stable releases <https://github.com/pik-copan/pyunicorn/releases>`_,
-`Development version <https://github.com/pik-copan/pyunicorn>`_
-
-`Changelog <docs/source/changelog.rst>`_, `Contributions <CONTRIBUTIONS.rst>`_
+Mailing list
+------------
+Not implemented yet.
 
 
-Documentation
--------------
-For extensive HTML documentation, jump right to the `pyunicorn homepage
-<http://www.pik-potsdam.de/~donges/pyunicorn/>`_. Recent `PDF versions
-<http://www.pik-potsdam.de/~donges/pyunicorn/docs/>`_ are also available.
+Usage
+=====
 
-On a local development version, HTML and PDF documentation can be generated
-using ``Sphinx``::
-
-    $> pip install --user .[docs]
-    $> cd docs; make clean html latexpdf
-
+Installation
+------------
 
 Dependencies
-------------
+............
 ``pyunicorn`` is implemented in `Python 3 <https://docs.python.org/3/>`_ and
-`Cython 3 <https://cython.org/>`_. The software is written and tested on Linux
-and macOS, but it is also in active use on Windows. ``pyunicorn`` relies on the
-following open source or freely available packages, which need to be installed
-on your machine. For exact dependency information, see ``setup.cfg``.
+`Cython 3 <https://cython.org/>`_, and is tested on *Linux*, *macOS* and
+*Windows*. It relies on the following open source or freely available packages,
+which need to be installed on your machine. For exact dependency information,
+see ``setup.cfg``.
 
 Required at runtime:
-  - `Numpy <http://www.numpy.org/>`_
-  - `Scipy <http://www.scipy.org/>`_
+  - `numpy <http://www.numpy.org/>`_
+  - `scipy <http://www.scipy.org/>`_
   - `python-igraph <http://igraph.org/>`_
   - `h5netcdf <https://h5netcdf.org/>`_ or
     `netcdf4-python <http://unidata.github.io/netcdf4-python/>`_
@@ -119,39 +109,42 @@ package manager or consult the libraries' homepages. An easy way to go may be a
 Python distribution like `Anaconda <https://www.anaconda.com/distribution/>`_
 that already includes many libraries.
 
-
-Installation
-------------
-Before installing ``pyunicorn`` itself, we recommend to make sure that the
-required dependencies are installed using your preferred installation method for
-Python libraries. Afterwards, the package can be installed in the standard way
-from the Python Package Index (PyPI).
-
-**Linux, macOS**
-
-With the ``pip`` package manager::
-
-    $> pip install pyunicorn
-        
-On Fedora OS, use::
-
-    $> dnf install python3-pyunicorn
-
-**Windows**
-
-First follow the instructions for installing the latest version of the
-`Microsoft C++ Build Tools <https://wiki.python.org/moin/WindowsCompilers>`_ in
-order to be able to compile the Cython modules, and then::
+Official releases
+.................
+`Stable releases <https://github.com/pik-copan/pyunicorn/releases>`_ can be
+installed directly from the `Python Package Index (PyPI)
+<https://packaging.python.org/en/latest/tutorials/installing-packages/#installing-from-pypi>`_::
 
     $> pip install pyunicorn
 
-**Development version**
+On **Windows**, please install the latest version of the `Microsoft C++ Build
+Tools <https://wiki.python.org/moin/WindowsCompilers>`_ beforehand, in order to
+be able to compile the Cython modules.
 
-To use a newer version of ``pyunicorn`` than the latest official release on
-PyPI, download the source code from the Github repository and, instead of the
-above, execute::
+For more information about individual releases, see our `Changelog
+<docs/source/changelog.rst>`_ and `Contributions <CONTRIBUTIONS.rst>`_.
 
-    $> pip install -e .
+Current development version
+...........................
+In order to use a `*newer* version <https://github.com/pik-copan/pyunicorn>`_ of
+``pyunicorn``, please follow the ``pip`` instructions for installing from
+`version control
+<https://packaging.python.org/en/latest/tutorials/installing-packages/#installing-from-vcs>`_
+or from a `local source tree
+<https://packaging.python.org/en/latest/tutorials/installing-packages/#installing-from-a-local-src-tree>`_.
+
+
+Documentation
+-------------
+For extensive HTML documentation, jump right to the `pyunicorn homepage
+<http://www.pik-potsdam.de/~donges/pyunicorn/>`_. Recent `PDF versions
+<http://www.pik-potsdam.de/~donges/pyunicorn/docs/>`_ are also available.
+
+On a local development version, HTML and PDF documentation can be generated
+using ``Sphinx``::
+
+    $> pip install -e .[docs]
+    $> cd docs; make clean html latexpdf
 
 
 Test suite
@@ -177,8 +170,3 @@ To test individual files::
     $> flake8 src/pyunicorn/core/network.py     # style check
     $> pylint src/pyunicorn/core/network.py     # static code analysis
     $> pytest tests/test_core/TestNetwork.py    # unit tests
-
-
-Mailing list
-------------
-Not implemented yet.
