@@ -40,7 +40,7 @@ install:
     - eval "$(conda shell.bash hook)"
     - conda activate test-env
     - travis_retry conda install -c conda-forge python=${TRAVIS_PYTHON_VERSION%-dev}
-    - travis_retry conda install -c conda-forge numpy scipy python-igraph h5netcdf multiprocess tqdm
+    - travis_retry conda install -c conda-forge numpy scipy python-igraph h5netcdf tqdm
     - travis_retry conda update  -c conda-forge --all
 
     # testing dependencies
@@ -54,8 +54,8 @@ install:
 before_script:
     # limit parallel processes to available cores (error if pattern not found)
     - sed -i '/nthreads=./{s//nthreads=2/;h}; ${x;/./{x;q0};x;q1}' setup.py
-    - sed -i '/-n auto/   {s//-n 2/;      h}; ${x;/./{x;q0};x;q1}' setup.cfg
     - sed -i '/-j ./      {s//-j 2/;      h}; ${x;/./{x;q0};x;q1}' setup.cfg
+    - sed -i '/-n auto/   {s//-n 2/;      h}; ${x;/./{x;q0};x;q1}' pyproject.toml
     - sed -i '/jobs = ./  {s//jobs = 2/;  h}; ${x;/./{x;q0};x;q1}' pyproject.toml
 
 script:

@@ -14,6 +14,22 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
+# unit tests ===================================================================
+
+[tool.pytest.ini_options]
+minversion = 7.3
+addopts = "-v -r a -n auto"
+testpaths = ["tests"]
+python_files = ["test*.py", "Test*.py"]
+norecursedirs = [".git", ".cache", ".tox", ".ropeproject", "build"]
+filterwarnings = [
+    "ignore:datetime.datetime.utcfromtimestamp():DeprecationWarning:dateutil|tqdm",
+]
+
+[tool.coverage.run]
+parallel = true
+concurrency = ["multiprocessing"]
+
 # static analysis ==============================================================
 
 [tool.pylint.main]

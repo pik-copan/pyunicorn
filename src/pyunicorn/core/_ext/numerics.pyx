@@ -412,9 +412,9 @@ def _local_cliquishness_5thorder(
 def _nsi_betweenness(
     int N, ndarray[DWEIGHT_t, ndim=1] w,
     ndarray[DEGREE_t, ndim=1] k,
-    ndarray[NODE_t, ndim=1] targets,
     ndarray[NODE_t, ndim=1] flat_neighbors,
-    ndarray[MASK_t, ndim=1] is_source):
+    ndarray[MASK_t, ndim=1] is_source,
+    ndarray[NODE_t, ndim=1] targets):
     """
     Performs Newman's algorithm. [Newman2001]_
     """
