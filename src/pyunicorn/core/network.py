@@ -17,23 +17,14 @@ Provides classes for analyzing spatially embedded complex networks, handling
 multivariate data and generating time series surrogates.
 """
 
-# general TODO:
-# - find segfault problem in a.w. shortest path betweenness
-# - rename aw... to nsi... (node splitting invariant)
-# - implement "corrected" node splitting invariant measures named cnsi...
-#   (see paper)
-# - implement Newman modularity and iterative division
-# - treat type-related ambiguities more thoroughly
-#   (flatten(), list(...), astype(...) etc.)
-
 #
 #  Import essential packages
 #
 
-
 import sys                          # performance testing
 import time
-from functools import wraps         # helper function for decorators
+from functools import partial, wraps
+from multiprocessing import get_context, cpu_count
 
 import numpy as np                  # array object and fast numerics
 from numpy import random
@@ -45,7 +36,6 @@ from tqdm import tqdm, trange       # easy progress bar handling
 
 import igraph                       # high performance graph theory tools
 
-from multiprocess import Pool, cpu_count
 from ..utils import mpi             # parallelized computations
 
 from ._ext.types import \
@@ -1381,7 +1371,6 @@ class Network:
         """
         return nz_coords(self.sp_A)
 
-    # TODO: deprecate this and rather use undirected_copy()
     def undirected_adjacency(self):
         """
         Return the adjacency matrix of the undirected version of the network
@@ -1454,6 +1443,8 @@ class Network:
 
         :rtype: square array([[float]])
         """
+        if self.directed:
+            raise NotImplementedError("Not implemented for directed networks.")
         return (self.sp_nsi_diag_k() - self.sp_Aplus() * self.sp_diag_w()).A
 
     #
@@ -1552,12 +1543,7 @@ class Network:
         :type values: 1D Numpy array [node]
         :arg values: The node attribute sequence.
         """
-        # TODO: add example
-
-        #  Test whether the data vector has the same length as the number of
-        #  nodes in the graph.
         if len(values) == self.N:
-            #  Add node property to igraph Graph object
             self.graph.vs.set_attribute_values(attrname=attribute_name,
                                                values=values)
         else:
@@ -1576,7 +1562,6 @@ class Network:
         :rtype: 1D Numpy array [node]
         :return: The node attribute sequence.
         """
-        # TODO: add example
         return np.array(self.graph.vs.get_attribute_values(attribute_name))
 
     def del_node_attribute(self, attribute_name):
@@ -1585,14 +1570,11 @@ class Network:
 
         :arg str attribute_name: Name of node attribute to be deleted.
         """
-        # TODO: add example
         del self.graph.vs[attribute_name]
 
     #
     #  Methods working with link attributes
     #
-
-    # TODO: verify whether return types are list or numpy array
 
     def average_link_attribute(self, attribute_name):
         """
@@ -1603,7 +1585,6 @@ class Network:
 
         :rtype: 1d numpy array [node] of floats
         """
-        # TODO: add example
         return self.link_attribute(attribute_name).mean(axis=1)
 
     def link_attribute(self, attribute_name):
@@ -1615,8 +1596,6 @@ class Network:
         :rtype:  square numpy array [node,node]
         :return: Entry [i,j] is the attribute of the link from i to j.
         """
-        # TODO: add example
-        # TODO: test this for directed graphs
         #  Initialize weights array
         weights = np.zeros((self.N, self.N))
 
@@ -1646,7 +1625,6 @@ class Network:
 
         :arg str attribute_name: name of link attribute to be deleted
         """
-        # TODO: add example
         if attribute_name in self.cache['paths']:
             self.clear_link_attribute(attribute_name)
             del self.graph.es[attribute_name]
@@ -1668,9 +1646,6 @@ class Network:
         :type values: square numpy array [node,node]
         :arg  values: Entry [i,j] is the attribute of the link from i to j.
         """
-        # TODO: add example and sparse version
-        # TODO: test this for directed graphs
-        #  Set link attribute in igraph
         for e in self.graph.es:
             e[attribute_name] = values[e.tuple]
 
@@ -1687,7 +1662,7 @@ class Network:
         """
         Return list of degrees.
 
-        If a link attribute key is specified, return the associated strength
+        If a link attribute key is specified, return the associated strength.
 
         **Example:**
 
@@ -1702,13 +1677,13 @@ class Network:
         else:
             return self.outdegree(key)
 
-    # TODO: use directed example here and elsewhere
     @cached_var('indegree')
     def indegree(self, key=None):
         """
         Return list of in-degrees.
 
-        If a link attribute key is specified, return the associated in strength
+        If a link attribute key is specified, return the associated
+        in-strength.
 
         **Example:**
 
@@ -1728,8 +1703,8 @@ class Network:
         """
         Return list of out-degrees.
 
-        If a link attribute key is specified, return the associated out
-        strength
+        If a link attribute key is specified, return the associated
+        out-strength.
 
         **Example:**
 
@@ -1751,7 +1726,7 @@ class Network:
         and out-going edges.
 
         If a link attribute key is specified, return the associated bilateral
-        strength
+        strength.
 
         **Exmaple:**
 
@@ -1767,43 +1742,23 @@ class Network:
             w = self.link_attribute(key)
             return (w @ w).diagonal()
 
-    @cached_var('nsi_degree', 'n.s.i. degree')
-    def nsi_degree_uncorr(self, key=None):
-        """
-        For each node, return its uncorrected n.s.i. degree.
-
-        If a link attribute key is specified, return the associated nsi
-        strength
-
-        :arg str key: link attribute key [optional]
-        :rtype: array([float])
-        """
-        if self.directed:
-            return self.nsi_indegree(key) + self.nsi_outdegree(key)
-        else:
-            if key is None:
-                return self.sp_Aplus() * self.node_weights
-            else:
-                w = self.link_attribute(key)
-                return (self.node_weights @ w).squeeze()
-
     def sp_nsi_diag_k(self):
         """Sparse diagonal matrix of n.s.i. degrees"""
-        return sp.diags([self.nsi_degree_uncorr()], [0],
+        return sp.diags([self.nsi_degree()], [0],
                         shape=(self.N, self.N), format='csc')
 
     def sp_nsi_diag_k_inv(self):
         """Sparse diagonal matrix of inverse n.s.i. degrees"""
-        return sp.diags([np.power(self.nsi_degree_uncorr(), -1)], [0],
+        return sp.diags([np.power(self.nsi_degree(), -1)], [0],
                         shape=(self.N, self.N), format='csc')
 
-    def nsi_degree(self, typical_weight=None, key=None):
+#    @cached_var('nsi_degree')
+    def nsi_degree(self, key=None, typical_weight=None):
         """
         For each node, return its uncorrected or corrected n.s.i. degree.
 
-        If a link attribute key is specified, return the associated nsi
-        strength
-
+        If a link attribute key is specified, return the associated n.s.i.
+        strength.
 
         **Examples:**
 
@@ -1828,25 +1783,35 @@ class Network:
         >>> r(net.splitted_copy().degree())
         array([4, 3, 2, 2, 3, 2, 2])
 
-        :type typical_weight: float > 0
-        :arg  typical_weight: Optional typical node weight to be used for
-                              correction. If None, the uncorrected measure is
-                              returned. (Default: None)
         :arg str key: link attribute key (optional)
+        :type typical_weight: float > 0
+        :arg float typical_weight: Optional typical node weight to be used for
+            correction. If None, the uncorrected measure is
+            returned. (Default: None)
+
         :rtype: array([float])
         """
-        if typical_weight is None:
-            return self.nsi_degree_uncorr(key)
+        if self.directed:
+            res = self.nsi_indegree(key) + self.nsi_outdegree(key)
         else:
-            return self.nsi_degree_uncorr(key)/typical_weight - 1.0
+            if key is None:
+                res = self.sp_Aplus() * self.node_weights
+            else:
+                w = self.link_attribute(key)
+                res = (self.node_weights @ w).squeeze()
 
-    @cached_var('nsi_indegree')
-    def nsi_indegree(self, key=None):
+        if typical_weight is None:
+            return res
+        else:
+            return res/typical_weight - 1.0
+
+#    @cached_var('nsi_indegree')
+    def nsi_indegree(self, key=None, typical_weight=None):
         """
-        For each node, return its n.s.i. indegree
+        For each node, return its n.s.i. indegree.
 
-        If a link attribute key is specified, return the associated nsi in
-        strength
+        If a link attribute key is specified, return the associated n.s.i.
+        in-strength.
 
         **Examples:**
 
@@ -1865,20 +1830,29 @@ class Network:
         array([3, 2, 2, 1, 1, 1, 1])
 
         :arg str key: link attribute key [optional]
+        :type typical_weight: float > 0
+        :arg  typical_weight: Optional typical node weight to be used for
+            correction. If None, the uncorrected measure is
+            returned. (Default: None)
+
+        :rtype: array([float])
         """
         if key is None:
-            return self.node_weights * self.sp_Aplus()
+            res = self.node_weights * self.sp_Aplus()
         else:
-            w = self.link_attribute(key)
-            return (self.node_weights @ w).squeeze()
+            res = (self.node_weights @ self.link_attribute(key)).squeeze()
+        if typical_weight is None:
+            return res
+        else:
+            return res/typical_weight - 1.0
 
-    @cached_var('nsi_outdegree')
-    def nsi_outdegree(self, key=None):
+#    @cached_var('nsi_outdegree')
+    def nsi_outdegree(self, key=None, typical_weight=None):
         """
-        For each node, return its n.s.i.outdegree
+        For each node, return its n.s.i. outdegree.
 
-        If a link attribute key is specified, return the associated nsi out
-        strength
+        If a link attribute key is specified, return the associated n.s.i.
+        out-strength.
 
         **Examples:**
 
@@ -1897,12 +1871,45 @@ class Network:
         array([2, 2, 0, 1, 2, 2, 2])
 
         :arg str key: link attribute key [optional]
+        :type typical_weight: float > 0
+        :arg  typical_weight: Optional typical node weight to be used for
+            correction. If None, the uncorrected measure is
+            returned. (Default: None)
+
+        :rtype: array([float])
         """
         if key is None:
-            return self.sp_Aplus() * self.node_weights
+            res = self.sp_Aplus() * self.node_weights
         else:
-            w = self.link_attribute(key)
-            return (w @ self.node_weights.transpose()).transpose().squeeze()
+            res = (self.link_attribute(key) @ self.node_weights).squeeze()
+        if typical_weight is None:
+            return res
+        else:
+            return res/typical_weight - 1.0
+
+#    @cached_var('nsi_bildegree')
+    def nsi_bildegree(self, key=None, typical_weight=None):
+        """
+        For each node, return its n.s.i. bilateral degree.
+
+        If a link attribute key is specified, return the associated n.s.i.
+        bilateral strength.
+
+        :arg str key: link attribute key [optional]
+        :type typical_weight: float > 0
+        :arg  typical_weight: Optional typical node weight to be used for
+            correction. If None, the uncorrected measure is
+            returned. (Default: None)
+
+        :rtype: array([float])
+        """
+        assert key is None, "nsi_bildegree is not implemented with key yet"
+        Ap = self.sp_Aplus()
+        res = (Ap * sp.diags(self.node_weights) * Ap).diagonal()
+        if typical_weight is None:
+            return res
+        else:
+            return res/typical_weight - 1.0
 
     @cached_const('base', 'degree df', 'the degree frequency distribution')
     def degree_distribution(self):
@@ -2009,8 +2016,8 @@ class Network:
         return self._cum_histogram(values=ko, n_bins=ko.max() + 1)[0]
 
     # FIXME: should rather return the weighted distribution!
-    @cached_const('nsi', 'degree hist', 'a n.s.i. degree frequency histogram')
-    def nsi_degree_histogram(self):
+#    @cached_const('nsi', 'degree hist', 'a n.s.i. degree frequency histogram')
+    def nsi_degree_histogram(self, typical_weight=None):
         """
         Return a frequency (!) histogram of n.s.i. degree.
 
@@ -2022,17 +2029,22 @@ class Network:
         (array([ 0.3333, 0.1667, 0.5 ]), array([ 0.1179, 0.1667, 0.0962]),
          array([ 4. , 5.4667, 6.9333]))
 
+        :type typical_weight: float > 0
+        :arg  typical_weight: Optional typical node weight to be used for
+            correction. If None, the uncorrected measure is
+            returned. (Default: None)
+
         :rtype:  tuple (list,list)
         :return: List of frequencies and list of lower bin bounds.
         """
-        nsi_k = self.nsi_degree()
+        nsi_k = self.nsi_degree(typical_weight=typical_weight)
         return self._histogram(values=nsi_k,
                                n_bins=int(nsi_k.max()/nsi_k.min()) + 1)
 
     # FIXME: should rather return the weighted distribution!
-    @cached_const('nsi', 'degree hist',
-                  'a cumulative n.s.i. degree frequency histogram')
-    def nsi_degree_cumulative_histogram(self):
+#    @cached_const('nsi', 'degree hist',
+#                  'a cumulative n.s.i. degree frequency histogram')
+    def nsi_degree_cumulative_histogram(self, typical_weight=None):
         """
         Return a cumulative frequency (!) histogram of n.s.i. degree.
 
@@ -2043,10 +2055,15 @@ class Network:
         Calculating n.s.i. degree...
         (array([ 1. , 0.6667, 0.5 ]), array([ 4. , 5.4667, 6.9333]))
 
+        :type typical_weight: float > 0
+        :arg  typical_weight: Optional typical node weight to be used for
+            correction. If None, the uncorrected measure is
+            returned. (Default: None)
+
         :rtype:  tuple (list,list)
         :return: List of cumulative frequencies and list of lower bin bounds.
         """
-        nsi_k = self.nsi_degree()
+        nsi_k = self.nsi_degree(typical_weight=typical_weight)
         return self._cum_histogram(values=nsi_k,
                                    n_bins=int(nsi_k.max()/nsi_k.min()) + 1)
 
@@ -2123,6 +2140,7 @@ class Network:
         # A+ * (Dw * k) is faster than (A+ * Dw) * k
         nsi_k = self.nsi_degree()
         return self.sp_Aplus() * (self.sp_diag_w() * nsi_k) / nsi_k
+        # TODO: enable correction by typical_weight
 
     @cached_const('nsi', 'max nbr degree', "n.s.i. maximum neighbour degree")
     def nsi_max_neighbors_degree(self):
@@ -2152,6 +2170,7 @@ class Network:
         self.nsi_degree()
         # matrix with the degrees of nodes' neighbours as rows
         return (self.sp_Aplus() * self.sp_nsi_diag_k()).max(axis=1).T.A[0]
+        # TODO: enable correction by typical_weight
 
     #
     #   Measures of clustering, transitivity and cliquishness
@@ -2199,7 +2218,8 @@ class Network:
         """
         return self.local_clustering().mean()
 
-    def _motif_clustering_helper(self, t_func, T, key=None, nsi=False):
+    def _motif_clustering_helper(self, t_func, T, key=None, nsi=False,
+                                 typical_weight=None, ksum=None):
         """
         Helper function to compute the local motif clustering coefficients.
         For each node, returns a specific clustering coefficient, depending
@@ -2209,6 +2229,11 @@ class Network:
         :arg 1d numpy array [node]: denominator made out of (in/out/bil)degrees
         :arg str key: link attribute key (optional)
         :arg bool nsi: flag for nsi calculation (default: False)
+        :type typical_weight: float > 0
+        :arg float typical_weight: Optional typical node weight to be used for
+            correction. If None, the uncorrected measure is
+            returned. (Default: None)
+
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
         if nsi:
@@ -2224,9 +2249,15 @@ class Network:
         t = t_func(A, AT).diagonal()
         T = T.astype(float)
         T[T == 0] = np.nan
-        C = t / (self.node_weights * T) if nsi else t / T
-        C[np.isnan(C)] = 0
-        return C
+        if typical_weight is None:
+            C = t / (self.node_weights * T) if nsi else t / T
+            C[np.isnan(C)] = 0
+            return C
+        else:
+            bilk = self.nsi_bildegree(typical_weight=typical_weight)
+            numerator = t / self.node_weights
+            return ((numerator/typical_weight**2 - 3.0*bilk - 1.0)
+                    / (T - ksum/typical_weight - bilk + 2))
 
     @cached_var('local cyclemotif', 'local cycle motif clustering coefficient')
     def local_cyclemotif_clustering(self, key=None):
@@ -2320,9 +2351,9 @@ class Network:
         T = self.outdegree() * (self.outdegree() - 1)
         return self._motif_clustering_helper(t_func, T, key=key)
 
-    @cached_var('nsi local cyclemotif',
-                'local nsi cycle motif clustering coefficient')
-    def nsi_local_cyclemotif_clustering(self, key=None):
+#    @cached_var('nsi local cyclemotif',
+#                'local nsi cycle motif clustering coefficient')
+    def nsi_local_cyclemotif_clustering(self, key=None, typical_weight=None):
         """
         For each node, return the nsi clustering coefficient with respect to
         the cycle motif.
@@ -2353,15 +2384,24 @@ class Network:
         array([ 0.3333,  0.125 ,  0.    ,  0.    ,  0.5   ,  0.    ,  0.125 ])
 
         :arg str key: link attribute key (optional)
+        :type typical_weight: float > 0
+        :arg float typical_weight: Optional typical node weight to be used for
+            correction. If None, the uncorrected measure is
+            returned. (Default: None)
         """
         def t_func(x, xT):
             return x * x * x
-        T = self.nsi_indegree() * self.nsi_outdegree()
-        return self._motif_clustering_helper(t_func, T, key=key, nsi=True)
+        ink = self.nsi_indegree(typical_weight=typical_weight)
+        outk = self.nsi_outdegree(typical_weight=typical_weight)
+        T = ink * outk
+        ksum = ink + outk
+        return self._motif_clustering_helper(
+            t_func, T, key=key, nsi=True,
+            typical_weight=typical_weight, ksum=ksum)
 
-    @cached_var('nsi local midemotif',
-                'local nsi mid. motif clustering coefficient')
-    def nsi_local_midmotif_clustering(self, key=None):
+#    @cached_var('nsi local midemotif',
+#                'local nsi mid. motif clustering coefficient')
+    def nsi_local_midmotif_clustering(self, key=None, typical_weight=None):
         """
         For each node, return the nsi clustering coefficient with respect to
         the mid motif.
@@ -2392,15 +2432,24 @@ class Network:
         array([ 0. ,  0. ,  0. ,  1. ,  0.8,  0. ,  0.8])
 
         :arg str key: link attribute key (optional)
+        :type typical_weight: float > 0
+        :arg float typical_weight: Optional typical node weight to be used for
+            correction. If None, the uncorrected measure is
+            returned. (Default: None)
         """
         def t_func(x, xT):
             return x * xT * x
-        T = self.nsi_indegree() * self.nsi_outdegree()
-        return self._motif_clustering_helper(t_func, T, key=key, nsi=True)
+        ink = self.nsi_indegree(typical_weight=typical_weight)
+        outk = self.nsi_outdegree(typical_weight=typical_weight)
+        T = ink * outk
+        ksum = ink + outk
+        return self._motif_clustering_helper(
+            t_func, T, key=key, nsi=True,
+            typical_weight=typical_weight, ksum=ksum)
 
-    @cached_var('nsi local inemotif',
-                'local nsi in motif clustering coefficient')
-    def nsi_local_inmotif_clustering(self, key=None):
+#    @cached_var('nsi local inemotif',
+#                'local nsi in motif clustering coefficient')
+    def nsi_local_inmotif_clustering(self, key=None, typical_weight=None):
         """
         For each node, return the nsi clustering coefficient with respect to
         the in motif.
@@ -2432,15 +2481,23 @@ class Network:
 
 
         :arg str key: link attribute key (optional)
+        :type typical_weight: float > 0
+        :arg float typical_weight: Optional typical node weight to be used for
+            correction. If None, the uncorrected measure is
+            returned. (Default: None)
         """
         def t_func(x, xT):
             return xT * x * x
-        T = self.nsi_indegree()**2
-        return self._motif_clustering_helper(t_func, T, key=key, nsi=True)
+        ink = self.nsi_indegree(typical_weight=typical_weight)
+        T = ink**2
+        ksum = ink * 2
+        return self._motif_clustering_helper(
+            t_func, T, key=key, nsi=True,
+            typical_weight=typical_weight, ksum=ksum)
 
-    @cached_var('nsi local outemotif',
-                'local nsi out motif clustering coefficient')
-    def nsi_local_outmotif_clustering(self, key=None):
+#    @cached_var('nsi local outemotif',
+#                'local nsi out motif clustering coefficient')
+    def nsi_local_outmotif_clustering(self, key=None, typical_weight=None):
         """
         For each node, return the nsi clustering coefficient with respect to
         the out motif.
@@ -2471,11 +2528,19 @@ class Network:
         array([ 0.5   ,  0.5   ,  0.    ,  0.    ,  0.3333,  1.    ,  0.5   ])
 
         :arg str key: link attribute key (optional)
+        :type typical_weight: float > 0
+        :arg float typical_weight: Optional typical node weight to be used for
+            correction. If None, the uncorrected measure is
+            returned. (Default: None)
         """
         def t_func(x, xT):
             return x * x * xT
-        T = self.nsi_outdegree()**2
-        return self._motif_clustering_helper(t_func, T, key=key, nsi=True)
+        outk = self.nsi_outdegree(typical_weight=typical_weight)
+        T = outk**2
+        ksum = outk * 2
+        return self._motif_clustering_helper(
+            t_func, T, key=key, nsi=True,
+            typical_weight=typical_weight, ksum=ksum)
 
     @cached_const('base', 'transitivity', 'transitivity coefficient (C_1)')
     def transitivity(self):
@@ -2701,24 +2766,7 @@ class Network:
         num2 = (num2 / (2 * m)) ** 2
         return (num1 - num2) / (den1 - num2)
 
-    @cached_const('nsi', 'local clustering')
-    def nsi_local_clustering_uncorr(self):
-        """
-        For each node, return its uncorrected n.s.i. clustering coefficient
-        (between 0 and 1).
-
-        (not yet implemented for directed networks)
-
-        :rtype: array([float])
-        """
-        if self.directed:
-            raise NotImplementedError("Not implemented for directed networks.")
-
-        w, k = self.node_weights, self.nsi_degree()
-        A_Dw = self.sp_A * self.sp_diag_w()
-        numerator = (A_Dw * self.sp_Aplus() * A_Dw.T).diagonal()
-        return (numerator + 2*k*w - w**2) / k**2
-
+#     @cached_var('nsi', 'local clustering')
     def nsi_local_clustering(self, typical_weight=None):
         """
         For each node, return its uncorrected (between 0 and 1) or corrected
@@ -2748,19 +2796,28 @@ class Network:
 
         :type typical_weight: float > 0
         :arg  typical_weight: Optional typical node weight to be used for
-                              correction. If None, the uncorrected measure is
-                              returned. (Default: None)
+            correction. If None, the uncorrected measure is
+            returned. (Default: None)
 
         :rtype: array([float])
         """
+        if self.directed:
+            raise NotImplementedError("Not implemented for directed networks.")
+
+        k = self.nsi_degree(typical_weight=typical_weight)
+
         if typical_weight is None:
-            return self.nsi_local_clustering_uncorr()
+            if self.silence_level <= 1:
+                print("Calculating uncorrected n.s.i. "
+                      "local clustering coefficients...")
+            w = self.node_weights
+            A_Dw = self.sp_A * self.sp_diag_w()
+            numerator = (A_Dw * self.sp_Aplus() * A_Dw.T).diagonal()
+            return (numerator + 2*k*w - w**2) / k**2
         else:
-            k = self.nsi_degree(typical_weight=typical_weight)
             if self.silence_level <= 1:
                 print("Calculating corrected n.s.i. "
                       "local clustering coefficients...")
-
             Ap = self.sp_Aplus()
             Ap_Dw = Ap * self.sp_diag_w()
             numerator = (Ap_Dw * Ap_Dw * Ap).diagonal()
@@ -3234,6 +3291,7 @@ class Network:
         Calculating node betweenness...
         array([ 8.5,  1.5,  0. ,  1.5,  4.5,  0. ,  0. ])
 
+        :arg bool parallelize: Toggle multiprocessing
         :rtype: 1d numpy array [node] of floats
         """
         if self.silence_level <= 1:
@@ -3244,7 +3302,7 @@ class Network:
         if "aw" in kwargs:
             if kwargs["aw"] == 0:
                 w = np.ones_like(w)
-        N, k = self.N, self.degree()
+        N, k = self.N, self.outdegree()
 
         # initialize node lists
         is_source = np.zeros(N, dtype=MASK)
@@ -3265,49 +3323,19 @@ class Network:
         assert k.sum() == len(flat_neighbors) == 2 * self.n_links
         w, k = to_cy(w, DWEIGHT), to_cy(k, DEGREE)
 
-        def worker(batch):
-            return _nsi_betweenness(N, w, k, batch, flat_neighbors, is_source)
-
+        worker = partial(_nsi_betweenness, N, w, k, flat_neighbors, is_source)
         if parallelize:
             # (naively) parallelize loop over nodes
             n_workers = cpu_count()
             batches = np.array_split(to_cy(targets, NODE), n_workers)
-            pool = Pool()
-            betw_w = np.sum(pool.map(worker, batches), axis=0)
+            with get_context("spawn").Pool() as pool:
+                betw_w = np.sum(pool.map(worker, batches), axis=0)
+                pool.close()
+                pool.join()
         else:
             betw_w = worker(to_cy(targets, NODE))
         return betw_w / w
 
-    def _eigenvector_centrality_slow(self, link_attribute=None):
-        """
-        For each node, return its (weighted) eigenvector centrality.
-
-        This is the load on this node from the eigenvector corresponding to the
-        largest eigenvalue of the (weighted) adjacency matrix, normalized to a
-        maximum of 1.
-
-        :arg str link_attribute: Optional name of the link attribute to be used
-            as the links' weight. If None, links have weight 1. (Default: None)
-        :rtype: 1d numpy array [node] of floats
-        """
-        if link_attribute == "topological":
-            print("WARNING: link_attribute='topological' is deprecated.\n"
-                  + "Use link_attribute=None instead.")
-            link_attribute = None
-
-        if link_attribute is None:
-            if self.silence_level <= 1:
-                print("Calculating topological eigenvector centrality...")
-
-            return np.array(self.graph.eigenvector_centrality(weights=None))
-        else:
-            if self.silence_level <= 1:
-                print("Calculating weighted eigenvector centrality...")
-
-            return np.array(self.graph.eigenvector_centrality(
-                weights=link_attribute))
-
-    # faster version of the above:
     @cached_const('base', 'ev centrality', 'eigenvector centrality')
     def eigenvector_centrality(self):
         """
@@ -3340,6 +3368,9 @@ class Network:
         This is the load on this node from the eigenvector corresponding to the
         largest eigenvalue of the n.s.i. adjacency matrix, divided by
         sqrt(node weight) and normalized to a maximum of 1.
+
+        For a directed network, this uses the right eigenvectors. To get the
+        values for the left eigenvectors, apply this to the inverse network!
 
         **Example:**
 
@@ -3420,7 +3451,7 @@ class Network:
             as the links' length. If None, links have length 1. (Default: None)
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
-        # TODO: check and describe behaviour for unconnected networks.
+        # TODO: check and describe behaviour for unconnected networks
         if link_attribute == "topological":
             print("WARNING: link_attribute='topological' is deprecated.\n"
                   + "Use link_attribute=None instead.")
@@ -3649,92 +3680,6 @@ class Network:
             print("...took", time.time()-t0, "seconds")
 
         return arenas_betweenness
-
-    # TODO: remove this slow version after regression test:
-    def _arenas_betweenness_slow(self):
-        print("WARNING: _arenas_betweenness_slow() is deprecated!")
-
-        t0 = time.time()
-
-        #  Initialize the array to hold random walk betweenness
-        awRandomWalkBetweenness = np.zeros(self.N)
-
-        #  Random walk betweenness has to be calculated for each component
-        #  separately. Therefore get different components of the graph first
-        components = self.graph.connected_components()
-
-        #  Print giant component size
-        if self.silence_level <= 1:
-            print("   (giant component size: "
-                  + str(components.giant().vcount()) + " ("
-                  + str(components.giant().vcount()
-                        / float(self.graph.vcount())) + "))")
-
-        for i, comp in enumerate(components):
-            #  If the component has size 1, set random walk betweenness to zero
-            if len(comp) == 1:
-                awRandomWalkBetweenness[comp[0]] = 0
-            #  For larger components, continue with the calculation
-            else:
-                #  Get the subgraph corresponding to component i
-                subgraph = components.subgraph(i)
-
-                #  Get the subgraph adjacency matrix
-                adjacency = np.array(subgraph.get_adjacency(type=2).data)
-
-                #  Get the list of vertex numbers in the subgraph
-                vertexList = comp
-
-                # Extract corresponding area weight vector:
-                aw = np.zeros(len(vertexList))
-                for j, vs in enumerate(vertexList):
-                    aw[j] = self.node_weights[vs]
-
-                #  Generate a Network object representing the subgraph
-                subnetwork = Network(adjacency, directed=False)
-
-                #  Get the number of nodes of the subgraph (the component size)
-                nNodes = subnetwork.N
-
-                #  Initialize the RWB array
-                rwb = np.zeros(nNodes)
-
-                #  Get the subnetworks degree sequence
-                awDegreeSequence = subnetwork.nsi_degree()
-
-                #  Clean up
-                del subgraph, subnetwork
-
-                #  Get the pMatrix that is modified and inverted
-                Identity = np.identity(nNodes)
-                Ap = adjacency + Identity
-                pMatrix = np.diag(1/awDegreeSequence).dot(Ap).dot(np.diag(aw))
-
-                for k in range(nNodes):
-                    #  For k and each neighbour of it, set the corresponding
-                    #  row of the pMatrix to zero to account for the absorption
-                    #  of random walkers at their destination
-                    mask = 1-Ap[k, :]
-                    pMk = pMatrix*(mask.reshape((nNodes, 1)))
-
-                    #  Calculate the b^k matrix
-                    bMatrix = np.dot(np.linalg.inv(Identity-pMk), pMk)
-
-                    #  Perform the summation over source node i
-                    rwb += aw[k] * np.dot(aw.reshape((1, self.N)),
-                                          bMatrix).flatten() * mask
-
-                rwb /= aw
-
-                #  Copy results into randomWalkBetweennessArray at the correct
-                #  positions
-                for j, vs in enumerate(vertexList):
-                    awRandomWalkBetweenness[vs] = rwb[j]
-
-        if self.silence_level <= 1:
-            print("...took", time.time()-t0, "seconds")
-
-        return awRandomWalkBetweenness
 
     # parallelized main loop
     @staticmethod
@@ -4318,7 +4263,6 @@ class Network:
 
         :rtype: float
         """
-        # TODO: check results of examples!
         w = self.node_weights
         #  Set path lengths on diagonal to 1
         nsi_dist = self.path_lengths() + np.identity(self.N)
