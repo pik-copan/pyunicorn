@@ -394,3 +394,21 @@ class CrossRecurrencePlot(RecurrencePlot):
         #  Return balance
         return (upper_triangle_sum - lower_triangle_sum) / \
             float(upper_triangle_sum + lower_triangle_sum)
+
+    def diagline_dist(self):
+        """Not implemented yet"""
+        raise NotImplementedError(
+            "Line distributions are not yet "
+            "available for cross-recurrence plots")
+
+    def vertline_dist(self):
+        """Not implemented yet"""
+        raise NotImplementedError(
+            "Line distributions are not yet "
+            "available for cross-recurrence plots")
+
+    def white_vertline_dist(self):
+        """Not implemented yet"""
+        raise NotImplementedError(
+            "Line distributions are not yet "
+            "available for cross-recurrence plots")

@@ -24,13 +24,13 @@ from pyunicorn.timeseries import JointRecurrencePlot
 from pyunicorn.funcnet import CouplingAnalysis
 
 
-@pytest.mark.parametrize("met", ["supremum", "euclidean", "manhattan"])
 @pytest.mark.parametrize("n", [2, 10, 50])
-def test_recurrence(met: str, n: int):
+def test_recurrence(metric: str, n: int):
     ts = CouplingAnalysis.test_data()[:n, 0]
-    jrp = JointRecurrencePlot(ts, ts, threshold=(.1, .1), metric=(met, met))
+    jrp = JointRecurrencePlot(ts, ts, threshold=(.1, .1),
+                              metric=(metric, metric))
     dist = {
-        i: jrp.distance_matrix(getattr(jrp, f"{i}_embedded"), metric=met)
+        i: jrp.distance_matrix(getattr(jrp, f"{i}_embedded"), metric=metric)
         for i in "xy"}
     assert all(d.shape == (n, n) for d in dist.values())
     assert np.allclose(*dist.values())
