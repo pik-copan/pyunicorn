@@ -29,6 +29,8 @@ filterwarnings = [
 [tool.coverage.run]
 parallel = true
 concurrency = ["multiprocessing"]
+source = ["src/pyunicorn"]
+omit = ["*/utils/navigator.py"]
 
 # static analysis ==============================================================
 
