@@ -45,7 +45,8 @@ install:
 
     # testing dependencies
     - travis_retry conda install -c conda-forge tox flake8 pylint pytest-xdist pytest-cov codecov
-    - travis_retry conda install -c conda-forge networkx matplotlib cartopy sphinx nbsphinx nbsphinx-link
+    - travis_retry conda install -c conda-forge networkx matplotlib cartopy
+    - travis_retry conda install -c conda-forge sphinx ipython nbsphinx nbsphinx-link
 
     # debugging info
     - conda info -a
