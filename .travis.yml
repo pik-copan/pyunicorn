@@ -48,7 +48,7 @@ install:
     - eval "$(conda shell.bash hook)"
     - conda activate test-env
     - if [ "$TRAVIS_OS_NAME" = "linux" ]; then travis_retry conda install -c conda-forge python=${TRAVIS_PYTHON_VERSION%-dev}; fi
-    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then travis_retry conda install -c conda-forge python=3.11; fi
+    - if [ "$TRAVIS_OS_NAME" = "osx" ]; then travis_retry conda install -c conda-forge python=3.11; fi
     - travis_retry conda install -c conda-forge numpy scipy python-igraph h5netcdf tqdm
     - travis_retry conda update  -c conda-forge --all
 
@@ -62,10 +62,14 @@ install:
 
 before_script:
     # limit parallel processes to available cores (error if pattern not found)
-    - sed -i '/nthreads=./{s//nthreads=2/;h}; ${x;/./{x;q0};x;q1}' setup.py
-    - sed -i '/-j ./      {s//-j 2/;      h}; ${x;/./{x;q0};x;q1}' setup.cfg
-    - sed -i '/-n auto/   {s//-n 2/;      h}; ${x;/./{x;q0};x;q1}' pyproject.toml
-    - sed -i '/jobs = ./  {s//jobs = 2/;  h}; ${x;/./{x;q0};x;q1}' pyproject.toml
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sed -i '/nthreads=./{s//nthreads=2/;h}; ${x;/./{x;q0};x;q1}' setup.py; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sed -i '/-j ./      {s//-j 2/;      h}; ${x;/./{x;q0};x;q1}' setup.cfg; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sed -i '/-n auto/   {s//-n 2/;      h}; ${x;/./{x;q0};x;q1}' pyproject.toml; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sed -i '/jobs = ./  {s//jobs = 2/;  h}; ${x;/./{x;q0};x;q1}' pyproject.toml; fi
+    - if [ "$TRAVIS_OS_NAME" = "osx" ]; then sed -i '' '/nthreads=./{s//nthreads=2/;h}; ${x;/./{x;q0};x;q1}' setup.py; fi
+    - if [ "$TRAVIS_OS_NAME" = "osx" ]; then sed -i '' '/-j ./      {s//-j 2/;      h}; ${x;/./{x;q0};x;q1}' setup.cfg; fi
+    - if [ "$TRAVIS_OS_NAME" = "osx" ]; then sed -i '' '/-n auto/   {s//-n 2/;      h}; ${x;/./{x;q0};x;q1}' pyproject.toml; fi
+    - if [ "$TRAVIS_OS_NAME" = "osx" ]; then sed -i '' '/jobs = ./  {s//jobs = 2/;  h}; ${x;/./{x;q0};x;q1}' pyproject.toml; fi
 
 script:
     # package
