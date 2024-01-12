@@ -30,12 +30,20 @@ jobs:
           language: shell
           before_install:
               - choco install miniconda3 --params="'/InstallationType=JustMe /AddToPath:1 /S /D=%UserProfile%\miniconda'"
+              - conda config --set quiet yes --set always_yes yes --set changeps1 no
+              - travis_retry conda update -n base -c defaults conda
+              - travis_retry conda update --all
+              - conda config --set solver libmamba
+              # debugging info
+              - conda info -a
+              - conda list
 
 before_install:
     # Python package manager
     - if [ "$TRAVIS_OS_NAME" = "linux" ]; then travis_retry wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh -O miniconda.sh; fi
     - if [ "$TRAVIS_OS_NAME" = "osx" ]; then travis_retry wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh; fi
-    - if [ "$TRAVIS_OS_NAME" -ne "windows" ]; then bash miniconda.sh -b -p $HOME/miniconda; export PATH="$HOME/miniconda/bin:$PATH"; hash -r; fi
+    - bash miniconda.sh -b -p $HOME/miniconda
+    - export PATH="$HOME/miniconda/bin:$PATH"; hash -r
     - conda config --set quiet yes --set always_yes yes --set changeps1 no
     - travis_retry conda update -n base -c defaults conda
     - travis_retry conda update --all
