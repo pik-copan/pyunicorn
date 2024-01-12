@@ -3,26 +3,34 @@ version: ~> 1.0
 # require the branch name to be master
 if: branch = master
 
-language: python
-python:
-    # https://docs.travis-ci.com/user/languages/python/#python-versions
-    - "3.8"
-    - "3.9"
-    - "3.10"
-    - "3.11"
-    - "3.12-dev"
-matrix:
-    fast_finish: true
+# # temporarily skip linux job matrix
+# language: python
+# python:
+#     # https://docs.travis-ci.com/user/languages/python/#python-versions
+#     - "3.8"
+#     - "3.9"
+#     - "3.10"
+#     - "3.11"
+#     - "3.12-dev"
+# matrix:
+#     fast_finish: true
 
-arch: arm64
-virt: lxd
-os: linux
-dist: focal
-sudo: false
+# arch: arm64
+# virt: lxd
+# os: linux
+# dist: focal
+# sudo: false
+
+jobs:
+    include:
+        - os: osx
+          osx_image: xcode12.2
+          language: shell        # 'language: python' is an error on Travis CI macOS
 
 before_install:
     # Python package manager
-    - travis_retry wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh -O miniconda.sh
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then travis_retry wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh -O miniconda.sh; fi
+    - if [ "$TRAVIS_OS_NAME" = "osx" ]; then travis_retry wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh; fi
     - bash miniconda.sh -b -p $HOME/miniconda
     - export PATH="$HOME/miniconda/bin:$PATH"; hash -r
     - conda config --set quiet yes --set always_yes yes --set changeps1 no
@@ -39,7 +47,8 @@ install:
     - travis_retry conda create -n test-env
     - eval "$(conda shell.bash hook)"
     - conda activate test-env
-    - travis_retry conda install -c conda-forge python=${TRAVIS_PYTHON_VERSION%-dev}
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then travis_retry conda install -c conda-forge python=${TRAVIS_PYTHON_VERSION%-dev}; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then travis_retry conda install -c conda-forge python=3.11; fi
     - travis_retry conda install -c conda-forge numpy scipy python-igraph h5netcdf tqdm
     - travis_retry conda update  -c conda-forge --all
 
