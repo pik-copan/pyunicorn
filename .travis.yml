@@ -5,44 +5,56 @@ if: branch = master
 
 jobs:
     include:
-        - os: linux
-          dist: focal
-          arch: arm64
-          virt: lxd
-          sudo: false
-          language: python
-          python: "3.8"
-        - os: linux
-          dist: focal
-          arch: arm64
-          virt: lxd
-          sudo: false
-          language: python
-          python: "3.9"
-        - os: linux
-          dist: focal
-          arch: arm64
-          virt: lxd
-          sudo: false
-          language: python
-          python: "3.10"
-        - os: linux
-          dist: focal
-          arch: arm64
-          virt: lxd
-          sudo: false
-          language: python
-          python: "3.11"
-        - os: linux
-          dist: focal
-          arch: arm64
-          virt: lxd
-          sudo: false
-          language: python
-          python: "3.12-dev"
-        - os: osx
-          osx_image: xcode12.2
-          language: shell        # 'language: python' is not available on Travis CI macOS
+        # # linux jobs
+        # - os: linux
+        #   dist: focal
+        #   arch: arm64
+        #   virt: lxd
+        #   sudo: false
+        #   language: python
+        #   python: "3.8"
+        # - os: linux
+        #   dist: focal
+        #   arch: arm64
+        #   virt: lxd
+        #   sudo: false
+        #   language: python
+        #   python: "3.9"
+        # - os: linux
+        #   dist: focal
+        #   arch: arm64
+        #   virt: lxd
+        #   sudo: false
+        #   language: python
+        #   python: "3.10"
+        # - os: linux
+        #   dist: focal
+        #   arch: arm64
+        #   virt: lxd
+        #   sudo: false
+        #   language: python
+        #   python: "3.11"
+        # - os: linux
+        #   dist: focal
+        #   arch: arm64
+        #   virt: lxd
+        #   sudo: false
+        #   language: python
+        #   python: "3.12-dev"
+        # # macOS job
+        # - os: osx
+        #   osx_image: xcode12.2
+        #   language: shell        # 'language: python' is not available on Travis CI macOS
+        # Windows job
+        - os: windows
+          language: shell
+          before_install: 
+            - choco install miniconda3 --params="'/S /InstallationType=JustMe /AddToPath=1 /D=%UserProfile%\miniconda'"
+            - refreshenv; path
+            - conda config --set quiet yes --set always_yes yes --set changeps1 no
+            - travis_retry conda update -n base -c defaults conda
+            - travis_retry conda update --all
+            - conda config --set solver libmamba
 
 before_install:
     # Python package manager
