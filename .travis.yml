@@ -3,38 +3,29 @@ version: ~> 1.0
 # require the branch name to be master
 if: branch = master
 
-# # temporarily skip linux job matrix
-# language: python
-# python:
-#     # https://docs.travis-ci.com/user/languages/python/#python-versions
-#     - "3.8"
-#     - "3.9"
-#     - "3.10"
-#     - "3.11"
-#     - "3.12-dev"
-# matrix:
-#     fast_finish: true
+language: python
+python:
+    # https://docs.travis-ci.com/user/languages/python/#python-versions
+    - "3.8"
+    - "3.9"
+    - "3.10"
+    - "3.11"
+    - "3.12-dev"
+matrix:
+    fast_finish: true
 
-# arch: arm64
-# virt: lxd
-# os: linux
-# dist: focal
-# sudo: false
+arch: arm64
+virt: lxd
+os: linux
+dist: focal
+sudo: false
 
 jobs:
     include:
-    #     - os: osx
-    #       osx_image: xcode12.2
-    #       language: shell        # 'language: python' is not available on Travis CI macOS
-        - os: windows
-          language: shell
-          before_install:
-              - wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe -O miniconda.exe
-              - travis_retry start /wait "" miniconda.exe /S
-              - conda config --set quiet yes --set always_yes yes --set changeps1 no
-              - travis_retry conda update -n base -c defaults conda
-              - travis_retry conda update --all
-              - conda config --set solver libmamba
+        - python: "3.11"
+          os: osx
+          osx_image: xcode12.2
+          language: shell        # 'language: python' is not available on Travis CI macOS
 
 before_install:
     # Python package manager
