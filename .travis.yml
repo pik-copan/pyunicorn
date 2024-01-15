@@ -3,27 +3,44 @@ version: ~> 1.0
 # require the branch name to be master
 if: branch = master
 
-language: python
-python:
-    # https://docs.travis-ci.com/user/languages/python/#python-versions
-    - "3.8"
-    - "3.9"
-    - "3.10"
-    - "3.11"
-    - "3.12-dev"
-matrix:
-    fast_finish: true
-
-arch: arm64
-virt: lxd
-os: linux
-dist: focal
-sudo: false
-
 jobs:
     include:
-        - python: "3.11"
-          os: osx
+        - os: linux
+          dist: focal
+          arch: arm64
+          virt: lxd
+          sudo: false
+          language: python
+          python: "3.8"
+        - os: linux
+          dist: focal
+          arch: arm64
+          virt: lxd
+          sudo: false
+          language: python
+          python: "3.9"
+        - os: linux
+          dist: focal
+          arch: arm64
+          virt: lxd
+          sudo: false
+          language: python
+          python: "3.10"
+        - os: linux
+          dist: focal
+          arch: arm64
+          virt: lxd
+          sudo: false
+          language: python
+          python: "3.11"
+        - os: linux
+          dist: focal
+          arch: arm64
+          virt: lxd
+          sudo: false
+          language: python
+          python: "3.12-dev"
+        - os: osx
           osx_image: xcode12.2
           language: shell        # 'language: python' is not available on Travis CI macOS
 
