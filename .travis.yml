@@ -50,7 +50,6 @@ jobs:
           language: shell
           before_install: 
             - choco install miniconda3 --params="'/S /InstallationType=JustMe /AddToPath=1 /D=%UserProfile%\miniconda'"
-            - refreshenv; path
             - conda config --set quiet yes --set always_yes yes --set changeps1 no
             - travis_retry conda update -n base -c defaults conda
             - travis_retry conda update --all
