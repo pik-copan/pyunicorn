@@ -62,7 +62,7 @@ jobs:
             - conda config --set quiet yes --set always_yes yes --set changeps1 no
             - travis_retry conda update -n base -c defaults conda
             - travis_retry conda update --all
-            - conda config --set solver libmamba
+            - # conda config --set solver libmamba # libmamba solver is not available somehow
 
 before_install:
     # Python package manager
