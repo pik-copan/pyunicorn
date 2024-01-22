@@ -49,16 +49,20 @@ jobs:
         - os: windows
           language: shell
           before_install: 
-            - export MINICONDA=$HOME/miniconda
-            - MINICONDA_WIN=$(cygpath --windows $MINICONDA)
-            - choco install openssl.light
-            - choco install miniconda3 --params="'/InstallationType=JustMe /AddToPath=1 /D=MINICONDA_WIN'"
-            - source $MINICONDA/etc/profile.d/conda.sh
-            - hash -r
-            - conda config --set quiet yes --set always_yes yes --set changeps1 no
-            - travis_retry conda update -n base -c defaults conda
-            - travis_retry conda update --all
-            - conda config --set solver libmamba
+            # - export MINICONDA=$HOME/miniconda
+            # - MINICONDA_WIN=$(cygpath --windows $MINICONDA)
+            # - choco install openssl.light
+            # - choco install miniconda3 --params="'/InstallationType=JustMe /AddToPath=1 /D=MINICONDA_WIN'"
+            # - source $MINICONDA/etc/profile.d/conda.sh
+            # - hash -r
+            # - conda config --set quiet yes --set always_yes yes --set changeps1 no
+            # - travis_retry conda update -n base -c defaults conda
+            # - travis_retry conda update --all
+            # - conda config --set solver libmamba
+
+            - wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe -O miniconda.exe
+            - wait
+            - start /wait "" miniconda.exe /S /InstallationType=JustMe /AddToPath=1 /D=%UserProfile%\miniconda
 
 before_install:
     # Python package manager
