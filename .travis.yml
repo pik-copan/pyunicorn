@@ -48,26 +48,14 @@ jobs:
         # Windows job
         - os: windows
           language: shell
+          env: 
+            - PATH=/c/Python311:/c/Python311/Scripts:$PATH
+            - WINDIR=C:\Windows
           before_install:
-            # - export MINICONDA_PATH=$HOME/miniconda
-            # - export MINICONDA_PATH_WIN=`cygpath --windows $MINICONDA_PATH`
-            # - export MINICONDA_SUB_PATH=$MINICONDA_PATH/Scripts
-            # - export MINICONDA_LIB_BIN_PATH=$MINICONDA_PATH/Library/bin
-            # - choco install openssl.light
-            # - choco install miniconda3 --params="'/JustMe /AddToPath:1 /D:$MINICONDA_PATH_WIN'"
-            # - export PATH="$MINICONDA_PATH:$MINICONDA_SUB_PATH:$MINICONDA_LIB_BIN_PATH:$PATH"
-            # - source $MINICONDA_PATH/etc/profile.d/conda.sh
-            # - hash -r
-            # - python --version
-            # - conda config --set quiet yes --set always_yes yes --set changeps1 no
-            # - travis_retry conda update -n base -c defaults conda
-            # - travis_retry conda update --all
-
-            - choco install python --version 3.11
+            - choco install python --version 3.11.6
             - python -m pip install --upgrade pip
-          env: PATH=/c/Python311:/c/Python311/Scripts:$PATH
           install:
-            - echo "trying pip install right away"
+            - echo using pip install on windows
 
 before_install:
     # Python package manager
