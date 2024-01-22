@@ -48,7 +48,7 @@ jobs:
         # Windows job
         - os: windows
           language: shell
-          before_install: 
+          before_install:
             - export MINICONDA_PATH=$HOME/miniconda
             - export MINICONDA_PATH_WIN=`cygpath --windows $MINICONDA_PATH`
             - export MINICONDA_SUB_PATH=$MINICONDA_PATH/Scripts
@@ -62,7 +62,6 @@ jobs:
             - conda config --set quiet yes --set always_yes yes --set changeps1 no
             - travis_retry conda update -n base -c defaults conda
             - travis_retry conda update --all
-            - # conda config --set solver libmamba # libmamba solver is not available somehow
 
 before_install:
     # Python package manager
@@ -84,7 +83,7 @@ install:
     - travis_retry conda create -n test-env
     - eval "$(conda shell.bash hook)"
     - conda activate test-env
-    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then travis_retry conda install -c conda-forge python=${TRAVIS_PYTHON_VERSION%-dev}; else travis_retry conda install -c conda-forge python=3.9; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then travis_retry conda install -c conda-forge python=${TRAVIS_PYTHON_VERSION%-dev}; else travis_retry conda install -c conda-forge python=3.11; fi
     - travis_retry conda install -c conda-forge numpy scipy python-igraph h5netcdf tqdm
     - travis_retry conda update  -c conda-forge --all
 
