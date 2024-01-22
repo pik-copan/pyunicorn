@@ -53,10 +53,11 @@ jobs:
             - export MINICONDA_PATH_WIN=`cygpath --windows $MINICONDA_PATH`
             - export MINICONDA_SUB_PATH=$MINICONDA_PATH/Scripts
             - export MINICONDA_LIB_BIN_PATH=$MINICONDA_PATH/Library/bin
-            - export WINDIR=%SystemRoot%
             - choco install openssl.light
             - choco install miniconda3 --params="'/JustMe /AddToPath:1 /D:$MINICONDA_PATH_WIN'"
             - export PATH="$MINICONDA_PATH:$MINICONDA_SUB_PATH:$MINICONDA_LIB_BIN_PATH:$PATH"
+            - echo $PATH
+            - export WINDIR=%SystemRoot%
             - source $MINICONDA_PATH/etc/profile.d/conda.sh
             - hash -r
             - python --version
@@ -108,6 +109,7 @@ script:
     - travis_retry pip install -v -e ".[testing,docs]"
 
     # test suite
+    - if [ "$TRAVIS_OS_NAME" = "windows" ]; then export WINDIR=%SystemRoot%; fi
     - tox -v
 
 after_success:
