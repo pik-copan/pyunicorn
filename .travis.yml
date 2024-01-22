@@ -53,6 +53,7 @@ jobs:
             - export MINICONDA_PATH_WIN=`cygpath --windows $MINICONDA_PATH`
             - export MINICONDA_SUB_PATH=$MINICONDA_PATH/Scripts
             - export MINICONDA_LIB_BIN_PATH=$MINICONDA_PATH/Library/bin
+            - export WINDIR=%SystemRoot%
             - choco install openssl.light
             - choco install miniconda3 --params="'/JustMe /AddToPath:1 /D:$MINICONDA_PATH_WIN'"
             - export PATH="$MINICONDA_PATH:$MINICONDA_SUB_PATH:$MINICONDA_LIB_BIN_PATH:$PATH"
@@ -62,12 +63,6 @@ jobs:
             - conda config --set quiet yes --set always_yes yes --set changeps1 no
             - travis_retry conda update -n base -c defaults conda
             - travis_retry conda update --all
-          install:
-            # runtime dependencies
-            - travis_retry conda create -n test-env
-            - eval "$(conda shell.bash hook)"
-            - conda activate test-env
-            - travis_retry conda install -c conda-forge python=3.9
 
 before_install:
     # Python package manager
