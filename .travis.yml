@@ -57,7 +57,7 @@ jobs:
             - choco install miniconda3 --params="'/JustMe /AddToPath:1 /D:$MINICONDA_PATH_WIN'"
             - export PATH="$MINICONDA_PATH:$MINICONDA_SUB_PATH:$MINICONDA_LIB_BIN_PATH:$PATH"
             - echo "$PATH" | wc -c
-            - echo $WINDIR
+            - echo %WINDIR%
             - source $MINICONDA_PATH/etc/profile.d/conda.sh
             - hash -r
             - python --version
@@ -109,7 +109,7 @@ script:
     - travis_retry pip install -v -e ".[testing,docs]"
 
     # test suite
-    - if [ "$TRAVIS_OS_NAME" = "windows" ]; then echo $WINDIR; fi
+    - if [ "$TRAVIS_OS_NAME" = "windows" ]; then echo %WINDIR%; fi
     - tox -v
 
 after_success:
