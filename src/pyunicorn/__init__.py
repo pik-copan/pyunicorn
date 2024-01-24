@@ -31,7 +31,6 @@ timeseries
 To Do
 -----
    - A lot - See current product backlog.
-   - Clean up MapPlots class -> Alex!?
 
 """
 
