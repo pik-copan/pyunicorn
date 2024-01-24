@@ -1042,8 +1042,9 @@ class GeoNetwork(SpatialNetwork):
         * EXPERIMENTAL! *
         """
         #  Optional import for this experimental method
+        # pylint: disable=import-outside-toplevel
         try:
-            import stripack  # @UnresolvedImport
+            import stripack
             # tries to import stripack.so which must have been compiled with
             # f2py -c -m stripack stripack.f90
         except ImportError as err:
