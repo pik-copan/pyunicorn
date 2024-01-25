@@ -45,7 +45,7 @@ jobs = 0
 [tool.pylint."messages control"]
 disable = [
     "duplicate-code", "invalid-name", "no-member",
-    "unused-variable", "unused-argument", "no-name-in-module", "fixme",
+    "unused-argument", "no-name-in-module", "fixme",
     "missing-docstring", "arguments-differ", "unsubscriptable-object",
     "no-else-return", "keyword-arg-before-vararg", "arguments-out-of-order"
 ]

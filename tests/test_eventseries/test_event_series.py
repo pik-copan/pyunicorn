@@ -37,7 +37,7 @@ def test_EventSeries_init():
 
 
 def test_make_event_matrix():
-    data, tstamps = create_test_data()
+    data = create_test_data()[0]
 
     # Test 'value' method for first variable > 0.99 and second variable < 0.0
     thresholds1 = np.array([0.99, 0.0])

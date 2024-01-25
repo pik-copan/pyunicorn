@@ -1186,7 +1186,7 @@ class Network:
                     total_link_prob += link_prob[nbs[i]].sum() + link_prob[i]
                     # print(" ii",ii,"i",i,"w[i]",w[i])
                 # print(total_link_prob, link_prob.sum())
-                for ii in range(n_links_old):
+                for _ in range(n_links_old):
                     # j2 = _link_target()
                     j2 = inc_target[int(
                         random.uniform(low=0, high=len(inc_target)))]
@@ -1230,7 +1230,7 @@ class Network:
                 inc_target.append(j)
                 link_target.append(j)
                 # link it to some i's:
-                for ii in range(n_links_new):
+                for _ in range(n_links_new):
                     i = int(link_target[int(
                         random.uniform(low=0, high=len(link_target)))])
                     while i == j or A[i, j] == 1:
@@ -1241,8 +1241,8 @@ class Network:
                     A[i, j] = A[j, i] = 1
                     nbs[j] = [i]
                     nbs[i].append(j)
-                    link_target += [j for iii in range(w[i])] + [i]
-                for ii in range(n_growths):
+                    link_target += [j for _ in range(w[i])] + [i]
+                for _ in range(n_growths):
                     # increase weight of some i:
                     i = int(inc_target[int(
                         random.uniform(low=0, high=len(inc_target)))])
@@ -1251,10 +1251,9 @@ class Network:
                     #        random.uniform(len(inc_target)))])
                     # last_grown[i] = j
                     w[i] += 1
-                    # print(" ii",ii,"i",i,"w[i]",w[i])
                     inc_target.append(i)
                     link_target += nbs[i] + [i]
-                for ii in range(n_links_old):
+                for _ in range(n_links_old):
                     # j2 = int(inc_target[int(
                     #      random.uniform(len(inc_target)))])
                     j2 = int(link_target[int(
@@ -1271,8 +1270,8 @@ class Network:
                     A[i, j2] = A[j2, i] = 1
                     nbs[j2].append(i)
                     nbs[i].append(j2)
-                    link_target += [j2 for iii in range(w[i])] + \
-                        [i for iii in range(w[j2])]
+                    link_target += [j2 for _ in range(w[i])] + \
+                        [i for _ in range(w[j2])]
 
             del link_target
 
@@ -4657,7 +4656,6 @@ class Network:
         N2 = 2*N - 1
         rN = range(N)
         w = to_cy(self.node_weights, FIELD)
-        k = self.nsi_degree()  # TODO: link weight
 
         # init result structures:
         error = np.zeros(N+1) + np.inf
@@ -4696,8 +4694,6 @@ class Network:
             except AttributeError:
                 distance_keys = [(i, j) for i in range(N) for j in range(N)]
         M = len(distance_keys)
-        rM = range(M)
-        rpos = range(1, M+1)
 
         D_firstpos = np.zeros(N, NODE)  # pos. of first nb. of cl.
         D_lastpos = np.zeros(N, NODE)  # pos. of last nb. of cl.
@@ -4748,12 +4744,6 @@ class Network:
                 D_prevpos[posj] = lpos = D_lastpos[i]
                 D_nextpos[lpos] = D_lastpos[i] = posj
             D_cluster[posj] = j
-            if distances is None:
-                # i.e., use dist 1 if linked, d0 otherwise
-                Dij = dict_D[ij] = dict_D[j*N+i] = w[i] * w[j]
-            else:
-                Dij = dict_D[ij] = dict_D[j*N+i] = \
-                    w[i] * w[j] * distances[i0, j0]
             D_invpos[posj] = posi = posi + 1
             if D_firstpos[j] == 0:
                 D_firstpos[j] = D_lastpos[j] = posi
@@ -4802,7 +4792,7 @@ class Network:
 
         # successively join the best pair:
         sumt1 = sumt2 = sumt3 = 0.0
-        actives = range(N)
+        actives = list(range(N))
         min_clusters = 1
         for n_clusters in range(N-1, 0, -1):
 
@@ -5027,7 +5017,7 @@ class Network:
         weightProducts = np.zeros((n2, n2), dtype=DFIELD)
         weightProducts[0:n, 0:n] = np.dot(w.reshape((n, 1)), w.reshape((1, n)))
         # linked weights:
-        A, Aplus = self.adjacency, self.sp_Aplus().A
+        Aplus = self.sp_Aplus().A
         linkedWeights = np.zeros((n2, n2), dtype=DFIELD)
         linkedWeights[0:n, 0:n] = \
             self.node_weights.reshape((n, 1)) * Aplus * \
@@ -5040,7 +5030,7 @@ class Network:
         distances = np.zeros((n2, n2), dtype=DFIELD)
 
         # list of active cluster indices:
-        activeIndices = range(0, n)
+        activeIndices = list(range(0, n))
 
         # final Hamming distances:
         hamming = np.zeros(n2)

@@ -1332,8 +1332,6 @@ class InteractingNetworks(Network):
         A = self.sp_A[node_list1+node_list2, :][:, node_list1+node_list2]
         #  Get layer sizes
         N1, N2 = len(node_list1), len(node_list2)
-        #  Convert node lists to Numpy arrays
-        nodes1, nodes2 = np.array(node_list1), np.array(node_list2)
 
         #  Initialize
         cross_clustering = np.zeros(N1)

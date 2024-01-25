@@ -449,7 +449,7 @@ class Surrogates:
         R = self.AAFT_surrogates(original_data)
 
         #  Start iteration
-        for i in range(n_iterations):
+        for _ in range(n_iterations):
             #  Get Fourier phases of R surrogate
             r_fft = np.fft.rfft(R, axis=1)
             r_phases = r_fft / np.abs(r_fft)

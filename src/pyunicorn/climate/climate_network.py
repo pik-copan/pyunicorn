@@ -148,7 +148,7 @@ class ClimateNetwork(GeoNetwork):
         Regenerate the current climate network according to new similarity
         measure.
         """
-        ClimateNetwork.__init__(self, grid=self.data.grid,
+        ClimateNetwork.__init__(self, grid=self.grid,
                                 similarity_measure=self._similarity_measure,
                                 threshold=self._threshold,
                                 link_density=self.link_density,

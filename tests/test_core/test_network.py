@@ -186,7 +186,7 @@ def test_init():
 
 def test_str(capsys):
     print(Network.SmallTestNetwork())
-    out, err = capsys.readouterr()
+    out = capsys.readouterr()[0]
     out_ref = "Network: undirected, 6 nodes, 7 links, link density 0.467.\n"
     assert out == out_ref
 
@@ -199,12 +199,12 @@ def test_undirected_copy(capsys):
     net = Network(adjacency=[[0, 1], [0, 0]], directed=True)
 
     print(net)
-    out1, err = capsys.readouterr()
+    out1 = capsys.readouterr()[0]
     out1_ref = "Network: directed, 2 nodes, 1 links, link density 0.500.\n"
     assert out1 == out1_ref
 
     print(net.undirected_copy())
-    out2, err = capsys.readouterr()
+    out2 = capsys.readouterr()[0]
     out2_ref = "Network: undirected, 2 nodes, 1 links, link density 1.000.\n"
     assert out2 == out2_ref
 
@@ -213,7 +213,7 @@ def test_splitted_copy(capsys):
     net = Network.SmallTestNetwork()
     net2 = net.splitted_copy(node=5, proportion=0.2)
     print(net2)
-    out, err = capsys.readouterr()
+    out = capsys.readouterr()[0]
     out_ref = "Network: undirected, 7 nodes, 9 links, link density 0.429.\n"
     assert out == out_ref
 
@@ -235,7 +235,7 @@ def test_set_adjacency(capsys):
     net = Network.SmallTestNetwork()
     net.adjacency = [[0, 1], [1, 0]]
     print(net)
-    out, err = capsys.readouterr()
+    out = capsys.readouterr()[0]
     out_ref = "Network: undirected, 2 nodes, 1 links, link density 1.000.\n"
     assert out == out_ref
 
@@ -252,7 +252,7 @@ def test_set_node_weights(capsys):
 
 def test_ErdosRenyi(capsys):
     print(Network.Model("ErdosRenyi", n_nodes=10, n_links=18))
-    out, err = capsys.readouterr()
+    out = capsys.readouterr()[0]
     out_ref = "Generating Erdos-Renyi random graph with 10 " + \
               "nodes and 18 links...\n" + \
               "Network: undirected, 10 nodes, 18 links, link density 0.400.\n"
@@ -277,12 +277,12 @@ def test_WattsStrogatz():
 def test_randomly_rewire(capsys):
     net = Network.SmallTestNetwork()
     net.randomly_rewire(iterations=10)
-    out, err = capsys.readouterr()
+    out = capsys.readouterr()[0]
     out_ref = "Randomly rewiring the network,preserving " + \
               "the degree sequence...\n"
     assert out == out_ref
     print(net)
-    out, err = capsys.readouterr()
+    out = capsys.readouterr()[0]
     out_ref = "Network: undirected, 6 nodes, 7 links, link density 0.467.\n"
     assert out == out_ref
 

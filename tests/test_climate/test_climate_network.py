@@ -21,7 +21,7 @@ from pyunicorn.climate.climate_network import ClimateNetwork
 
 def test_str(capsys):
     print(ClimateNetwork.SmallTestNetwork())
-    out, err = capsys.readouterr()
+    out = capsys.readouterr()[0]
     out_ref = "ClimateNetwork:\n" + \
               "GeoNetwork:\n" + \
               "SpatialNetwork:\n" + \
