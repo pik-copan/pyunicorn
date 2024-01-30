@@ -8,7 +8,7 @@ Written as part of a PhD thesis in Physics by Jonathan F. Donges
 (donges@pik-potsdam.de) at the Potsdam Institute of Climate Impact Research
 (PIK) and Humboldt University Berlin,
 
-Copyright 2008-2023.
+Copyright 2008-2024.
 """
 
 # array object and fast numerics
