@@ -56,9 +56,12 @@ Contributors
   framework, migrated from Python 2.7 to 3.6)
 - Jonathan Kroenke (extending test framework, package extensions and maintenance)
 - Lena Schmidt (writing ipynb tutorials, maintenance)
-- `Max Bechthold <max.bechthold@stud.uni-heidelberg.de>`_
+- `Max Bechthold <maxbecht@pik-potsdam.de>`_
   (reenabling CI, update to cartopy plotting, writing ipynb tutorials,
   style improvements, maintenance)
+- `Ronja Hotz <ronja.hotz@yahoo.de>` (CoupledClimateNetworks tutorial)
+- `Fritz Kühlein <fritz.kuehlein@student.uni-halle.de>` (package maintenance,
+  improved test coverage and release preparation)
 
 Acknowledgements
 ----------------

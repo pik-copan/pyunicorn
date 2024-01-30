@@ -7,6 +7,31 @@ A summary of major changes made in each release of ``pyunicorn``:
 0.7.0
 -----
 
+- fixed some bugs
+- improved test coverage
+- established Windows installation,
+  established CI for Python 3.8 - 3.12 on Linux,
+  established CI for Python 3.11 on macOS and Windows,
+  discontinued Python 3.7 support
+- worked towards Cythonizing all C extensions, few remaining
+- resolved type conversion and indexation problems at Python/Cython interface
+- shifted internal index in ``RecurrencePlot`` line distribution methods
+- replaced outdated ``utils/progressbar`` with ``tqdm`` dependency
+- added ``multiprocess`` dependency
+- reviewed some n.s.i. measures in ``core.Network``,
+  enabled their ``corrected`` mode
+- reviewed tutorials, added tutorial on ``CoupledClimateNetworks``
+  and directly included tutorial-notebooks in documentation
+- replaced old ``climate.MapPlots`` class with simplified ``climate.MapPlot``,
+  using ``cartopy`` optional dependency
+- added classes ``core.SpatialNetwork``, ``eventseries.EventSeries``, ``climate.EventSeriesClimateNetwork``
+- added methods ``cross_degree_density()``, ``local_efficiency()``, ``global_efficiency()``,
+  ``average_cross_closeness()`` and ``total_cross_degree()`` to ``core.InteractingNetworks``
+- added timeseries entropy measures to ``timeseries.RecurrencePlot``
+- added ``cross_link_distance()`` to ``CoupledClimateNetwork``
+- reviewed ``core.Grid``
+- reviewed memoization/caching
+
 0.6.1
 -----
  - Fixed some bugs and compatibility issues.
