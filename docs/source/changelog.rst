@@ -8,23 +8,23 @@ A summary of major changes made in each release of ``pyunicorn``:
 -----
 
 - fixed some bugs and improved test coverage 
-  (see `Release Milestone <https://github.com/pik-copan/pyunicorn/milestone/1?closed=1>` for all resolved issues)
+  (see `Release Milestone <https://github.com/pik-copan/pyunicorn/milestone/1?closed=1>`_ for all resolved issues)
 
 - established Windows installation 
-  (`#160 <https://github.com/pik-copan/pyunicorn/issues/160>`,
-  `#127 <https://github.com/pik-copan/pyunicorn/issues/127>`)
+  (`#160 <https://github.com/pik-copan/pyunicorn/issues/160>`_,
+  `#127 <https://github.com/pik-copan/pyunicorn/issues/127>`_)
 - established CI for Python 3.8 - 3.12 on Linux
-  (`#191 <https://github.com/pik-copan/pyunicorn/issues/191>`,
-  `#192 <https://github.com/pik-copan/pyunicorn/pull/192>`),
+  (`#191 <https://github.com/pik-copan/pyunicorn/issues/191>`_,
+  `#192 <https://github.com/pik-copan/pyunicorn/pull/192>`_),
 - established CI for Python 3.11 on macOS and Windows
-  (`#201 <https://github.com/pik-copan/pyunicorn/issues/201>`)
+  (`#201 <https://github.com/pik-copan/pyunicorn/issues/201>`_)
 - discontinued Python 3.7 support
-  (`4cf6969 <https://github.com/pik-copan/pyunicorn/commit/4cf6969c40de39f01f31ea141767ec67cc3d6d31>`)
+  (`4cf6969 <https://github.com/pik-copan/pyunicorn/commit/4cf6969c40de39f01f31ea141767ec67cc3d6d31>`_)
 
 - replaced old ``climate.MapPlots`` class with simplified ``climate.MapPlot``,
   using ``cartopy`` optional dependency
-  (`#174 <https://github.com/pik-copan/pyunicorn/pull/202>`,
-  `#203 <https://github.com/pik-copan/pyunicorn/issues/203>`)
+  (`#174 <https://github.com/pik-copan/pyunicorn/pull/202>`_,
+  `#203 <https://github.com/pik-copan/pyunicorn/issues/203>`_)
 - added class ``core.SpatialNetwork``;
   reviewed ``core.Grid``;
   added Watts-Strogatz Model to ``core.Network``;
@@ -32,49 +32,49 @@ A summary of major changes made in each release of ``pyunicorn``:
   added timeseries entropy measures to ``timeseries.RecurrencePlot``;
   added methods ``cross_degree_density()``, ``local_efficiency()``, ``global_efficiency()``,
   ``average_cross_closeness()`` and ``total_cross_degree()`` to ``core.InteractingNetworks`` 
-  (`#131 <https://github.com/pik-copan/pyunicorn/pull/131>`)
+  (`#131 <https://github.com/pik-copan/pyunicorn/pull/131>`_)
 - added classes ``eventseries.EventSeries`` and ``climate.EventSeriesClimateNetwork``
-  (`#156 <https://github.com/pik-copan/pyunicorn/pull/156>`)
+  (`#156 <https://github.com/pik-copan/pyunicorn/pull/156>`_)
 
 - worked towards Cythonizing all C extensions, few remaining
-  (`#128 <https://github.com/pik-copan/pyunicorn/issues/128>`,
-  `#142 <https://github.com/pik-copan/pyunicorn/issues/142>`,
-  `#145 <https://github.com/pik-copan/pyunicorn/issues/145>`,
-  `#187 <https://github.com/pik-copan/pyunicorn/issues/187>`,
-  `#195 <https://github.com/pik-copan/pyunicorn/pull/195>`)
+  (`#128 <https://github.com/pik-copan/pyunicorn/issues/128>`_,
+  `#142 <https://github.com/pik-copan/pyunicorn/issues/142>`_,
+  `#145 <https://github.com/pik-copan/pyunicorn/issues/145>`_,
+  `#187 <https://github.com/pik-copan/pyunicorn/issues/187>`_,
+  `#195 <https://github.com/pik-copan/pyunicorn/pull/195>`_)
 - resolved type conversion and indexation problems at Python/Cython interface
-  (`#126 <https://github.com/pik-copan/pyunicorn/issues/126>`,
-  `#141 <https://github.com/pik-copan/pyunicorn/issues/141>`,
-  `#145 <https://github.com/pik-copan/pyunicorn/issues/145>`,
-  `#162 <https://github.com/pik-copan/pyunicorn/issues/162>`,
-  `#163 <https://github.com/pik-copan/pyunicorn/issues/163>`,
-  `#201 <https://github.com/pik-copan/pyunicorn/issues/201>`)
+  (`#126 <https://github.com/pik-copan/pyunicorn/issues/126>`_,
+  `#141 <https://github.com/pik-copan/pyunicorn/issues/141>`_,
+  `#145 <https://github.com/pik-copan/pyunicorn/issues/145>`_,
+  `#162 <https://github.com/pik-copan/pyunicorn/issues/162>`_,
+  `#163 <https://github.com/pik-copan/pyunicorn/issues/163>`_,
+  `#201 <https://github.com/pik-copan/pyunicorn/issues/201>`_)
 - shifted internal index in ``RecurrencePlot`` line distribution methods
-  (`#166 <https://github.com/pik-copan/pyunicorn/issues/166>`,
-  `#209 <https://github.com/pik-copan/pyunicorn/pull/209>`)
+  (`#166 <https://github.com/pik-copan/pyunicorn/issues/166>`_,
+  `#209 <https://github.com/pik-copan/pyunicorn/pull/209>`_)
 
 - replaced outdated ``utils/progressbar`` with ``tqdm`` dependency
-  (`#202 <https://github.com/pik-copan/pyunicorn/pull/202>`)
+  (`#202 <https://github.com/pik-copan/pyunicorn/pull/202>`get_)
 - replaced optional dependecy ``netcdf4`` with ``h5netcdf``
-  (`cd8ee00 <https://github.com/pik-copan/pyunicorn/commit/cd8ee00a534c0eae9440414d38a0eaaa5100aaec>`,
-  also see `#12 <https://github.com/pik-copan/pyunicorn/issues/12>`,
-  `#210 <https://github.com/pik-copan/pyunicorn/issues/210>`,)
+  (`cd8ee00 <https://github.com/pik-copan/pyunicorn/commit/cd8ee00a534c0eae9440414d38a0eaaa5100aaec>`_,
+  also see `#12 <https://github.com/pik-copan/pyunicorn/issues/12>`_,
+  `#210 <https://github.com/pik-copan/pyunicorn/issues/210>`_,)
 - added ``multiprocess`` dependency to enable parallelization
-  (`#142 <https://github.com/pik-copan/pyunicorn/issues/142>`)
+  (`#142 <https://github.com/pik-copan/pyunicorn/issues/142>`_)
 
 - reviewed some n.s.i. measures in ``core.Network``, enabled their ``corrected`` mode
-  (`#153 <https://github.com/pik-copan/pyunicorn/pull/153>`)
+  (`#153 <https://github.com/pik-copan/pyunicorn/pull/153>`_)
 - reviewed tutorials, added tutorial on ``CoupledClimateNetworks``
   and directly included tutorial-notebooks in documentation
-  (`#175 <https://github.com/pik-copan/pyunicorn/pull/175>`,
-  `#180 <https://github.com/pik-copan/pyunicorn/pull/180>`,
-  `#185 <https://github.com/pik-copan/pyunicorn/issues/185>`,
-  `#190 <https://github.com/pik-copan/pyunicorn/pull/190>`,
-  `#213 <https://github.com/pik-copan/pyunicorn/pull/213>`
+  (`#175 <https://github.com/pik-copan/pyunicorn/pull/175>`_,
+  `#180 <https://github.com/pik-copan/pyunicorn/pull/180>`_,
+  `#185 <https://github.com/pik-copan/pyunicorn/issues/185>`_,
+  `#190 <https://github.com/pik-copan/pyunicorn/pull/190>`_,
+  `#213 <https://github.com/pik-copan/pyunicorn/pull/213>`_
   )
 - reviewed memoization/caching
-  (`#124 <https://github.com/pik-copan/pyunicorn/issues/124>`,
-  `#148 <https://github.com/pik-copan/pyunicorn/issues/148>`)
+  (`#124 <https://github.com/pik-copan/pyunicorn/issues/124>`_,
+  `#148 <https://github.com/pik-copan/pyunicorn/issues/148>`_)
 
 0.6.1
 -----
