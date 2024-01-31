@@ -54,7 +54,7 @@ A summary of major changes made in each release of ``pyunicorn``:
   `#209 <https://github.com/pik-copan/pyunicorn/pull/209>`_)
 
 - replaced outdated ``utils/progressbar`` with ``tqdm`` dependency
-  (`#202 <https://github.com/pik-copan/pyunicorn/pull/202>`get_)
+  (`#202 <https://github.com/pik-copan/pyunicorn/pull/202>`_)
 - replaced optional dependecy ``netcdf4`` with ``h5netcdf``
   (`cd8ee00 <https://github.com/pik-copan/pyunicorn/commit/cd8ee00a534c0eae9440414d38a0eaaa5100aaec>`_,
   also see `#12 <https://github.com/pik-copan/pyunicorn/issues/12>`_,
