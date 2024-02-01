@@ -357,7 +357,6 @@ def test_nsi_degree():
     assert np.allclose(net.nsi_degree(typical_weight=2.0), deg_ref)
 
     deg_ref = np.array([3.2, 3., 1.95, 1.65, 2.7, 1., 1.])
-
     assert np.allclose(net.splitted_copy().nsi_degree(typical_weight=2.0),
                        deg_ref)
 
@@ -630,16 +629,21 @@ def test_assortativity():
     assert np.allclose(res, exp)
 
 
-def test_nsi_local_clustering():
+@pytest.mark.parametrize("tw, exp, exp_split", [
+    (None,
+     np.array([0.55130385, 0.724375, 1., 0.81844073, 0.80277575, 1.]),
+     np.array([0.55130385, 0.724375, 1., 0.81844073, 0.80277575, 1., 1.])),
+    (3.,
+     np.array([-1.44290123, -0.764, 1., 4.16770186, -0.75324675, 1.]),
+     np.array([-1.44290123, -0.764, 1., 4.16770186, -0.75324675, 1., 1.]))
+    ])
+def test_nsi_local_clustering(tw, exp, exp_split):
     net = Network.SmallTestNetwork()
 
-    res = net.nsi_local_clustering()
-    exp = np.array([0.55130385, 0.724375, 1., 0.81844073, 0.80277575, 1.])
-    assert np.allclose(res, exp)
-
-    res = net.splitted_copy().nsi_local_clustering()
-    exp = np.array([0.55130385, 0.724375, 1., 0.81844073, 0.80277575, 1., 1.])
-    assert np.allclose(res, exp)
+    assert np.allclose(net.nsi_local_clustering(typical_weight=tw), exp)
+    assert np.allclose(
+        net.splitted_copy().nsi_local_clustering(typical_weight=tw),
+        exp_split)
 
 
 def test_nsi_global_clustering():

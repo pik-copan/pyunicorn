@@ -78,10 +78,11 @@ Installation
 Dependencies
 ............
 ``pyunicorn`` is implemented in `Python 3 <https://docs.python.org/3/>`_ and
-`Cython 3 <https://cython.org/>`_, and is tested on *Linux*, *macOS* and
-*Windows*. It relies on the following open source or freely available packages,
-which need to be installed on your machine. For exact dependency information,
-see ``setup.cfg``.
+`Cython 3 <https://cython.org/>`_, and is `tested
+<https://app.travis-ci.com/github/pik-copan/pyunicorn>`_ on *Linux*, *macOS*
+and *Windows*. It relies on the following open source or freely available
+packages, which need to be installed on your machine. For exact dependency
+information, see ``setup.cfg``.
 
 Required at runtime:
   - `numpy <http://www.numpy.org/>`_
@@ -154,7 +155,7 @@ please make sure that all tests pass. The test suite is managed by `tox
 <http://tox.readthedocs.io/>`_ and is configured to use system-wide packages
 when available. Install the test dependencies as follows::
 
-    $> pip install .[testing]
+    $> pip install .[tests]
 
 The test suite can be run from anywhere in the project tree by issuing::
 
