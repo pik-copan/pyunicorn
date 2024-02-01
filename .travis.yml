@@ -91,11 +91,6 @@ after_success: codecov
 # modified jobs: OSX + Windows, newest Python version =========================
 # (inherit only 1st `env.jobs` entry)
 
-addons:
-  homebrew:
-    update: false
-    packages: gnu-sed
-
 jobs:
   fast_finish: true
   include:
@@ -105,6 +100,7 @@ jobs:
       before_install:
         - export ARCH=MacOSX-x86_64 SED=gsed
         - export HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1
+        - travis_retry brew install gnu-sed
 
     - os: windows
       language: shell
