@@ -1,112 +1,115 @@
+
+# -----------------------------------------------------------------------------
+# documentation & validation
+# -----------------------------------------------------------------------------
+
+# - https://docs.travis-ci.com/user/reference/overview
+# - https://docs.travis-ci.com/user/build-matrix/
+# - https://docs.travis-ci.com/user/multi-os/
+
+# - https://docs.travis-ci.com/user/build-config-validation/
+# - https://config.travis-ci.com/explore
+
+# -----------------------------------------------------------------------------
+# meta
+# -----------------------------------------------------------------------------
+
+# enable build config validation
 version: ~> 1.0
 
-# require the branch name to be master
+# save Travis budget
 if: branch = master
 
-jobs:
-    include:
-        # # linux jobs
-        # - os: linux
-        #   dist: focal
-        #   arch: arm64
-        #   virt: lxd
-        #   sudo: false
-        #   language: python
-        #   python: "3.8"
-        # - os: linux
-        #   dist: focal
-        #   arch: arm64
-        #   virt: lxd
-        #   sudo: false
-        #   language: python
-        #   python: "3.9"
-        # - os: linux
-        #   dist: focal
-        #   arch: arm64
-        #   virt: lxd
-        #   sudo: false
-        #   language: python
-        #   python: "3.10"
-        # - os: linux
-        #   dist: focal
-        #   arch: arm64
-        #   virt: lxd
-        #   sudo: false
-        #   language: python
-        #   python: "3.11"
-        # - os: linux
-        #   dist: focal
-        #   arch: arm64
-        #   virt: lxd
-        #   sudo: false
-        #   language: python
-        #   python: "3.12-dev"
-        # # macOS job
-        # - os: osx
-        #   osx_image: xcode12.2
-        #   language: shell        # 'language: python' is not available on Travis CI macOS
-        # Windows job
-        - os: windows
-          language: shell
-          env: 
-            - PATH=/c/Python311:/c/Python311/Scripts:$PATH
-            - WINDIR=C:\Windows
-          before_install:
-            - choco install python --version 3.11.6
-            - python -m pip install --upgrade pip
-          install:
-            - echo using pip install on windows
+# report outcomes
+notifications:
+  email:
+    on_success: change
+    on_failure: always
+
+# -----------------------------------------------------------------------------
+# default jobs: Linux, all Python versions
+# -----------------------------------------------------------------------------
+
+os: linux
+dist: focal
+arch: arm64
+virt: lxd
+language: generic
+env:
+  global:
+    - ARCH=Linux-aarch64
+    - SED=sed
+
+  jobs:
+    - PYTHON=3.12
+    - PYTHON=3.11
+    - PYTHON=3.10
+    - PYTHON=3.9
+    - PYTHON=3.8
 
 before_install:
-    # Python package manager
-    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then travis_retry wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh -O miniconda.sh; fi
-    - if [ "$TRAVIS_OS_NAME" = "osx" ]; then travis_retry wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh; fi
-    - bash miniconda.sh -b -p $HOME/miniconda
-    - export PATH="$HOME/miniconda/bin:$PATH"; hash -r
-    - conda config --set quiet yes --set always_yes yes --set changeps1 no
-    - travis_retry conda update -n base -c defaults conda
-    - travis_retry conda update --all
-    - conda config --set solver libmamba
+  - | # install Python via Miniconda
+    travis_retry wget https://repo.anaconda.com/miniconda/Miniconda3-latest-${ARCH}.sh -O miniconda.sh
+    bash miniconda.sh -b -p $HOME/miniconda
+    export PATH="$HOME/miniconda/bin:$PATH"; hash -r
+    conda config --set quiet yes --set always_yes yes --set changeps1 no
+  - |
+    travis_retry conda update -n base -c defaults conda
+    travis_retry conda update --all
+    conda config --set solver libmamba
+    conda info -a
+    conda list
+    travis_retry conda create -n test-env
+    eval "$(conda shell.bash hook)"
+    conda activate test-env
+    travis_retry conda install -c conda-forge python=${PYTHON}
 
-    # debugging info
-    - conda info -a
-    - conda list
+  - | # install dependencies
+    travis_retry conda install -c conda-forge numpy scipy python-igraph h5netcdf tqdm
+    travis_retry conda update  -c conda-forge --all
+    travis_retry conda install -c conda-forge tox flake8 pylint pytest-xdist pytest-cov codecov
+    travis_retry conda install -c conda-forge networkx matplotlib cartopy sphinx
+    conda info -a
+    conda list
 
 install:
-    # runtime dependencies
-    - travis_retry conda create -n test-env
-    - eval "$(conda shell.bash hook)"
-    - conda activate test-env
-    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then travis_retry conda install -c conda-forge python=${TRAVIS_PYTHON_VERSION%-dev}; else travis_retry conda install -c conda-forge python=3.9; fi
-    - travis_retry conda install -c conda-forge numpy scipy python-igraph h5netcdf tqdm
-    - travis_retry conda update  -c conda-forge --all
+  - | # limit procs to available cores (use GNU `sed`, fail if pattern not found)
+    [ "${TRAVIS_OS_NAME}" = "osx" ] && brew install gnu-sed || true
+    ${SED} -i "/nthreads=./{s//nthreads=2/;h}; ${x;/./{x;q0};x;q1}" setup.py
+    ${SED} -i "/-j ./      {s//-j 2/;      h}; ${x;/./{x;q0};x;q1}" setup.cfg
+    ${SED} -i "/-n auto/   {s//-n 2/;      h}; ${x;/./{x;q0};x;q1}" pyproject.toml
+    ${SED} -i "/jobs = ./  {s//jobs = 2/;  h}; ${x;/./{x;q0};x;q1}" pyproject.toml
 
-    # testing dependencies
-    - travis_retry conda install -c conda-forge tox flake8 pylint pytest-xdist pytest-cov codecov
-    - travis_retry conda install -c conda-forge networkx matplotlib cartopy sphinx
+  # install self (and dependencies, if on Windows)
+  - travis_retry pip install -v -e ".[tests,docs]"
 
-    # debugging info
-    - conda info -a
-    - conda list
+# run test suite
+script: tox -v
 
-before_script:
-    # limit parallel processes to available cores (error if pattern not found)
-    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sed -i '/nthreads=./{s//nthreads=2/;h}; ${x;/./{x;q0};x;q1}' setup.py; fi
-    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sed -i '/-j ./      {s//-j 2/;      h}; ${x;/./{x;q0};x;q1}' setup.cfg; fi
-    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sed -i '/-n auto/   {s//-n 2/;      h}; ${x;/./{x;q0};x;q1}' pyproject.toml; fi
-    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sed -i '/jobs = ./  {s//jobs = 2/;  h}; ${x;/./{x;q0};x;q1}' pyproject.toml; fi
+# report statistics
+after_success: codecov
 
-script:
-    # package
-    - travis_retry pip install -v -e ".[testing,docs]"
+# -----------------------------------------------------------------------------
+# modified jobs: OSX + Windows, newest Python version
+# (inherit only 1st `env.jobs` entry)
+# -----------------------------------------------------------------------------
 
-    # test suite
-    - tox -v
+jobs:
+  fast_finish: true
+  include:
+    - os: osx
+      osx_image: xcode14
+      language: shell
+      env:
+        - ARCH=MacOSX-x86_64
+        - SED=gsed
 
-after_success:
-    - codecov
-
-notifications:
-    email:
-        on_success: change
-        on_failure: always
+    - os: windows
+      language: shell
+      env:
+        - ARCH=Windows-x86_64
+        - PATH=/c/Python${PYTHON/.}:/c/Python${PYTHON/.}/Scripts:${PATH}
+      before_install:
+        - | # install Python via Chocolatey
+          travis_retry choco install python --version ${PYTHON}
+          travis_retry python -m pip install --upgrade pip
