@@ -36,10 +36,6 @@ arch: arm64
 virt: lxd
 language: generic
 env:
-  global:
-    - ARCH=Linux-aarch64
-    - SED=sed
-
   jobs:
     - PYTHON=3.12
     - PYTHON=3.11
@@ -47,7 +43,9 @@ env:
     - PYTHON=3.9
     - PYTHON=3.8
 
-before_install:
+before_install: export ARCH=Linux-aarch64 SED=sed
+
+install:
   - | # install Python via Miniconda
     travis_retry wget https://repo.anaconda.com/miniconda/Miniconda3-latest-${ARCH}.sh -O miniconda.sh
     bash miniconda.sh -b -p $HOME/miniconda
@@ -72,19 +70,18 @@ before_install:
     conda info -a
     conda list
 
-install:
+script:
   - | # limit procs to available cores (use GNU `sed`, fail if pattern not found)
-    [ "${TRAVIS_OS_NAME}" = "osx" ] && brew install gnu-sed || true
-    ${SED} -i "/nthreads=./{s//nthreads=2/;h}; ${x;/./{x;q0};x;q1}" setup.py
-    ${SED} -i "/-j ./      {s//-j 2/;      h}; ${x;/./{x;q0};x;q1}" setup.cfg
-    ${SED} -i "/-n auto/   {s//-n 2/;      h}; ${x;/./{x;q0};x;q1}" pyproject.toml
-    ${SED} -i "/jobs = ./  {s//jobs = 2/;  h}; ${x;/./{x;q0};x;q1}" pyproject.toml
+    ${SED} -i '/nthreads=./{s//nthreads=2/;h}; ${x;/./{x;q0};x;q1}' setup.py
+    ${SED} -i '/-j ./      {s//-j 2/;      h}; ${x;/./{x;q0};x;q1}' setup.cfg
+    ${SED} -i '/-n auto/   {s//-n 2/;      h}; ${x;/./{x;q0};x;q1}' pyproject.toml
+    ${SED} -i '/jobs = ./  {s//jobs = 2/;  h}; ${x;/./{x;q0};x;q1}' pyproject.toml
 
   # install self (and dependencies, if on Windows)
   - travis_retry pip install -v -e ".[tests,docs]"
 
-# run test suite
-script: tox -v
+  # run test suite
+  - tox -v
 
 # report statistics
 after_success: codecov
@@ -100,16 +97,15 @@ jobs:
     - os: osx
       osx_image: xcode14
       language: shell
-      env:
-        - ARCH=MacOSX-x86_64
-        - SED=gsed
+      before_install: export ARCH=MacOSX-x86_64 SED=gsed
+      before_script: brew install gnu-sed
 
     - os: windows
       language: shell
-      env:
-        - ARCH=Windows-x86_64
-        - PATH=/c/Python${PYTHON/.}:/c/Python${PYTHON/.}/Scripts:${PATH}
       before_install:
+        - export ARCH=Windows-x86_64 SED=sed
+        - export PATH=/c/Python${PYTHON/.}:/c/Python${PYTHON/.}/Scripts:${PATH}
+      install:
         - | # install Python via Chocolatey
           travis_retry choco install python --version ${PYTHON}
           travis_retry python -m pip install --upgrade pip
