@@ -1,7 +1,10 @@
+# This file is part of pyunicorn.
+# Copyright (C) 2008--2024 Jonathan F. Donges and pyunicorn authors
+# URL: <http://www.pik-potsdam.de/members/donges/software>
+# License: BSD (3-clause)
 
-# -----------------------------------------------------------------------------
-# documentation & validation
-# -----------------------------------------------------------------------------
+
+# documentation & validation ==================================================
 
 # - https://docs.travis-ci.com/user/reference/overview
 # - https://docs.travis-ci.com/user/build-matrix/
@@ -10,9 +13,8 @@
 # - https://docs.travis-ci.com/user/build-config-validation/
 # - https://config.travis-ci.com/explore
 
-# -----------------------------------------------------------------------------
-# meta
-# -----------------------------------------------------------------------------
+
+# meta ========================================================================
 
 # enable build config validation
 version: ~> 1.0
@@ -26,9 +28,8 @@ notifications:
     on_success: change
     on_failure: always
 
-# -----------------------------------------------------------------------------
-# default jobs: Linux, all Python versions
-# -----------------------------------------------------------------------------
+
+# default jobs: Linux, all Python versions ====================================
 
 os: linux
 dist: focal
@@ -86,10 +87,14 @@ script:
 # report statistics
 after_success: codecov
 
-# -----------------------------------------------------------------------------
-# modified jobs: OSX + Windows, newest Python version
+
+# modified jobs: OSX + Windows, newest Python version =========================
 # (inherit only 1st `env.jobs` entry)
-# -----------------------------------------------------------------------------
+
+addons:
+  homebrew:
+    update: false
+    packages: gnu-sed
 
 jobs:
   fast_finish: true
@@ -97,8 +102,9 @@ jobs:
     - os: osx
       osx_image: xcode14
       language: shell
-      before_install: export ARCH=MacOSX-x86_64 SED=gsed
-      before_script: brew install gnu-sed
+      before_install:
+        - export ARCH=MacOSX-x86_64 SED=gsed
+        - export HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1
 
     - os: windows
       language: shell
