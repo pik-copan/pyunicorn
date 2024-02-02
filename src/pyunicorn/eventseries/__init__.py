@@ -27,11 +27,6 @@ Related Publications
 To do
 ~~~~~
   - Combine precursor and trigger coincidence rate to obtain one ECA measure
-
-Known Bugs
-~~~~~~~~~~
-  - ...
-
 """
 
 from .event_series import EventSeries

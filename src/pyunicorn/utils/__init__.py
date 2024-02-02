@@ -16,15 +16,6 @@
 utils
 =====
 
-
-To do
-~~~~~
-  - ...
-
-Known Bugs
-~~~~~~~~~~
-  - ...
-
 """
 
 __all__ = ['mpi', 'navigator']

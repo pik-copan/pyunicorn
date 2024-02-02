@@ -93,11 +93,7 @@ Required at runtime:
     (for ``Data`` and ``NetCDFDictionary``)
 
 Optional *(used only in certain classes and methods)*:
-  - `PyNGL <http://www.pyngl.ucar.edu/Download/>`_
-    (for ``NetCDFDictionary``)
   - `Matplotlib <http://matplotlib.org/>`_
-  - `Matplotlib Basemap Toolkit <http://matplotlib.org/basemap/>`_
-    (for drawing maps)
   - `Cartopy <https://scitools.org.uk/cartopy/docs/latest/index.html>`_
     (for some plotting features)
   - `mpi4py <https://github.com/mpi4py/mpi4py>`_

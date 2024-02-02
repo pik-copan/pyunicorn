@@ -22,16 +22,6 @@ multivariate data and generating time series surrogates.
 Related Publications
 ~~~~~~~~~~~~~~~~~~~~
 [Donges2011a]_, [Heitzig2012]_, [Donges2012]_
-
-To do
-~~~~~
-  - A lot - See current product backlog.
-  - Clean up MapPlots class -> Alex!?
-
-Known Bugs
-~~~~~~~~~~
-  - ...
-
 """
 
 #
