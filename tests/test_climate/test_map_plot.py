@@ -33,7 +33,7 @@ class TestMapPlot:
         # prepare ClimateNetwork fixture
         # (select subset of data to speed up loading and calculation)
         title = "ncep_ncar_reanalysis"
-        file = 'notebooks/air.mon.mean.nc'
+        file = 'examples/tutorials/data/air.mon.mean.nc'
         window = {
             "time_min": 0., "time_max": 0.,
             "lat_min": 30, "lon_min": 0,
