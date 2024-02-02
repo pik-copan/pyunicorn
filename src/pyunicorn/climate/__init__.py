@@ -22,15 +22,6 @@ Related Publications
 ~~~~~~~~~~~~~~~~~~~~
 [Donges2009c]_, [Donges2009a]_, [Donges2009b]_, [Donges2011a]_, [Zou2011]_,
 [Tominski2011]_, [Heitzig2012]_
-
-To do
-~~~~~
-  - A lot - See current product backlog.
-
-Known Bugs
-~~~~~~~~~~
-  - ...
-
 """
 
 from ..core import GeoNetwork, GeoGrid, Network

@@ -17,6 +17,7 @@ Provides classes for analyzing spatially embedded complex networks, handling
 multivariate data and generating time series surrogates.
 """
 
+import numpy as np
 import matplotlib.pyplot as plt
 
 try:
@@ -26,6 +27,8 @@ except ImportError:
     print("climate: Package cartopy could not be loaded. Some functionality "
           "in class MapPlot might not be available!")
 
+from ..core import Grid
+
 #
 #  Define class MapPlot
 #
@@ -33,28 +36,20 @@ except ImportError:
 
 # pylint: disable=too-few-public-methods
 class MapPlot:
-
     """
-    Encapsulates map plotting functions via cartopy and matplotlib.
+    Encapsulates map plotting functions via Cartopy and Matplotlib.
     """
 
-    def __init__(self, grid, title):
+    def __init__(self, grid: Grid, title: str):
         """
-        Initialize an instance of MapPlot.
-
-        Plotting of maps is powered by cartopy and matplotlib.
-
-        :type grid: :class:`.Grid`
-        :arg grid: The Grid object describing the map data to be plotted.
+        :arg grid: The `Grid` object describing the map data to be plotted.
         :arg str title: The title describing the map data.
         """
-        self.grid = grid
-        """(Grid) - The Grid object on which the map data will be plotted."""
-        self.title = title
-        """(string) - The title describing the map data."""
+        self.grid: Grid = grid
+        self.title: str = title
 
         #
-        #  Adjust cartopy settings, fine tuning can be done externally
+        #  Adjust Cartopy settings, fine tuning can be done externally
         #
 
         # Specify Coordinate Refference System for Map Projection
@@ -79,14 +74,12 @@ class MapPlot:
         self.data_extent = [self.lon_min, self.lon_max,
                             self.lat_min, self.lat_max]
 
-        print("Created MapPlot.")
-
-    def plot(self, data, label):
+    def plot(self, data: np.ndarray, label: str):
         """
-        Plot dataset onto ``self.grid`` using cartopy and matplotlib.
-        A simple setup to get a quick view of your data.
+        Plot dataset onto ``self.grid``. A simple setup to get a quick view of
+        your data.
 
-        The plot can be customized by calling additional matplotlib or cartopy
+        The plot can be customized by calling additional Matplotlib or Cartopy
         methods afterwards. It can then be saved via ``plt.savefig()``.
 
         :arg ndarray data: The dataset to be plotted on the Grid.
@@ -100,7 +93,7 @@ class MapPlot:
         gax = plt.axes(projection=self.projection)
 
         # create some standards of plotting that can be adjusted
-        # before calling generate_cartopy_plot
+        # before calling ``generate_cartopy_plot()``
         # adjust size and plot coastlines and borders
         gax.set_extent(self.data_extent, crs=self.crs)
         # ax.set_global()
@@ -115,6 +108,7 @@ class MapPlot:
         )
         gl.xlabel_style = {"size": 7}
         gl.ylabel_style = {"size": 7}
+
         # plot data upon map
         plt.tricontourf(self.lon, self.lat, data,
                         extent=self.data_extent, transform=self.crs)

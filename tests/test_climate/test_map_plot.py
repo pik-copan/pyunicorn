@@ -11,9 +11,6 @@
 # L. Tupikina, V. Stolbova, R.V. Donner, N. Marwan, H.A. Dijkstra,
 # and J. Kurths, "Unified functional network and nonlinear time series analysis
 # for complex systems science: The pyunicorn package"
-"""
-Simple test for the MapPlot class.
-"""
 
 import matplotlib.pyplot as plt
 
@@ -22,30 +19,36 @@ from pyunicorn.climate.tsonis import TsonisClimateNetwork
 from pyunicorn.climate.map_plot import MapPlot
 
 
-def test_map_plot():
+# pylint: disable=too-few-public-methods
+class TestMapPlot:
     """
-    Simple test for the MapPlot class.
-
-    No sanity checks, only testing if it runs without errors.
+    Simple tests for the `MapPlot` class.
     """
-    # prepare ClimateNetwork fixture
-    file = 'notebooks/air.mon.mean.nc'
-    # select subset of data to speed up loading and calculation
-    window = {
-        "time_min": 0., "time_max": 0.,
-        "lat_min": 30, "lon_min": 0,
-        "lat_max": 50, "lon_max": 30}
-    data = ClimateData.Load(
-        file_name=file, observable_name="air",
-        file_type="NetCDF", window=window, time_cycle=12)
 
-    # create MapPlot
-    map_plot = MapPlot(data.grid, "ncep_ncar_reanalysis")
-    assert map_plot.title == "ncep_ncar_reanalysis"
+    @staticmethod
+    def test_plot():
+        """
+        Check error-free execution.
+        """
+        # prepare ClimateNetwork fixture
+        # (select subset of data to speed up loading and calculation)
+        title = "ncep_ncar_reanalysis"
+        file = 'notebooks/air.mon.mean.nc'
+        window = {
+            "time_min": 0., "time_max": 0.,
+            "lat_min": 30, "lon_min": 0,
+            "lat_max": 50, "lon_max": 30}
+        data = ClimateData.Load(
+            file_name=file, observable_name="air",
+            file_type="NetCDF", window=window, time_cycle=12)
+        net = TsonisClimateNetwork(data, threshold=.05, winter_only=False)
 
-    net = TsonisClimateNetwork(data, threshold=.05, winter_only=False)
-    degree = net.degree()
-    # plot, with suppressed display
-    plt.ioff()
-    map_plot.plot(degree, "Degree")
-    plt.close()
+        # create MapPlot
+        map_plot = MapPlot(data.grid, title)
+        assert map_plot.title == title
+
+        # plot with suppressed display
+        plt.ioff()
+        map_plot.plot(net.degree(), "Degree")
+        assert plt.gca().get_title() == title
+        plt.close()

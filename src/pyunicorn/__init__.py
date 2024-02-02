@@ -16,7 +16,6 @@
 pyunicorn
 =========
 
-
 Subpackages
 -----------
 core
@@ -27,11 +26,6 @@ funcnet
     Functional networks
 timeseries
     Time series surrogates
-
-To Do
------
-   - A lot - See current product backlog.
-
 """
 
 from .version import __version__
