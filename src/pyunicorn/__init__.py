@@ -16,7 +16,6 @@
 pyunicorn
 =========
 
-
 Subpackages
 -----------
 core
@@ -27,12 +26,6 @@ funcnet
     Functional networks
 timeseries
     Time series surrogates
-
-To Do
------
-   - A lot - See current product backlog.
-   - Clean up MapPlots class -> Alex!?
-
 """
 
 from .version import __version__

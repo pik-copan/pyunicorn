@@ -387,7 +387,6 @@ class Data:
         """Print information on the data encapsulated by the Data object."""
         # Open netCDF4 file
         f = Dataset(self.file_name, "r")
-        print("File format:", f.file_format)
         print("Global attributes:")
         for name in f.ncattrs():
             print(name + ":", getattr(f, name))

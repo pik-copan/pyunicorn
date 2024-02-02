@@ -16,17 +16,8 @@
 funcnet
 =======
 
-
 Related Publications
 ~~~~~~~~~~~~~~~~~~~~
-
-To do
-~~~~~
-  - ...
-
-Known Bugs
-~~~~~~~~~~
-  - ...
 
 """
 
