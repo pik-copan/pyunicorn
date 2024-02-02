@@ -67,7 +67,8 @@ install:
     travis_retry conda install -c conda-forge numpy scipy python-igraph h5netcdf tqdm
     travis_retry conda update  -c conda-forge --all
     travis_retry conda install -c conda-forge tox flake8 pylint pytest-xdist pytest-cov codecov
-    travis_retry conda install -c conda-forge networkx matplotlib cartopy sphinx
+    travis_retry conda install -c conda-forge networkx matplotlib cartopy
+    travis_retry conda install -c conda-forge sphinx ipython nbsphinx nbsphinx-link pandoc
     conda info -a
     conda list
 
