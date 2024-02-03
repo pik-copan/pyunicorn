@@ -12,22 +12,27 @@ About
 =====
 ``pyunicorn`` (**Uni**\ fied **Co**\ mplex Network and **R**\ ecurre\ **N**\ ce
 analysis toolbox) is an object-oriented Python package for the advanced analysis
-and modeling of complex networks. Beyond the standard measures of complex
-network theory, such as degree, betweenness and clustering coefficients, it
-provides some uncommon but interesting statistics like Newman's random walk
-betweenness. ``pyunicorn`` also features novel *node-weighted (node splitting
-invariant)* network statistics as well as measures designed for analyzing
-*networks of interacting/interdependent networks*.
+and modeling of complex networks. Beyond the standard **measures of complex
+network theory** (such as *degree*, *betweenness* and *clustering coefficients*), it
+provides some uncommon but interesting statistics like *Newman's random walk
+betweenness*. ``pyunicorn`` also provides novel **node-weighted** *(node splitting invariant)*
+network statistics, measures for analyzing networks of **interacting/interdependent
+networks**, and special tools to model **spatially embedded** complex networks.
 
-Moreover, ``pyunicorn`` allows one to easily *construct networks from uni- and
-multivariate time series and event data* (functional (climate) networks and
-recurrence networks). This involves linear and nonlinear measures of time series
-analysis for constructing functional networks from multivariate data (e.g.,
-Pearson correlation, mutual information, event synchronization and event
-coincidence analysis). ``pyunicorn`` also features modern techniques of
-nonlinear analysis of single and pairs of time series, such as recurrence
-quantification analysis (RQA), recurrence network analysis and visibility
-graphs.
+Moreover, ``pyunicorn`` allows one to easily *construct networks* from uni- and
+multivariate time series and event data (**functional/climate networks** and
+**recurrence networks**). This involves linear and nonlinear measures of
+**time series analysis** for constructing functional networks from multivariate data
+(e.g., *Pearson correlation*, *mutual information*, *event synchronization* and *event
+coincidence analysis*). ``pyunicorn`` also features modern techniques of
+nonlinear analysis of time series (or pairs thereof), such as *recurrence
+quantification analysis* (RQA), *recurrence network analysis* and *visibility
+graphs*.
+
+``pyunicorn`` is **fast**, because all costly computations are performed in
+compiled C/C++ and Fortran code. It can handle **large networks** through the
+use of sparse data structures. The package can be used interactively, from any
+Python script, and even for parallel computations on large cluster architectures.
 
 License
 -------
@@ -69,8 +74,8 @@ Mailing list
 Not implemented yet.
 
 
-Usage
-=====
+Getting Started
+===============
 
 Installation
 ------------
@@ -103,8 +108,7 @@ Optional *(used only in certain classes and methods)*:
   
 To install these dependencies, please follow the instructions for your system's
 package manager or consult the libraries' homepages. An easy way to go may be a
-Python distribution like `Anaconda <https://www.anaconda.com/>`_
-that already includes many libraries.
+Python distribution like `Anaconda <https://www.anaconda.com/download>`_.
 
 Official releases
 .................
@@ -148,7 +152,7 @@ Test suite
 ----------
 Before committing changes or opening a pull request (PR) to the code base,
 please make sure that all tests pass. The test suite is managed by `tox
-<http://tox.readthedocs.io/>`_ and is configured to use system-wide packages
+<https://tox.wiki/>`_ and is configured to use system-wide packages
 when available. Install the test dependencies as follows::
 
     $> pip install .[tests]

@@ -8,11 +8,11 @@ Sitemap
 
     index
     download
-    tutorials
     methods
+    tutorials
     api_doc
-    development
-    changelog
     publications
+    changelog
+    development
     license
     contact

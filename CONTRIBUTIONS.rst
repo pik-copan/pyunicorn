@@ -19,6 +19,10 @@ Mail
 Jonathan Donges, Potsdam Institute for Climate Impact Research,
 P.O. Box 60 12 03, D-14412 Potsdam, Germany
 
+Related publications
+--------------------
+See `Publications <docs/source/publications.rst>`_.
+
 Authors
 -------
 Written as part of a diploma/PhD thesis in physics by `Jonathan F. Donges
@@ -26,10 +30,6 @@ Written as part of a diploma/PhD thesis in physics by `Jonathan F. Donges
 Institute for Climate Impact Research (PIK) and completed at the University of
 Potsdam, Germany. Substantially extended by `Jobst Heitzig
 <heitzig@pik-potsdam.de>`_.
-
-Related publications
---------------------
-See `Publications <docs/source/publications.rst>`_.
 
 Contributors
 ------------
