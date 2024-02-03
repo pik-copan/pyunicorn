@@ -47,28 +47,29 @@ env:
 before_install: export ARCH=Linux-aarch64 SED=sed
 
 install:
-  - | # install Python via Miniconda
+  - | # install Miniconda
     travis_retry wget https://repo.anaconda.com/miniconda/Miniconda3-latest-${ARCH}.sh -O miniconda.sh
-    bash miniconda.sh -b -p $HOME/miniconda
-    export PATH="$HOME/miniconda/bin:$PATH"; hash -r
+    bash miniconda.sh -b -p ${HOME}/miniconda
+    export PATH="${HOME}/miniconda/bin:${PATH}"; hash -r
     conda config --set quiet yes --set always_yes yes --set changeps1 no
-  - |
     travis_retry conda update -n base -c defaults conda
     travis_retry conda update --all
     conda config --set solver libmamba
     conda info -a
     conda list
+  - | # install executables via Miniconda: Python, Pandoc
     travis_retry conda create -n test-env
     eval "$(conda shell.bash hook)"
     conda activate test-env
-    travis_retry conda install -c conda-forge python=${PYTHON}
-
-  - | # install dependencies
-    travis_retry conda install -c conda-forge numpy scipy python-igraph h5netcdf tqdm
+    travis_retry conda install -c conda-forge python=${PYTHON} pandoc
     travis_retry conda update  -c conda-forge --all
-    travis_retry conda install -c conda-forge tox flake8 pylint pytest-xdist pytest-cov codecov
-    travis_retry conda install -c conda-forge networkx matplotlib cartopy
-    travis_retry conda install -c conda-forge sphinx ipython nbsphinx nbsphinx-link pandoc
+    conda info -a
+    conda list
+  - | # install Python libs via Miniconda
+    travis_retry conda install -c conda-forge \
+        numpy scipy python-igraph h5netcdf tqdm \
+        ipython networkx matplotlib cartopy sphinx nbsphinx nbsphinx-link \
+        tox flake8 pylint pytest-xdist pytest-cov codecov
     conda info -a
     conda list
 
@@ -78,12 +79,10 @@ script:
     ${SED} -i '/-j ./      {s//-j 2/;      h}; ${x;/./{x;q0};x;q1}' setup.cfg
     ${SED} -i '/-n auto/   {s//-n 2/;      h}; ${x;/./{x;q0};x;q1}' pyproject.toml
     ${SED} -i '/jobs = ./  {s//jobs = 2/;  h}; ${x;/./{x;q0};x;q1}' pyproject.toml
-
-  # install self (and dependencies, if on Windows)
-  - travis_retry pip install -v -e ".[tests,docs]"
-
-  # run test suite
-  - tox -v
+  - | # install Python libs via Pip: self (+ dependencies, if on Windows)
+    travis_retry pip install -v -e .[tests,docs]
+  - | # run test suite
+    tox -v
 
 # report statistics
 after_success: codecov
@@ -100,8 +99,9 @@ jobs:
       language: shell
       before_install:
         - export ARCH=MacOSX-x86_64 SED=gsed
-        - export HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1
-        - travis_retry brew install gnu-sed
+        - | # install executables via Homebrew: GNU `sed`
+          export HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1
+          travis_retry brew install gnu-sed
 
     - os: windows
       language: shell
@@ -109,6 +109,7 @@ jobs:
         - export ARCH=Windows-x86_64 SED=sed
         - export PATH=/c/Python${PYTHON/.}:/c/Python${PYTHON/.}/Scripts:${PATH}
       install:
-        - | # install Python via Chocolatey
+        - | # install executables via Chocolatey: Python, Pandoc
           travis_retry choco install python --version ${PYTHON}
           travis_retry python -m pip install --upgrade pip
+          travis_retry choco install pandoc
