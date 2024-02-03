@@ -12,7 +12,7 @@ BSD (3-clause)
 
 URL
 ---
-http://www.pik-potsdam.de/members/donges/software
+https://www.pik-potsdam.de/members/donges/software-2/software
 
 Mail
 ----
