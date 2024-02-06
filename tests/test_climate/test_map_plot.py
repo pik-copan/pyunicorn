@@ -40,7 +40,7 @@ class TestMapPlot:
             "lat_min": 30, "lon_min": 0,
             "lat_max": 50, "lon_max": 30}
         data = ClimateData.Load(
-            file_name=reanalysis_data, observable_name="air",
+            file_name=str(reanalysis_data), observable_name="air",
             file_type="NetCDF", window=window, time_cycle=12)
         net = TsonisClimateNetwork(data, threshold=.05, winter_only=False)
 

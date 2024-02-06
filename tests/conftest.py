@@ -49,7 +49,7 @@ def reanalysis_data() -> Path:
     if not data_dir.is_dir():
         data_dir.mkdir(parents=True)
     if not data_file.exists():
-        res = requests.get(url, timeout=(20, 20))
+        res = requests.get(url, timeout=(30, 30))
         res.raise_for_status()
         with open(data_file, 'wb') as f:
             f.write(res.content)

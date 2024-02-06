@@ -57,11 +57,11 @@ install:
     conda config --set solver libmamba
     conda info -a
     conda list
-  - | # install executables via Miniconda: Python, Pandoc
+  - | # install executables via Miniconda: Python, Pandoc, Codecov
     travis_retry conda create -n test-env
     eval "$(conda shell.bash hook)"
     conda activate test-env
-    travis_retry conda install -c conda-forge python=${PYTHON} pandoc
+    travis_retry conda install -c conda-forge python=${PYTHON} pandoc codecov
     travis_retry conda update  -c conda-forge --all
     conda info -a
     conda list
@@ -69,7 +69,7 @@ install:
     travis_retry conda install -c conda-forge \
         numpy scipy python-igraph h5netcdf tqdm \
         ipython networkx matplotlib cartopy sphinx nbsphinx nbsphinx-link \
-        tox flake8 pylint pytest-xdist pytest-cov codecov
+        tox flake8 pylint pytest-xdist pytest-cov
     conda info -a
     conda list
 
@@ -109,7 +109,7 @@ jobs:
         - export ARCH=Windows-x86_64 SED=sed
         - export PATH=/c/Python${PYTHON/.}:/c/Python${PYTHON/.}/Scripts:${PATH}
       install:
-        - | # install executables via Chocolatey: Python, Pandoc
+        - | # install executables via Chocolatey: Python, Pandoc, Codecov
           travis_retry choco install python --version ${PYTHON}
           travis_retry python -m pip install --upgrade pip
-          travis_retry choco install pandoc
+          travis_retry choco install pandoc codecov
