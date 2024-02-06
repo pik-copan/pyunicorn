@@ -12,14 +12,40 @@
 # and J. Kurths, "Unified functional network and nonlinear time series analysis
 # for complex systems science: The pyunicorn package"
 
+from pathlib import Path
+
+import requests
 import pytest
 
 
 @pytest.fixture(scope="session",
                 params=["supremum", "euclidean", "manhattan"])
-def metric(request):
+def metric(request) -> str:
     '''
     A fixture for creating parametrized fixtures of classes that have a
     `metric` argument, as in `RecurrencePlot` and its child classes.
     '''
     return request.param
+
+
+@pytest.fixture(scope="session")
+def reanalysis_data() -> Path:
+    """
+    Locate, and potentially download, a small NOAA dataset. Currently used in:
+    - `tests/test_climate/test_map_plot.py`
+    - `examples/tutorials/ClimateNetworks.ipynb`
+    """
+    name = "air.mon.mean.nc"
+    path = Path("./examples/tutorials/data") / name
+    if not path.exists():
+        service = "https://psl.noaa.gov/repository/entry/get"
+        query = (
+            "entryid=synth%3Ae570c8f9-ec09-4e89-93b4-"
+            "babd5651e7a9%3AL25jZXAucmVhbmFseXNpcy5kZXJpdm"
+            "VkL3N1cmZhY2UvYWlyLm1vbi5tZWFuLm5j")
+        url = f"{service}/{name}?{query}"
+        res = requests.get(url, timeout=(20, 20))
+        res.raise_for_status()
+        with open(path, 'wb') as f:
+            f.write(res.content)
+    return path

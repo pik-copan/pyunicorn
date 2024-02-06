@@ -3,8 +3,7 @@ Sitemap
 =======
 
 .. toctree::
-    :maxdepth: 2
-    :includehidden:
+    :maxdepth: 3
 
     index
     download

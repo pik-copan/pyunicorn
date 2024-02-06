@@ -12,6 +12,8 @@
 # and J. Kurths, "Unified functional network and nonlinear time series analysis
 # for complex systems science: The pyunicorn package"
 
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 
 from pyunicorn.climate.climate_data import ClimateData
@@ -26,20 +28,19 @@ class TestMapPlot:
     """
 
     @staticmethod
-    def test_plot():
+    def test_plot(reanalysis_data: Path):
         """
         Check error-free execution.
         """
         # prepare ClimateNetwork fixture
         # (select subset of data to speed up loading and calculation)
         title = "ncep_ncar_reanalysis"
-        file = 'examples/tutorials/data/air.mon.mean.nc'
         window = {
             "time_min": 0., "time_max": 0.,
             "lat_min": 30, "lon_min": 0,
             "lat_max": 50, "lon_max": 30}
         data = ClimateData.Load(
-            file_name=file, observable_name="air",
+            file_name=reanalysis_data, observable_name="air",
             file_type="NetCDF", window=window, time_cycle=12)
         net = TsonisClimateNetwork(data, threshold=.05, winter_only=False)
 
