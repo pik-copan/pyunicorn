@@ -1,6 +1,6 @@
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2024 Jonathan F. Donges and pyunicorn authors
-# URL: <http://www.pik-potsdam.de/members/donges/software>
+# URL: <https://www.pik-potsdam.de/members/donges/software-2/software>
 # License: BSD (3-clause)
 #
 # Please acknowledge and cite the use of this software and its authors
@@ -22,16 +22,6 @@ multivariate data and generating time series surrogates.
 Related Publications
 ~~~~~~~~~~~~~~~~~~~~
 [Donges2011a]_, [Heitzig2012]_, [Donges2012]_
-
-To do
-~~~~~
-  - A lot - See current product backlog.
-  - Clean up MapPlots class -> Alex!?
-
-Known Bugs
-~~~~~~~~~~
-  - ...
-
 """
 
 #

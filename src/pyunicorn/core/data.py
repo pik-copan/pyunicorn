@@ -1,6 +1,6 @@
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2024 Jonathan F. Donges and pyunicorn authors
-# URL: <http://www.pik-potsdam.de/members/donges/software>
+# URL: <https://www.pik-potsdam.de/members/donges/software-2/software>
 # License: BSD (3-clause)
 #
 # Please acknowledge and cite the use of this software and its authors
@@ -387,7 +387,6 @@ class Data:
         """Print information on the data encapsulated by the Data object."""
         # Open netCDF4 file
         f = Dataset(self.file_name, "r")
-        print("File format:", f.file_format)
         print("Global attributes:")
         for name in f.ncattrs():
             print(name + ":", getattr(f, name))
