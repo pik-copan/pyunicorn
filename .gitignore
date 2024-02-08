@@ -72,6 +72,7 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+docs/source/tutorials/images/
 
 # PyBuilder
 .pybuilder/
@@ -164,5 +165,6 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-# Calculation dumps
+# cached data
 *.data
+examples/tutorials/data

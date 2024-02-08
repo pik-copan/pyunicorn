@@ -1,6 +1,6 @@
 
-Methods
-=======
+Package Overview
+================
 
 A brief introduction to the methods, measures and algorithms provided by
 ``pyunicorn``.
@@ -21,15 +21,15 @@ possible.
 Spatially embedded networks
 ---------------------------
 ``pyunicorn`` includes measures and models specifically designed for spatially
-embedded networks (or simply spatial networks) via the GeoNetwork and Grid
+embedded networks (or simply spatial networks) via the ``GeoNetwork`` and ``Grid``
 classes.
 
 * :doc:`api/core/geo_network`
 * :doc:`api/core/grid`
 
-Interacting/interdependent/multiplex networks / networks of networks
---------------------------------------------------------------------
-The InteractingNetworks class provides a rich collection of network measures and models specifically designed for investigating the structure of networks of
+Interacting/multiplex networks (networks of networks)
+-----------------------------------------------------
+The ``InteractingNetworks`` class provides a rich collection of network measures and models specifically designed for investigating the structure of networks of
 networks (also called interacting networks, interdependent networks or
 multiplex networks in different contexts). Examples include the cross-link
 density of connections between different subnetworks or the cross-shortest
@@ -39,8 +39,8 @@ the degree of organization of the cross-connectivity between subnetworks.
 
 * :doc:`api/core/interacting_networks`
 
-Node-weighted network measures / node-splitting invariance
-----------------------------------------------------------
+Node-weighted (node-splitting invariant) network measures
+---------------------------------------------------------
 Node-weighted networks measures derived following the node-splitting invariance
 approach are useful for studying systems with nodes representing subsystems of
 heterogeneous size, weight, area, volume or importance, e.g., nodes
@@ -52,8 +52,8 @@ as well as interacting networks.
 * :doc:`api/core/network`
 * :doc:`api/core/interacting_networks`
 
-Climate networks / Coupled climate networks
--------------------------------------------
+(Coupled) Climate networks
+--------------------------
 ``pyunicorn`` provides classes for the easy construction and analysis of the
 statistical interdependency structure within and between fields of time series (functional networks) using various similarity measures such as Pearson and Spearman correlation, lagged linear correlation, mutual information and event
 synchronization. Climate networks allow the analysis of single fields of time series, whereas coupled climate networks focus on studying the
@@ -66,8 +66,8 @@ FMRI and EEG data) or financial data (e.g., stock market indices).
 * :doc:`api/climate/coupled_climate_network`
 * :doc:`api/climate/climate_data`
 
-Recurrence networks / recurrence quantification analysis / recurrence plots
----------------------------------------------------------------------------
+Recurrence quantification/network analysis
+------------------------------------------
 Recurrence analysis is a powerful method for studying nonlinear systems,
 particularly based on univariate and multivariate time series data. Recurrence
 quantification analysis (RQA) and recurrence network analysis (RNA) allow to

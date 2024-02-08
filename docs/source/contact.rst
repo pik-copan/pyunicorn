@@ -4,8 +4,7 @@ Contact
 
 .. include:: ../../README.rst
     :start-after: (3 clause).
-    :end-before: Usage
+    :end-before: Getting Started
 
 .. include:: ../../CONTRIBUTIONS.rst
     :start-after: BSD (3-clause)
-    :end-before: Acknowledgements

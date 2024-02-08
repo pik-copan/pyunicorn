@@ -1,6 +1,6 @@
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
-# URL: <http://www.pik-potsdam.de/members/donges/software>
+# URL: <https://www.pik-potsdam.de/members/donges/software-2/software>
 # License: BSD (3-clause)
 
 # package ======================================================================
@@ -36,7 +36,8 @@ omit = ["*/utils/navigator.py"]
 
 [tool.pylint.main]
 ignore = [
-    "CVS", ".cache", ".tox", ".ropeproject", "build", "mpi.py"
+    ".cache", "__pycache__", ".pytest_cache", ".tox", ".venv", ".ropeproject",
+    "build", "mpi.py"
 ]
 ignore-patterns = ["navigator", "numerics"]
 persistent = false
