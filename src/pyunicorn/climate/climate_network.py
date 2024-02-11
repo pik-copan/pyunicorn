@@ -290,7 +290,7 @@ class ClimateNetwork(GeoNetwork):
         #  attributes/weights
         net.graph = graph
         #  Restore link attributes/weights
-        net.clear_cache_startswith('path_')
+        net.clear_paths_cache()
 
         return net
 
