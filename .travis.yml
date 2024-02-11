@@ -1,72 +1,115 @@
+# This file is part of pyunicorn.
+# Copyright (C) 2008--2024 Jonathan F. Donges and pyunicorn authors
+# URL: <https://www.pik-potsdam.de/members/donges/software-2/software>
+# License: BSD (3-clause)
+
+
+# documentation & validation ==================================================
+
+# - https://docs.travis-ci.com/user/reference/overview
+# - https://docs.travis-ci.com/user/build-matrix/
+# - https://docs.travis-ci.com/user/multi-os/
+
+# - https://docs.travis-ci.com/user/build-config-validation/
+# - https://config.travis-ci.com/explore
+
+
+# meta ========================================================================
+
+# enable build config validation
 version: ~> 1.0
 
-# require the branch name to be master
+# save Travis budget
 if: branch = master
 
-language: python
-python:
-    - "3.8"
-    - "3.9"
-    - "3.10"
-    - "3.11"
-matrix:
-    fast_finish: true
+# report outcomes
+notifications:
+  email:
+    on_success: change
+    on_failure: always
 
-arch: arm64
-virt: lxd
+
+# default jobs: Linux, all Python versions ====================================
+
 os: linux
 dist: focal
-sudo: false
+arch: arm64
+virt: lxd
+language: generic
+env:
+  jobs:
+    - PYTHON=3.12
+    - PYTHON=3.11
+    - PYTHON=3.10
+    - PYTHON=3.9
+    - PYTHON=3.8
 
-before_install:
-    # Python package manager
-    - travis_retry wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh -O miniconda.sh
-    - bash miniconda.sh -b -p $HOME/miniconda
-    - export PATH="$HOME/miniconda/bin:$PATH"; hash -r
-    - conda config --set quiet yes --set always_yes yes --set changeps1 no
-    - travis_retry conda update -n base -c defaults conda
-    - travis_retry conda update --all
-    - conda config --set solver libmamba
-
-    # debugging info
-    - conda info -a
-    - conda list
+before_install: export ARCH=Linux-aarch64 SED=sed
 
 install:
-    # runtime dependencies
-    - travis_retry conda create -n test-env
-    - eval "$(conda shell.bash hook)"
-    - conda activate test-env
-    - travis_retry conda install -c conda-forge python=$TRAVIS_PYTHON_VERSION
-    - travis_retry conda install -c conda-forge numpy scipy python-igraph h5netcdf multiprocess tqdm
-    - travis_retry conda update  -c conda-forge --all
-
-    # testing dependencies
-    - travis_retry conda install -c conda-forge tox flake8 pylint pytest-xdist pytest-cov codecov
-    - travis_retry conda install -c conda-forge networkx matplotlib cartopy sphinx
-
-    # debugging info
-    - conda info -a
-    - conda list
-
-before_script:
-    # limit parallel processes to available cores (error if pattern not found)
-    - sed -i '/nthreads=./{s//nthreads=2/;h}; ${x;/./{x;q0};x;q1}' setup.py
-    - sed -i '/-n auto/   {s//-n 2/;      h}; ${x;/./{x;q0};x;q1}' setup.cfg
-    - sed -i '/-j ./      {s//-j 2/;      h}; ${x;/./{x;q0};x;q1}' setup.cfg
-    - sed -i '/jobs = ./  {s//jobs = 2/;  h}; ${x;/./{x;q0};x;q1}' pyproject.toml
+  - | # install Miniconda
+    travis_retry wget https://repo.anaconda.com/miniconda/Miniconda3-latest-${ARCH}.sh -O miniconda.sh
+    bash miniconda.sh -b -p ${HOME}/miniconda
+    export PATH="${HOME}/miniconda/bin:${PATH}"; hash -r
+    conda config --set quiet yes --set always_yes yes --set changeps1 no
+    travis_retry conda update -n base -c defaults conda
+    travis_retry conda update --all
+    conda config --set solver libmamba
+    conda info -a
+    conda list
+  - | # install executables via Miniconda: Python, Pandoc, Codecov
+    travis_retry conda create -n test-env
+    eval "$(conda shell.bash hook)"
+    conda activate test-env
+    travis_retry conda install -c conda-forge python=${PYTHON} pandoc codecov
+    travis_retry conda update  -c conda-forge --all
+    conda info -a
+    conda list
+  - | # install Python libs via Miniconda
+    travis_retry conda install -c conda-forge \
+        numpy scipy python-igraph h5netcdf tqdm \
+        ipython networkx matplotlib cartopy sphinx nbsphinx nbsphinx-link \
+        tox flake8 pylint pytest-xdist pytest-cov
+    conda info -a
+    conda list
 
 script:
-    # package
-    - travis_retry pip install -vv -e ".[testing,docs]"
+  - | # limit procs to available cores (use GNU `sed`, fail if pattern not found)
+    ${SED} -i '/nthreads=./{s//nthreads=2/;h}; ${x;/./{x;q0};x;q1}' setup.py
+    ${SED} -i '/-j ./      {s//-j 2/;      h}; ${x;/./{x;q0};x;q1}' setup.cfg
+    ${SED} -i '/-n auto/   {s//-n 2/;      h}; ${x;/./{x;q0};x;q1}' pyproject.toml
+    ${SED} -i '/jobs = ./  {s//jobs = 2/;  h}; ${x;/./{x;q0};x;q1}' pyproject.toml
+  - | # install Python libs via Pip: self (+ dependencies, if on Windows)
+    travis_retry pip install -v -e .[tests,docs]
+  - | # run test suite
+    tox -v
 
-    # test suite
-    - tox -v
+# report statistics
+after_success: codecov
 
-after_success:
-    - codecov
 
-notifications:
-    email:
-        on_success: change
-        on_failure: always
+# modified jobs: OSX + Windows, newest Python version =========================
+# (inherit only 1st `env.jobs` entry)
+
+jobs:
+  fast_finish: true
+  include:
+    - os: osx
+      osx_image: xcode14
+      language: shell
+      before_install:
+        - export ARCH=MacOSX-x86_64 SED=gsed
+        - | # install executables via Homebrew: GNU `sed`
+          export HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1
+          travis_retry brew install gnu-sed
+
+    - os: windows
+      language: shell
+      before_install:
+        - export ARCH=Windows-x86_64 SED=sed
+        - export PATH=/c/Python${PYTHON/.}:/c/Python${PYTHON/.}/Scripts:${PATH}
+      install:
+        - | # install executables via Chocolatey: Python, Pandoc, Codecov
+          travis_retry choco install python --version ${PYTHON}
+          travis_retry python -m pip install --upgrade pip
+          travis_retry choco install pandoc codecov

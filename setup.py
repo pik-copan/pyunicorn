@@ -1,6 +1,6 @@
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
-# URL: <http://www.pik-potsdam.de/members/donges/software>
+# URL: <https://www.pik-potsdam.de/members/donges/software-2/software>
 # License: BSD (3-clause)
 #
 # Please acknowledge and cite the use of this software and its authors
@@ -25,16 +25,14 @@ import numpy as np
 win = system() == 'Windows'
 c_args = {
     'include_dirs': [np.get_include()],
-    'extra_compile_args': ['-D_GNU_SOURCE'] + (
-        ['/O2']
-        if win else
-        ['-O3', '-std=c99', '-Wall', '-Wconversion']),
-    'define_macros': [('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION')]}
+    'extra_compile_args': ['/O2'] if win else ['-O3', '-std=c99', '-Wall'],
+    'define_macros': [('_GNU_SOURCE', None),
+                      ('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION')]}
 cy_args = {
     'language_level': '3str', 'embedsignature': True,
     'boundscheck': True, 'wraparound': False,
     'initializedcheck': True, 'nonecheck': True,
-    'warn.unused': True, 'warn.unused_arg': True}
+    'warn.unused': True, 'warn.unused_arg': False, 'warn.unused_result': False}
 
 
 # ==============================================================================

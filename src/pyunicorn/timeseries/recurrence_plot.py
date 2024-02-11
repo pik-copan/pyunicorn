@@ -1,6 +1,6 @@
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
-# URL: <http://www.pik-potsdam.de/members/donges/software>
+# URL: <https://www.pik-potsdam.de/members/donges/software-2/software>
 # License: BSD (3-clause)
 #
 # Please acknowledge and cite the use of this software and its authors
@@ -22,6 +22,7 @@ from math import factorial
 
 # array object and fast numerics
 import numpy as np
+from numpy.typing import NDArray
 
 # Cython inline code
 from ..core._ext.types import to_cy, NODE, LAG, FIELD, DFIELD
@@ -30,10 +31,10 @@ from ._ext.numerics import _embed_time_series, _manhattan_distance_matrix_rp, \
     _set_adaptive_neighborhood_size, _bootstrap_distance_matrix_manhattan, \
     _bootstrap_distance_matrix_euclidean, \
     _bootstrap_distance_matrix_supremum, \
-    _diagline_dist_norqa_missingvalues, _diagline_dist_norqa, \
-    _diagline_dist_rqa_missingvalues, _diagline_dist_rqa, \
-    _vertline_dist_norqa_missingvalues, _vertline_dist_norqa, \
-    _vertline_dist_rqa_missingvalues, _vertline_dist_rqa, \
+    _diagline_dist_missingvalues, _diagline_dist, \
+    _diagline_dist_sequential_missingvalues, _diagline_dist_sequential, \
+    _vertline_dist_missingvalues, _vertline_dist, \
+    _vertline_dist_sequential_missingvalues, _vertline_dist_sequential, \
     _rejection_sampling, _white_vertline_dist, _twins_r, _twin_surrogates_r
 
 
@@ -82,9 +83,10 @@ class RecurrencePlot:
     #  Internal methods
     #
 
-    def __init__(self, time_series, metric="supremum", normalize=False,
-                 missing_values=False, sparse_rqa=False, silence_level=0,
-                 **kwds):
+    def __init__(self, time_series: NDArray, metric: str = "supremum",
+                 normalize: bool = False, missing_values: bool = False,
+                 sparse_rqa: bool = False, silence_level: int = 0,
+                 **kwargs):
         """
         Initialize an instance of RecurrencePlot.
 
@@ -111,6 +113,8 @@ class RecurrencePlot:
             :attr:`.RecurrencePlot.time_series`.
         :arg bool sparse_rqa: Toggles sequential RQA computation using less
             memory for use with long time series.
+        :arg bool skip_recurrence: Skip calculation of recurrence matrix within
+            RP class (e.g. when overloading respective methods in child class)
         :arg int silence_level: Inverse level of verbosity of the object.
         :arg number threshold: The recurrence threshold keyword for generating
             the recurrence plot using a fixed threshold.
@@ -160,9 +164,9 @@ class RecurrencePlot:
         if normalize:
             self.normalize_time_series(self.time_series)
 
-        #  Get embedding dimension and delay from **kwds
-        self.dim = kwds.get("dim")
-        self.tau = kwds.get("tau")
+        #  Get embedding dimension and delay from **kwargs
+        self.dim = kwargs.get("dim")
+        self.tau = kwargs.get("tau")
 
         if self.dim is not None and self.tau is not None:
             #  Embed the time series
@@ -182,15 +186,15 @@ class RecurrencePlot:
             self.missing_value_indices = \
                 np.isnan(self.embedding).sum(axis=1) != 0
 
-        #  Get threshold or recurrence rate from **kwds, construct recurrence
+        #  Get threshold or recurrence rate from **kwargs, construct recurrence
         #  plot accordingly
-        self.threshold = kwds.get("threshold")
-        self.threshold_std = kwds.get("threshold_std")
+        self.threshold = kwargs.get("threshold")
+        self.threshold_std = kwargs.get("threshold_std")
         #  Make sure not to overwrite the method recurrence_rate()
-        recurrence_rate = kwds.get("recurrence_rate")
-        self.local_recurrence_rate = kwds.get("local_recurrence_rate")
+        recurrence_rate = kwargs.get("recurrence_rate")
+        self.local_recurrence_rate = kwargs.get("local_recurrence_rate")
         self.adaptive_neighborhood_size = \
-            kwds.get("adaptive_neighborhood_size")
+            kwargs.get("adaptive_neighborhood_size")
 
         #  Initialize cache
         self._distance_matrix_cached = False
@@ -200,8 +204,11 @@ class RecurrencePlot:
         self._vertline_dist_cached = False
         self._vertline_dist = None
 
-        #  Precompute recurrence matrix only if sequential RQA is switched off.
-        if not sparse_rqa:
+        #  Precompute recurrence matrix only if sequential RQA is switched off,
+        #  and not calling from child class with respective overriding methods.
+        skip_recurrence = kwargs.get("skip_recurrence")
+
+        if not sparse_rqa and not skip_recurrence:
             if self.threshold is not None:
                 #  Calculate the recurrence matrix R using the radius of
                 #  neighborhood threshold
@@ -647,7 +654,8 @@ class RecurrencePlot:
             print("Calculating recurrence plot at fixed recurrence rate...")
 
         #  Get distance matrix, according to self.metric
-        distance = self.distance_matrix(self.embedding, self.metric)
+        distance = RecurrencePlot.distance_matrix(
+            self, self.embedding, self.metric)
 
         #  Get number of nodes
         n_time = distance.shape[0]
@@ -750,7 +758,7 @@ class RecurrencePlot:
         self.R = recurrence
 
     @staticmethod
-    def threshold_from_recurrence_rate(distance, recurrence_rate):
+    def threshold_from_recurrence_rate(distance, recurrence_rate: float):
         """
         Return the threshold for recurrence plot construction given the
         recurrence rate.
@@ -770,7 +778,9 @@ class RecurrencePlot:
         flat_distance.sort()
 
         #  Get threshold
-        threshold = flat_distance[int(recurrence_rate * len(flat_distance))]
+        assert 0 <= recurrence_rate <= 1
+        N = len(flat_distance)
+        threshold = flat_distance[int(recurrence_rate * (N - 1))]
 
         #  Clean up
         del flat_distance
@@ -877,16 +887,16 @@ class RecurrencePlot:
 
         :return number: the recurrence rate :math:`RR`.
         """
-        #  Prepare
         N = self.N
-
         if not self.sparse_rqa:
             R = self.recurrence_matrix()
-            RR = R.sum() / float(N ** 2)
-        elif self.sparse_rqa and self.metric == "supremum":
-            RR = (self.vertline_dist() * np.arange(N)).sum() / \
-                float(N ** 2)
-
+            RR = R.sum() / N ** 2
+        elif self.metric == "supremum":
+            RR = (self.vertline_dist() * np.arange(1, N + 1)).sum() / N ** 2
+        else:
+            raise NotImplementedError(
+                "Sequential RQA is currently only available for "
+                "fixed threshold and the supremum metric.")
         return RR
 
     def recurrence_probability(self, lag=0):
@@ -911,10 +921,15 @@ class RecurrencePlot:
     def diagline_dist(self):
         """
         Return the :index:`frequency distribution of diagonal line lengths
-        <triple: frequency distribution; diagonal; line length>` :math:`P(l)`.
+        <triple: frequency distribution; diagonal; line length>`
+        :math:`P(l-1)`.
 
-        The :math:`l` th entry of :math:`P(l)` contains the number of
+        Note that entry :math:`P(l-1)` contains the number of
         :index:`diagonal lines <pair: diagonal; lines>` of length :math:`l`.
+        Thus, :math:`P(0)` counts lines of length :math:`1`,
+        :math:`P(1)` counts lines of length :math:`2`, asf.
+        The main diagonal is not counted,
+        hence :math:`P(N)` will always be :math:`0`.
 
         .. note::
            Experimental handling of missing values. Diagonal lines
@@ -923,7 +938,7 @@ class RecurrencePlot:
 
         :rtype: 1D array (int32)
         :return: the frequency distribution of diagonal line lengths
-            :math:`P(l)`.
+            :math:`P(l-1)`.
         """
         if self._diagline_dist_cached:
             return self._diagline_dist
@@ -938,13 +953,13 @@ class RecurrencePlot:
 
                 if self.missing_values:
                     mv_indices = self.missing_value_indices
-                    _diagline_dist_norqa_missingvalues(n_time, diagline,
-                                                       recmat, mv_indices)
+                    _diagline_dist_missingvalues(
+                        n_time, diagline, recmat, mv_indices)
                 else:
-                    _diagline_dist_norqa(n_time, diagline, recmat)
+                    _diagline_dist(n_time, diagline, recmat)
 
             #  Calculations for sequential RQA
-            elif self.sparse_rqa and self.metric == "supremum":
+            elif self.metric == "supremum" and self.threshold is not None:
                 #  Get embedding
                 embedding = self.embedding
                 #  Get time series dimension
@@ -954,11 +969,16 @@ class RecurrencePlot:
 
                 if self.missing_values:
                     mv_indices = self.missing_value_indices
-                    _diagline_dist_rqa_missingvalues(n_time, diagline,
-                                                     mv_indices, embedding,
-                                                     eps, dim)
+                    _diagline_dist_sequential_missingvalues(
+                        n_time, diagline, mv_indices, embedding, eps, dim)
                 else:
-                    _diagline_dist_rqa(n_time, diagline, embedding, eps, dim)
+                    _diagline_dist_sequential(
+                        n_time, diagline, embedding, eps, dim)
+
+            else:
+                raise NotImplementedError(
+                    "Sequential RQA is currently only available for "
+                    "fixed threshold and the supremum metric.")
 
             #  Function just runs over the upper triangular matrix
             self._diagline_dist = 2*diagline
@@ -984,10 +1004,10 @@ class RecurrencePlot:
         N = len(dist)
 
         #  Prepare
-        resampled_dist = np.zeros(N, dtype=FIELD)
+        resampled_dist = np.zeros(N, dtype=NODE)
 
         #  Prescribed distribution
-        dist = to_cy(dist, FIELD)
+        dist = to_cy(dist, DFIELD)
         #  Normalize distribution
         dist /= dist.sum()
 
@@ -1017,9 +1037,12 @@ class RecurrencePlot:
         L_max = self.max_diaglength()
 
         #  Get resampled distribution
-        resampled_dist = np.zeros(len(diagline))
-        resampled_dist[:L_max + 1] = RecurrencePlot.\
-            rejection_sampling(diagline[:L_max + 1], M)
+        if L_max == 0:
+            resampled_dist = diagline
+        else:
+            resampled_dist = np.zeros(len(diagline), dtype=NODE)
+            resampled_dist[:L_max] = RecurrencePlot.\
+                rejection_sampling(diagline[:L_max], M)
 
         return resampled_dist
 
@@ -1033,15 +1056,7 @@ class RecurrencePlot:
 
         :return number: the maximal diagonal line length :math:`L_max`.
         """
-        diagline = self.diagline_dist()
-        n_time = self.N
-        lmax = 1
-
-        for i in range(1, n_time):
-            if diagline[i] != 0:
-                lmax = i
-
-        return lmax
+        return 1 + np.nonzero(self.diagline_dist())[0].max(initial=-1)
 
     def determinism(self, l_min=2, resampled_dist=None):
         """
@@ -1058,20 +1073,17 @@ class RecurrencePlot:
         :return number: the determinism :math:`DET`.
         """
         #  Use resampled distribution of diagonal lines if provided
-        if resampled_dist is None:
-            diagline = self.diagline_dist()
-        else:
-            diagline = resampled_dist
-
+        diagline = (self.diagline_dist() if resampled_dist is None
+                    else resampled_dist)
         n_time = self.N
 
         #  Number of recurrence points that form diagonal structures (of at
         #  least length l_min)
-        partial_sum = (np.arange(l_min, n_time) * diagline[l_min:]).sum()
+        partial_sum = np.arange(l_min, n_time+1) @ diagline[l_min-1:]
 
         #  Number of all recurrence points that form diagonal lines (except
         #  the main diagonal)
-        full_sum = (np.arange(n_time) * diagline).sum()
+        full_sum = np.arange(1, n_time+1) @ diagline
 
         return partial_sum / float(full_sum + self._epsilon)
 
@@ -1089,19 +1101,16 @@ class RecurrencePlot:
         :return number: the average diagonal line length :math:`L`.
         """
         #  Use resampled distribution of diagonal lines if provided
-        if resampled_dist is None:
-            diagline = self.diagline_dist()
-        else:
-            diagline = resampled_dist
-
+        diagline = (self.diagline_dist() if resampled_dist is None
+                    else resampled_dist)
         n_time = self.N
 
         #  Number of recurrence points that form diagonal structures (of at
         #  least length l_min)
-        partial_sum = (np.arange(l_min, n_time) * diagline[l_min:]).sum()
+        partial_sum = np.arange(l_min, n_time+1) @ diagline[l_min-1:]
 
         #  Total number of diagonal lines of at least length l_min
-        number_diagline = diagline[l_min:].sum()
+        number_diagline = diagline[l_min-1:].sum()
 
         return partial_sum / float(number_diagline + self._epsilon)
 
@@ -1120,14 +1129,12 @@ class RecurrencePlot:
         :return number: the diagonal line-based entropy :math:`ENTR`.
         """
         #  Use resampled distribution of diagonal lines if provided
-        if resampled_dist is None:
-            diagline = self.diagline_dist()
-        else:
-            diagline = resampled_dist
+        diagline = (self.diagline_dist() if resampled_dist is None
+                    else resampled_dist)
 
         #  Creates a reduced array of the values (not 0) of the diagonal line
         #  length (langer than l_min)
-        diagline = diagline[l_min:]
+        diagline = diagline[l_min-1:]
         diagline = np.extract(diagline != 0, diagline)
 
         #  Normalized array of the number of all diagonal lines = probability
@@ -1143,14 +1150,17 @@ class RecurrencePlot:
     def vertline_dist(self):
         """
         Return the :index:`frequency distribution of vertical line lengths
-        <triple: frequency distribution; vertical; line length>` :math:`P(v)`.
+        <triple: frequency distribution; vertical; line length>`
+        :math:`P(v-1)`.
 
-        The :math:`v` th entry of :math:`P(v)` contains the number of
+        Note that entry :math:`P(v-1)` contains the number of
         :index:`vertical lines <pair: vertical; lines>` of length :math:`v`.
+        Thus, :math:`P(0)` counts lines of length :math:`1`,
+        :math:`P(1)` counts lines of length :math:`2`, asf.
 
         :rtype: 1D array (int32)
         :return: the frequency distribution of vertical line lengths
-            :math:`P(v)`.
+            :math:`P(v-1)`.
         """
         if self._vertline_dist_cached:
             return self._vertline_dist
@@ -1165,13 +1175,13 @@ class RecurrencePlot:
 
                 if self.missing_values:
                     mv_indices = self.missing_value_indices
-                    _vertline_dist_norqa_missingvalues(n_time, vertline,
-                                                       recmat, mv_indices)
+                    _vertline_dist_missingvalues(
+                        n_time, vertline, recmat, mv_indices)
                 else:
-                    _vertline_dist_norqa(n_time, vertline, recmat)
+                    _vertline_dist(n_time, vertline, recmat)
 
             #  Calculations for sequential RQA
-            elif self.sparse_rqa and self.metric == "supremum":
+            elif self.metric == "supremum" and self.threshold is not None:
                 #  Get embedding
                 embedding = self.embedding
                 #  Get time series dimension
@@ -1181,12 +1191,17 @@ class RecurrencePlot:
 
                 if self.missing_values:
                     mv_indices = self.missing_value_indices
-                    _vertline_dist_rqa_missingvalues(n_time, vertline,
-                                                     mv_indices, embedding,
-                                                     eps, dim)
+                    _vertline_dist_sequential_missingvalues(
+                        n_time, vertline, mv_indices, embedding, eps, dim)
 
                 else:
-                    _vertline_dist_rqa(n_time, vertline, embedding, eps, dim)
+                    _vertline_dist_sequential(
+                        n_time, vertline, embedding, eps, dim)
+
+            else:
+                raise NotImplementedError(
+                    "Sequential RQA is currently only available for "
+                    "fixed threshold and the supremum metric.")
 
             #  Function covers the whole recurrence matrix
             self._vertline_dist = vertline
@@ -1217,9 +1232,12 @@ class RecurrencePlot:
         L_max = self.max_vertlength()
 
         #  Get resampled distribution
-        resampled_dist = np.zeros(len(vertline))
-        resampled_dist[:L_max + 1] = RecurrencePlot.\
-            rejection_sampling(vertline[:L_max + 1], M)
+        if L_max == 0:
+            resampled_dist = vertline
+        else:
+            resampled_dist = np.zeros(len(vertline), dtype=NODE)
+            resampled_dist[:L_max] = RecurrencePlot.\
+                rejection_sampling(vertline[:L_max], M)
 
         return resampled_dist
 
@@ -1233,15 +1251,7 @@ class RecurrencePlot:
 
         :return number: the maximal vertical line length :math:`V_max`.
         """
-        vertline = self.vertline_dist()
-        n_time = self.N
-        vmax = 1
-
-        for i in range(1, n_time):
-            if vertline[i] != 0:
-                vmax = i
-
-        return vmax
+        return 1 + np.nonzero(self.vertline_dist())[0].max(initial=-1)
 
     def laminarity(self, v_min=2, resampled_dist=None):
         """
@@ -1257,19 +1267,16 @@ class RecurrencePlot:
         :return number: the laminarity :math:`LAM`.
         """
         #  Use resampled distribution of vertical lines if provided
-        if resampled_dist is None:
-            vertline = self.vertline_dist()
-        else:
-            vertline = resampled_dist
-
+        vertline = (self.vertline_dist() if resampled_dist is None
+                    else resampled_dist)
         n_time = self.N
 
         #  Number of recurrence points that form vertical structures (of at
         #  least length v_min)
-        partial_sum = (np.arange(v_min, n_time) * vertline[v_min:]).sum()
+        partial_sum = np.arange(v_min, n_time+1) @ vertline[v_min-1:]
 
         #  Number of all recurrence points that form vertical lines
-        full_sum = (np.arange(n_time) * vertline).sum()
+        full_sum = np.arange(1, n_time+1) @ vertline
 
         return partial_sum / float(full_sum + self._epsilon)
 
@@ -1288,19 +1295,16 @@ class RecurrencePlot:
         :return number: the trapping time :math:`TT`.
         """
         #  Use resampled distribution of vertical lines if provided
-        if resampled_dist is None:
-            vertline = self.vertline_dist()
-        else:
-            vertline = resampled_dist
-
+        vertline = (self.vertline_dist() if resampled_dist is None
+                    else resampled_dist)
         n_time = self.N
 
         #  Number of recurrence points that form vertical structures (of at
         #  least length v_min)
-        partial_sum = (np.arange(v_min, n_time) * vertline[v_min:]).sum()
+        partial_sum = np.arange(v_min, n_time+1) @ vertline[v_min-1:]
 
         #  Total number of vertical lines of at least length v_min
-        number_vertline = vertline[v_min:].sum()
+        number_vertline = vertline[v_min-1:].sum()
 
         return partial_sum / (float(number_vertline) + self._epsilon)
 
@@ -1332,7 +1336,7 @@ class RecurrencePlot:
 
         #  Creates a reduced array of the values (not 0) of the vertical line
         #  length (langer than v_min)
-        vertline = vertline[v_min:]
+        vertline = vertline[v_min-1:]
         vertline = np.extract(vertline != 0, vertline)
 
         #  Normalized array of the number of all vertical lines = probability
@@ -1349,23 +1353,23 @@ class RecurrencePlot:
         """
         Return the :index:`frequency distribution of white vertical line
         lengths <triple: frequency distribution; white vertical; line length>`
-        :math:`P(w)`.
+        :math:`P(w-1)`.
 
-        The :math:`w` th entry of :math:`P(w)` contains the number of
+        Note that entry :math:`P(w-1)` contains the number of
         :index:`white vertical lines <pair: white vertical; lines>` of length
-        :math:`w`.
+        :math:`w`. Thus, :math:`P(0)` counts lines of length :math:`1`,
+        :math:`P(1)` counts lines of length :math:`2`, asf.
 
         The length of a white vertical line in a recurrence plot corresponds to
         the time the system takes to return close to an earlier state.
 
         :rtype: 1D array (int32)
         :return: the frequency distribution of white vertical line lengths
-            :math:`P(w)`.
+            :math:`P(w-1)`.
         """
         R = self.recurrence_matrix()
         n_time = self.N
         white_vertline = np.zeros(n_time, dtype=NODE)
-
         _white_vertline_dist(n_time, white_vertline, R)
 
         #  Function covers the whole recurrence matrix
@@ -1382,15 +1386,7 @@ class RecurrencePlot:
 
         :return number: the maximal white vertical line length.
         """
-        white_vertline = self.white_vertline_dist()
-        N = self.N
-        vmax = 1
-
-        for i in range(1, N):
-            if white_vertline[i] != 0:
-                vmax = i
-
-        return vmax
+        return 1 + np.nonzero(self.white_vertline_dist())[0].max(initial=-1)
 
     def average_white_vertlength(self, w_min=1):
         """
@@ -1410,10 +1406,10 @@ class RecurrencePlot:
 
         #  Number of recurrence points that form white vertical structures
         #  (of at least length w_min)
-        partial_sum = (np.arange(w_min, n_time) * white_vertline[w_min:]).sum()
+        partial_sum = np.arange(w_min, n_time+1) @ white_vertline[w_min-1:]
 
         #  Total number of white vertical lines of at least length v_min
-        number_white_vertline = white_vertline[w_min:].sum()
+        number_white_vertline = white_vertline[w_min-1:].sum()
 
         return partial_sum / float(number_white_vertline + self._epsilon)
 
@@ -1438,7 +1434,7 @@ class RecurrencePlot:
         #  Creates a reduced array of the values (not 0) of the vertical line
         #  length (langer than v_min)
         white_vertline = self.white_vertline_dist()
-        white_vertline = white_vertline[w_min:]
+        white_vertline = white_vertline[w_min-1:]
         white_vertline = np.extract(white_vertline != 0, white_vertline)
 
         #  Normalized array of the number of all vertical lines = probability

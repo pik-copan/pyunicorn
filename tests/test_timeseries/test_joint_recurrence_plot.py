@@ -1,6 +1,6 @@
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
-# URL: <http://www.pik-potsdam.de/members/donges/software>
+# URL: <https://www.pik-potsdam.de/members/donges/software-2/software>
 # License: BSD (3-clause)
 #
 # Please acknowledge and cite the use of this software and its authors
@@ -24,13 +24,13 @@ from pyunicorn.timeseries import JointRecurrencePlot
 from pyunicorn.funcnet import CouplingAnalysis
 
 
-@pytest.mark.parametrize("met", ["supremum", "euclidean", "manhattan"])
 @pytest.mark.parametrize("n", [2, 10, 50])
-def test_recurrence(met: str, n: int):
+def test_recurrence(metric: str, n: int):
     ts = CouplingAnalysis.test_data()[:n, 0]
-    jrp = JointRecurrencePlot(ts, ts, threshold=(.1, .1), metric=(met, met))
+    jrp = JointRecurrencePlot(ts, ts, threshold=(.1, .1),
+                              metric=(metric, metric))
     dist = {
-        i: jrp.distance_matrix(getattr(jrp, f"{i}_embedded"), metric=met)
+        i: jrp.distance_matrix(getattr(jrp, f"{i}_embedded"), metric=metric)
         for i in "xy"}
     assert all(d.shape == (n, n) for d in dist.values())
     assert np.allclose(*dist.values())

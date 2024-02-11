@@ -1,6 +1,6 @@
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
-# URL: <http://www.pik-potsdam.de/members/donges/software>
+# URL: <https://www.pik-potsdam.de/members/donges/software-2/software>
 # License: BSD (3-clause)
 #
 # Please acknowledge and cite the use of this software and its authors
@@ -26,10 +26,6 @@ from pyunicorn.core.data import Data
 from pyunicorn.core._ext.types import DFIELD
 
 
-# turn off for weave compilation & error detection
-parallel = False
-
-
 def create_test_data():
     # Create test time series
     tdata = Data.SmallTestData().observable()
@@ -45,10 +41,8 @@ def create_test_data():
 # -----------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("met", ["supremum", "euclidean", "manhattan"])
-@pytest.mark.parametrize(
-    "thresh, rr", [(.2, None)])  # add (None, .2) when #188 solved
-def testCrossRecurrencePlot(thresh, rr, met):
+@pytest.mark.parametrize("thresh, rr", [(.2, None), (None, .2)])
+def testCrossRecurrencePlot(thresh, rr, metric: str):
     # create two instances of the same test dataset
     tdata1 = create_test_data()
     x1 = tdata1[:, 0]
@@ -58,12 +52,12 @@ def testCrossRecurrencePlot(thresh, rr, met):
     y2 = tdata2[:, 1]
     # create CrossRecurrencePlot for both
     crp1 = CrossRecurrencePlot(
-            x1, y1, threshold=thresh, recurrence_rate=rr, metric=met)
+            x1, y1, threshold=thresh, recurrence_rate=rr, metric=metric)
     crp2 = CrossRecurrencePlot(
-            x2, y2, threshold=thresh, recurrence_rate=rr, metric=met)
+            x2, y2, threshold=thresh, recurrence_rate=rr, metric=metric)
     # get respective distance matrices
-    dist_1 = crp1.distance_matrix(crp1.x_embedded, crp1.y_embedded, met)
-    dist_2 = crp2.distance_matrix(crp2.x_embedded, crp2.y_embedded, met)
+    dist_1 = crp1.distance_matrix(crp1.x_embedded, crp1.y_embedded, metric)
+    dist_2 = crp2.distance_matrix(crp2.x_embedded, crp2.y_embedded, metric)
     # get respective recurrence matrices
     CR1 = crp1.recurrence_matrix()
     CR2 = crp2.recurrence_matrix()
@@ -80,11 +74,9 @@ def testCrossRecurrencePlot(thresh, rr, met):
 # -----------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("met", ["supremum", "euclidean", "manhattan"])
-@pytest.mark.parametrize(
-    "thresh, rr", [((.2, .3, .2), None)]
-    )  # add (None, (.2, .3, .2) when #188 solved
-def testInterSystemRecurrenceNetwork(thresh, rr, met):
+@pytest.mark.parametrize("thresh, rr",
+                         [((.2, .3, .2), None), (None, (.2, .3, .2))], ids=str)
+def testInterSystemRecurrenceNetwork(thresh, rr, metric: str):
     # create two instances of the same test dataset
     tdata1 = create_test_data()
     x1 = tdata1[:, 0]
@@ -94,9 +86,9 @@ def testInterSystemRecurrenceNetwork(thresh, rr, met):
     y2 = tdata2[:, 1]
     # create InterSystemRecurrenceNetwork for both
     isrn1 = InterSystemRecurrenceNetwork(
-            x1, y1, threshold=thresh, recurrence_rate=rr, metric=met)
+            x1, y1, threshold=thresh, recurrence_rate=rr, metric=metric)
     isrn2 = InterSystemRecurrenceNetwork(
-            x2, y2, threshold=thresh, recurrence_rate=rr, metric=met)
+            x2, y2, threshold=thresh, recurrence_rate=rr, metric=metric)
     # get respective adjacency matrices
     A1 = isrn1.adjacency
     A2 = isrn2.adjacency

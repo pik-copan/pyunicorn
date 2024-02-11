@@ -3,9 +3,8 @@ Contact
 =======
 
 .. include:: ../../README.rst
-    :start-after: ---------
-    :end-before: License
+    :start-after: (3 clause).
+    :end-before: Getting Started
 
 .. include:: ../../CONTRIBUTIONS.rst
     :start-after: BSD (3-clause)
-    :end-before: **Related publications**

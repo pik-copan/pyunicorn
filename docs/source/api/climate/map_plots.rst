@@ -1,8 +1,8 @@
 
-climate.map_plots
+climate.map_plot
 =================
 
-.. automodule:: pyunicorn.climate.map_plots
+.. automodule:: pyunicorn.climate.map_plot
     :synopsis: spatially embedded complex networks, multivariate data,
                time series surrogates
     :members:

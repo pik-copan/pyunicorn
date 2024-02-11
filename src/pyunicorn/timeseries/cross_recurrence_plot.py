@@ -1,6 +1,6 @@
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
-# URL: <http://www.pik-potsdam.de/members/donges/software>
+# URL: <https://www.pik-potsdam.de/members/donges/software-2/software>
 # License: BSD (3-clause)
 #
 # Please acknowledge and cite the use of this software and its authors
@@ -108,8 +108,8 @@ class CrossRecurrencePlot(RecurrencePlot):
 
         RecurrencePlot.__init__(
             self, np.empty((2, 0)), metric=metric, normalize=normalize,
-            sparse_rqa=sparse_rqa, threshold=threshold,
-            recurrence_rate=recurrence_rate, silence_level=silence_level)
+            sparse_rqa=sparse_rqa, silence_level=silence_level,
+            skip_recurrence=True)
 
         self.CR = None
         """The cross recurrence matrix."""
@@ -394,3 +394,21 @@ class CrossRecurrencePlot(RecurrencePlot):
         #  Return balance
         return (upper_triangle_sum - lower_triangle_sum) / \
             float(upper_triangle_sum + lower_triangle_sum)
+
+    def diagline_dist(self):
+        """Not implemented yet"""
+        raise NotImplementedError(
+            "Line distributions are not yet "
+            "available for cross-recurrence plots")
+
+    def vertline_dist(self):
+        """Not implemented yet"""
+        raise NotImplementedError(
+            "Line distributions are not yet "
+            "available for cross-recurrence plots")
+
+    def white_vertline_dist(self):
+        """Not implemented yet"""
+        raise NotImplementedError(
+            "Line distributions are not yet "
+            "available for cross-recurrence plots")

@@ -1,6 +1,6 @@
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
-# URL: <http://www.pik-potsdam.de/members/donges/software>
+# URL: <https://www.pik-potsdam.de/members/donges/software-2/software>
 # License: BSD (3-clause)
 #
 # Please acknowledge and cite the use of this software and its authors
@@ -110,8 +110,8 @@ def _get_nearest_neighbors(
 
     # Initialize
     cdef:
-        int i, j, index=0, t, m, n, d, kxz, kyz, kz
-        double dz=0., dxyz=0., dx=0., dy=0., eps, epsmax
+        int i, j, index, t, m, n, d, kxz, kyz, kz
+        double dz, dxyz, dx, dy, eps, epsmax
         ndarray[NODE_t, ndim=1, mode='c'] indexfound = np.zeros(T, dtype=NODE)
         ndarray[DFIELD_t, ndim=2, mode='c'] dist = np.zeros((dim, T), dtype=DFIELD)
         ndarray[DFIELD_t, ndim=1, mode='c'] dxyzarray = np.zeros(k+1, dtype=DFIELD)

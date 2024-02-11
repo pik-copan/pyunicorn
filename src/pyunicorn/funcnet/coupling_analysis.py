@@ -1,6 +1,6 @@
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
-# URL: <http://www.pik-potsdam.de/members/donges/software>
+# URL: <https://www.pik-potsdam.de/members/donges/software-2/software>
 # License: BSD (3-clause)
 #
 # Please acknowledge and cite the use of this software and its authors
@@ -193,8 +193,8 @@ class CouplingAnalysis:
             print(f"Warning: data.shape = {data.shape},"
                   " is it of shape (observations, variables) ?")
         assert numpy.isnan(data).sum() == 0, "NaNs in the data"
-        assert tau_max >= 0, f"{tau_max = }"
-        assert lag_mode in ['max', 'all'], f"{lag_mode = }"
+        assert tau_max >= 0, f"{tau_max =}"
+        assert lag_mode in ['max', 'all'], f"{lag_mode =}"
 
         #  Normalize time series to zero mean and unit variance for all lags
         corr_range = T - tau_max
@@ -311,9 +311,9 @@ class CouplingAnalysis:
             print(f"Warning: T = {T} ,"
                   " unreliable estimation using MI estimator")
         assert numpy.isnan(data).sum() == 0, "NaNs in the data"
-        assert tau_max >= 0, f"{tau_max = }"
+        assert tau_max >= 0, f"{tau_max =}"
         if estimator == 'knn':
-            assert 1 <= knn <= T/2., f"{knn = }"
+            assert 1 <= knn <= T/2., f"{knn =}"
 
         if lag_mode == 'max':
             similarity_matrix = numpy.ones((N, N), dtype=FIELD)

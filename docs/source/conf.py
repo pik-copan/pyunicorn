@@ -38,7 +38,9 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
-    'sphinx.ext.githubpages'
+    'sphinx.ext.githubpages',
+    'nbsphinx',
+    'nbsphinx_link',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -62,7 +64,7 @@ author = u'Jonathan F. Donges'
 # built documents.
 #
 # The short X.Y version.
-version = re.search('\d*\.\d*', __version__).group()
+version = re.search(r'\d*\.\d*', __version__).group()
 # The full version, including alpha/beta/rc tags.
 release = __version__
 

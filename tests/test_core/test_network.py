@@ -1,6 +1,6 @@
 # This file is part of pyunicorn.
 # Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
-# URL: <http://www.pik-potsdam.de/members/donges/software>
+# URL: <https://www.pik-potsdam.de/members/donges/software-2/software>
 # License: BSD (3-clause)
 #
 # Please acknowledge and cite the use of this software and its authors
@@ -11,13 +11,16 @@
 # L. Tupikina, V. Stolbova, R.V. Donner, N. Marwan, H.A. Dijkstra,
 # and J. Kurths, "Unified functional network and nonlinear time series analysis
 # for complex systems science: The pyunicorn package"
+
 """
 Simple tests for the Network class.
 """
+
 from functools import partial
 from itertools import islice, product, repeat
-from multiprocess import Pool, cpu_count
+from multiprocessing import get_context, cpu_count
 
+import pytest
 import numpy as np
 import scipy.sparse as sp
 
@@ -57,7 +60,7 @@ def compare_permutations(net, permutations, measures):
           map(np.random.permutation, repeat(net.N, permutations))))
     tasks = list(product(measures, range(permutations)))
     cores = cpu_count()
-    with Pool() as pool:
+    with get_context("spawn").Pool() as pool:
         pool.map(partial(compare_measures, net, pnets, rev_perms),
                  (list(islice(tasks, c, None, cores)) for c in range(cores)))
         pool.close()
@@ -354,29 +357,53 @@ def test_nsi_degree():
     assert np.allclose(net.nsi_degree(typical_weight=2.0), deg_ref)
 
     deg_ref = np.array([3.2, 3., 1.95, 1.65, 2.7, 1., 1.])
-
     assert np.allclose(net.splitted_copy().nsi_degree(typical_weight=2.0),
                        deg_ref)
 
 
-def test_nsi_indegree():
+@pytest.mark.parametrize("tw, exp, exp_split", [
+    (None,
+     np.array([6.3, 5.3, 5.9, 3.6, 4., 2.5]),
+     np.array([6.3, 5.3, 5.9, 3.6, 4., 2.5, 2.5])),
+    (2.,
+     np.array([2.15, 1.65, 1.95, 0.8, 1., 0.25]),
+     np.array([2.15, 1.65, 1.95, 0.8, 1., 0.25, 0.25]))
+    ])
+def test_nsi_indegree(tw, exp, exp_split):
     net = Network.SmallDirectedTestNetwork()
-
-    deg_ref = np.array([6.3, 5.3, 5.9, 3.6, 4., 2.5])
-    assert np.allclose(net.nsi_indegree(), deg_ref)
-
-    deg_ref = np.array([6.3, 5.3, 5.9, 3.6, 4., 2.5, 2.5])
-    assert np.allclose(net.splitted_copy().nsi_indegree(), deg_ref)
+    assert np.allclose(net.nsi_indegree(typical_weight=tw), exp)
+    assert np.allclose(
+        net.splitted_copy().nsi_indegree(typical_weight=tw), exp_split)
 
 
-def test_nsi_outdegree():
+@pytest.mark.parametrize("tw, exp, exp_split", [
+    (None,
+     np.array([5.3, 5.9, 1.9, 3.8, 5.7, 4.]),
+     np.array([5.3, 5.9, 1.9, 3.8, 5.7, 4., 4.])),
+    (2.,
+     np.array([1.65, 1.95, -0.05, 0.9, 1.85, 1.]),
+     np.array([1.65, 1.95, -0.05, 0.9, 1.85, 1., 1.]))
+    ])
+def test_nsi_outdegree(tw, exp, exp_split):
     net = Network.SmallDirectedTestNetwork()
+    assert np.allclose(net.nsi_outdegree(typical_weight=tw), exp)
+    assert np.allclose(net.splitted_copy().nsi_outdegree(typical_weight=tw),
+                       exp_split)
 
-    deg_ref = np.array([5.3, 5.9, 1.9, 3.8, 5.7, 4.])
-    assert np.allclose(net.nsi_outdegree(), deg_ref)
 
-    deg_ref = np.array([5.3, 5.9, 1.9, 3.8, 5.7, 4., 4.])
-    assert np.allclose(net.splitted_copy().nsi_outdegree(), deg_ref)
+@pytest.mark.parametrize("tw, exp, exp_split", [
+    (None,
+     np.array([1.5, 1.7, 1.9, 2.1, 2.3, 2.5]),
+     np.array([1.5, 1.7, 1.9, 2.1, 2.3, 2.5, 2.5])),
+    (2.,
+     np.array([-0.25, -0.15, -0.05,  0.05,  0.15,  0.25]),
+     np.array([-0.25, -0.15, -0.05,  0.05,  0.15,  0.25,  0.25]))
+    ])
+def test_nsi_bildegree(tw, exp, exp_split):
+    net = Network.SmallDirectedTestNetwork()
+    assert np.allclose(net.nsi_bildegree(typical_weight=tw), exp)
+    assert np.allclose(net.splitted_copy().nsi_bildegree(typical_weight=tw),
+                       exp_split)
 
 
 def test_degree_distribution():
@@ -493,18 +520,26 @@ def test_local_outmotif_clustering():
     assert np.allclose(res, exp)
 
 
-def test_nsi_local_cyclemotif_clustering():
+@pytest.mark.parametrize("tw, exp, exp_split", [
+    (None,
+     np.array([0.18448637, 0.20275024, 0.3220339,
+               0.32236842, 0.34385965, 0.625]),
+     np.array([0.18448637, 0.20275024, 0.3220339,
+               0.32236842, 0.34385965, 0.625, 0.20275024])),
+    (2.,
+     np.array([0.3309814,  0.29011913,  0.05236908,
+               -0.0260989,  0.22417582, -0.13636364]),
+     np.array([0.3309814,  0.29011913,  0.05236908,
+               -0.0260989,  0.22417582, -0.13636364,  0.29011913]))
+    ])
+def test_nsi_local_cyclemotif_clustering(tw, exp, exp_split):
     net = Network.SmallDirectedTestNetwork()
-
-    res = net.nsi_local_cyclemotif_clustering()
-    exp = np.array([0.18448637, 0.20275024, 0.3220339,
-                    0.32236842, 0.34385965, 0.625])
-    assert np.allclose(res, exp)
-
-    res = net.splitted_copy(node=1).nsi_local_cyclemotif_clustering()
-    exp = np.array([0.18448637, 0.20275024, 0.3220339,
-                    0.32236842, 0.34385965, 0.625, 0.20275024])
-    assert np.allclose(res, exp)
+    assert np.allclose(net.nsi_local_cyclemotif_clustering(typical_weight=tw),
+                       exp)
+    assert np.allclose(
+        net.splitted_copy(node=1).nsi_local_cyclemotif_clustering(
+            typical_weight=tw),
+        exp_split)
 
 
 def test_nsi_local_midmotif_clustering():
@@ -594,16 +629,21 @@ def test_assortativity():
     assert np.allclose(res, exp)
 
 
-def test_nsi_local_clustering():
+@pytest.mark.parametrize("tw, exp, exp_split", [
+    (None,
+     np.array([0.55130385, 0.724375, 1., 0.81844073, 0.80277575, 1.]),
+     np.array([0.55130385, 0.724375, 1., 0.81844073, 0.80277575, 1., 1.])),
+    (3.,
+     np.array([-1.44290123, -0.764, 1., 4.16770186, -0.75324675, 1.]),
+     np.array([-1.44290123, -0.764, 1., 4.16770186, -0.75324675, 1., 1.]))
+    ])
+def test_nsi_local_clustering(tw, exp, exp_split):
     net = Network.SmallTestNetwork()
 
-    res = net.nsi_local_clustering()
-    exp = np.array([0.55130385, 0.724375, 1., 0.81844073, 0.80277575, 1.])
-    assert np.allclose(res, exp)
-
-    res = net.splitted_copy().nsi_local_clustering()
-    exp = np.array([0.55130385, 0.724375, 1., 0.81844073, 0.80277575, 1., 1.])
-    assert np.allclose(res, exp)
+    assert np.allclose(net.nsi_local_clustering(typical_weight=tw), exp)
+    assert np.allclose(
+        net.splitted_copy().nsi_local_clustering(typical_weight=tw),
+        exp_split)
 
 
 def test_nsi_global_clustering():
@@ -718,14 +758,15 @@ def test_nsi_interregional_betweenness():
     assert np.allclose(res, exp)
 
 
-def test_nsi_betweenness():
+@pytest.mark.parametrize("parallelize", [False, True])
+def test_nsi_betweenness(parallelize):
     net = Network.SmallTestNetwork()
 
-    res = net.nsi_betweenness()
+    res = net.nsi_betweenness(parallelize=parallelize)
     exp = np.array([29.68541738, 7.7128677, 0., 3.09090906, 9.69960462, 0.])
     assert np.allclose(res, exp)
 
-    res = net.splitted_copy().nsi_betweenness()
+    res = net.splitted_copy().nsi_betweenness(parallelize=parallelize)
     exp = np.append(exp, [0.])
     assert np.allclose(res, exp)
 

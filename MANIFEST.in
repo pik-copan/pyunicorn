@@ -4,7 +4,8 @@ recursive-include src/pyunicorn/*/_ext *.pxd *.pyx src_*.c
 
 include *.rst *.txt docs/Makefile
 graft docs/source
-recursive-include examples *.py
+recursive-include examples *.py *.ipynb *.png
+prune docs/source/tutorials/images
+prune **/.ipynb_checkpoints
 
 recursive-include tests *.py
-include pylintrc
