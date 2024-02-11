@@ -60,7 +60,7 @@ def test_calculate_similarity_measure():
 
 
 def test_correlation():
-    res = TsonisClimateNetwork.SmallTestNetwork().correlation
+    res = TsonisClimateNetwork.SmallTestNetwork().correlation()
     exp = np.array([[1., 0.25377226, 1., 0.25377226, 1., 0.25377226],
                     [0.25377226, 1., 0.25377226, 1., 0.25377226, 1.],
                     [1., 0.25377226, 1., 0.25377226, 1., 0.25377226],

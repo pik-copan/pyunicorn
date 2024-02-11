@@ -20,14 +20,12 @@ Provides classes for generating and analyzing complex climate networks.
 #  Import essential packages
 #
 
-# Import decorator for memoization
-from functools import cached_property
-
 #  Import NumPy for the array object and fast numerics
 import numpy as np
 
 from .climate_network import ClimateNetwork
 from .climate_data import ClimateData
+from ..core.network import cached_const
 
 
 #
@@ -199,7 +197,7 @@ class TsonisClimateNetwork(ClimateNetwork):
         """
         return self._calculate_correlation(anomaly)
 
-    @cached_property
+    @cached_const('base', 'correlation')
     def correlation(self):
         """
         Return the correlation matrix at zero lag.
@@ -291,7 +289,7 @@ class TsonisClimateNetwork(ClimateNetwork):
 
         :return float: the correlation weighted average path length.
         """
-        self.set_link_attribute('correlation', self.correlation)
+        self.correlation()
         return self.average_path_length('correlation')
 
     def correlation_weighted_closeness(self):
@@ -307,7 +305,7 @@ class TsonisClimateNetwork(ClimateNetwork):
         :rtype: 1D Numpy array [index]
         :return: the correlation weighted closeness sequence.
         """
-        self.set_link_attribute('correlation', self.correlation)
+        self.correlation()
         return self.closeness('correlation')
 
     def local_correlation_weighted_vulnerability(self):
@@ -323,5 +321,5 @@ class TsonisClimateNetwork(ClimateNetwork):
         :rtype: 1D Numpy array [index]
         :return: the correlation weighted vulnerability sequence.
         """
-        self.set_link_attribute('correlation', self.correlation)
+        self.correlation()
         return self.local_vulnerability('correlation')
