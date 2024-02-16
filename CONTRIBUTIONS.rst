@@ -52,16 +52,24 @@ Contributors
   <mail@dreeg.org>`_ (supplied ``resistive_network`` and corresponding
   tests)
 - `Wolfram Barfuss <barfuss@pik-potsdam.de>`_ (package extensions and maintenance)
+- Malte Ziehbarth (contributed to Python 3 support in
+  `#106 <https://github.com/pik-copan/pyunicorn/pull/106>`_)
 - Nils Harmening (cythonized ``weave.inline`` functions, extended testing
   framework, migrated from Python 2.7 to 3.6)
 - Jonathan Kroenke (extending test framework, package extensions and maintenance)
-- Lena Schmidt (writing ipynb tutorials, maintenance)
+- Johannes Kassel (provided ``eventseries`` and ``climate.eventseries_climatenetwork``
+  in `#156 <https://github.com/pik-copan/pyunicorn/pull/156>`_)
+- `Frederik Wolf <Frederik.Wolf@bmz.bund.de>`_ (contributed to ``eventseries``)
+- `Filipi Nascimento Silva <filipinascimento@gmail.com>`_ (provided issue fix
+  in `#149 <https://github.com/pik-copan/pyunicorn/pull/149>`_)
+- Lena Schmidt (provided tutorials, maintenance)
 - `Max Bechthold <maxbecht@pik-potsdam.de>`_
   (reenabling CI, update to cartopy plotting, writing ipynb tutorials,
   style improvements, maintenance)
-- `Ronja Hotz <ronja.hotz@yahoo.de>` (CoupledClimateNetworks tutorial)
-- `Fritz Kühlein <fritz.kuehlein@student.uni-halle.de>` (package maintenance,
-  improved test coverage and release preparation)
+- `Ronja Hotz <ronja.hotz@yahoo.de>`_ (provided tutorial
+  in `#190 <https://github.com/pik-copan/pyunicorn/pull/190>`_)
+- `Fritz Kühlein <fritz.kuehlein@student.uni-halle.de>`_ (maintained package,
+  improved test coverage and prepared release)
 
 Acknowledgements
 ----------------
