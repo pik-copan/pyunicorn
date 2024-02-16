@@ -30,7 +30,7 @@ quantification analysis* (RQA), *recurrence network analysis* and *visibility
 graphs*.
 
 ``pyunicorn`` is **fast**, because all costly computations are performed in
-compiled C/C++ and Fortran code. It can handle **large networks** through the
+compiled C code. It can handle **large networks** through the
 use of sparse data structures. The package can be used interactively, from any
 Python script, and even for parallel computations on large cluster architectures.
 
