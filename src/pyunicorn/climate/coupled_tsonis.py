@@ -16,21 +16,12 @@
 Provides classes for generating and analyzing complex coupled climate networks.
 """
 
-#
-#  Import essential packages
-#
-
-#  Import NumPy for the array object and fast numerics
 import numpy as np
 
-#  Import climate_network for CoupledClimateNetwork class
 from .coupled_climate_network import CoupledClimateNetwork
 
 
-#
-#  Define class CoupledClimateNetwork
-#
-
+# pylint: disable=too-many-ancestors
 class CoupledTsonisClimateNetwork(CoupledClimateNetwork):
 
     """

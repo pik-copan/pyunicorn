@@ -17,13 +17,10 @@ Provides classes for analyzing spatially embedded complex networks, handling
 multivariate data and generating time series surrogates.
 """
 
-#
-#  Import essential packages
-#
-
 import sys                          # performance testing
 import time
-from functools import partial, wraps
+from functools import partial
+from typing import Tuple, Hashable, Optional
 from multiprocessing import get_context, cpu_count
 
 import numpy as np                  # array object and fast numerics
@@ -36,6 +33,7 @@ from tqdm import tqdm, trange       # easy progress bar handling
 
 import igraph                       # high performance graph theory tools
 
+from .cache import Cached
 from ..utils import mpi             # parallelized computations
 
 from ._ext.types import \
@@ -47,6 +45,7 @@ from ._ext.numerics import \
 
 
 # =============================================================================
+#  Utilities
 
 
 def nz_coords(matrix):
@@ -57,50 +56,6 @@ def nz_coords(matrix):
     :rtype:  array([[int>=0,int>=0]])
     """
     return np.array(matrix.nonzero()).T
-
-
-def cache_helper(self, cat, key, msg, func, *args, **kwargs):
-    """
-    Cache result of a function in a subdict of :attr:`self.cache`.
-
-    :arg str cat: cache category
-    :arg str key: cache key
-    :arg str msg: message to be displayed during first calculation
-    :arg func func: function to be cached
-    """
-    # categories can be added on the fly?!?!
-    self.cache.setdefault(cat, {})
-
-    if self.cache[cat].setdefault(key) is None:
-        if msg is not None and self.silence_level <= 1:
-            print('Calculating ' + msg + '...')
-        self.cache[cat][key] = func(self, *args, **kwargs)
-    return self.cache[cat][key]
-
-
-def cached_const(cat, key, msg=None):
-    """
-    Cache result of decorated method in a fixed subdict of :attr:`self.cache`.
-    """
-    def wrapper(func):
-        @wraps(func)
-        def wrapped(self, *args, **kwargs):
-            return cache_helper(self, cat, key, msg, func, *args, **kwargs)
-        return wrapped
-    return wrapper
-
-
-def cached_var(cat, msg=None):
-    """
-    Cache result of decorated method in a variable subdict of
-    :attr:`self.cache`, specified as first argument to the decorated method.
-    """
-    def wrapper(func):
-        @wraps(func)
-        def wrapped(self, key=None, **kwargs):
-            return cache_helper(self, cat, key, msg, func, key, **kwargs)
-        return wrapped
-    return wrapper
 
 
 class NetworkError(Exception):
@@ -116,6 +71,7 @@ class NetworkError(Exception):
 
 
 # =============================================================================
+#  Doctest helpers
 
 
 def r(obj, decimals=4):
@@ -150,11 +106,8 @@ def rr(obj, decimals=4):
 
 # =============================================================================
 
-#
-#  Define class Network
-#
 
-class Network:
+class Network(Cached):
     """
     A Network is a simple, undirected or directed graph with optional node
     and/or link weights. This class encapsulates data structures and methods to
@@ -211,52 +164,57 @@ class Network:
         :return: The new network.
         """
 
-        self.directed = directed
-        """(bool) Indicates whether the network is directed."""
-        self.silence_level = silence_level
-        """(int>=0) higher -> less progress info"""
+        self.directed: bool = directed
+        """indicates whether the network is directed"""
+        self.silence_level: int = silence_level
+        """higher -> less progress info"""
 
-        if n_nodes is None:
-            self.N = 0
-            """(int>0) number of nodes"""
-        else:
+        self._mut_A: int = 0
+        """mutation count tracking `self.adjcency`"""
+        self._mut_nw: int = 0
+        """mutation count tracking `self.node_weights`"""
+        self._mut_la: int = 0
+        """mutation count tracking `self.graph.es`"""
+
+        self.N: int = 0
+        """number of nodes"""
+        if n_nodes is not None:
             self.N = n_nodes
 
-        self.n_links = 0
-        """(int>0) number of links"""
-        self.link_density = 0
-        """(0<float<1) proportion of linked node pairs"""
+        self.n_links: int = 0
+        """number of links"""
+        self.link_density: float = 0
+        """proportion of linked node pairs"""
 
-        self.sp_A = None
-        """(sparse.csc_matrix([[int,int]]) with entries 0,1)
+        self.sp_A: sp.csc_matrix = None
+        """
         Adjacency matrix. A[i,j]=1 indicates a link i -> j. Symmetric if the
-        network is undirected."""
+        network is undirected.
+        """
         self.sp_dtype = None
 
-        self.graph = None
-        """(igraph.Graph) Embedded graph object providing some standard network
-        measures."""
+        self.graph: igraph.Graph = None
+        """embedded graph object providing some standard network measures"""
 
-        self._node_weights = None
-        """(array([double>=0])) array of node weights"""
-        self.mean_node_weight = 0
+        self._node_weights: Optional[np.ndarray] = None
+        self.mean_node_weight: float = 0
         """mean node weight"""
-        self.total_node_weight = 0
+        self.total_node_weight: float = 0
         """total node weight"""
 
-        self.cache = {'base': {}, 'nsi': {}, 'paths': {}}
-        """(dict) cache of re-usable computation results"""
-
         if adjacency is not None:
-            self._set_adjacency(adjacency)
+            self.adjacency = adjacency
         elif edge_list is not None:
             self.set_edge_list(edge_list, n_nodes)
         else:
             raise NetworkError("An adjacency matrix or edge list has to be "
                                "given to initialize an instance of Network.")
 
-        self._set_node_weights(node_weights)
+        self.node_weights = node_weights
         self.degree()
+
+    def __cache_state__(self) -> Tuple[Hashable, ...]:
+        return (self.directed, self._mut_A,)
 
     def __str__(self):
         """
@@ -286,29 +244,6 @@ class Network:
         :rtype: int > 0
         """
         return self.N
-
-    def clear_cache(self):
-        """
-        Clear cache of information that can be recalculated from basic data.
-        """
-        self.cache['base'] = {}
-        self.clear_nsi_cache()
-        self.clear_paths_cache()
-
-    def clear_nsi_cache(self):
-        """
-        Clear cache of information that can be recalculated from basic data
-        and depends on the node weights.
-        """
-        self.cache['nsi'] = {}
-
-    def clear_paths_cache(self):
-        """
-        Clear cache of path legths for link attributes.
-        """
-        for attr in self.cache['paths']:
-            self.clear_link_attribute(attr)
-        self.cache['paths'] = {}
 
     def copy(self):
         """
@@ -440,7 +375,8 @@ class Network:
         """
         return self.sp_A.A
 
-    def _set_adjacency(self, adjacency):
+    @adjacency.setter
+    def adjacency(self, adjacency):
         """
         Set a new adjacency matrix.
 
@@ -482,11 +418,9 @@ class Network:
         self.graph = igraph.Graph(n=N, edges=list(edges),
                                   directed=self.directed)
         self.graph.simplify()
-        Network.clear_cache(self)
 
-    @adjacency.setter
-    def adjacency(self, adjacency):
-        self._set_adjacency(adjacency)
+        # invalidate cache
+        self._mut_A += 1
 
     def set_edge_list(self, edge_list, n_nodes=None):
         """
@@ -522,10 +456,11 @@ class Network:
 
     @property
     def node_weights(self):
-        """(array([double>=0])) array of node weights"""
+        """array of node weights"""
         return self._node_weights
 
-    def _set_node_weights(self, weights):
+    @node_weights.setter
+    def node_weights(self, weights: Optional[np.ndarray]):
         """
         Set the node weights to be used for node splitting invariant network
         measures.
@@ -541,7 +476,6 @@ class Network:
         :arg  weights: array-like [node] of weights (default: [1...1])
         """
         N = self.N
-        self.clear_nsi_cache()
 
         if weights is None:
             w = np.ones(N, dtype=DWEIGHT)
@@ -554,9 +488,8 @@ class Network:
         self.mean_node_weight = w.mean()
         self.total_node_weight = w.sum()
 
-    @node_weights.setter
-    def node_weights(self, node_weights):
-        self._set_node_weights(node_weights)
+        # invalidate cache
+        self._mut_nw += 1
 
     def sp_Aplus(self):
         """A^+ = A + Id. matrix used in n.s.i. measures"""
@@ -706,8 +639,8 @@ class Network:
         #  Overwrite igraph Graph object in Network instance to restore link
         #  attributes/weights
         net.graph = graph
-        net.clear_paths_cache()
-
+        #  invalidate cache
+        net._mut_la += 1
         return net
 
     @staticmethod
@@ -848,7 +781,6 @@ class Network:
             raise ValueError("`ErdosRenyi()` requires either a "
                              "`link_probability` or `n_links` argument.")
 
-        # return adjacency matrix
         return np.array(graph.get_adjacency(type=2).data)
 
     @staticmethod
@@ -888,7 +820,6 @@ class Network:
         # actual degree sequence of the generated graph, but just slightly
         graph.simplify()
 
-        # return adjacency matrix
         return np.array(graph.get_adjacency(type=2).data)
 
     # FIXME: Add example
@@ -926,7 +857,6 @@ class Network:
             targets[n_targets + m: n_targets + 2*m] = j
             n_targets += 2*m
 
-        # Return adjacency matrix
         return A
 
     @staticmethod
@@ -959,7 +889,6 @@ class Network:
         #  actual degree sequence of the generated graph, but just slightly
         graph.simplify()
 
-        #  Return adjacency matrix
         return np.array(graph.get_adjacency(type=2).data)
 
     @staticmethod
@@ -993,7 +922,6 @@ class Network:
 
         graph = igraph.Graph.Watts_Strogatz(dim=1, size=N, nei=k, p=p)
 
-        #  Return adjacency matrix
         return np.array(graph.get_adjacency(type=2).data)
 
     @staticmethod
@@ -1327,7 +1255,6 @@ class Network:
                     total_inc_prob += inc_prob[this_N] + inc_prob[i]
                     this_N += 1
                     pbar.update()
-
         return w
 
     def randomly_rewire(self, iterations):
@@ -1532,7 +1459,7 @@ class Network:
     #  Methods working with node attributes
     #
 
-    def set_node_attribute(self, attribute_name, values):
+    def set_node_attribute(self, attribute_name: str, values):
         """
         Add a node attribute.
 
@@ -1551,7 +1478,7 @@ class Network:
                   "has to have the same length as the number of nodes "
                   "in the graph.")
 
-    def node_attribute(self, attribute_name):
+    def node_attribute(self, attribute_name: str):
         """
         Return a node attribute.
 
@@ -1564,19 +1491,23 @@ class Network:
         """
         return np.array(self.graph.vs.get_attribute_values(attribute_name))
 
-    def del_node_attribute(self, attribute_name):
+    def del_node_attribute(self, attribute_name: str):
         """
         Delete a node attribute.
 
         :arg str attribute_name: Name of node attribute to be deleted.
         """
-        del self.graph.vs[attribute_name]
+        if attribute_name in self.graph.vs.attributes():
+            del self.graph.vs[attribute_name]
 
     #
     #  Methods working with link attributes
     #
 
-    def average_link_attribute(self, attribute_name):
+    def find_link_attribute(self, attribute_name: str):
+        return attribute_name in self.graph.es.attributes()
+
+    def average_link_attribute(self, attribute_name: str):
         """
         For each node, return the average of a link attribute
         over all links of that node.
@@ -1587,7 +1518,7 @@ class Network:
         """
         return self.link_attribute(attribute_name).mean(axis=1)
 
-    def link_attribute(self, attribute_name):
+    def link_attribute(self, attribute_name: str):
         """
         Return the values of a link attribute.
 
@@ -1607,29 +1538,18 @@ class Network:
             for e in self.graph.es:
                 weights[e.tuple] = e[attribute_name]
                 weights[e.tuple[1], e.tuple[0]] = e[attribute_name]
-
         return weights
 
-    def clear_link_attribute(self, attribute_name):
-        """
-        Clear cache of a link attribute.
-
-        :arg str attribute_name: name of link attribute
-        """
-        if attribute_name in self.cache['paths']:
-            del self.cache['paths'][attribute_name]
-
-    def del_link_attribute(self, attribute_name):
+    def del_link_attribute(self, attribute_name: str):
         """
         Delete a link attribute.
 
         :arg str attribute_name: name of link attribute to be deleted
         """
-        if attribute_name in self.cache['paths']:
-            self.clear_link_attribute(attribute_name)
+        if self.find_link_attribute(attribute_name):
             del self.graph.es[attribute_name]
-        else:
-            print("WARNING: Link attribute", attribute_name, "not found!")
+            # invalidate cache
+            self._mut_la += 1
 
     def set_link_attribute(self, attribute_name, values):
         """
@@ -1648,16 +1568,14 @@ class Network:
         """
         for e in self.graph.es:
             e[attribute_name] = values[e.tuple]
-
-        #  Set Network specific attributes
-        self.clear_link_attribute(attribute_name)
+        # invalidate cache
+        self._mut_la += 1
 
     #
     #  Degree related measures
     #
 
-    # @cached_const('base', 'degree')
-    @cached_var('degree')
+    @Cached.method()
     def degree(self, key=None):
         """
         Return list of degrees.
@@ -1677,7 +1595,7 @@ class Network:
         else:
             return self.outdegree(key)
 
-    @cached_var('indegree')
+    @Cached.method(attrs=("_mut_la",))
     def indegree(self, key=None):
         """
         Return list of in-degrees.
@@ -1698,7 +1616,7 @@ class Network:
         else:
             return self.link_attribute(key).sum(axis=0).T
 
-    @cached_var('outdegree')
+    @Cached.method(attrs=("_mut_la",))
     def outdegree(self, key=None):
         """
         Return list of out-degrees.
@@ -1719,7 +1637,7 @@ class Network:
         else:
             return self.link_attribute(key).sum(axis=1).T
 
-    @cached_var('bildegree')
+    @Cached.method(attrs=("_mut_la",))
     def bildegree(self, key=None):
         """
         Return list of bilateral degrees, i.e. the number of simultaneously in-
@@ -1752,7 +1670,7 @@ class Network:
         return sp.diags([np.power(self.nsi_degree(), -1)], [0],
                         shape=(self.N, self.N), format='csc')
 
-#    @cached_var('nsi_degree')
+    @Cached.method(attrs=("_mut_nw", "_mut_la"))
     def nsi_degree(self, key=None, typical_weight=None):
         """
         For each node, return its uncorrected or corrected n.s.i. degree.
@@ -1805,7 +1723,7 @@ class Network:
         else:
             return res/typical_weight - 1.0
 
-#    @cached_var('nsi_indegree')
+    @Cached.method(attrs=("_mut_nw", "_mut_la"))
     def nsi_indegree(self, key=None, typical_weight=None):
         """
         For each node, return its n.s.i. indegree.
@@ -1846,7 +1764,7 @@ class Network:
         else:
             return res/typical_weight - 1.0
 
-#    @cached_var('nsi_outdegree')
+    @Cached.method(attrs=("_mut_nw", "_mut_la"))
     def nsi_outdegree(self, key=None, typical_weight=None):
         """
         For each node, return its n.s.i. outdegree.
@@ -1887,7 +1805,7 @@ class Network:
         else:
             return res/typical_weight - 1.0
 
-#    @cached_var('nsi_bildegree')
+    @Cached.method(attrs=("_mut_nw",))
     def nsi_bildegree(self, key=None, typical_weight=None):
         """
         For each node, return its n.s.i. bilateral degree.
@@ -1911,7 +1829,7 @@ class Network:
         else:
             return res/typical_weight - 1.0
 
-    @cached_const('base', 'degree df', 'the degree frequency distribution')
+    @Cached.method(name="the degree frequency distribution")
     def degree_distribution(self):
         """
         Return the degree frequency distribution.
@@ -1928,7 +1846,7 @@ class Network:
         k = self.degree()
         return self._histogram(values=k, n_bins=k.max())[0]
 
-    @cached_const('base', 'indegree df', 'in-degree frequency distribution')
+    @Cached.method(name="the in-degree frequency distribution")
     def indegree_distribution(self):
         """
         Return the in-degree frequency distribution.
@@ -1945,7 +1863,7 @@ class Network:
         ki = self.indegree()
         return self._histogram(values=ki, n_bins=ki.max())[0]
 
-    @cached_const('base', 'outdegree df', 'out-degree frequency distribution')
+    @Cached.method(name="the out-degree frequency distribution")
     def outdegree_distribution(self):
         """
         Return the out-degree frequency distribution.
@@ -1962,7 +1880,7 @@ class Network:
         ko = self.outdegree()
         return self._histogram(values=ko, n_bins=ko.max()+1)[0]
 
-    @cached_const('base', 'degree cdf', 'the cumulative degree distribution')
+    @Cached.method(name="the cumulative degree distribution")
     def degree_cdf(self):
         """
         Return the cumulative degree frequency distribution.
@@ -1979,8 +1897,7 @@ class Network:
         k = self.degree()
         return self._cum_histogram(values=k, n_bins=k.max())[0]
 
-    @cached_const('base', 'indegree cdf',
-                  'the cumulative in-degree distribution')
+    @Cached.method(name="the cumulative in-degree distribution")
     def indegree_cdf(self):
         """
         Return the cumulative in-degree frequency distribution.
@@ -1997,8 +1914,7 @@ class Network:
         ki = self.indegree()
         return self._cum_histogram(values=ki, n_bins=ki.max() + 1)[0]
 
-    @cached_const('base', 'outdegree cdf',
-                  'the cumulative out-degree distribution')
+    @Cached.method(name="the cumulative out-degree distribution")
     def outdegree_cdf(self):
         """
         Return the cumulative out-degree frequency distribution.
@@ -2015,8 +1931,8 @@ class Network:
         ko = self.outdegree()
         return self._cum_histogram(values=ko, n_bins=ko.max() + 1)[0]
 
-    # FIXME: should rather return the weighted distribution!
-#    @cached_const('nsi', 'degree hist', 'a n.s.i. degree frequency histogram')
+    @Cached.method(name="a n.s.i. degree frequency histogram",
+                   attrs=("_mut_nw",))
     def nsi_degree_histogram(self, typical_weight=None):
         """
         Return a frequency (!) histogram of n.s.i. degree.
@@ -2041,9 +1957,8 @@ class Network:
         return self._histogram(values=nsi_k,
                                n_bins=int(nsi_k.max()/nsi_k.min()) + 1)
 
-    # FIXME: should rather return the weighted distribution!
-#    @cached_const('nsi', 'degree hist',
-#                  'a cumulative n.s.i. degree frequency histogram')
+    @Cached.method(name="a cumulative n.s.i. degree frequency histogram",
+                   attrs=("_mut_nw",))
     def nsi_degree_cumulative_histogram(self, typical_weight=None):
         """
         Return a cumulative frequency (!) histogram of n.s.i. degree.
@@ -2067,7 +1982,7 @@ class Network:
         return self._cum_histogram(values=nsi_k,
                                    n_bins=int(nsi_k.max()/nsi_k.min()) + 1)
 
-    @cached_const('base', 'avg nbr degree', "average neighbours' degrees")
+    @Cached.method(name="average neighbours' degrees")
     def average_neighbors_degree(self):
         """
         For each node, return the average degree of its neighbors.
@@ -2085,7 +2000,7 @@ class Network:
         k = self.degree() * 1.0
         return self.undirected_adjacency() * k / k[k != 0]
 
-    @cached_const('base', 'max nbr degree', "maximum neighbours' degree")
+    @Cached.method(name="maximum neighbours' degrees")
     def max_neighbors_degree(self):
         """
         For each node, return the maximal degree of its neighbors.
@@ -2103,7 +2018,8 @@ class Network:
         nbks = self.undirected_adjacency().multiply(self.degree())
         return nbks.max(axis=1).T.A.squeeze()
 
-    @cached_const('nsi', 'avg nbr degree', "n.s.i. average neighbours' degree")
+    @Cached.method(name="n.s.i. average neighbours' degrees",
+                   attrs=("_mut_nw",))
     def nsi_average_neighbors_degree(self):
         """
         For each node, return the average n.s.i. degree of its neighbors.
@@ -2142,7 +2058,8 @@ class Network:
         return self.sp_Aplus() * (self.sp_diag_w() * nsi_k) / nsi_k
         # TODO: enable correction by typical_weight
 
-    @cached_const('nsi', 'max nbr degree', "n.s.i. maximum neighbour degree")
+    @Cached.method(name="n.s.i. maximum neighbours' degrees",
+                   attrs=("_mut_nw",))
     def nsi_max_neighbors_degree(self):
         """
         For each node, return the maximal n.s.i. degree of its neighbors.
@@ -2176,7 +2093,7 @@ class Network:
     #   Measures of clustering, transitivity and cliquishness
     #
 
-    @cached_const('base', 'local clustering', 'local clustering coefficients')
+    @Cached.method(name="local clustering coefficients")
     def local_clustering(self):
         """
         For each node, return its (Watts-Strogatz) clustering coefficient.
@@ -2198,8 +2115,7 @@ class Network:
         C[np.isnan(C)] = 0
         return C
 
-    @cached_const('base', 'global clustering',
-                  'global clustering coefficient (C_2)')
+    @Cached.method(name="the global clustering coefficient (C_2)")
     def global_clustering(self):
         """
         Return the global (Watts-Strogatz) clustering coefficient.
@@ -2259,14 +2175,14 @@ class Network:
             return ((numerator/typical_weight**2 - 3.0*bilk - 1.0)
                     / (T - ksum/typical_weight - bilk + 2))
 
-    @cached_var('local cyclemotif', 'local cycle motif clustering coefficient')
+    @Cached.method(name="the local cycle motif clustering coefficients")
     def local_cyclemotif_clustering(self, key=None):
         """
         For each node, return the clustering coefficient with respect to the
         cycle motif.
 
         If a link attribute key is specified, return the associated link
-        weighted version
+        weighted version.
 
         **Example:**
 
@@ -2282,14 +2198,14 @@ class Network:
         T = self.indegree() * self.outdegree() - self.bildegree()
         return self._motif_clustering_helper(t_func, T, key=key)
 
-    @cached_var('local midmotif', 'local mid. motif clustering coefficient')
+    @Cached.method(name="the local mid. motif clustering coefficients")
     def local_midmotif_clustering(self, key=None):
         """
         For each node, return the clustering coefficient with respect to the
         mid. motif.
 
         If a link attribute key is specified, return the associated link
-        weighted version
+        weighted version.
 
         **Example:**
 
@@ -2305,14 +2221,14 @@ class Network:
         T = self.indegree() * self.outdegree() - self.bildegree()
         return self._motif_clustering_helper(t_func, T, key=key)
 
-    @cached_var('local inmotif', 'local in motif clustering coefficient')
+    @Cached.method(name="the local in motif clustering coefficients")
     def local_inmotif_clustering(self, key=None):
         """
         For each node, return the clustering coefficient with respect to the
         in motif.
 
         If a link attribute key is specified, return the associated link
-        weighted version
+        weighted version.
 
         **Example:**
 
@@ -2328,14 +2244,14 @@ class Network:
         T = self.indegree() * (self.indegree() - 1)
         return self._motif_clustering_helper(t_func, T, key=key)
 
-    @cached_var('local outmotif', 'local out motif clustering coefficient')
+    @Cached.method(name="the local out motif clustering coefficients")
     def local_outmotif_clustering(self, key=None):
         """
         For each node, return the clustering coefficient with respect to the
         out motif.
 
         If a link attribute key is specified, return the associated link
-        weighted version
+        weighted version.
 
         **Example:**
 
@@ -2351,15 +2267,15 @@ class Network:
         T = self.outdegree() * (self.outdegree() - 1)
         return self._motif_clustering_helper(t_func, T, key=key)
 
-#    @cached_var('nsi local cyclemotif',
-#                'local nsi cycle motif clustering coefficient')
+    @Cached.method(name="the local n.s.i. cycle motif clustering coefficients",
+                   attrs=("_mut_nw",))
     def nsi_local_cyclemotif_clustering(self, key=None, typical_weight=None):
         """
         For each node, return the nsi clustering coefficient with respect to
         the cycle motif.
 
         If a link attribute key is specified, return the associated link
-        weighted version
+        weighted version.
 
         Reference: [Zemp2014]_
 
@@ -2399,15 +2315,15 @@ class Network:
             t_func, T, key=key, nsi=True,
             typical_weight=typical_weight, ksum=ksum)
 
-#    @cached_var('nsi local midemotif',
-#                'local nsi mid. motif clustering coefficient')
+    @Cached.method(name="the local n.s.i. mid. motif clustering coefficients",
+                   attrs=("_mut_nw",))
     def nsi_local_midmotif_clustering(self, key=None, typical_weight=None):
         """
         For each node, return the nsi clustering coefficient with respect to
         the mid motif.
 
         If a link attribute key is specified, return the associated link
-        weighted version
+        weighted version.
 
         Reference: [Zemp2014]_
 
@@ -2447,15 +2363,15 @@ class Network:
             t_func, T, key=key, nsi=True,
             typical_weight=typical_weight, ksum=ksum)
 
-#    @cached_var('nsi local inemotif',
-#                'local nsi in motif clustering coefficient')
+    @Cached.method(name="the local n.s.i. in motif clustering coefficients",
+                   attrs=("_mut_nw",))
     def nsi_local_inmotif_clustering(self, key=None, typical_weight=None):
         """
         For each node, return the nsi clustering coefficient with respect to
         the in motif.
 
         If a link attribute key is specified, return the associated link
-        weighted version
+        weighted version.
 
         Reference: [Zemp2014]_
 
@@ -2495,15 +2411,15 @@ class Network:
             t_func, T, key=key, nsi=True,
             typical_weight=typical_weight, ksum=ksum)
 
-#    @cached_var('nsi local outemotif',
-#                'local nsi out motif clustering coefficient')
+    @Cached.method(name="the local n.s.i. out motif clustering coefficients",
+                   attrs=("_mut_nw",))
     def nsi_local_outmotif_clustering(self, key=None, typical_weight=None):
         """
         For each node, return the nsi clustering coefficient with respect to
         the out motif.
 
         If a link attribute key is specified, return the associated link
-        weighted version
+        weighted version.
 
         Reference: [Zemp2014]_
 
@@ -2542,7 +2458,7 @@ class Network:
             t_func, T, key=key, nsi=True,
             typical_weight=typical_weight, ksum=ksum)
 
-    @cached_const('base', 'transitivity', 'transitivity coefficient (C_1)')
+    @Cached.method(name="transitivity coefficient (C_1)")
     def transitivity(self):
         """
         Return the transitivity (coefficient).
@@ -2766,7 +2682,7 @@ class Network:
         num2 = (num2 / (2 * m)) ** 2
         return (num1 - num2) / (den1 - num2)
 
-#     @cached_var('nsi', 'local clustering')
+    @Cached.method(name="n.s.i. local clustering", attrs=("_mut_nw",))
     def nsi_local_clustering(self, typical_weight=None):
         """
         For each node, return its uncorrected (between 0 and 1) or corrected
@@ -2823,8 +2739,8 @@ class Network:
             numerator = (Ap_Dw * Ap_Dw * Ap).diagonal()
             return (numerator/typical_weight**2 - 3.0*k - 1.0) / (k * (k-1.0))
 
-    @cached_const('nsi', 'global clustering',
-                  'n.s.i. global topological clustering coefficient')
+    @Cached.method(name="the n.s.i. global topological clustering coefficient",
+                   attrs=("_mut_nw",))
     def nsi_global_clustering(self):
         """
         Return the n.s.i. global clustering coefficient.
@@ -2853,7 +2769,7 @@ class Network:
         return (self.nsi_local_clustering().dot(self.node_weights)
                 / self.total_node_weight)
 
-    @cached_const('nsi', 'transitivity', 'n.s.i. transitivity')
+    @Cached.method(name="n.s.i. transitivity", attrs=("_mut_nw",))
     def nsi_transitivity(self):
         """
         Return the n.s.i. transitivity.
@@ -2873,8 +2789,8 @@ class Network:
 
         return num / denum
 
-    @cached_const('nsi', 'soffer clustering',
-                  'n.s.i. local Soffer clustering coefficients')
+    @Cached.method(name="the n.s.i. local Soffer clustering coefficients",
+                   attrs=("_mut_nw",))
     def nsi_local_soffer_clustering(self):
         """
         For each node, return its n.s.i. clustering coefficient
@@ -2921,7 +2837,7 @@ class Network:
     #  Measure path lengths
     #
 
-    @cached_var('paths')
+    @Cached.method(name="path lengths")
     def path_lengths(self, link_attribute=None):
         """
         For each pair of nodes i,j, return the (weighted) shortest path length
@@ -3014,8 +2930,8 @@ class Network:
 
             return average_path_length
 
-    @cached_const('nsi', 'avg path length',
-                  'n.s.i. average shortest path length')
+    @Cached.method(name="the n.s.i. average shortest path length",
+                   attrs=("_mut_nw",))
     def nsi_average_path_length(self):
         """
         Return the n.s.i. average shortest path length between all pairs of
@@ -3083,7 +2999,7 @@ class Network:
     #  Link valued measures
     #
 
-    @cached_const('base', 'matching idx', 'matching index matrix')
+    @Cached.method(name="matching index matrix")
     def matching_index(self):
         """
         For each pair of nodes, return their matching index.
@@ -3108,7 +3024,7 @@ class Network:
         kk = np.repeat([self.degree()], self.N, axis=0)
         return commons / (kk + kk.T - commons)
 
-    @cached_const('base', 'link btw', 'link betweenness')
+    @Cached.method(name="link betweenness")
     def link_betweenness(self):
         """
         For each link, return its betweenness.
@@ -3175,7 +3091,7 @@ class Network:
     #  Node valued centrality measures
     #
 
-    @cached_const('base', 'btw', 'node betweenness')
+    @Cached.method(name="node betweenness")
     def betweenness(self):
         """
         For each node, return its betweenness.
@@ -3199,7 +3115,6 @@ class Network:
 
         return np.abs(np.array(self.graph.betweenness()))
 
-    # @cached_const('base', 'inter btw', 'interregional betweenness')
     def interregional_betweenness(self, sources=None, targets=None):
         """
         For each node, return its interregional betweenness for given sets
@@ -3234,9 +3149,8 @@ class Network:
         :rtype: 1d numpy array [node] of floats
         """
         return self.nsi_betweenness(sources=sources, targets=targets,
-                                    aw=0, silent=1)
+                                    nsi=False)
 
-    # @cached_const('nsi', 'inter btw', 'n.s.i. interregional betweenness')
     def nsi_interregional_betweenness(self, sources, targets):
         """
         For each node, return its n.s.i. interregional betweenness for given
@@ -3262,9 +3176,10 @@ class Network:
 
         :rtype: 1d numpy array [node] of floats
         """
-        return self.nsi_betweenness(sources=sources, targets=targets, silent=1)
+        return self.nsi_betweenness(sources=sources, targets=targets)
 
-    def nsi_betweenness(self, parallelize: bool = False, **kwargs):
+    def nsi_betweenness(self, sources=None, targets=None,
+                        nsi: bool = True, parallelize: bool = False):
         """
         For each node, return its n.s.i. betweenness. [Newman2001]_
 
@@ -3294,26 +3209,33 @@ class Network:
         :arg bool parallelize: Toggle multiprocessing
         :rtype: 1d numpy array [node] of floats
         """
-        if self.silence_level <= 1:
-            if "silent" not in kwargs:
-                print("Calculating n.s.i. betweenness...")
-
-        w = self.node_weights
-        if "aw" in kwargs:
-            if kwargs["aw"] == 0:
-                w = np.ones_like(w)
-        N, k = self.N, self.outdegree()
-
         # initialize node lists
-        is_source = np.zeros(N, dtype=MASK)
-        if "sources" in kwargs and kwargs["sources"] is not None:
-            is_source[kwargs["sources"]] = 1
+        is_source = np.zeros(self.N, dtype=MASK)
+        if sources is not None:
+            is_source[sources] = 1
         else:
-            is_source[range(0, N)] = 1
-        if "targets" in kwargs and kwargs["targets"] is not None:
-            targets = np.array(list(map(int, kwargs["targets"])))
+            is_source[range(0, self.N)] = 1
+        if targets is not None:
+            targets = np.array(list(map(int, targets)))
         else:
-            targets = np.arange(0, N)
+            targets = np.arange(0, self.N)
+
+        # call cached worker method with hashable arguments
+        return self._nsi_betweenness(
+            tuple(is_source), tuple(targets), nsi, parallelize)
+
+    @Cached.method(name="n.s.i. betweenness", attrs=("_mut_nw",))
+    def _nsi_betweenness(self, is_source: Tuple[MASK], targets: Tuple[NODE],
+                         nsi: bool, parallelize: bool):
+        # type cast inputs
+        assert all(isinstance(arg, tuple) for arg in [is_source, targets])
+        is_source = np.array(is_source, dtype=MASK)
+        targets = np.array(targets, dtype=NODE)
+        k = to_cy(self.outdegree(), DEGREE)
+
+        # initialize node weights
+        w = to_cy(self.node_weights, DWEIGHT)
+        w = w if nsi else np.ones_like(w)
 
         # sort links by node indices (contains each link twice!)
         links = nz_coords(self.sp_A)
@@ -3321,22 +3243,23 @@ class Network:
         # neighbours of each node
         flat_neighbors = to_cy(np.array(links)[:, 1], NODE)
         assert k.sum() == len(flat_neighbors) == 2 * self.n_links
-        w, k = to_cy(w, DWEIGHT), to_cy(k, DEGREE)
 
-        worker = partial(_nsi_betweenness, N, w, k, flat_neighbors, is_source)
+        # call Cython implementation
+        worker = partial(_nsi_betweenness,
+                         self.N, w, k, flat_neighbors, is_source)
         if parallelize:
             # (naively) parallelize loop over nodes
             n_workers = cpu_count()
-            batches = np.array_split(to_cy(targets, NODE), n_workers)
+            batches = np.array_split(targets, n_workers)
             with get_context("spawn").Pool() as pool:
                 betw_w = np.sum(pool.map(worker, batches), axis=0)
                 pool.close()
                 pool.join()
         else:
-            betw_w = worker(to_cy(targets, NODE))
+            betw_w = worker(targets)
         return betw_w / w
 
-    @cached_const('base', 'ev centrality', 'eigenvector centrality')
+    @Cached.method(name="eigenvector centrality")
     def eigenvector_centrality(self):
         """
         For each node, return its eigenvector centrality.
@@ -3360,7 +3283,7 @@ class Network:
         ec *= np.sign(ec[0])
         return ec / ec.max()
 
-    @cached_const('nsi', 'ev centrality', 'n.s.i. eigenvector centrality')
+    @Cached.method(name="n.s.i. eigenvector centrality", attrs=("_mut_nw",))
     def nsi_eigenvector_centrality(self):
         """
         For each node, return its n.s.i. eigenvector centrality.
@@ -3490,7 +3413,7 @@ class Network:
 
             return CC
 
-    @cached_const('nsi', 'closeness', 'n.s.i. closeness')
+    @Cached.method(name="n.s.i. closeness", attrs=("_mut_nw",))
     def nsi_closeness(self):
         """
         For each node, return its n.s.i. closeness.
@@ -3527,7 +3450,7 @@ class Network:
         return (self.total_node_weight
                 / np.dot(nsi_distances, self.node_weights))
 
-    @cached_const('nsi', 'harm closeness', 'n.s.i. harmonic closeness')
+    @Cached.method(name="n.s.i. harmonic closeness", attrs=("_mut_nw",))
     def nsi_harmonic_closeness(self):
         """
         For each node, return its n.s.i. harmonic closeness.
@@ -3555,8 +3478,8 @@ class Network:
         return (np.dot(1.0 / nsi_distances, self.node_weights)
                 / self.total_node_weight)
 
-    @cached_const('nsi', 'exp closeness',
-                  'n.s.i. exponential closeness centrality')
+    @Cached.method(name="n.s.i. exponential closeness centrality",
+                   attrs=("_mut_nw",))
     def nsi_exponential_closeness(self):
         """
         For each node, return its n.s.i. exponential harmonic closeness.
@@ -3584,7 +3507,7 @@ class Network:
         return (np.dot(2.0**(-nsi_distances), self.node_weights)
                 / self.total_node_weight)
 
-    @cached_const('base', 'arenas btw', 'Arenas-type random walk betweenness')
+    @Cached.method(name="Arenas-type random walk betweenness")
     def arenas_betweenness(self):
         """
         For each node, return its Arenas-type random walk betweenness.
@@ -3913,7 +3836,7 @@ class Network:
 
         return nsi_arenas_betweenness
 
-    @cached_const('base', 'newman btw', "Newman's random walk betweenness")
+    @Cached.method(name="Newman's random walk betweenness")
     def newman_betweenness(self):
         """
         For each node, return Newman's random walk betweenness.
@@ -4249,7 +4172,7 @@ class Network:
 
         return efficiency
 
-    @cached_const('nsi', 'global eff', 'n.s.i. global efficiency')
+    @Cached.method(name="n.s.i. global efficiency", attrs=("_mut_nw",))
     def nsi_global_efficiency(self):
         """
         Return the n.s.i. global efficiency.
@@ -4390,7 +4313,7 @@ class Network:
     #  Community measures
     #
 
-    @cached_const('base', 'coreness', 'coreness')
+    @Cached.method(name="coreness")
     def coreness(self):
         """
         For each node, return its coreness.
@@ -4414,8 +4337,7 @@ class Network:
     #  Synchronizability measures
     #
 
-    @cached_const('base', 'msf sync',
-                  'master stability function synchronizability')
+    @Cached.method(name="the master stability function synchronizability")
     def msf_synchronizability(self):
         """
         Return the synchronizability in the master stability function
@@ -4424,8 +4346,8 @@ class Network:
         This is equal to the largest eigenvalue of the graph Laplacian divided
         by the smallest non-zero eigenvalue. A smaller value indicates higher
         synchronizability and vice versa. This function makes sense for
-        undirected climate networks (with symmetric laplacian matrix).
-        For directed networks, the undirected laplacian matrix is used.
+        undirected climate networks (with symmetric Laplacian matrix).
+        For directed networks, the undirected Laplacian matrix is used.
 
         (see [Pecora1998]_)
 

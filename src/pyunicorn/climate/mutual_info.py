@@ -16,26 +16,17 @@
 Provides classes for generating and analyzing complex climate networks.
 """
 
-#
-#  Import essential packages
-#
+from typing import Tuple, Hashable
 
-# array object and fast numerics
 import numpy as np
 
 from ..core._ext.types import to_cy, FIELD
 from ._ext.numerics import mutual_information
-
-#  Import cnNetwork for Network base class
+from .climate_data import ClimateData
 from .climate_network import ClimateNetwork
-
-#
-#  Define class MutualInfoClimateNetwork
-#
 
 
 class MutualInfoClimateNetwork(ClimateNetwork):
-
     """
     Represents a mutual information climate network.
 
@@ -87,8 +78,9 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         self.silence_level = silence_level
 
         #  Set instance variables
-        self.data = data
-        """(ClimateData) - The climate data used for network construction."""
+        assert isinstance(data, ClimateData)
+        self.data: ClimateData = data
+        """The climate data used for network construction."""
         self.N = self.data.grid.N
         self._prescribed_link_density = link_density
         self._winter_only = winter_only
@@ -107,6 +99,12 @@ class MutualInfoClimateNetwork(ClimateNetwork):
                                 directed=False,
                                 node_weight_type=node_weight_type,
                                 silence_level=silence_level)
+
+    def __cache_state__(self) -> Tuple[Hashable, ...]:
+        return ClimateNetwork.__cache_state__(self)
+
+    def __rec_cache_state__(self) -> Tuple[object, ...]:
+        return ClimateNetwork.__rec_cache_state__(self) + (self.data,)
 
     def __str__(self):
         """
@@ -266,11 +264,10 @@ class MutualInfoClimateNetwork(ClimateNetwork):
 
         :return float: the mutual information weighted average path length.
         """
-        if "mutual_information" not in self._path_lengths_cached:
-            self.set_link_attribute("mutual_information",
-                                    abs(self.mutual_information()))
-
-        return self.average_path_length("mutual_information")
+        return self._weighted_metric(
+            "mutual_information",
+            lambda: np.abs(self.mutual_information()),
+            "average_path_length")
 
     def mutual_information_weighted_closeness(self):
         """
@@ -279,11 +276,10 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         :rtype: 1D Numpy array [index]
         :return: the mutual information weighted closeness sequence.
         """
-        if "mutual_information" not in self._path_lengths_cached:
-            self.set_link_attribute("mutual_information",
-                                    abs(self.mutual_information()))
-
-        return self.closeness("mutual_information")
+        return self._weighted_metric(
+            "mutual_information",
+            lambda: np.abs(self.mutual_information()),
+            "closeness")
 
     def local_mutual_information_weighted_vulnerability(self):
         """
@@ -292,8 +288,7 @@ class MutualInfoClimateNetwork(ClimateNetwork):
         :rtype: 1D Numpy array [index]
         :return: the mutual information weighted vulnerability sequence.
         """
-        if "mutual_information" not in self._path_lengths_cached:
-            self.set_link_attribute("mutual_information",
-                                    abs(self.mutual_information()))
-
-        return self.local_vulnerability("mutual_information")
+        return self._weighted_metric(
+            "mutual_information",
+            lambda: np.abs(self.mutual_information()),
+            "local_vulnerability")

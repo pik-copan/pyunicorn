@@ -19,12 +19,12 @@ analysis (RQA) and recurrence network analysis.
 """
 
 from math import factorial
+from typing import Tuple, Hashable
 
-# array object and fast numerics
 import numpy as np
 from numpy.typing import NDArray
 
-# Cython inline code
+from ..core.cache import Cached
 from ..core._ext.types import to_cy, NODE, LAG, FIELD, DFIELD
 from ._ext.numerics import _embed_time_series, _manhattan_distance_matrix_rp, \
     _euclidean_distance_matrix_rp, _supremum_distance_matrix_rp, \
@@ -38,13 +38,7 @@ from ._ext.numerics import _embed_time_series, _manhattan_distance_matrix_rp, \
     _rejection_sampling, _white_vertline_dist, _twins_r, _twin_surrogates_r
 
 
-#
-#  Class definitions
-#
-
-
-class RecurrencePlot:
-
+class RecurrencePlot(Cached):
     """
     Class RecurrencePlot for generating and quantitatively analyzing
     :index:`recurrence plots <single: recurrence plot>`.
@@ -153,7 +147,8 @@ class RecurrencePlot:
         self.time_series.shape = (self.time_series.shape[0], -1)
 
         #  Store type of metric
-        assert metric in ("manhattan", "euclidean", "supremum")
+        self._known_metrics = ("manhattan", "euclidean", "supremum")
+        assert metric in self._known_metrics
         self.metric = metric
         """The metric used for measuring distances in phase space."""
 
@@ -168,18 +163,18 @@ class RecurrencePlot:
         self.dim = kwargs.get("dim")
         self.tau = kwargs.get("tau")
 
-        if self.dim is not None and self.tau is not None:
-            #  Embed the time series
-            self.embedding = self.embed_time_series(self.time_series, self.dim,
-                                                    self.tau)
-            """The embedded time series."""
-        else:
-            self.embedding = self.time_series
-
-        self.N = self.embedding.shape[0]
+        self.N: int = 0
         """The number of state vectors (number of lines and rows) of the RP."""
         self.R = None
         """The recurrence matrix."""
+
+        self._mut_embedding: int = 0
+        if (self.dim is not None) and (self.tau is not None):
+            #  Embed the time series
+            self.embedding = self.embed_time_series(
+                self.time_series, self.dim, self.tau)
+        else:
+            self.embedding = self.time_series
 
         #  Get missing value indices
         if self.missing_values:
@@ -195,14 +190,6 @@ class RecurrencePlot:
         self.local_recurrence_rate = kwargs.get("local_recurrence_rate")
         self.adaptive_neighborhood_size = \
             kwargs.get("adaptive_neighborhood_size")
-
-        #  Initialize cache
-        self._distance_matrix_cached = False
-        self._distance_matrix = None
-        self._diagline_dist_cached = False
-        self._diagline_dist = None
-        self._vertline_dist_cached = False
-        self._vertline_dist = None
 
         #  Precompute recurrence matrix only if sequential RQA is switched off,
         #  and not calling from child class with respective overriding methods.
@@ -238,6 +225,9 @@ class RecurrencePlot:
                                 recurrence_rate to construct the recurrence \
                                 plot!")
 
+    def __cache_state__(self) -> Tuple[Hashable, ...]:
+        return (self._mut_embedding,)
+
     def __str__(self):
         """
         Returns a string representation.
@@ -247,18 +237,19 @@ class RecurrencePlot:
                 f"Embedding dimension {self.dim if self.dim else 0}\n"
                 f"Threshold {self.threshold}, {self.metric} metric")
 
-    def clear_cache(self, irreversible=False):
-        """Clean up memory."""
-        if irreversible:
-            if self._distance_matrix_cached:
-                del self._distance_matrix
-                self._distance_matrix_cached = False
-            if self._diagline_dist_cached:
-                del self._diagline_dist
-                self._diagline_dist_cached = False
-            if self._vertline_dist_cached:
-                del self._vertline_dist
-                self._vertline_dist_cached = False
+    @property
+    def embedding(self) -> np.ndarray:
+        """
+        The embedded time series / phase space trajectory
+        (time, embedding dimension).
+        """
+        return self._embedding
+
+    @embedding.setter
+    def embedding(self, embedding: np.ndarray):
+        self._embedding = to_cy(embedding, DFIELD)
+        self.N = self._embedding.shape[0]
+        self._mut_embedding += 1
 
     #
     #  Service methods
@@ -278,35 +269,18 @@ class RecurrencePlot:
                   "Recurrence matrix is not stored in memory.")
             return None
 
-    def distance_matrix(self, embedding, metric):
+    def distance_matrix(self, metric: str):
         """
         Return phase space distance matrix :math:`D` according to the chosen
         metric.
 
-        :type embedding: 2D array (time, embedding dimension)
-        :arg embedding: The phase space trajectory.
         :arg str metric: The metric for measuring distances in phase space
             ("manhattan", "euclidean", "supremum").
         :rtype: 2D square array
         :return: the phase space distance matrix :math:`D`
         """
-        if not self._distance_matrix_cached:
-            #  Return distance matrix according to chosen metric:
-            if metric == "manhattan":
-                self._distance_matrix = \
-                    RecurrencePlot.manhattan_distance_matrix(self, embedding)
-            elif metric == "euclidean":
-                self._distance_matrix = \
-                    RecurrencePlot.euclidean_distance_matrix(self, embedding)
-            elif metric == "supremum":
-                self._distance_matrix = \
-                    RecurrencePlot.supremum_distance_matrix(self, embedding)
-            else:
-                raise ValueError(f"unknown metric: {metric}")
-
-            self._distance_matrix_cached = True
-
-        return self._distance_matrix
+        assert metric in self._known_metrics, f"unknown metric: {metric}"
+        return getattr(RecurrencePlot, f"{metric}_distance_matrix")(self)
 
     #
     #  Time series handling methods
@@ -535,56 +509,40 @@ class RecurrencePlot:
     #  Calculate recurrence plot
     #
 
-    def manhattan_distance_matrix(self, embedding):
+    @Cached.method(name="the manhattan distance matrix")
+    def manhattan_distance_matrix(self):
         """
         Return the manhattan distance matrix from an embedding of a time
         series.
 
-        :type embedding: 2D array (time, embedding dimension)
-        :arg embedding: The phase space trajectory.
         :rtype: 2D square array
         :return: the manhattan distance matrix.
         """
-        if self.silence_level <= 1:
-            print("Calculating the manhattan distance matrix...")
+        (n_time, dim) = self.embedding.shape
+        return _manhattan_distance_matrix_rp(n_time, dim, self.embedding)
 
-        (n_time, dim) = embedding.shape
-        return _manhattan_distance_matrix_rp(n_time, dim,
-                                             to_cy(embedding, DFIELD))
-
-    def euclidean_distance_matrix(self, embedding):
+    @Cached.method(name="the euclidean distance matrix")
+    def euclidean_distance_matrix(self):
         """
         Return the euclidean distance matrix from an embedding of a time
         series.
 
-        :type embedding: 2D array (time, embedding dimension)
-        :arg embedding: The phase space trajectory.
         :rtype: 2D square array
         :return: the euclidean distance matrix.
         """
-        if self.silence_level <= 1:
-            print("Calculating the euclidean distance matrix...")
+        (n_time, dim) = self.embedding.shape
+        return _euclidean_distance_matrix_rp(n_time, dim, self.embedding)
 
-        (n_time, dim) = embedding.shape
-        return _euclidean_distance_matrix_rp(n_time, dim,
-                                             to_cy(embedding, DFIELD))
-
-    def supremum_distance_matrix(self, embedding):
+    @Cached.method(name="the supremum distance matrix")
+    def supremum_distance_matrix(self):
         """
         Return the supremum distance matrix from an embedding of a time series.
-
-        :type embedding: 2D Numpy array (time, embedding dimension)
-        :arg embedding: The phase space trajectory.
 
         :rtype: 2D square Numpy array
         :return: the supremum distance matrix.
         """
-        if self.silence_level <= 1:
-            print("Calculating the supremum distance matrix...")
-
-        (n_time, dim) = embedding.shape
-        return _supremum_distance_matrix_rp(n_time, dim,
-                                            to_cy(embedding, DFIELD))
+        (n_time, dim) = self.embedding.shape
+        return _supremum_distance_matrix_rp(n_time, dim, self.embedding)
 
     def set_fixed_threshold(self, threshold):
         """
@@ -598,20 +556,10 @@ class RecurrencePlot:
         if self.silence_level <= 1:
             print("Calculating recurrence plot at fixed threshold...")
 
-        #  Get distance matrix, according to self.metric
-        distance = RecurrencePlot.distance_matrix(
-            self, self.embedding, self.metric)
-
-        #  Get number of nodes
+        distance = RecurrencePlot.distance_matrix(self, self.metric)
         n_time = distance.shape[0]
-
-        #  Initialize recurrence matrix
         recurrence = np.zeros((n_time, n_time), dtype="int8")
-
-        #  Thresholding the distance matrix
         recurrence[distance < threshold] = 1
-
-        #  Handle missing values
         if self.missing_values:
             #  Write missing value lines and rows to recurrence matrix
             #  NaN flag is not supported by int8 data format -> use 0 here
@@ -635,10 +583,7 @@ class RecurrencePlot:
             print("Calculating recurrence plot at fixed threshold in units of "
                   "time series STD...")
 
-        #  Get absolute threshold
         threshold = threshold_std * self.time_series.std()
-
-        #  Call set fixed threshold method
         RecurrencePlot.set_fixed_threshold(self, threshold)
 
     def set_fixed_recurrence_rate(self, recurrence_rate):
@@ -653,23 +598,12 @@ class RecurrencePlot:
         if self.silence_level <= 1:
             print("Calculating recurrence plot at fixed recurrence rate...")
 
-        #  Get distance matrix, according to self.metric
-        distance = RecurrencePlot.distance_matrix(
-            self, self.embedding, self.metric)
-
-        #  Get number of nodes
+        distance = RecurrencePlot.distance_matrix(self, self.metric)
         n_time = distance.shape[0]
-
-        #  Get threshold to obtain fixed recurrence rate
         threshold = self.threshold_from_recurrence_rate(distance,
                                                         recurrence_rate)
-
-        #  Initialize recurrence matrix
         recurrence = np.zeros((n_time, n_time), dtype="int8")
-
-        #  Thresholding the distance matrix
         recurrence[distance < threshold] = 1
-
         self.R = recurrence
 
     def set_fixed_local_recurrence_rate(self, local_recurrence_rate):
@@ -689,24 +623,16 @@ class RecurrencePlot:
             print("Calculating recurrence plot at fixed "
                   "local recurrence rate...")
 
-        #  Get distance matrix, according to self.metric
-        distance = self.distance_matrix(self.embedding, self.metric)
-
-        #  Get number of nodes
+        distance = RecurrencePlot.distance_matrix(self, self.metric)
         n_time = distance.shape[0]
-
-        #  Initialize recurrence matrix
         recurrence = np.zeros((n_time, n_time), dtype="int8")
-
         for i in range(n_time):
             #  Get threshold for state vector i to obtain fixed local
             #  recurrence rate
             local_threshold = self.threshold_from_recurrence_rate(
                 distance[i, :], local_recurrence_rate)
-
             #  Thresholding the distance matrix for column i
             recurrence[i, distance[i, :] < local_threshold] = 1
-
         self.R = recurrence
 
     def set_adaptive_neighborhood_size(self, adaptive_neighborhood_size,
@@ -733,18 +659,14 @@ class RecurrencePlot:
             print("Calculating recurrence plot using the "
                   "adaptive neighborhood size algorithm...")
 
-        #  Get distance matrix, according to self.metric
-        distance = self.distance_matrix(self.embedding, self.metric)
+        distance = RecurrencePlot.distance_matrix(self, self.metric)
 
         #  Get indices that would sort the distance matrix.
         #  sorted_neighbors[i,j] contains the index of the jth nearest neighbor
         #  of i. Sorting order is very important here!
         sorted_neighbors = to_cy(distance.argsort(axis=1), NODE)
 
-        #  Get number of nodes
         n_time = distance.shape[0]
-
-        #  Initialize recurrence matrix
         recurrence = np.zeros((n_time, n_time), dtype=LAG)
 
         #  Set processing order of state vectors
@@ -918,6 +840,8 @@ class RecurrencePlot:
     #  RQA measures based on black diagonal lines
     #
 
+    @Cached.method(attrs=(
+        "metric", "threshold", "missing_values", "sparse_rqa"))
     def diagline_dist(self):
         """
         Return the :index:`frequency distribution of diagonal line lengths
@@ -940,51 +864,45 @@ class RecurrencePlot:
         :return: the frequency distribution of diagonal line lengths
             :math:`P(l-1)`.
         """
-        if self._diagline_dist_cached:
-            return self._diagline_dist
-        else:
-            #  Prepare
-            n_time = self.N
-            diagline = np.zeros(n_time, dtype=NODE)
+        #  Prepare
+        n_time = self.N
+        diagline = np.zeros(n_time, dtype=NODE)
 
-            if not self.sparse_rqa:
-                #  Get recurrence matrix
-                recmat = self.recurrence_matrix()
+        if not self.sparse_rqa:
+            #  Get recurrence matrix
+            recmat = self.recurrence_matrix()
 
-                if self.missing_values:
-                    mv_indices = self.missing_value_indices
-                    _diagline_dist_missingvalues(
-                        n_time, diagline, recmat, mv_indices)
-                else:
-                    _diagline_dist(n_time, diagline, recmat)
-
-            #  Calculations for sequential RQA
-            elif self.metric == "supremum" and self.threshold is not None:
-                #  Get embedding
-                embedding = self.embedding
-                #  Get time series dimension
-                dim = embedding.shape[1]
-                #  Get threshold
-                eps = float(self.threshold)
-
-                if self.missing_values:
-                    mv_indices = self.missing_value_indices
-                    _diagline_dist_sequential_missingvalues(
-                        n_time, diagline, mv_indices, embedding, eps, dim)
-                else:
-                    _diagline_dist_sequential(
-                        n_time, diagline, embedding, eps, dim)
-
+            if self.missing_values:
+                mv_indices = self.missing_value_indices
+                _diagline_dist_missingvalues(
+                    n_time, diagline, recmat, mv_indices)
             else:
-                raise NotImplementedError(
-                    "Sequential RQA is currently only available for "
-                    "fixed threshold and the supremum metric.")
+                _diagline_dist(n_time, diagline, recmat)
 
-            #  Function just runs over the upper triangular matrix
-            self._diagline_dist = 2*diagline
-            self._diagline_dist_cached = True
+        #  Calculations for sequential RQA
+        elif self.metric == "supremum" and self.threshold is not None:
+            #  Get embedding
+            embedding = self.embedding
+            #  Get time series dimension
+            dim = embedding.shape[1]
+            #  Get threshold
+            eps = float(self.threshold)
 
-            return self._diagline_dist
+            if self.missing_values:
+                mv_indices = self.missing_value_indices
+                _diagline_dist_sequential_missingvalues(
+                    n_time, diagline, mv_indices, embedding, eps, dim)
+            else:
+                _diagline_dist_sequential(
+                    n_time, diagline, embedding, eps, dim)
+
+        else:
+            raise NotImplementedError(
+                "Sequential RQA is currently only available for "
+                "fixed threshold and the supremum metric.")
+
+        #  Function just runs over the upper triangular matrix
+        return 2 * diagline
 
     @staticmethod
     def rejection_sampling(dist, M):
@@ -1147,6 +1065,8 @@ class RecurrencePlot:
     #  RQA measures based on black vertical lines
     #
 
+    @Cached.method(attrs=(
+        "metric", "threshold", "missing_values", "sparse_rqa"))
     def vertline_dist(self):
         """
         Return the :index:`frequency distribution of vertical line lengths
@@ -1162,52 +1082,46 @@ class RecurrencePlot:
         :return: the frequency distribution of vertical line lengths
             :math:`P(v-1)`.
         """
-        if self._vertline_dist_cached:
-            return self._vertline_dist
-        else:
-            #  Prepare
-            n_time = self.N
-            vertline = np.zeros(n_time, dtype=NODE)
+        #  Prepare
+        n_time = self.N
+        vertline = np.zeros(n_time, dtype=NODE)
 
-            if not self.sparse_rqa:
-                #  Get recurrence matrix
-                recmat = self.recurrence_matrix()
+        if not self.sparse_rqa:
+            #  Get recurrence matrix
+            recmat = self.recurrence_matrix()
 
-                if self.missing_values:
-                    mv_indices = self.missing_value_indices
-                    _vertline_dist_missingvalues(
-                        n_time, vertline, recmat, mv_indices)
-                else:
-                    _vertline_dist(n_time, vertline, recmat)
+            if self.missing_values:
+                mv_indices = self.missing_value_indices
+                _vertline_dist_missingvalues(
+                    n_time, vertline, recmat, mv_indices)
+            else:
+                _vertline_dist(n_time, vertline, recmat)
 
-            #  Calculations for sequential RQA
-            elif self.metric == "supremum" and self.threshold is not None:
-                #  Get embedding
-                embedding = self.embedding
-                #  Get time series dimension
-                dim = embedding.shape[1]
-                #  Get threshold
-                eps = float(self.threshold)
+        #  Calculations for sequential RQA
+        elif self.metric == "supremum" and self.threshold is not None:
+            #  Get embedding
+            embedding = self.embedding
+            #  Get time series dimension
+            dim = embedding.shape[1]
+            #  Get threshold
+            eps = float(self.threshold)
 
-                if self.missing_values:
-                    mv_indices = self.missing_value_indices
-                    _vertline_dist_sequential_missingvalues(
-                        n_time, vertline, mv_indices, embedding, eps, dim)
-
-                else:
-                    _vertline_dist_sequential(
-                        n_time, vertline, embedding, eps, dim)
+            if self.missing_values:
+                mv_indices = self.missing_value_indices
+                _vertline_dist_sequential_missingvalues(
+                    n_time, vertline, mv_indices, embedding, eps, dim)
 
             else:
-                raise NotImplementedError(
-                    "Sequential RQA is currently only available for "
-                    "fixed threshold and the supremum metric.")
+                _vertline_dist_sequential(
+                    n_time, vertline, embedding, eps, dim)
 
-            #  Function covers the whole recurrence matrix
-            self._vertline_dist = vertline
-            self._vertline_dist_cached = True
+        else:
+            raise NotImplementedError(
+                "Sequential RQA is currently only available for "
+                "fixed threshold and the supremum metric.")
 
-            return self._vertline_dist
+        #  Function covers the whole recurrence matrix
+        return vertline
 
     def resample_vertline_dist(self, M):
         """

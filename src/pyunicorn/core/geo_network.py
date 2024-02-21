@@ -16,23 +16,17 @@
 Provides class for analyzing complex network embedded on a spherical surface.
 """
 
-# array object and fast numerics
+from typing import Tuple, Hashable
+
 import numpy as np
-# random number generation
 from numpy import random
-# high performance graph theory tools written in pure ANSI-C
 import igraph
 
 from .spatial_network import SpatialNetwork
 from .geo_grid import GeoGrid
 
 
-#
-#  Define class GeoNetwork
-#
-
 class GeoNetwork(SpatialNetwork):
-
     """
     Encapsulates a network embedded on a spherical surface.
 
@@ -47,8 +41,8 @@ class GeoNetwork(SpatialNetwork):
     #  Definitions of internal methods
     #
 
-    def __init__(self, grid, adjacency=None, edge_list=None, directed=False,
-                 node_weight_type="surface", silence_level=0):
+    def __init__(self, grid: GeoGrid, adjacency=None, edge_list=None,
+                 directed=False, node_weight_type="surface", silence_level=0):
         """
         Initialize an instance of GeoNetwork.
 
@@ -71,12 +65,9 @@ class GeoNetwork(SpatialNetwork):
           - "surface" (cos lat)
           - "irrigation" (cos² lat)
         """
-        if grid.__class__.__name__ != "GeoGrid":
-            raise TypeError("GeoNetwork can only be created with GeoGrid!")
-
-        self.grid = grid
-        """(Grid) - GeoGrid object describing the network's spatial
-        embedding"""
+        assert isinstance(grid, GeoGrid)
+        self.grid: GeoGrid = grid
+        """GeoGrid object describing the network's spatial embedding"""
 
         #  Call constructor of parent class Network
         SpatialNetwork.__init__(self, grid=grid, adjacency=adjacency,
@@ -91,21 +82,20 @@ class GeoNetwork(SpatialNetwork):
         self.grid_neighbours = None
         self.grid_neighbours_set = None
 
+    def __cache_state__(self) -> Tuple[Hashable, ...]:
+        # The following attributes are assumed immutable:
+        #   (grid)
+        return SpatialNetwork.__cache_state__(self)
+
+    def __rec_cache_state__(self) -> Tuple[object, ...]:
+        return (self.grid,)
+
     def __str__(self):
         """
         Return a string representation of the GeoNetwork object.
         """
         return (f'GeoNetwork:\n{SpatialNetwork.__str__(self)}\n'
                 f'Geographical boundaries:\n{self.grid.print_boundaries()}')
-
-    def clear_cache(self):
-        """
-        Clean up cache.
-
-        Is reversible, since all cached information can be recalculated from
-        basic data.
-        """
-        SpatialNetwork.clear_cache(self)
 
     def set_node_weight_type(self, node_weight_type):
         """
@@ -204,9 +194,8 @@ class GeoNetwork(SpatialNetwork):
         #  Overwrite igraph Graph object in Network instance to restore link
         #  attributes/weights
         net.graph = graph
-        #  Restore link attributes/weights
-        net.clear_paths_cache()
-
+        #  invalidate cache
+        net._mut_la += 1
         return net
 
     def save_for_cgv(self, filename, fileformat="graphml"):

@@ -17,7 +17,6 @@ Provides classes for analyzing spatially embedded complex networks, handling
 multivariate data and generating time series surrogates.
 """
 
-#  Import NumPy for the array object and fast numerics
 import numpy as np
 from numpy import random
 
@@ -26,13 +25,8 @@ from ._ext.numerics import _randomlySetCrossLinks, _randomlyRewireCrossLinks, \
     _cross_transitivity, _nsi_cross_transitivity, _cross_local_clustering, \
     _nsi_cross_local_clustering
 
-#  Import Network base class
 from .network import Network, NetworkError
 
-
-#
-#  Define class InteractingNetworks
-#
 
 class InteractingNetworks(Network):
 
@@ -71,7 +65,6 @@ class InteractingNetworks(Network):
             weight of node i.  (Default: list of ones)
         :arg int silence_level: The inverse level of verbosity of the object.
         """
-        #  Call constructor of parent class Network
         Network.__init__(self, adjacency=adjacency, directed=directed,
                          node_weights=node_weights,
                          silence_level=silence_level)

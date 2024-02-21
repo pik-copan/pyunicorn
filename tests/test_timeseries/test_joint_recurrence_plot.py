@@ -29,9 +29,10 @@ def test_recurrence(metric: str, n: int):
     ts = CouplingAnalysis.test_data()[:n, 0]
     jrp = JointRecurrencePlot(ts, ts, threshold=(.1, .1),
                               metric=(metric, metric))
-    dist = {
-        i: jrp.distance_matrix(getattr(jrp, f"{i}_embedded"), metric=metric)
-        for i in "xy"}
+    dist = {}
+    for i in "xy":
+        jrp.embedding = getattr(jrp, f"{i}_embedded")
+        dist[i] = jrp.distance_matrix(metric=metric)
     assert all(d.shape == (n, n) for d in dist.values())
-    assert np.allclose(*dist.values())
+    assert np.allclose(dist["x"], dist["y"])
     assert jrp.recurrence_matrix().shape == (n, n)

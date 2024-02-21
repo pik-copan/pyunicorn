@@ -16,23 +16,14 @@
 Provides classes for generating and analyzing complex climate networks.
 """
 
-#
-#  Import essential packages
-#
+from typing import Tuple, Hashable
 
-#  Import NumPy for the array object and fast numerics
 import numpy as np
-
-#  Import tqdm for easy progress bar handling
 from tqdm import trange
 
-#  Import cnNetwork for Network base class
+from .climate_data import ClimateData
 from .climate_network import ClimateNetwork
 
-
-#
-#  Define class HavlinClimateNetwork
-#
 
 class HavlinClimateNetwork(ClimateNetwork):
 
@@ -90,11 +81,13 @@ class HavlinClimateNetwork(ClimateNetwork):
         #  Set instance variables
         self._max_delay = 0
         self._correlation_lag = None
-        self.data = data
-        """(ClimateData) - The climate data used for network construction."""
+        assert isinstance(data, ClimateData)
+        self.data: ClimateData = data
+        """The climate data used for network construction."""
         self.N = data.grid.N
         self._prescribed_link_density = link_density
 
+        self._mut_clim: int = 0
         self._set_max_delay(max_delay)
         ClimateNetwork.__init__(self, grid=self.data.grid,
                                 similarity_measure=self._similarity_measure,
@@ -105,6 +98,12 @@ class HavlinClimateNetwork(ClimateNetwork):
                                 node_weight_type=node_weight_type,
                                 silence_level=silence_level)
 
+    def __cache_state__(self) -> Tuple[Hashable, ...]:
+        return ClimateNetwork.__cache_state__(self)
+
+    def __rec_cache_state__(self) -> Tuple[object, ...]:
+        return ClimateNetwork.__rec_cache_state__(self) + (self.data,)
+
     def __str__(self):
         """
         Return a string version of the instance of HavlinClimateNetwork.
@@ -114,22 +113,14 @@ class HavlinClimateNetwork(ClimateNetwork):
                 Maximum delay used for correlation strength estimation: \
                 {self.get_max_delay()}'
 
-    def clear_cache(self, irreversible=False):
+    def clear_cache(self):
         """
         Clean up cache.
-
-        If irreversible=True, the network cannot be recalculated using a
-        different threshold, or link density.
-
-        :arg bool irreversible: The irreversibility of clearing the cache.
         """
-        ClimateNetwork.clear_cache(self, irreversible)
-
-        if irreversible:
-            try:
-                del self._correlation_lag
-            except AttributeError:
-                pass
+        try:
+            del self._correlation_lag
+        except AttributeError:
+            pass
 
     #
     #  Defines methods to calculate correlation strength and lags
@@ -152,23 +143,12 @@ class HavlinClimateNetwork(ClimateNetwork):
         :rtype: tuple of two 2D arrays [index, index]
         :return: the correlation strength and maximum lag matrices.
         """
-        if self.silence_level <= 1:
-            print("Calculating correlation strength matrix "
-                  "following [Yamasaki2008]_...")
-
-        #  Initialize
         N = self.N
-
-        #  Normalize anomaly time series to zero mean and unit variance
         self.data.normalize_time_series_array(anomaly)
-
-        #  Apply cosine window to anomaly data
         anomaly *= self.data.cos_window(anomaly, gamma)
-
         #  Zero pad windowed data to set the length of each time series to
         #  a power of two
         anomaly = self.data.zero_pad_data(anomaly)
-
         correlation_strength = np.empty((N, N))
         max_lag_matrix = np.empty((N, N))
 
@@ -217,10 +197,8 @@ class HavlinClimateNetwork(ClimateNetwork):
 
         :arg int max_delay: The maximum delay for cross-correlation functions.
         """
-        #  Set class variable _max_delay
+        self._mut_clim += 1
         self._max_delay = max_delay
-
-        #  Calculate correlation strength and lag
         results = self._calculate_correlation_strength(self.data.anomaly(),
                                                        max_delay)
         self._similarity_measure = results[0]
@@ -244,11 +222,7 @@ class HavlinClimateNetwork(ClimateNetwork):
         :rtype: 2D array [index, index]
         :return: the correlation strength matrix.
         """
-        try:
-            return self._similarity_measure
-        except AttributeError as e:
-            raise AttributeError("Correlation strength matrix was deleted "
-                                 "earlier and cannot be retrieved.") from e
+        return self._similarity_measure
 
     def correlation_lag(self):
         """
@@ -257,11 +231,7 @@ class HavlinClimateNetwork(ClimateNetwork):
         :rtype: 2D array [index, index]
         :return: the lag at maximum cross-correlation matrix.
         """
-        try:
-            return self._correlation_lag
-        except AttributeError as e:
-            raise AttributeError("Lag matrix was deleted "
-                                 "earlier and cannot be retrieved.") from e
+        return self._correlation_lag
 
     #
     #  Methods to calculate weighted network measures
@@ -273,11 +243,10 @@ class HavlinClimateNetwork(ClimateNetwork):
 
         :return float: the correlation strength weighted average path length.
         """
-        if "correlation_strength" not in self._path_lengths_cached:
-            self.set_link_attribute("correlation_strength",
-                                    np.abs(self.correlation_strength()))
-
-        return self.average_path_length("correlation_strength")
+        return self._weighted_metric(
+            "correlation_strength",
+            lambda: np.abs(self.correlation_strength()),
+            "average_path_length")
 
     def correlation_strength_weighted_closeness(self):
         """
@@ -286,11 +255,10 @@ class HavlinClimateNetwork(ClimateNetwork):
         :rtype: 1D array [index]
         :return: the correlation strength weighted closeness sequence.
         """
-        if "correlation_strength" not in self._path_lengths_cached:
-            self.set_link_attribute("correlation_strength",
-                                    np.abs(self.correlation_strength()))
-
-        return self.closeness("correlation_strength")
+        return self._weighted_metric(
+            "correlation_strength",
+            lambda: np.abs(self.correlation_strength()),
+            "closeness")
 
     def correlation_lag_weighted_average_path_length(self):
         """
@@ -298,11 +266,10 @@ class HavlinClimateNetwork(ClimateNetwork):
 
         :return float: the correlation lag weighted average path length.
         """
-        if "correlation_lag" not in self._path_lengths_cached:
-            self.set_link_attribute("correlation_lag",
-                                    np.abs(self.correlation_lag()))
-
-        return self.average_path_length("correlation_lag")
+        return self._weighted_metric(
+            "correlation_lag",
+            lambda: np.abs(self.correlation_lag()),
+            "average_path_length")
 
     def correlation_lag_weighted_closeness(self):
         """
@@ -311,11 +278,10 @@ class HavlinClimateNetwork(ClimateNetwork):
         :rtype: 1D array [index]
         :return: the correlation lag weighted closeness sequence.
         """
-        if "correlation_lag" not in self._path_lengths_cached:
-            self.set_link_attribute("correlation_lag",
-                                    np.abs(self.correlation_lag()))
-
-        return self.closeness("correlation_lag")
+        return self._weighted_metric(
+            "correlation_lag",
+            lambda: np.abs(self.correlation_lag()),
+            "closeness")
 
     def local_correlation_strength_weighted_vulnerability(self):
         """
@@ -324,11 +290,10 @@ class HavlinClimateNetwork(ClimateNetwork):
         :rtype: 1D array [index]
         :return: the correlation strength weighted vulnerability sequence.
         """
-        if "correlation_strength" not in self._path_lengths_cached:
-            self.set_link_attribute("correlation_strength",
-                                    np.abs(self.correlation_strength()))
-
-        return self.local_vulnerability("correlation_strength")
+        return self._weighted_metric(
+            "correlation_strength",
+            lambda: np.abs(self.correlation_strength()),
+            "local_vulnerability")
 
     def local_correlation_lag_weighted_vulnerability(self):
         """
@@ -337,8 +302,7 @@ class HavlinClimateNetwork(ClimateNetwork):
         :rtype: 1D array [index]
         :return: the correlation lag weighted vulnerability sequence.
         """
-        if "correlation_lag" not in self._path_lengths_cached:
-            self.set_link_attribute("correlation_lag",
-                                    np.abs(self.correlation_lag()))
-
-        return self.local_vulnerability("correlation_lag")
+        return self._weighted_metric(
+            "correlation_lag",
+            lambda: np.abs(self.correlation_lag()),
+            "local_vulnerability")

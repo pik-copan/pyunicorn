@@ -25,19 +25,17 @@ Significance levels are provided using analytic calculations using Poisson
 point processes as a null model (for ECA only) or a Monte Carlo approach.
 """
 
-#
-# Imports
-#
+from typing import Tuple, Hashable
+
 import warnings
 
 import numpy as np
-
 from scipy import stats
 
-from .. import cached_const
+from ..core.cache import Cached
 
 
-class EventSeries:
+class EventSeries(Cached):
 
     def __init__(self, data, timestamps=None, taumax=np.inf, lag=0.0,
                  threshold_method=None, threshold_values=None,
@@ -145,10 +143,6 @@ class EventSeries:
         NrOfEvs = np.array(np.sum(self.__eventmatrix, axis=0), dtype=int)
         self.__nrofevents = NrOfEvs
 
-        # Dictionary for chached constants
-        self.cache = {'base': {}}
-        """(dict) cache of re-usable computation results"""
-
         # Dictionary of symmetrization functions for later use
         self.symmetrization_options = {
             'directed': EventSeries._symmetrization_directed,
@@ -158,6 +152,11 @@ class EventSeries:
             'max': EventSeries._symmetrization_max,
             'min': EventSeries._symmetrization_min
         }
+
+    def __cache_state__(self) -> Tuple[Hashable, ...]:
+        # The following attributes are assumed immutable:
+        #   (__eventmatrix, __timestamps, __taumax, __lag)
+        return ()
 
     def __str__(self):
         """
@@ -596,16 +595,15 @@ class EventSeries:
          :type ts2: 1D Numpy array
          :arg ts2: Event time array containing time points when events of event
                    series 2 occur, not obligatory
-        :type window_type: str {'retarded', 'advanced', 'symmetric'}
-        :arg window_type: Only for ECA. Determines if precursor coincidence
-                          rate ('advanced'), trigger coincidence rate
-                          ('retarded') or a general coincidence rate with the
-                          symmetric interval [-taumax, taumax] are computed
-                          ('symmetric'). Default: 'symmetric'
-         :rtype list
-         :return [Precursor coincidence rate XY, Precursor coincidence rate YX]
+         :type window_type: str {'retarded', 'advanced', 'symmetric'}
+         :arg window_type: Only for ECA. Determines if precursor coincidence
+                           rate ('advanced'), trigger coincidence rate
+                           ('retarded') or a general coincidence rate with the
+                           symmetric interval [-taumax, taumax] are computed
+                           ('symmetric'). Default: 'symmetric'
+         :rtype: list
+         :return: Precursor coincidence rates [XY, YX]
          """
-
         # Get time indices
         if ts1 is None:
             e1 = np.where(eventseriesx)[0]
@@ -769,7 +767,7 @@ class EventSeries:
         # Use symmetrization functions for symmetrization and return result
         return self.symmetrization_options[symmetrization](directedESMatrix)
 
-    @cached_const('base', 'directedES')
+    @Cached.method()
     def _ndim_event_synchronization(self):
         """
         Compute NxN event synchronization matrix [i,j] with event
@@ -839,7 +837,7 @@ class EventSeries:
         :type n_surr: int
         :arg n_surr: number of surrogates for Monte-Carlo method
         :type symmetrization: str {'directed', 'symmetric', 'antisym',
-                                   'mean', 'max', 'min'} for ES,
+                              'mean', 'max', 'min'} for ES,
                               str {'directed', 'mean', 'max', 'min'} for ECA
         :arg symmetrization: determines if and which symmetrisation
                              method should be used for the ES/ECA score matrix
