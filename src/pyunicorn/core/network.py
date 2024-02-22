@@ -20,7 +20,8 @@ multivariate data and generating time series surrogates.
 import sys                          # performance testing
 import time
 from functools import partial
-from typing import Tuple, Hashable, Optional
+from typing import Tuple, Optional
+from collections.abc import Hashable
 from multiprocessing import get_context, cpu_count
 
 import numpy as np                  # array object and fast numerics

@@ -16,7 +16,8 @@
 Provides classes for generating and analyzing complex climate networks.
 """
 
-from typing import Tuple, Hashable, Callable
+from typing import Tuple
+from collections.abc import Hashable, Callable
 
 import numpy as np
 import igraph

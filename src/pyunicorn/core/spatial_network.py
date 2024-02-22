@@ -16,7 +16,8 @@
 Provides class for analyzing spatially embedded complex networks.
 """
 
-from typing import Tuple, Hashable
+from typing import Tuple
+from collections.abc import Hashable
 
 import numpy as np
 from numpy import random

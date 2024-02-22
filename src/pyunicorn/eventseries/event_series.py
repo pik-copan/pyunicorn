@@ -25,7 +25,8 @@ Significance levels are provided using analytic calculations using Poisson
 point processes as a null model (for ECA only) or a Monte Carlo approach.
 """
 
-from typing import Tuple, Hashable
+from typing import Tuple
+from collections.abc import Hashable
 
 import warnings
 

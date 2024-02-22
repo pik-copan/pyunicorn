@@ -20,7 +20,8 @@ at the instance level, with declared dependencies on mutable attributes.
 from abc import ABC, abstractmethod
 from functools import lru_cache, wraps
 from inspect import getmembers, ismethod
-from typing import Tuple, Hashable, Optional
+from typing import Tuple, Optional
+from collections.abc import Hashable
 
 
 class Cached(ABC):

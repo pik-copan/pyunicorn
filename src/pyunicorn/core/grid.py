@@ -16,7 +16,8 @@
 Provides class for spatio-temporal grids.
 """
 
-from typing import Tuple, Hashable
+from typing import Tuple
+from collections.abc import Hashable
 import pickle
 
 import numpy as np

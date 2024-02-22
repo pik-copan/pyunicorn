@@ -18,7 +18,8 @@ on recurrence plots, including measures of recurrence quantification
 analysis (RQA) and recurrence network analysis.
 """
 
-from typing import Tuple, Hashable
+from typing import Tuple
+from collections.abc import Hashable
 
 import numpy as np
 

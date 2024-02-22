@@ -16,7 +16,8 @@
 Provides class for analyzing complex network embedded on a spherical surface.
 """
 
-from typing import Tuple, Hashable
+from typing import Tuple
+from collections.abc import Hashable
 
 import numpy as np
 from numpy import random

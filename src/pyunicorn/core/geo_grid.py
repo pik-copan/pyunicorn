@@ -16,7 +16,8 @@
 Provides class for horizontal two-dimensional spatio-temporal grid.
 """
 
-from typing import Tuple, Hashable
+from typing import Tuple
+from collections.abc import Hashable
 
 import numpy as np
 # Import package to calculate points inside a polygon

@@ -19,7 +19,8 @@ analysis (RQA) and recurrence network analysis.
 """
 
 from math import factorial
-from typing import Tuple, Hashable
+from typing import Tuple
+from collections.abc import Hashable
 
 import numpy as np
 from numpy.typing import NDArray
