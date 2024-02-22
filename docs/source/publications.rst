@@ -291,6 +291,7 @@ Time series analysis & Synchronization
 - General: [Pecora1998]_, [Schreiber2000]_, [Bandt2002]_, [Kraskov2004]_,
   [Kantz2006]_, [Thiel2006]_, [Bergner2008]_, [Pompe2011]_, [Ribeiro2011]_, [Runge2012b]_.
 - Event synchronization: [Quiroga2002]_, [Boers2014]_.
+- Event coincidence analysis: [Odenweller2020]_.
 
 ....
 
@@ -371,6 +372,12 @@ Time series analysis & Synchronization
     In *Nature communications*, vol. 5, 1--7 (2014)
     `doi:10.1038/ncomms6199
     <http://dx.doi.org/10.1038/ncomms6199>`__
+
+.. [Odenweller2020] A. Odenweller, R.V. Donner.
+    "Disentangling synchrony from serial dependency in paired-event time series".
+    In *Pyhsical Review E*, vol. 101, 052213 (2020)
+    `doi:10.1103/PhysRevE.101.052213
+    <https://doi.org/10.1103/PhysRevE.101.052213>`__
 
 
 Recurrence quantification/network analysis

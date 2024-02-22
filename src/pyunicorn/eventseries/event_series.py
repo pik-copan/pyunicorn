@@ -529,8 +529,8 @@ class EventSeries(Cached):
          :arg taumax: coincidence interval width
          :type lag: int
          :arg lag: lag parameter
-         :rtype list
-         :return [Precursor coincidence rate XY, Trigger coincidence rate XY,
+         :rtype: list
+         :return: [Precursor coincidence rate XY, Trigger coincidence rate XY,
                Precursor coincidence rate YX, Trigger coincidence rate YX]
          """
 
@@ -707,7 +707,7 @@ class EventSeries(Cached):
 
         The event coincidence rate of ECA is calculated according to the
         formula: r(Y|X, DeltaT1, DeltaT2, tau) =
-         1/N_X sum_{i=1}^{N_X} Theta[sum{j=1}^{N_Y}
+        1/N_X sum_{i=1}^{N_X} Theta[sum{j=1}^{N_Y}
         1_[DeltaT1, DeltaT2] (t_i^X - (t_j^Y + tau))],
         where X is the first input event series, Y the second input event
         series, N_X the number of events in X, DeltaT1 and DeltaT2 the given
@@ -717,7 +717,7 @@ class EventSeries(Cached):
         :type method: str 'ES' or 'ECA'
         :arg method: determines if ES or ECA should be used
         :type symmetrization: str {'directed', 'symmetric', 'antisym',
-                                   'mean', 'max', 'min'} for ES,
+                              'mean', 'max', 'min'} for ES,
                               str {'directed', 'mean', 'max', 'min'} for ECA
         :arg symmetrization: determines if and which symmetrisation
                              method should be used for the ES/ECA score matrix
@@ -727,8 +727,8 @@ class EventSeries(Cached):
                           ('retarded') or a general coincidence rate with the
                           symmetric interval [-taumax, taumax] are computed
                           ('symmetric'). Default: 'symmetric'
-        :rtype 2D numpy array
-        :return pairwise event synchronization or pairwise coincidence rates
+        :rtype: 2D numpy array
+        :return: pairwise event synchronization or pairwise coincidence rates
                 symmetrized according to input parameter 'symmetrization'
         """
 
@@ -925,7 +925,7 @@ class EventSeries(Cached):
         :type n_surr: int
         :arg n_surr: number of surrogates for Monte-Carlo method
         :type symmetrization: str {'directed', 'symmetric', 'antisym',
-                                   'mean', 'max', 'min'} for ES,
+                              'mean', 'max', 'min'} for ES,
                               str {'directed', 'mean', 'max', 'min'} for ECA
         :arg symmetrization: determines if and which symmetrisation
                              method should be used for the ES/ECA score matrix
