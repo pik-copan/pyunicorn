@@ -28,7 +28,7 @@ Related Publications
 #  Import classes
 #
 
-from .network import Network, NetworkError, nz_coords, cached_const
+from .network import Network, NetworkError, nz_coords
 from .spatial_network import SpatialNetwork
 from .geo_network import GeoNetwork
 from .grid import Grid

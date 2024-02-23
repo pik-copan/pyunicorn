@@ -18,22 +18,19 @@ on recurrence plots, including measures of recurrence quantification
 analysis (RQA) and recurrence network analysis.
 """
 
-# array object and fast numerics
+from typing import Tuple
+from collections.abc import Hashable
+
 import numpy as np
 
+from ..core.cache import Cached
+from .recurrence_plot import RecurrencePlot
 from ..core._ext.types import to_cy, DFIELD
 from ._ext.numerics import _manhattan_distance_matrix_crp, \
     _euclidean_distance_matrix_crp, _supremum_distance_matrix_crp
 
-from .recurrence_plot import RecurrencePlot
-
-#
-#  Class definitions
-#
-
 
 class CrossRecurrencePlot(RecurrencePlot):
-
     """
     Class CrossRecurrencePlot for generating and quantitatively analyzing
     :index:`cross recurrence plots <single: cross recurrence plot>`.
@@ -137,12 +134,11 @@ class CrossRecurrencePlot(RecurrencePlot):
         dim = kwds.get("dim")
         tau = kwds.get("tau")
 
-        if dim is not None and tau is not None:
+        self._mut_embedding: int = 0
+        if (dim is not None) and (tau is not None):
             #  Embed the time series
             self.x_embedded = self.embed_time_series(self.x, dim, tau)
-            """The embedded time series x."""
             self.y_embedded = self.embed_time_series(self.y, dim, tau)
-            """The embedded time series y."""
         else:
             self.x_embedded = self.x
             self.y_embedded = self.y
@@ -160,6 +156,9 @@ class CrossRecurrencePlot(RecurrencePlot):
             raise NameError("Please give either threshold or recurrence_rate \
                             to construct the cross recurrence plot!")
 
+    def __cache_state__(self) -> Tuple[Hashable, ...]:
+        return (self._mut_embedding,)
+
     def __str__(self):
         """
         Returns a string representation.
@@ -168,6 +167,30 @@ class CrossRecurrencePlot(RecurrencePlot):
                 f"time series shapes {self.x.shape}, {self.y.shape}.\n"
                 f"Embedding dimension {self.dim if self.dim else 0}\n"
                 f"Threshold {self.threshold}, {self.metric} metric")
+
+    @property
+    def x_embedded(self) -> np.ndarray:
+        """
+        The embedded time series x.
+        """
+        return self._x_embedded
+
+    @x_embedded.setter
+    def x_embedded(self, embedding: np.ndarray):
+        self._x_embedded = to_cy(embedding, DFIELD)
+        self._mut_embedding += 1
+
+    @property
+    def y_embedded(self) -> np.ndarray:
+        """
+        The embedded time series y.
+        """
+        return self._y_embedded
+
+    @y_embedded.setter
+    def y_embedded(self, embedding: np.ndarray):
+        self._y_embedded = to_cy(embedding, DFIELD)
+        self._mut_embedding += 1
 
     #
     #  Service methods
@@ -182,35 +205,25 @@ class CrossRecurrencePlot(RecurrencePlot):
         """
         return self.CR
 
-    def distance_matrix(self, x_embedded, y_embedded, metric):
+    def distance_matrix(self, metric):
         """
         Return phase space cross distance matrix :math:`D` according to the
         chosen metric.
 
-        :type x_embedded: 2D array (time, embedding dimension)
-        :arg x_embedded: The phase space trajectory x.
-        :type y_embedded: 2D array (time, embedding dimension)
-        :arg y_embedded: The phase space trajectory y.
         :arg str metric: The metric for measuring distances in phase space
             ("manhattan", "euclidean", "supremum").
         :rtype: 2D square array
         :return: the phase space cross distance matrix :math:`D`
         """
-        #  Return distance matrix according to chosen metric:
-        if metric == "manhattan":
-            return self.manhattan_distance_matrix(x_embedded, y_embedded)
-        elif metric == "euclidean":
-            return self.euclidean_distance_matrix(x_embedded, y_embedded)
-        elif metric == "supremum":
-            return self.supremum_distance_matrix(x_embedded, y_embedded)
-        else:
-            return None
+        assert metric in self._known_metrics, f"unknown metric: {metric}"
+        return getattr(self, f"{metric}_distance_matrix")()
 
     #
     #  Calculate recurrence plot
     #
 
-    def manhattan_distance_matrix(self, x_embedded, y_embedded):
+    @Cached.method(name="the manhattan distance matrix")
+    def manhattan_distance_matrix(self):
         """
         Return the manhattan distance matrix from two (embedded) time series.
 
@@ -221,63 +234,39 @@ class CrossRecurrencePlot(RecurrencePlot):
         :rtype: 2D rectangular Numpy array
         :return: the manhattan distance matrix.
         """
-        if self.silence_level <= 1:
-            print("Calculating the manhattan distance matrix...")
-
-        x_embedded = to_cy(x_embedded, DFIELD)
-        y_embedded = to_cy(y_embedded, DFIELD)
-        ntime_x = x_embedded.shape[0]
-        ntime_y = y_embedded.shape[0]
-        dim = x_embedded.shape[1]
-
+        ntime_x = self.x_embedded.shape[0]
+        ntime_y = self.y_embedded.shape[0]
+        dim = self.x_embedded.shape[1]
         return _manhattan_distance_matrix_crp(ntime_x, ntime_y, dim,
-                                              x_embedded, y_embedded)
+                                              self.x_embedded, self.y_embedded)
 
-    def euclidean_distance_matrix(self, x_embedded, y_embedded):
+    @Cached.method(name="the euclidean distance matrix")
+    def euclidean_distance_matrix(self):
         """
         Return the euclidean distance matrix from two (embedded) time series.
 
-        :type x_embedded: 2D Numpy array (time, embedding dimension)
-        :arg x_embedded: The phase space trajectory x.
-        :type y_embedded: 2D Numpy array (time, embedding dimension)
-        :arg y_embedded: The phase space trajectory y.
         :rtype: 2D rectangular Numpy array
         :return: the euclidean distance matrix.
         """
-        if self.silence_level <= 1:
-            print("Calculating the euclidean distance matrix...")
-
-        x_embedded = to_cy(x_embedded, DFIELD)
-        y_embedded = to_cy(y_embedded, DFIELD)
-        ntime_x = x_embedded.shape[0]
-        ntime_y = y_embedded.shape[0]
-        dim = x_embedded.shape[1]
-
+        ntime_x = self.x_embedded.shape[0]
+        ntime_y = self.y_embedded.shape[0]
+        dim = self.x_embedded.shape[1]
         return _euclidean_distance_matrix_crp(ntime_x, ntime_y, dim,
-                                              x_embedded, y_embedded)
+                                              self.x_embedded, self.y_embedded)
 
-    def supremum_distance_matrix(self, x_embedded, y_embedded):
+    @Cached.method(name="the supremum distance matrix")
+    def supremum_distance_matrix(self):
         """
         Return the supremum distance matrix from two (embedded) time series.
 
-        :type x_embedded: 2D Numpy array (time, embedding dimension)
-        :arg x_embedded: The phase space trajectory x.
-        :type y_embedded: 2D Numpy array (time, embedding dimension)
-        :arg y_embedded: The phase space trajectory y.
         :rtype: 2D rectangular Numpy array
         :return: the supremum distance matrix.
         """
-        if self.silence_level <= 1:
-            print("Calculating the supremum distance matrix...")
-
-        x_embedded = to_cy(x_embedded, DFIELD)
-        y_embedded = to_cy(y_embedded, DFIELD)
-        ntime_x = x_embedded.shape[0]
-        ntime_y = y_embedded.shape[0]
-        dim = x_embedded.shape[1]
-
+        ntime_x = self.x_embedded.shape[0]
+        ntime_y = self.y_embedded.shape[0]
+        dim = self.x_embedded.shape[1]
         return _supremum_distance_matrix_crp(ntime_x, ntime_y, dim,
-                                             x_embedded, y_embedded)
+                                             self.x_embedded, self.y_embedded)
 
     def set_fixed_threshold(self, threshold):
         """
@@ -291,21 +280,10 @@ class CrossRecurrencePlot(RecurrencePlot):
         if self.silence_level <= 1:
             print("Calculating cross recurrence plot at fixed threshold...")
 
-        #  Get distance matrix, according to self.metric
-        distance = self.distance_matrix(self.x_embedded, self.y_embedded,
-                                        self.metric)
-        #  Get length of time series x and y
+        distance = self.distance_matrix(self.metric)
         (N, M) = distance.shape
-
-        #  Initialize recurrence matrix
         recurrence = np.zeros((N, M), dtype="int8")
-
-        #  Thresholding the distance matrix
         recurrence[distance < threshold] = 1
-
-        #  Clean up
-        del distance
-
         self.CR = recurrence
         self.N = N
         self.M = M
@@ -323,26 +301,12 @@ class CrossRecurrencePlot(RecurrencePlot):
             print("Calculating cross recurrence plot at "
                   "fixed recurrence rate...")
 
-        #  Get distance matrix, according to self.metric
-        distance = self.distance_matrix(self.x_embedded, self.y_embedded,
-                                        self.metric)
-
-        #  Get length of time series x and y
+        distance = self.distance_matrix(self.metric)
         (N, M) = distance.shape
-
-        #  Get threshold to obtain fixed recurrence rate
         threshold = self.threshold_from_recurrence_rate(distance,
                                                         recurrence_rate)
-
-        #  Initialize recurrence matrix
         recurrence = np.zeros((N, M), dtype="int8")
-
-        #  Thresholding the distance matrix
         recurrence[distance < threshold] = 1
-
-        #  Clean up
-        del distance
-
         self.CR = recurrence
         self.N = N
         self.M = M

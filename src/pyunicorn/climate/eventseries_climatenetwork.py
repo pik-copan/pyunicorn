@@ -161,9 +161,11 @@ class EventSeriesClimateNetwork(EventSeries, ClimateNetwork):
         # option
         measure_matrix = []
 
+        # required here for bootstrapping the cache hierarchy
+        self.grid = None
+
         # If standard ES/ECA measure is chosen, calculate pairwise ES/ECA
         # scores
-
         if self.__method in ['ES', 'ECA']:
             measure_matrix = \
                 self.event_series_analysis(method=self.__method,

@@ -56,8 +56,8 @@ def testCrossRecurrencePlot(thresh, rr, metric: str):
     crp2 = CrossRecurrencePlot(
             x2, y2, threshold=thresh, recurrence_rate=rr, metric=metric)
     # get respective distance matrices
-    dist_1 = crp1.distance_matrix(crp1.x_embedded, crp1.y_embedded, metric)
-    dist_2 = crp2.distance_matrix(crp2.x_embedded, crp2.y_embedded, metric)
+    dist_1 = crp1.distance_matrix(metric)
+    dist_2 = crp2.distance_matrix(metric)
     # get respective recurrence matrices
     CR1 = crp1.recurrence_matrix()
     CR2 = crp2.recurrence_matrix()
