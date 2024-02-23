@@ -16,21 +16,12 @@
 Provides classes for generating and analyzing complex climate networks.
 """
 
-#
-#  Import essential packages
-#
-
-#  Import NumPy for the array object and fast numerics
 import numpy as np
 
 from .climate_network import ClimateNetwork
 from .climate_data import ClimateData
-from ..core.network import cached_const
+from ..core.cache import Cached
 
-
-#
-#  Define class TsonisClimateNetwork
-#
 
 # TODO: Reconsider storage of correlation matrix without taking absolute value.
 class TsonisClimateNetwork(ClimateNetwork):
@@ -197,7 +188,7 @@ class TsonisClimateNetwork(ClimateNetwork):
         """
         return self._calculate_correlation(anomaly)
 
-    @cached_const('base', 'correlation')
+    @Cached.method()
     def correlation(self):
         """
         Return the correlation matrix at zero lag.

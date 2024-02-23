@@ -16,24 +16,15 @@
 Provides classes for generating and analyzing complex climate networks.
 """
 
-#
-#  Import essential packages
-#
+from typing import Tuple
+from collections.abc import Hashable, Callable
 
-#  Import NumPy for the array object and fast numerics
 import numpy as np
-
-#  Import iGraph for high performance graph theory tools written in pure ANSI-C
 import igraph
 
-#  Import GeoNetwork and GeoGrid classes
+from ..core.cache import Cached
 from ..core import GeoNetwork, GeoGrid
-from ..core.network import cached_const
 
-
-#
-#  Define class ClimateNetwork
-#
 
 class ClimateNetwork(GeoNetwork):
 
@@ -50,9 +41,9 @@ class ClimateNetwork(GeoNetwork):
     #  Definitions of internal methods
     #
 
-    def __init__(self, grid, similarity_measure, threshold=None,
-                 link_density=None, non_local=False, directed=False,
-                 node_weight_type="surface", silence_level=0):
+    def __init__(self, grid: GeoGrid, similarity_measure: np.ndarray,
+                 threshold=None, link_density=None, non_local=False,
+                 directed=False, node_weight_type="surface", silence_level=0):
         """
         Initialize an instance of :class:`ClimateNetwork`.
 
@@ -81,9 +72,16 @@ class ClimateNetwork(GeoNetwork):
         :arg int silence_level: The inverse level of verbosity of the object.
         """
         #  Initialize
-        self.grid = grid
+        assert isinstance(grid, GeoGrid)
+        self.grid: GeoGrid = grid
         self.directed = directed
         self.silence_level = silence_level
+
+        # mutation count
+        if not hasattr(self, "_mut_clim"):
+            self._mut_clim: int = 0
+        else:
+            self._mut_clim += 1
 
         #  FIXME: Is taking the absolute value by default OK?
         self._similarity_measure = np.abs(similarity_measure.astype("float32"))
@@ -104,6 +102,12 @@ class ClimateNetwork(GeoNetwork):
                             directed=self.directed,
                             node_weight_type=self.node_weight_type,
                             silence_level=self.silence_level)
+
+    def __cache_state__(self) -> Tuple[Hashable, ...]:
+        return GeoNetwork.__cache_state__(self) + (self._mut_clim,)
+
+    def __rec_cache_state__(self) -> Tuple[object, ...]:
+        return (self.grid,)
 
     def __str__(self):
         """
@@ -126,26 +130,9 @@ class ClimateNetwork(GeoNetwork):
                 f'Threshold: {self.threshold()}\n' +
                 f'Local connections filtered out: {self.non_local()}')
 
-    def clear_cache(self, irreversible=False):
-        """
-        Clean up cache.
-
-        If irreversible=True, the network cannot be recalculated using a
-        different threshold, or link density.
-
-        :arg bool irreversible: The irreversibility of clearing the cache.
-        """
-        GeoNetwork.clear_cache(self)
-
-        if irreversible:
-            try:
-                del self._similarity_measure
-            except AttributeError:
-                pass
-
     def _regenerate_network(self):
         """
-        Regenerate the current climate network according to new similarity
+        Regenerate the current climate network according to a new similarity
         measure.
         """
         ClimateNetwork.__init__(self, grid=self.data.grid,
@@ -289,9 +276,8 @@ class ClimateNetwork(GeoNetwork):
         #  Overwrite igraph Graph object in Network instance to restore link
         #  attributes/weights
         net.graph = graph
-        #  Restore link attributes/weights
-        net.clear_paths_cache()
-
+        #  invalidate cache
+        net._mut_la += 1
         return net
 
     #
@@ -626,7 +612,7 @@ class ClimateNetwork(GeoNetwork):
         threshold = self.threshold_from_link_density(link_density)
         self.set_threshold(threshold)
 
-    @cached_const('base', 'correlation_distance')
+    @Cached.method()
     def correlation_distance(self):
         """
         Return correlation weighted distances between nodes.
@@ -658,7 +644,7 @@ class ClimateNetwork(GeoNetwork):
         """
         return self.similarity_measure() * self.grid.angular_distance()
 
-    @cached_const('base', 'inv_correlation_distance')
+    @Cached.method()
     def inv_correlation_distance(self):
         """
         Return correlation weighted distances between nodes.
@@ -719,3 +705,8 @@ class ClimateNetwork(GeoNetwork):
         """
         self.inv_correlation_distance()
         return self.local_vulnerability('inv_correlation_distance')
+
+    def _weighted_metric(self, attr: str, calc: Callable, metric: str):
+        if not self.find_link_attribute(attr):
+            self.set_link_attribute(attr, calc())
+        return getattr(self, metric)(attr)
