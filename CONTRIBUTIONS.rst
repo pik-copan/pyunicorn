@@ -42,34 +42,40 @@ Contributors
 - `Jan Feldhoff <feldhoff@pik-potsdam.de>`_ (extended ``timeseries``)
 - Aljoscha Rheinwalt
 - Hannes Kutza
-- `Boyan Beronov <beronov@pik-potsdam.de>`_ (restructured and updated
-  codebase and documentation, consolidated original packaging and CI,
-  prepared Cythonization and migration to Python 3, managed open-sourcing,
-  migrated to PEP 517/518 package format, introduced semantic Cython type
-  aliases, added MSVC compatibility for Cython/C extensions, maintained
-  compilation and testing configuration)
+- `Boyan Beronov <beronov@pik-potsdam.de>`_ (restructured, updated and linted
+  codebase and documentation, consolidated original packaging, prepared
+  Cythonization and migration to Python 3, managed open-sourcing, introduced CI,
+  migrated to PEP 517/518 package format, overhauled the Python/Cython interface,
+  made Cython/C extensions compatible with MSVC, edited tutorials,
+  overhauled the caching system, maintained test suite and CI)
 - `Paul Schultz <pschultz@pik-potsdam.de>`_, `Stefan Schinkel
-  <mail@dreeg.org>`_ (supplied ``resistive_network`` and corresponding
+  <mail@dreeg.org>`_ (added ``resistive_network`` and corresponding
   tests)
-- `Wolfram Barfuss <barfuss@pik-potsdam.de>`_ (package extensions and maintenance)
+- `Wolfram Barfuss <barfuss@pik-potsdam.de>`_
+  (contributed to Cythonization, extended and maintained package)
 - Malte Ziehbarth (contributed to Python 3 support in
   `#106 <https://github.com/pik-copan/pyunicorn/pull/106>`_)
-- Nils Harmening (cythonized ``weave.inline`` functions, extended testing
-  framework, migrated from Python 2.7 to 3.6)
-- Jonathan Kroenke (extending test framework, package extensions and maintenance)
-- Johannes Kassel (provided ``eventseries`` and ``climate.eventseries_climatenetwork``
-  in `#156 <https://github.com/pik-copan/pyunicorn/pull/156>`_)
+- Nils Harmening (added event coincidence analysis, contributed to Cythonization,
+  extended test suite, migrated from Python 2.7 to 3.6)
+- Jonathan Kroenke (fixed numerous bugs and style issues in
+  `#119 <https://github.com/pik-copan/pyunicorn/pull/119>`_,
+  generalized spatial and interacting network analysis in
+  `#131 <https://github.com/pik-copan/pyunicorn/pull/131>`_,
+  extended test suite, maintained package and managed release)
+- Johannes Kassel (added ``eventseries`` and
+  ``climate.eventseries_climatenetwork`` in
+  `#156 <https://github.com/pik-copan/pyunicorn/pull/156>`_)
 - `Frederik Wolf <Frederik.Wolf@bmz.bund.de>`_ (contributed to ``eventseries``)
-- `Filipi Nascimento Silva <filipinascimento@gmail.com>`_ (provided issue fix
-  in `#149 <https://github.com/pik-copan/pyunicorn/pull/149>`_)
-- Lena Schmidt (provided tutorials, maintenance)
+- Lena Schmidt (added tutorials, maintained package)
 - `Max Bechthold <maxbecht@pik-potsdam.de>`_
-  (reenabling CI, update to cartopy plotting, writing ipynb tutorials,
-  style improvements, maintenance)
-- `Ronja Hotz <ronja.hotz@yahoo.de>`_ (provided tutorial
+  (reenabled CI, migrated plotting to ``Cartopy``, added tutorials,
+  maintained package)
+- `Ronja Hotz <ronja.hotz@yahoo.de>`_ (added a tutorial
   in `#190 <https://github.com/pik-copan/pyunicorn/pull/190>`_)
-- `Fritz Kühlein <fritz.kuehlein@student.uni-halle.de>`_ (maintained package,
-  improved test coverage and prepared release)
+- `Fritz Kühlein <fritz.kuehlein@student.uni-halle.de>`_
+  (fixed numerous bugs and style issues, improved test coverage and CI,
+  integrated tutorial notebooks into documentation,
+  maintained package and managed release)
 
 Acknowledgements
 ----------------
