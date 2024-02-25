@@ -102,10 +102,7 @@ class MutualInfoClimateNetwork(ClimateNetwork):
                                 silence_level=silence_level)
 
     def __cache_state__(self) -> Tuple[Hashable, ...]:
-        return ClimateNetwork.__cache_state__(self)
-
-    def __rec_cache_state__(self) -> Tuple[object, ...]:
-        return ClimateNetwork.__rec_cache_state__(self) + (self.data,)
+        return ClimateNetwork.__cache_state__(self) + (self.data,)
 
     def __str__(self):
         """

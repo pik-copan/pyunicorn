@@ -16,9 +16,6 @@
 Provides class for horizontal two-dimensional spatio-temporal grid.
 """
 
-from typing import Tuple
-from collections.abc import Hashable
-
 import numpy as np
 # Import package to calculate points inside a polygon
 try:
@@ -66,9 +63,6 @@ class GeoGrid(Grid):
         """
         Grid.__init__(self, time_seq, np.vstack((lat_seq, lon_seq)),
                       silence_level)
-
-    def __cache_state__(self) -> Tuple[Hashable, ...]:
-        return Grid.__cache_state__(self)
 
     def __str__(self):
         """

@@ -106,9 +106,6 @@ class ClimateNetwork(GeoNetwork):
     def __cache_state__(self) -> Tuple[Hashable, ...]:
         return GeoNetwork.__cache_state__(self) + (self._mut_clim,)
 
-    def __rec_cache_state__(self) -> Tuple[object, ...]:
-        return (self.grid,)
-
     def __str__(self):
         """
         Return a string representation of the ClimateNetwork object.

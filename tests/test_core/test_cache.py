@@ -185,10 +185,10 @@ class TestCached:
                 self.foo = foo
                 cls.Bar.__init__(self)
 
-            def __rec_cache_state__(self):
-                return (self.foo,)
+            def __cache_state__(self):
+                return cls.Bar.__cache_state__(self) + (self.foo,)
 
-            @Cached.method(attrs=("foo",))
+            @Cached.method()
             def baz(self, a: int):
                 f = self.foo.foo1(a)
                 self.counter += 1

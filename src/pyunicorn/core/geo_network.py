@@ -16,9 +16,6 @@
 Provides class for analyzing complex network embedded on a spherical surface.
 """
 
-from typing import Tuple
-from collections.abc import Hashable
-
 import numpy as np
 from numpy import random
 import igraph
@@ -82,14 +79,6 @@ class GeoNetwork(SpatialNetwork):
         self.cartesian = None
         self.grid_neighbours = None
         self.grid_neighbours_set = None
-
-    def __cache_state__(self) -> Tuple[Hashable, ...]:
-        # The following attributes are assumed immutable:
-        #   (grid)
-        return SpatialNetwork.__cache_state__(self)
-
-    def __rec_cache_state__(self) -> Tuple[object, ...]:
-        return (self.grid,)
 
     def __str__(self):
         """

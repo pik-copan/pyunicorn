@@ -35,9 +35,7 @@ class Cached(ABC):
       - decorate derived quantity methods with `@Cached.method()`,
       - provide a method `__cache_state__() -> Tuple[Hashable,...]`, which is
         used by `Cached` to define the `__eq__()` and `__hash__()` methods
-        used by `@functools.lru_cache()`, and
-      - optionally provide a similar method to list owned `Cached` instances:
-        `__rec_cache_state__() -> Tuple[object,...]`.
+        used by `@functools.lru_cache()`.
 
     Class attributes which affect subsequently *defined* subclasses:
       - cache_enable: toggles caching globally
@@ -66,31 +64,12 @@ class Cached(ABC):
         that increments a dedicated mutation counter.
         """
 
-    def __rec_cache_state__(self) -> Tuple[object, ...]:
-        """
-        Similar to `__cache_state__()`, but lists attributes which are
-        themselves instances of `Cached`. Empty by default.
-        """
-        return ()
-
     def __eq__(self, other):
-        if self is not other:
-            return False
-        else:
-            s, t = (o.__cache_state__() for o in [self, other])
-            S, T = (o.__rec_cache_state__() for o in [self, other])
-            assert all(isinstance(o, tuple) for o in [s, t])
-            assert all(isinstance(o, tuple) for o in [S, T])
-            assert len(s) == len(t) and len(S) == len(T)
-            return s == t and all(s_ == t_ for s_, t_ in zip(S, T))
+        return (self is other) and (
+            self.__cache_state__() == other.__cache_state__())
 
     def __hash__(self):
-        s = self.__cache_state__()
-        S = self.__rec_cache_state__()
-        assert isinstance(s, tuple) and isinstance(S, tuple)
-        return hash(sum(
-          (((None,) if t is None else t.__cache_state__()) for t in S),
-          start=(id(self),) + s))
+        return hash((id(self),) + self.__cache_state__())
 
     @classmethod
     def method(cls, name: Optional[str] = None,
@@ -102,8 +81,6 @@ class Cached(ABC):
           - the object `id()`,
           - the object-level mutable instance attributes as declared by the
             subclass method `__cache_state__()`,
-          - the object-level mutable instance attributes as declared by the
-            optional subclass method `__rec_cache_state__()`,
           - the method-level mutable instance attributes as declared by the
             optional decorator argument `attrs`, and
           - the argument pattern at the call site, including the ordering of
@@ -162,8 +139,9 @@ class Cached(ABC):
     def cache_clear(self, prefix: Optional[str] = None):
         """
         *Delete* all method caches for ALL instances of `self.__class__`,
-        and recursively for owned `Cached` instances. This is simply a loop
-        over the `cache_clear()` methods of all cached methods.
+        and also recursively for any owned `Cached` instances listed in
+        `self.__cache_state__()`. This is simply a loop over the
+        `cache_clear()` methods of all cached methods.
 
         :arg prefix: Optionally restrict the deleted caches by method name.
 
@@ -176,5 +154,6 @@ class Cached(ABC):
             if prefix is None or n.startswith(prefix):
                 if all(hasattr(m, p) for p in ["cache_clear", "__wrapped__"]):
                     m.cache_clear()
-        for c in self.__rec_cache_state__():
-            c.cache_clear(prefix=prefix)
+        for attr in self.__cache_state__():
+            if isinstance(attr, Cached):
+                attr.cache_clear(prefix=prefix)

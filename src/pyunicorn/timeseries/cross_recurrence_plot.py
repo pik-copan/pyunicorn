@@ -18,9 +18,6 @@ on recurrence plots, including measures of recurrence quantification
 analysis (RQA) and recurrence network analysis.
 """
 
-from typing import Tuple
-from collections.abc import Hashable
-
 import numpy as np
 
 from ..core.cache import Cached
@@ -155,9 +152,6 @@ class CrossRecurrencePlot(RecurrencePlot):
         else:
             raise NameError("Please give either threshold or recurrence_rate \
                             to construct the cross recurrence plot!")
-
-    def __cache_state__(self) -> Tuple[Hashable, ...]:
-        return (self._mut_embedding,)
 
     def __str__(self):
         """

@@ -68,12 +68,7 @@ class SpatialNetwork(Network):
                          directed=directed, silence_level=silence_level)
 
     def __cache_state__(self) -> Tuple[Hashable, ...]:
-        # The following attributes are assumed immutable:
-        #   (grid)
-        return Network.__cache_state__(self)
-
-    def __rec_cache_state__(self) -> Tuple[object, ...]:
-        return (self.grid,)
+        return Network.__cache_state__(self) + (self.grid,)
 
     def __str__(self):
         """
