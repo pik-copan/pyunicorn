@@ -55,9 +55,8 @@ class VisibilityGraph(InteractingNetworks):
         .. note::
            Missing values have to be marked by the Numpy NaN flag!
 
-        :type time_series: 2D array (time, dimension)
-        :arg time_series: The time series to be analyzed, can be scalar or
-            multi-dimensional.
+        :type time_series: 1D array
+        :arg time_series: The (scalar) time series to be analyzed.
         :arg str timings: Timings of the observations in :attr:`time_series`.
         :arg bool missing_values: Toggle special treatment of missing values in
             :attr:`time_series`.
