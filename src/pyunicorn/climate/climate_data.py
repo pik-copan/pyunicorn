@@ -1,6 +1,6 @@
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
-# URL: <http://www.pik-potsdam.de/members/donges/software>
+# Copyright (C) 2008--2024 Jonathan F. Donges and pyunicorn authors
+# URL: <https://www.pik-potsdam.de/members/donges/software-2/software>
 # License: BSD (3-clause)
 #
 # Please acknowledge and cite the use of this software and its authors
@@ -16,21 +16,17 @@
 Provides classes for generating and analyzing complex climate networks.
 """
 
-#
-#  Import essential packages
-#
+from typing import Tuple
+from collections.abc import Hashable
 
-#  Import NumPy for the array object and fast numerics
 import numpy as np
 from numpy import random
 
 from ..core import Data
+from ..core.cache import Cached
 
 
-#
-#  Define class ClimateData
-#
-class ClimateData(Data):
+class ClimateData(Data, Cached):
 
     """
     Encapsulates spatio-temporal climate data.
@@ -73,6 +69,9 @@ class ClimateData(Data):
         :arg dict window: Spatio-temporal window to select a view on the data.
         :arg int silence_level: The inverse level of verbosity of the object.
         """
+        self._mut_window = 0
+        """mutation count"""
+
         Data.__init__(self, observable=observable, grid=grid,
                       observable_name=observable_name,
                       observable_long_name=observable_long_name,
@@ -83,41 +82,21 @@ class ClimateData(Data):
         """(number (int)) - The annual cycle length of the data
                             (units of samples)."""
 
-        #  Set flags
-        self._flag_phase_mean = False
-        self._phase_mean = None
-
         self.data_source = ""
 
         # If data are anomalies skip automatic calculation of anomalies
-        if anomalies:
-            self._flag_anomaly = True
-            self._anomaly = observable
-        else:
-            self._flag_anomaly = False
+        self.anomalies = anomalies
+
+    def __cache_state__(self) -> Tuple[Hashable, ...]:
+        # The following attributes are assumed immutable:
+        #   (_full_observable)
+        return (self._mut_window,)
 
     def __str__(self):
         """
         Returns a string representation.
         """
         return 'ClimateData:\n' + Data.__str__(self)
-
-    def clear_cache(self):
-        """
-        Clean up cache.
-
-        Is reversible, since all cached information can be recalculated from
-        basic data.
-        """
-        Data.clear_cache(self)
-
-        if self._flag_phase_mean:
-            del self._phase_mean
-            self._flag_phase_mean = False
-
-        if self._flag_anomaly:
-            del self._anomaly
-            self._flag_anomaly = False
 
     #
     #  Define alternative constructors
@@ -304,7 +283,8 @@ class ClimateData(Data):
             raise NotImplementedError("Currently only time cycles 12 and 360 \
                                       are supported")
 
-    def _calculate_phase_mean(self):
+    @Cached.method(name="climatological mean values")
+    def phase_mean(self):
         """
         Calculate mean values of observable for each phase of the annual cycle.
 
@@ -318,35 +298,6 @@ class ClimateData(Data):
         :rtype: 2D Numpy array [cycle index, node index]
         :return: the mean values of observable for each phase of the annual
                  cycle.
-        """
-        if self.silence_level <= 1:
-            print("Calculating climatological mean values...")
-
-        #  Get raw data
-        observable = self.observable()
-        #  Get time cycle
-        time_cycle = self.time_cycle
-
-        #  Get number of time series
-        N = observable.shape[1]
-
-        #  Initialize
-        phase_mean = np.zeros((time_cycle, N))
-
-        #  Calculate mean value for each day (month) on each node
-        for i in range(time_cycle):
-            phase_mean[i, :] = observable[i::time_cycle, :].mean(axis=0)
-
-        return phase_mean
-
-    def phase_mean(self):
-        """
-        Return mean values of observable for each phase of the annual cycle.
-
-        For further comments, see :meth:`_calculate_phase_mean`.
-
-        .. note::
-           Only the currently selected spatio-temporal window is considered.
 
         **Example:**
 
@@ -356,18 +307,19 @@ class ClimateData(Data):
                [ 0.6984,  0.1106, -0.6984, -0.1106,  0.6984,  0.1106],
                [ 0.6984, -0.1106, -0.6984,  0.1106,  0.6984, -0.1106],
                [ 0.63  , -0.321 , -0.63  ,  0.321 ,  0.63  , -0.321 ]])
-
-        :rtype: 2D Numpy array [cycle index, node index]
-        :return: the mean values of observable for each phase of the annual
-                 cycle.
         """
-        if not self._flag_phase_mean:
-            self._phase_mean = self._calculate_phase_mean()
-            self._flag_phase_mean = True
+        observable = self.observable()
+        time_cycle = self.time_cycle
+        N = observable.shape[1]
+        phase_mean = np.zeros((time_cycle, N))
 
-        return self._phase_mean
+        #  Calculate mean value for each day (month) on each node
+        for i in range(time_cycle):
+            phase_mean[i, :] = observable[i::time_cycle, :].mean(axis=0)
+        return phase_mean
 
-    def _calculate_anomaly(self):
+    @Cached.method(name="daily (monthly) anomaly values")
+    def anomaly(self):
         """
         Calculate anomaly time series from observable.
 
@@ -380,53 +332,32 @@ class ClimateData(Data):
 
         :rtype: 2D Numpy array [time, node index]
         :return: the anomalized time series.
-        """
-        if self.silence_level <= 1:
-            print("Calculating daily (monthly) anomaly values...")
-
-        #  Get raw data
-        observable = self.observable()
-        #  Get time cycle
-        time_cycle = self.time_cycle
-        #  Initialize array
-        anomaly = np.zeros(observable.shape)
-
-        #  Thanks to Jakob Runge
-        for i in range(time_cycle):
-            sample = observable[i::time_cycle, :]
-            anomaly[i::time_cycle, :] = sample - sample.mean(axis=0)
-
-        return anomaly
-
-    def anomaly(self):
-        """
-        Return anomaly time series from observable.
-
-        For further comments, see :meth:`_calculate_anomaly`.
-
-        .. note::
-           Only the currently selected spatio-temporal window is considered.
 
         **Example:**
 
         >>> r(ClimateData.SmallTestData().anomaly()[:,0])
         array([-0.5 , -0.321 , -0.1106,  0.1106,  0.321 ,
                 0.5 ,  0.321 ,  0.1106, -0.1106, -0.321 ])
-
-        :rtype: 2D Numpy array [time, node index]
-        :return: the anomalized time series.
         """
-        if not self._flag_anomaly:
-            self._anomaly = self._calculate_anomaly()
-            self._flag_anomaly = True
+        # If data are anomalies skip automatic calculation of anomalies
+        if self.anomalies:
+            return self._full_observable
 
-        return self._anomaly
+        observable = self.observable()
+        time_cycle = self.time_cycle
+        anomaly = np.zeros(observable.shape)
+
+        #  Thanks to Jakob Runge
+        for i in range(time_cycle):
+            sample = observable[i::time_cycle, :]
+            anomaly[i::time_cycle, :] = sample - sample.mean(axis=0)
+        return anomaly
 
     def anomaly_selected_months(self, selected_months):
         """
         Return anomaly time series from observable for selected months.
 
-        For further comments, see :meth:`_calculate_anomaly`.
+        For further comments, see :meth:`anomaly`.
 
         .. note::
            Only the currently selected spatio-temporal window is considered.
@@ -507,9 +438,8 @@ class ClimateData(Data):
         :arg window: The spatio-temporal window to select a view on the data.
         """
         Data.set_window(self, window)
-
-        self._flag_phase_mean = False
-        self._flag_anomaly = False
+        # invalidate cache
+        self._mut_window += 1
 
     def set_global_window(self):
         """
@@ -532,6 +462,5 @@ class ClimateData(Data):
         array([  0.,   5.,  10.,  15.,  20.,  25.], dtype=float32)
         """
         Data.set_global_window(self)
-
-        self._flag_phase_mean = False
-        self._flag_anomaly = False
+        # invalidate cache
+        self._mut_window += 1

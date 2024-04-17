@@ -1,6 +1,6 @@
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
-# URL: <http://www.pik-potsdam.de/members/donges/software>
+# Copyright (C) 2008--2024 Jonathan F. Donges and pyunicorn authors
+# URL: <https://www.pik-potsdam.de/members/donges/software-2/software>
 # License: BSD (3-clause)
 #
 # Please acknowledge and cite the use of this software and its authors
@@ -16,28 +16,18 @@
 Provides class for spatio-temporal grids.
 """
 
-#
-#  Import essential packages
-#
-
-#  Import pickle for loading and saving Python objects
+from typing import Tuple
+from collections.abc import Hashable
 import pickle
 
-#  array object and fast numerics
 import numpy as np
 
-#  Cythonized functions
+from .cache import Cached
 from ._ext.types import to_cy, FIELD
 from ._ext.numerics import _calculate_euclidean_distance
 
 
-#
-#  Define class Grid
-#
-
-
-class Grid:
-
+class Grid(Cached):
     """
     Encapsulates a spatio-temporal grid.
 
@@ -49,15 +39,16 @@ class Grid:
     #  Definitions of internal methods
     #
 
-    def __init__(self, time_seq, space_seq, silence_level=0):
+    def __init__(self, time_seq: np.ndarray, space_seq: np.ndarray,
+                 silence_level: int = 0):
         """
         Initialize an instance of Grid.
 
         :type time_seq: 1D Numpy array [time]
         :arg time_seq: The increasing sequence of temporal sampling points.
 
-        :type lat_seq: 2D Numpy array [dim, index]
-        :arg lat_seq: The sequences of spatial sampling points.
+        :type space_seq: 2D Numpy array [dim, index]
+        :arg space_seq: The sequences of spatial sampling points.
 
         :type silence_level: number (int)
         :arg silence_level: The inverse level of verbosity of the object.
@@ -88,9 +79,10 @@ class Grid:
         self.n_grid_points = self._grid_size["time"] * self.N
         """(number (int)) - The total number of data points / samples."""
 
-        #  Cache
-        self._euclidean_distance = None
-        self._euclidean_distance_cached = False
+    def __cache_state__(self) -> Tuple[Hashable, ...]:
+        # The following attributes are assumed immutable:
+        #   (N, _grid)
+        return ()
 
     def __str__(self):
         """
@@ -291,27 +283,7 @@ class Grid:
         """
         return self.euclidean_distance()
 
-    def calculate_euclidean_distance(self):
-        """
-        Calculate and return the euclidean distance matrix.
-
-        :rtype: 2D Numpy array [index, index]
-        :return: the euclidean distance matrix.
-        """
-        #  Get number of nodes
-        N_nodes = self.N
-
-        #  Get sequences of coordinates
-        sequences = to_cy(self._grid["space"], FIELD)
-
-        #  Get number of dimensions
-        N_dim = sequences.shape[0]
-
-        distance = np.zeros((N_nodes, N_nodes), dtype=FIELD)
-        _calculate_euclidean_distance(sequences, distance, N_dim, N_nodes)
-
-        return distance
-
+    @Cached.method()
     def euclidean_distance(self):
         """
         Return the euclidean distance matrix between grid points.
@@ -329,11 +301,18 @@ class Grid:
         :rtype: 2D Numpy array [index, index]
         :return: the euclidean distance matrix.
         """
-        if not self._euclidean_distance_cached:
-            self._euclidean_distance = self.calculate_euclidean_distance()
-            self._euclidean_distance_cached = True
+        #  Get number of nodes
+        N_nodes = self.N
 
-        return self._euclidean_distance
+        #  Get sequences of coordinates
+        sequences = to_cy(self._grid["space"], FIELD)
+
+        #  Get number of dimensions
+        N_dim = sequences.shape[0]
+
+        distance = np.zeros((N_nodes, N_nodes), dtype=FIELD)
+        _calculate_euclidean_distance(sequences, distance, N_dim, N_nodes)
+        return distance
 
     def boundaries(self):
         """

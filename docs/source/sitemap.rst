@@ -3,16 +3,15 @@ Sitemap
 =======
 
 .. toctree::
-    :maxdepth: 2
-    :includehidden:
+    :maxdepth: 3
 
     index
     download
-    tutorials
     methods
+    tutorials
     api_doc
-    development
-    changelog
     publications
+    changelog
+    development
     license
     contact

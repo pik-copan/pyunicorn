@@ -7,9 +7,12 @@ detail and applying the methods implemented in the ``pyunicorn`` package.
 
 General complex networks
 ========================
-*Review papers*
-~~~~~~~~~~~~~~~
-[Newman2003]_, [Boccaletti2006]_, [Costa2007]_.
+- Review papers: [Newman2003]_, [Boccaletti2006]_, [Costa2007]_.
+- Further network papers: [Watts1998]_, [Newman2001]_, [Newman2002]_,
+  [Arenas2003]_, [Newman2005]_, [Soffer2005]_, [Holme2007]_, [Tsonis2008a]_,
+  [Ueoka2008]_.
+
+....
 
 .. [Newman2003] M.E.J. Newman.
     "The structure and function of complex networks".
@@ -28,11 +31,6 @@ General complex networks
     In *Advances in Physics*, vol. 56(1), 167-242 (2007)
     `doi:10.1080/00018730601170527
     <http://dx.doi.org/10.1080/00018730601170527>`__
-
-*Further network papers*
-~~~~~~~~~~~~~~~~~~~~~~~~
-[Watts1998]_, [Newman2001]_, [Newman2002]_, [Arenas2003]_, [Newman2005]_,
-[Soffer2005]_, [Holme2007]_, [Tsonis2008a]_, [Ueoka2008]_.
 
 .. [Watts1998] D.J. Watts and S.H. Strogatz.
     "Collective dynamics of small-world networks".
@@ -93,9 +91,12 @@ General complex networks
     Proceedings of NOLTA (2008)
     http://tsuzuki.ise.ibaraki.ac.jp/MyPaper/Meeting/08NOLTA.pdf
 
+
 Spatially embedded networks
 ===========================
-[Bartelemy2011]_.
+- [Bartelemy2011]_.
+
+....
 
 .. [Bartelemy2011] M. Barthelemy.
     "Spatial networks".
@@ -103,11 +104,13 @@ Spatially embedded networks
     `doi:10.1016/j.physrep.2010.11.002
     <http://dx.doi.org/10.1016/j.physrep.2010.11.002>`__
 
-Interacting/interdependent networks / networks of networks
+
+Interacting/interdependent networks (networks of networks)
 ==========================================================
-*Introduction to structural analysis of interacting networks*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Donges2011a]_.
+- Introduction to structural analysis of interacting networks: [Donges2011a]_.
+- Random graph models & network surrogates for interacting networks: [Schultz2010]_.
+
+....
 
 .. [Donges2011a] J.F. Donges, H.C.H. Schultz, N. Marwan, Y. Zou, J. Kurths.
     "Investigating the topology of interacting networks - Theory and
@@ -117,11 +120,18 @@ Interacting/interdependent networks / networks of networks
     `doi:10.1140/epjb/e2011-10795-8
     <http://dx.doi.org/10.1140/epjb/e2011-10795-8>`__
 
-Node-weighted network measures / node-splitting invariance
-==========================================================
-*Introduction*
-~~~~~~~~~~~~~~
-[Heitzig2012]_.
+.. [Schultz2010] H.C.H. Schultz.
+    "Coupled climate networks: Investigating the terrestrial atmosphere's
+    dynamical structure".
+    Diploma thesis, Free University, Berlin (2010)
+
+
+Node-weighted (node-splitting invariant) network measures
+=========================================================
+- Introduction: [Heitzig2012]_.
+- Analysis of node-weighted interacting networks: [Wiedermann2011]_, [Wiedermann2013]_.
+
+....
 
 .. [Heitzig2012] J. Heitzig, J. F. Donges, Y. Zou, N. Marwan, J. Kurths.
     "Node-weighted measures for complex networks with spatially embedded,
@@ -130,19 +140,6 @@ Node-weighted network measures / node-splitting invariance
     vol. 85 p38 (2012)
     `doi:10.1140/epjb/e2011-20678-7
     <http://dx.doi.org/10.1140/epjb/e2011-20678-7>`__
-
-*Random graph models and network surrogates for interacting networks*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Schultz2010]_.
-
-.. [Schultz2010] H.C.H. Schultz.
-    "Coupled climate networks: Investigating the terrestrial atmosphere's
-    dynamical structure".
-    Diploma thesis, Free University, Berlin (2010)
-
-*Analysis of node-weighted interacting networks*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Wiedermann2011]_, [Wiedermann2013]_.
 
 .. [Wiedermann2011] M. Wiedermann.
     "Coupled climate network analysis of multidecadal dynamics in the Arctic".
@@ -162,9 +159,12 @@ Node-weighted network measures / node-splitting invariance
     `doi:10.1209/0295-5075/107/58005
     <http://dx.doi.org/10.1209/0295-5075/107/58005>`__
 
+
 Climate data analysis (general)
 ===============================
-[Bretherton1992]_.
+- [Bretherton1992]_.
+
+....
 
 .. [Bretherton1992] C.S. Bretherton, C. Smith, J.M. Wallace.
     "An intercomparison of methods for finding coupled patterns in climate
@@ -173,11 +173,21 @@ Climate data analysis (general)
     `doi:10.1175/1520-0442(1992)005<0541:AIOMFF>2.0.CO;2
     <http://dx.doi.org/10.1175/1520-0442(1992)005%3C0541%3AAIOMFF%3E2.0.CO%3B2>`__
 
-Climate networks / Coupled climate networks
-===========================================
-*Comparing linear and nonlinear construction of climate networks*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Donges2009a]_.
+
+(Coupled) Climate networks
+==========================
+- Comparing linear & nonlinear construction of climate networks: [Donges2009a]_.
+- Studying the dynamical structure of the surface air temperature field:
+  [Donges2009b]_, [Radebach2010]_.
+- Introduction to coupled climate networks & applications:
+  [Schultz2010]_, [Donges2011a]_, [Wiedermann2011]_.
+- Review of climate network analysis (in Chinese!): [Zou2011]_.
+- Visualization of climate networks: [Tominski2011]_.
+- Evolving climate networks: [Radebach2013]_.
+- General: [Tsonis2004]_, [Tsonis2006]_, [Gozolchiani2008]_, [Tsonis2008b]_,
+  [Tsonis2008c]_, [Yamasaki2008]_, [Donges2009c]_, [Yamasaki2009]_.
+
+....
 
 .. [Donges2009a] J.F. Donges, Y. Zou, N. Marwan, J. Kurths.
     "Complex networks in climate dynamics".
@@ -185,10 +195,6 @@ Climate networks / Coupled climate networks
     (2009)
     `doi:10.1140/epjst/e2009-01098-2
     <http://dx.doi.org/10.1140/epjst/e2009-01098-2>`__
-
-*Studying the dynamical structure of the surface air temperature field*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Donges2009b]_, [Radebach2010]_.
 
 .. [Donges2009b] J.F. Donges, Y. Zou, N. Marwan, J. Kurths.
     "The backbone of the climate network".
@@ -201,21 +207,9 @@ Climate networks / Coupled climate networks
     structure of the Earth's climate system".
     Diploma thesis, Humboldt University, Berlin (2010)
 
-*Introduction to coupled climate networks and applications*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Schultz2010]_, [Donges2011a]_, [Wiedermann2011]_.
-
-*Review of climate network analysis (in Chinese!)*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Zou2011]_.
-
 .. [Zou2011] Y. Zou, J.F. Donges, J. Kurths.
     "Recent advances in complex climate network analysis".
     In *Complex Systems and Complexity Science*, vol. 8 (no. 1), p27-38 (2011)
-
-*Visualization of climate networks*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Tominski2011]_.
 
 .. [Tominski2011] C. Tominski, J.F. Donges, T. Nocke.
     "Information Visualization in Climate Research".
@@ -223,21 +217,12 @@ Climate networks / Coupled climate networks
     Visualisation (IV), London*, p298-305 (2011)
     `doi:10.1109/IV.2011.12 <http://dx.doi.org/10.1109/IV.2011.12>`__
 
-*Evolving climate networks*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Radebach2013]_.
-
 .. [Radebach2013] A. Radebach, R.V. Donner, J. Runge, J.F. Donges, J. Kurths.
     "Disentangling different types of El Nino episodes by evolving climate
     network analysis".
     In *Physical Review E*, vol. 88, 052807 (2013)
     `doi:10.1103/PhysRevE.88.052807
     <http://dx.doi.org/10.1103/PhysRevE.88.052807>`__
-
-*General*
-~~~~~~~~~
-[Tsonis2004]_, [Tsonis2006]_, [Gozolchiani2008]_, [Tsonis2008b]_,
-[Tsonis2008c]_, [Yamasaki2008]_, [Donges2009c]_, [Yamasaki2009]_.
 
 .. [Tsonis2004] A.A. Tsonis and P.J. Roebber.
     "The architecture of the climate network".
@@ -285,11 +270,12 @@ Climate networks / Coupled climate networks
     In *Progress Of Theoretical Physics Supplement*, vol. 179, p178-188 (2009)
     `doi:10.1143/PTPS.179.178 <http://dx.doi.org/10.1143/PTPS.179.178>`__
 
-Power Grids/Power Networks
-===========================================
-*Resistance based networks*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Schultz2014]_, [Schultz2014a]_.
+
+Power grids & Power networks
+============================
+- Resistance based networks: [Schultz2014]_, [Schultz2014a]_.
+
+....
 
 .. [Schultz2014] P. Schultz "Stability Analysis of Power Grid Networks".
     *M.Sc. Thesis*, Humboldt-Universität zu Berlin (2014)
@@ -299,12 +285,15 @@ Power Grids/Power Networks
     Spatially Embedded Infrastructure Networks".
     In *Eur. Phys. J. Special Topics: Resilient Power Grids and Extreme Events* (2014)
 
-Time series analysis and synchronization
-========================================
-*General*
-~~~~~~~~~
-[Pecora1998]_, [Schreiber2000]_, [Bandt2002]_, [Kraskov2004]_, [Kantz2006]_, [Thiel2006]_,
-[Bergner2008]_, [Pompe2011]_, [Ribeiro2011]_, [Runge2012b]_.
+
+Time series analysis & Synchronization
+======================================
+- General: [Pecora1998]_, [Schreiber2000]_, [Bandt2002]_, [Kraskov2004]_,
+  [Kantz2006]_, [Thiel2006]_, [Bergner2008]_, [Pompe2011]_, [Ribeiro2011]_, [Runge2012b]_.
+- Event synchronization: [Quiroga2002]_, [Boers2014]_.
+- Event coincidence analysis: [Odenweller2020]_.
+
+....
 
 .. [Pecora1998] L.M. Pecora and T.L. Carroll.
     "Master Stability Functions for Synchronized Coupled Systems".
@@ -369,10 +358,6 @@ Time series analysis and synchronization
     `doi:10.1103/PhysRevE.86.061121
     <http://dx.doi.org/10.1103/PhysRevE.86.061121>`__
 
-*Event synchronization*
-~~~~~~~~~~~~~~~~~~~~~~~
-[Quiroga2002]_, [Boers2014]_.
-
 .. [Quiroga2002] R.Q. Quiroga, T. Kreuz, P. Grassberger.
     "Event synchronization: a simple and fast method to measure synchronicity
     and time delay patterns."
@@ -388,11 +373,28 @@ Time series analysis and synchronization
     `doi:10.1038/ncomms6199
     <http://dx.doi.org/10.1038/ncomms6199>`__
 
-Recurrence networks / quantification analysis / plots
-=====================================================
-*Review of recurrence plots and RQA*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Marwan2007]_.
+.. [Odenweller2020] A. Odenweller, R.V. Donner.
+    "Disentangling synchrony from serial dependency in paired-event time series".
+    In *Pyhsical Review E*, vol. 101, 052213 (2020)
+    `doi:10.1103/PhysRevE.101.052213
+    <https://doi.org/10.1103/PhysRevE.101.052213>`__
+
+
+Recurrence quantification/network analysis
+==========================================
+- Review of recurrence plots & RQA: [Marwan2007]_.
+- Introduction & application of recurrence networks in the context of RQA: [Marwan2009]_.
+- Thorough introduction to recurrence network analysis: [Donner2010b]_.
+- Discussion of choosing an appropriate recurrence threshold: [Donner2010a]_, [Zou2010]_.
+- Review of various methods for network-based time series analysis: [Donner2011a]_.
+- Introduction to measures of (fractal) transitivity dimensions: [Donner2011b]_.
+- Applications of recurrence network analysis to paleoclimate data: [Donges2011b]_,
+  [Donges2011c]_, [Feldhoff2012]_.
+- Theory of recurrence networks: [Donges2012]_, [Zou2012]_.
+- Multivariate extensions of recurrence network analysis: [Feldhoff2012]_, [Feldhoff2013]_.
+- General: [Ngamga2007]_, [Xu2008]_, [Schinkel2009]_.
+
+....
 
 .. [Marwan2007] N. Marwan, M.C. Romano, M. Thiel, J. Kurths.
     "Recurrence plots for the analysis of complex systems".
@@ -400,19 +402,11 @@ Recurrence networks / quantification analysis / plots
     `doi:10.1016/j.physrep.2006.11.001
     <http://dx.doi.org/10.1016/j.physrep.2006.11.001>`__
 
-*Introduction and application of recurrence networks in the context of RQA*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Marwan2009]_.
-
 .. [Marwan2009] N. Marwan, J.F. Donges, Y. Zou, R.V. Donner, J. Kurths.
     "Complex network approach for recurrence analysis of time series".
     In *Physics Letters A*, vol. 373 (no. 46), p4246-4254 (2009)
     `doi:10.1016/j.physleta.2009.09.042
     <http://dx.doi.org/10.1016/j.physleta.2009.09.042>`__
-
-*A thorough introduction to recurrence network analysis*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Donner2010b]_.
 
 .. [Donner2010b] R.V. Donner, Y. Zou, J.F. Donges, N. Marwan, J. Kurths.
     "Recurrence networks -- A novel paradigm for nonlinear time series
@@ -420,10 +414,6 @@ Recurrence networks / quantification analysis / plots
     In *New Journal of Physics*, vol. 12 (no. 3), 033205 (2010)
     `doi:10.1088/1367-2630/12/3/033025
     <http://dx.doi.org/10.1088/1367-2630/12/3/033025>`__
-
-*Discussion of choosing an appropriate recurrence threshold*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Donner2010a]_, [Zou2010]_.
 
 .. [Donner2010a] R.V. Donner, Y. Zou, J.F. Donges, N. Marwan, J. Kurths.
     "Ambiguities in recurrence-based complex network representations of time
@@ -439,10 +429,6 @@ Recurrence networks / quantification analysis / plots
     In *Chaos*, vol. 20 (no. 4), 043130 (2010)
     `doi:10.1063/1.3523304 <http://dx.doi.org/10.1063/1.3523304>`__
 
-*Review of various methods for network-based time series analysis*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Donner2011a]_.
-
 .. [Donner2011a] R.V. Donner, M. Small, J.F. Donges, N. Marwan, Y. Zou, R.
     Xiang, J. Kurths.
     "Recurrence-based time series analysis by means of complex network
@@ -452,20 +438,12 @@ Recurrence networks / quantification analysis / plots
     `doi:10.1142/S0218127411029021
     <http://dx.doi.org/10.1142/S0218127411029021>`__
 
-*Introduction to measures of (fractal) transitivity dimensions*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Donner2011b]_.
-
 .. [Donner2011b] R.V. Donner, J. Heitzig, J.F. Donges, Y. Zou, J. Kurths.
     "The geometry of chaotic dynamics -- A complex network perspective".
     In *European Physical Journal B: Condensed Matter and Complex Systems*,
     vol. 84 (no. 4), p653-672 (2011)
     `doi:10.1140/epjb/e2011-10899-1
     <http://dx.doi.org/10.1140/epjb/e2011-10899-1>`__
-
-*Applications of recurrence network analysis to paleoclimate data*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Donges2011b]_, [Donges2011c]_, [Feldhoff2012]_.
 
 .. [Donges2011b] J.F. Donges, R.V. Donner, K. Rehfeld, N. Marwan, M.H.
     Trauth, J. Kurths.
@@ -484,10 +462,6 @@ Recurrence networks / quantification analysis / plots
     `doi:10.1073/pnas.1117052108
     <http://dx.doi.org/10.1073/pnas.1117052108>`__
 
-*Theory of recurrence networks*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Donges2012]_, [Zou2012]_.
-
 .. [Donges2012] J.F. Donges, J. Heitzig, R.V. Donner, J. Kurths.
     "Analytical framework for recurrence network analysis of time series".
     In *Physical Review E: Statistical, Nonlinear, and Soft Matter Physics*,
@@ -501,10 +475,6 @@ Recurrence networks / quantification analysis / plots
     In *Europhysics Letters*, vol. 98, 48001 (2012)
     `doi:10.1209/0295-5075/98/48001
     <http://dx.doi.org/10.1209/0295-5075/98/48001>`__
-
-*Multivariate extensions of recurrence network analysis*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Feldhoff2012]_, [Feldhoff2013]_.
 
 .. [Feldhoff2012] J.H. Feldhoff, R.V. Donner, J.F. Donges, N. Marwan,
     J. Kurths.
@@ -520,10 +490,6 @@ Recurrence networks / quantification analysis / plots
     In *Europhysics Letters* vol. 102, 30007 (2013),
     `doi:10.1209/0295-5075/102/30007
     <http://dx.doi.org/10.1209/0295-5075/102/30007>`__
-
-*General*
-~~~~~~~~~
-[Ngamga2007]_, [Xu2008]_, [Schinkel2009]_.
 
 .. [Ngamga2007] E.J. Ngamga, A. Nandi, R. Ramaswamy, M.C. Romano, M. Thiel, J. Kurths.
     "Recurrence analysis of strange nonchaotic dynamics".
@@ -544,11 +510,14 @@ Recurrence networks / quantification analysis / plots
     `doi:10.1016/j.physleta.2009.04.045
     <http://dx.doi.org/10.1016/j.physleta.2009.04.045>`__
 
+
 Visibility graph analysis
 =========================
-*Introduction*
-~~~~~~~~~~~~~~
-[Lacasa2008]_.
+- Introduction: [Lacasa2008]_.
+- Application to geophysical time series: [Donner2012]_.
+- Tests for time series irreversibility: [Donges2013]_.
+
+....
 
 .. [Lacasa2008] L. Lacasa, B. Luque, F. Ballesteros, J. Luque, J.C. Nuno.
     "From time series to complex networks: The visibility graph".
@@ -556,20 +525,12 @@ Visibility graph analysis
     America*, vol. 105 (no. 13), p4972-4975 (2008)
     `doi:10.1073/pnas.0709247105 <http://dx.doi.org/10.1073/pnas.0709247105>`__
 
-*Application to geophysical time series*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Donner2012]_.
-
 .. [Donner2012] R.V. Donner and J.F. Donges.
     "Visibility graph analysis of geophysical time series: Potentials and
     possible pitfalls".
     In *Acta Geophysica*, vol. 60 p589-623 (2012)
     `doi:10.2478/s11600-012-0032-x
     <http://dx.doi.org/10.2478/s11600-012-0032-x>`__
-
-*Tests for time series irreversibility*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[Donges2013]_.
 
 .. [Donges2013] J.F. Donges, R.V. Donner, J. Kurths.
     "Testing time series irreversibility using complex network methods".

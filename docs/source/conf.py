@@ -38,7 +38,9 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
-    'sphinx.ext.githubpages'
+    'sphinx.ext.githubpages',
+    'nbsphinx',
+    'nbsphinx_link',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -54,7 +56,7 @@ master_doc = 'sitemap'
 
 # General information about the project.
 project = u'pyunicorn'
-copyright = u'2008-2023, Jonathan F. Donges and pyunicorn authors'
+copyright = u'2008-2024, Jonathan F. Donges and pyunicorn authors'
 author = u'Jonathan F. Donges'
 
 # The version info for the project you're documenting, acts as replacement for

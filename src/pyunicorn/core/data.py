@@ -1,6 +1,6 @@
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
-# URL: <http://www.pik-potsdam.de/members/donges/software>
+# Copyright (C) 2008--2024 Jonathan F. Donges and pyunicorn authors
+# URL: <https://www.pik-potsdam.de/members/donges/software-2/software>
 # License: BSD (3-clause)
 #
 # Please acknowledge and cite the use of this software and its authors
@@ -17,12 +17,9 @@ Provides classes for analyzing spatially embedded complex networks, handling
 multivariate data and generating time series surrogates.
 """
 
-#
-#  Imports
-#
+from typing import Optional
 
 import numpy as np
-
 try:
     from h5netcdf.legacyapi import Dataset
 except ImportError:
@@ -32,13 +29,8 @@ except ImportError:
         print("pyunicorn: Packages netCDF4 or h5netcdf could not be loaded. "
               "Some functionality in class Data might not be available!")
 
-
 from .geo_grid import GeoGrid
 
-
-#
-#  Define class Data
-#
 
 class Data:
 
@@ -55,8 +47,9 @@ class Data:
     #  Define internal methods
     #
 
-    def __init__(self, observable, grid, observable_name=None,
-                 observable_long_name=None, window=None, silence_level=0):
+    def __init__(self, observable: np.ndarray, grid: GeoGrid,
+                 observable_name: str = None, observable_long_name: str = None,
+                 window: Optional[dict] = None, silence_level: int = 0):
         """
         Initialize an instance of Data.
 
@@ -69,8 +62,8 @@ class Data:
         :arg observable: The array of time series to be represented by the
             :class:`Data` instance.
         :type grid: :class:`.GeoGrid` instance
-        :arg grid: The Grid representing the spatial coordinates associated to
-            the time series and their temporal sampling.
+        :arg grid: The GeoGrid representing the spatial coordinates associated
+            to the time series and their temporal sampling.
         :arg str observable_name: A short name for the observable.
         :arg str observable_long_name: A long name for the observable.
         :arg dict window: Spatio-temporal window to select a view on the data.
@@ -80,6 +73,8 @@ class Data:
         self.silence_level = silence_level
         """(int) - The inverse level of verbosity of the object."""
         self._full_observable = observable
+
+        assert isinstance(grid, GeoGrid)
         self._full_grid = grid
         self.grid = None
         """The :class:`.GeoGrid` object associated with the data."""
@@ -128,16 +123,6 @@ class Data:
         self.silence_level = silence_level
         self.grid.silence_level = silence_level
         self._full_grid.silence_level = silence_level
-
-    def clear_cache(self):
-        """
-        Clean up cache.
-
-        Is reversible, since all cached information can be recalculated from
-        basic data.
-        """
-        self.grid.clear_cache()
-        self._full_grid.clear_cache()
 
     #
     #  Methods for creating Data objects and alternative constructors
@@ -387,7 +372,6 @@ class Data:
         """Print information on the data encapsulated by the Data object."""
         # Open netCDF4 file
         f = Dataset(self.file_name, "r")
-        print("File format:", f.file_format)
         print("Global attributes:")
         for name in f.ncattrs():
             print(name + ":", getattr(f, name))

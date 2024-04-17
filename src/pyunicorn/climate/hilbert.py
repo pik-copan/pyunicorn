@@ -1,6 +1,6 @@
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
-# URL: <http://www.pik-potsdam.de/members/donges/software>
+# Copyright (C) 2008--2024 Jonathan F. Donges and pyunicorn authors
+# URL: <https://www.pik-potsdam.de/members/donges/software-2/software>
 # License: BSD (3-clause)
 #
 # Please acknowledge and cite the use of this software and its authors
@@ -16,14 +16,10 @@
 Provides classes for generating and analyzing complex climate networks.
 """
 
-#
-#  Import essential packages
-#
+from typing import Tuple
+from collections.abc import Hashable
 
-#  Import NumPy for the array object and fast numerics
 import numpy as np
-
-#  Import scipy.signal for signal processing
 try:
     import scipy.signal
 except ImportError:
@@ -31,7 +27,7 @@ except ImportError:
           "functionality in class HilbertClimateNetwork might not be "
           "available!")
 
-#  Import cnNetwork for Network base class
+from .climate_data import ClimateData
 from .climate_network import ClimateNetwork
 
 
@@ -92,8 +88,9 @@ class HilbertClimateNetwork(ClimateNetwork):
 
         #  Set instance variables
         self._coherence_phase = None
-        self.data = data
-        """(ClimateData) - The climate data used for network construction."""
+        assert isinstance(data, ClimateData)
+        self.data: ClimateData = data
+        """The climate data used for network construction."""
         self.N = data.grid.N
         self._threshold = threshold
         self._prescribed_link_density = link_density
@@ -109,28 +106,23 @@ class HilbertClimateNetwork(ClimateNetwork):
                                 silence_level=silence_level)
         self._set_directed(directed, calculate_coherence=False)
 
+    def __cache_state__(self) -> Tuple[Hashable, ...]:
+        return ClimateNetwork.__cache_state__(self) + (self.data,)
+
     def __str__(self):
         """
         Return a string representation.
         """
         return 'HilbertClimateNetwork:\n' + ClimateNetwork.__str__(self)
 
-    def clear_cache(self, irreversible=False):
+    def clear_cache(self):
         """
         Clean up cache.
-
-        If irreversible=True, the network cannot be recalculated using a
-        different threshold, or link density.
-
-        :arg bool irreversible: The irreversibility of clearing the cache.
         """
-        ClimateNetwork.clear_cache(self, irreversible)
-
-        if irreversible:
-            try:
-                del self._coherence_phase
-            except AttributeError:
-                pass
+        try:
+            del self._coherence_phase
+        except AttributeError:
+            pass
 
     #
     #  Defines methods to calculate Hilbert correlation measures

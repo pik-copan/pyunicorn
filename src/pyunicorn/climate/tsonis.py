@@ -1,6 +1,6 @@
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
-# URL: <http://www.pik-potsdam.de/members/donges/software>
+# Copyright (C) 2008--2024 Jonathan F. Donges and pyunicorn authors
+# URL: <https://www.pik-potsdam.de/members/donges/software-2/software>
 # License: BSD (3-clause)
 #
 # Please acknowledge and cite the use of this software and its authors
@@ -16,21 +16,12 @@
 Provides classes for generating and analyzing complex climate networks.
 """
 
-#
-#  Import essential packages
-#
-
-#  Import NumPy for the array object and fast numerics
 import numpy as np
 
 from .climate_network import ClimateNetwork
 from .climate_data import ClimateData
-from ..core.network import cached_const
+from ..core.cache import Cached
 
-
-#
-#  Define class TsonisClimateNetwork
-#
 
 # TODO: Reconsider storage of correlation matrix without taking absolute value.
 class TsonisClimateNetwork(ClimateNetwork):
@@ -197,7 +188,7 @@ class TsonisClimateNetwork(ClimateNetwork):
         """
         return self._calculate_correlation(anomaly)
 
-    @cached_const('base', 'correlation')
+    @Cached.method()
     def correlation(self):
         """
         Return the correlation matrix at zero lag.

@@ -1,6 +1,6 @@
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
-# URL: <http://www.pik-potsdam.de/members/donges/software>
+# Copyright (C) 2008--2024 Jonathan F. Donges and pyunicorn authors
+# URL: <https://www.pik-potsdam.de/members/donges/software-2/software>
 # License: BSD (3-clause)
 #
 # Please acknowledge and cite the use of this software and its authors
@@ -16,26 +16,13 @@
 Provides classes for generating and analyzing complex coupled climate networks.
 """
 
-#
-#  Import essential packages
-#
-
-#  Import NumPy for the array object and fast numerics
 import numpy as np
 
-#  Import climate_network for ClimateNetwork class
+from ..core import InteractingNetworks, GeoNetwork, GeoGrid
 from .climate_network import ClimateNetwork
 
-#  Import grid for GeoGrid class
-from ..core import InteractingNetworks, GeoNetwork, GeoGrid
-
-
-#
-#  Define class CoupledClimateNetwork
-#
 
 class CoupledClimateNetwork(InteractingNetworks, ClimateNetwork):
-
     """
     Encapsulates a coupled similarity network embedded on a spherical surface.
 

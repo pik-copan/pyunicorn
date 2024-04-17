@@ -1,6 +1,6 @@
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
-# URL: <http://www.pik-potsdam.de/members/donges/software>
+# Copyright (C) 2008--2024 Jonathan F. Donges and pyunicorn authors
+# URL: <https://www.pik-potsdam.de/members/donges/software-2/software>
 # License: BSD (3-clause)
 #
 # Please acknowledge and cite the use of this software and its authors
@@ -16,25 +16,20 @@
 Provides class for analyzing spatially embedded complex networks.
 """
 
-# array object and fast numerics
+from typing import Tuple
+from collections.abc import Hashable
+
 import numpy as np
-# random number generation
 from numpy import random
-# high performance graph theory tools written in pure ANSI-C
 import igraph
 
 from ._ext.types import to_cy, ADJ, NODE, FIELD, DEGREE
 from ._ext.numerics import _randomly_rewire_geomodel_I, \
     _randomly_rewire_geomodel_II, _randomly_rewire_geomodel_III
 
-from .network import cached_const
 from .network import Network
 from .grid import Grid
 
-
-#
-#  Define class SpatialNetwork
-#
 
 class SpatialNetwork(Network):
     """
@@ -48,8 +43,8 @@ class SpatialNetwork(Network):
     #  Definitions of internal methods
     #
 
-    def __init__(self, grid, adjacency=None, edge_list=None, directed=False,
-                 silence_level=0):
+    def __init__(self, grid: Grid, adjacency=None, edge_list=None,
+                 directed=False, silence_level=0):
         """
         Initialize an instance of SpatialNetwork.
 
@@ -64,28 +59,22 @@ class SpatialNetwork(Network):
             directed.
         :arg int silence_level: The inverse level of verbosity of the object.
         """
-        self.grid = grid
+        assert isinstance(grid, Grid)
+        self.grid: Grid = grid
         """(Grid) - Grid object describing the network's spatial embedding"""
 
         #  Call constructor of parent class Network
         Network.__init__(self, adjacency=adjacency, edge_list=edge_list,
                          directed=directed, silence_level=silence_level)
 
+    def __cache_state__(self) -> Tuple[Hashable, ...]:
+        return Network.__cache_state__(self) + (self.grid,)
+
     def __str__(self):
         """
         Return a string representation of the SpatialNetwork object.
         """
         return f'SpatialNetwork:\n{Network.__str__(self)}'
-
-    def clear_cache(self):
-        """
-        Clean up cache.
-
-        Is reversible, since all cached information can be recalculated from
-        basic data.
-        """
-        Network.clear_cache(self)
-        self.grid.clear_cache()
 
     #
     #  Load and save GeoNetwork object
@@ -203,9 +192,8 @@ class SpatialNetwork(Network):
         #  Overwrite igraph Graph object in Network instance to restore link
         #  attributes/weights
         net.graph = graph
-        #  Restore link attributes/weights
-        net.clear_paths_cache()
-
+        #  invalidate cache
+        net._mut_la += 1
         return net
 
     @staticmethod
@@ -669,13 +657,13 @@ class SpatialNetwork(Network):
     #  Link weighted network measures
     #
 
-    @cached_const('base', 'distance')
     def distance(self):
         """
         Return the distance matrix.
         """
         dist = self.grid.distance()
-        self.set_link_attribute('distance', dist)
+        if not self.find_link_attribute('distance'):
+            self.set_link_attribute('distance', dist)
         return dist
 
     def average_distance_weighted_path_length(self):

@@ -1,6 +1,6 @@
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
-# URL: <http://www.pik-potsdam.de/members/donges/software>
+# Copyright (C) 2008--2024 Jonathan F. Donges and pyunicorn authors
+# URL: <https://www.pik-potsdam.de/members/donges/software-2/software>
 # License: BSD (3-clause)
 #
 # Please acknowledge and cite the use of this software and its authors
@@ -25,19 +25,18 @@ Significance levels are provided using analytic calculations using Poisson
 point processes as a null model (for ECA only) or a Monte Carlo approach.
 """
 
-#
-# Imports
-#
+from typing import Tuple
+from collections.abc import Hashable
+
 import warnings
 
 import numpy as np
-
 from scipy import stats
 
-from .. import cached_const
+from ..core.cache import Cached
 
 
-class EventSeries:
+class EventSeries(Cached):
 
     def __init__(self, data, timestamps=None, taumax=np.inf, lag=0.0,
                  threshold_method=None, threshold_values=None,
@@ -55,13 +54,13 @@ class EventSeries:
         eventmatrix could look like
 
             array([[0, 1, 0],
-                   [0, 0, 0],
+                   [1, 0, 1],
                    [0, 0, 0],
                    [1, 0, 1],
                    [0, 1, 0],
                    [0, 0, 0],
-                   [0, 0, 0],
-                   [0, 0, 0],
+                   [1, 0, 0],
+                   [0, 0, 1],
                    [0, 1, 0],
                    [0, 0, 0]])
 
@@ -145,10 +144,6 @@ class EventSeries:
         NrOfEvs = np.array(np.sum(self.__eventmatrix, axis=0), dtype=int)
         self.__nrofevents = NrOfEvs
 
-        # Dictionary for chached constants
-        self.cache = {'base': {}}
-        """(dict) cache of re-usable computation results"""
-
         # Dictionary of symmetrization functions for later use
         self.symmetrization_options = {
             'directed': EventSeries._symmetrization_directed,
@@ -158,6 +153,11 @@ class EventSeries:
             'max': EventSeries._symmetrization_max,
             'min': EventSeries._symmetrization_min
         }
+
+    def __cache_state__(self) -> Tuple[Hashable, ...]:
+        # The following attributes are assumed immutable:
+        #   (__eventmatrix, __timestamps, __taumax, __lag)
+        return ()
 
     def __str__(self):
         """
@@ -530,8 +530,8 @@ class EventSeries:
          :arg taumax: coincidence interval width
          :type lag: int
          :arg lag: lag parameter
-         :rtype list
-         :return [Precursor coincidence rate XY, Trigger coincidence rate XY,
+         :rtype: list
+         :return: [Precursor coincidence rate XY, Trigger coincidence rate XY,
                Precursor coincidence rate YX, Trigger coincidence rate YX]
          """
 
@@ -596,16 +596,15 @@ class EventSeries:
          :type ts2: 1D Numpy array
          :arg ts2: Event time array containing time points when events of event
                    series 2 occur, not obligatory
-        :type window_type: str {'retarded', 'advanced', 'symmetric'}
-        :arg window_type: Only for ECA. Determines if precursor coincidence
-                          rate ('advanced'), trigger coincidence rate
-                          ('retarded') or a general coincidence rate with the
-                          symmetric interval [-taumax, taumax] are computed
-                          ('symmetric'). Default: 'symmetric'
-         :rtype list
-         :return [Precursor coincidence rate XY, Precursor coincidence rate YX]
+         :type window_type: str {'retarded', 'advanced', 'symmetric'}
+         :arg window_type: Only for ECA. Determines if precursor coincidence
+                           rate ('advanced'), trigger coincidence rate
+                           ('retarded') or a general coincidence rate with the
+                           symmetric interval [-taumax, taumax] are computed
+                           ('symmetric'). Default: 'symmetric'
+         :rtype: list
+         :return: Precursor coincidence rates [XY, YX]
          """
-
         # Get time indices
         if ts1 is None:
             e1 = np.where(eventseriesx)[0]
@@ -709,7 +708,7 @@ class EventSeries:
 
         The event coincidence rate of ECA is calculated according to the
         formula: r(Y|X, DeltaT1, DeltaT2, tau) =
-         1/N_X sum_{i=1}^{N_X} Theta[sum{j=1}^{N_Y}
+        1/N_X sum_{i=1}^{N_X} Theta[sum{j=1}^{N_Y}
         1_[DeltaT1, DeltaT2] (t_i^X - (t_j^Y + tau))],
         where X is the first input event series, Y the second input event
         series, N_X the number of events in X, DeltaT1 and DeltaT2 the given
@@ -719,7 +718,7 @@ class EventSeries:
         :type method: str 'ES' or 'ECA'
         :arg method: determines if ES or ECA should be used
         :type symmetrization: str {'directed', 'symmetric', 'antisym',
-                                   'mean', 'max', 'min'} for ES,
+                              'mean', 'max', 'min'} for ES,
                               str {'directed', 'mean', 'max', 'min'} for ECA
         :arg symmetrization: determines if and which symmetrisation
                              method should be used for the ES/ECA score matrix
@@ -729,8 +728,8 @@ class EventSeries:
                           ('retarded') or a general coincidence rate with the
                           symmetric interval [-taumax, taumax] are computed
                           ('symmetric'). Default: 'symmetric'
-        :rtype 2D numpy array
-        :return pairwise event synchronization or pairwise coincidence rates
+        :rtype: 2D numpy array
+        :return: pairwise event synchronization or pairwise coincidence rates
                 symmetrized according to input parameter 'symmetrization'
         """
 
@@ -769,7 +768,7 @@ class EventSeries:
         # Use symmetrization functions for symmetrization and return result
         return self.symmetrization_options[symmetrization](directedESMatrix)
 
-    @cached_const('base', 'directedES')
+    @Cached.method()
     def _ndim_event_synchronization(self):
         """
         Compute NxN event synchronization matrix [i,j] with event
@@ -839,7 +838,7 @@ class EventSeries:
         :type n_surr: int
         :arg n_surr: number of surrogates for Monte-Carlo method
         :type symmetrization: str {'directed', 'symmetric', 'antisym',
-                                   'mean', 'max', 'min'} for ES,
+                              'mean', 'max', 'min'} for ES,
                               str {'directed', 'mean', 'max', 'min'} for ECA
         :arg symmetrization: determines if and which symmetrisation
                              method should be used for the ES/ECA score matrix
@@ -927,7 +926,7 @@ class EventSeries:
         :type n_surr: int
         :arg n_surr: number of surrogates for Monte-Carlo method
         :type symmetrization: str {'directed', 'symmetric', 'antisym',
-                                   'mean', 'max', 'min'} for ES,
+                              'mean', 'max', 'min'} for ES,
                               str {'directed', 'mean', 'max', 'min'} for ECA
         :arg symmetrization: determines if and which symmetrisation
                              method should be used for the ES/ECA score matrix

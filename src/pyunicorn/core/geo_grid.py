@@ -1,6 +1,6 @@
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
-# URL: <http://www.pik-potsdam.de/members/donges/software>
+# Copyright (C) 2008--2024 Jonathan F. Donges and pyunicorn authors
+# URL: <https://www.pik-potsdam.de/members/donges/software-2/software>
 # License: BSD (3-clause)
 #
 # Please acknowledge and cite the use of this software and its authors
@@ -16,14 +16,7 @@
 Provides class for horizontal two-dimensional spatio-temporal grid.
 """
 
-#
-#  Import essential packages
-#
-
-
-#  array object and fast numerics
 import numpy as np
-
 # Import package to calculate points inside a polygon
 try:
     from matplotlib import path
@@ -31,21 +24,13 @@ except ImportError:
     print("An error occurred when importing matplotlib.path! "
           "Some functionality in GeoGrid class might not be available.")
 
-#  Cythonized functions
 from ._ext.types import to_cy, FIELD
 from ._ext.numerics import _calculate_angular_distance
-
-#  Grid base class
+from .cache import Cached
 from .grid import Grid
 
 
-#
-#  Define class GeoGrid
-#
-
-
 class GeoGrid(Grid):
-
     """
     Encapsulates a horizontal two-dimensional spatio-temporal grid on the
     sphere.
@@ -58,7 +43,9 @@ class GeoGrid(Grid):
     #  Definitions of internal methods
     #
 
-    def __init__(self, time_seq, lat_seq, lon_seq, silence_level=0):
+    def __init__(self, time_seq: np.ndarray,
+                 lat_seq: np.ndarray, lon_seq: np.ndarray,
+                 silence_level: int = 0):
         """
         Initialize an instance of GeoGrid.
 
@@ -77,27 +64,12 @@ class GeoGrid(Grid):
         Grid.__init__(self, time_seq, np.vstack((lat_seq, lon_seq)),
                       silence_level)
 
-        #  Cache
-        self._angular_distance = None
-        self._angular_distance_cached = False
-
     def __str__(self):
         """
         Return a string representation of the GeoGrid object.
         """
         return (f"GeoGrid: {self._grid_size['space']} grid points, "
                 f"{self._grid_size['time']} timesteps.")
-
-    def clear_cache(self):
-        """
-        Clean up cache.
-
-        Is reversible, since all cached information can be recalculated from
-        basic data.
-        """
-        if self._angular_distance_cached:
-            del self._angular_distance
-            self._angular_distance_cached = False
 
     #
     #  Functions for loading and saving the Grid object
@@ -412,38 +384,10 @@ class GeoGrid(Grid):
         """
         return self.angular_distance()
 
-    def calculate_angular_distance(self):
-        """
-        Calculate and return the angular great circle distance matrix.
-
-        **No normalization applied anymore!** Return values are in the range
-        0 to Pi.
-
-        :rtype: 2D Numpy array [index, index]
-        :return: the angular great circle distance matrix (unit radians).
-        """
-        if self.silence_level <= 1:
-            print("Calculating angular great circle distance using Cython...")
-
-        #  Get number of nodes
-        N = self.N
-
-        #  Get sequences of cosLat, sinLat, cosLon and sinLon for all nodes
-        cos_lat = to_cy(self.cos_lat(), FIELD)
-        sin_lat = to_cy(self.sin_lat(), FIELD)
-        cos_lon = to_cy(self.cos_lon(), FIELD)
-        sin_lon = to_cy(self.sin_lon(), FIELD)
-
-        #  Initialize cython cof of angular distance matrix
-        cosangdist = np.zeros((N, N), dtype=FIELD)
-
-        _calculate_angular_distance(cos_lat, sin_lat, cos_lon, sin_lon,
-                                    cosangdist, N)
-        return np.arccos(cosangdist)
-
+    @Cached.method(name="angular great circle distance")
     def angular_distance(self):
         """
-        Return the angular great circle distance matrix.
+        Calculate the angular great circle distance matrix.
 
         **No normalization applied anymore!** Return values are in the range
         0 to Pi.
@@ -461,11 +405,18 @@ class GeoGrid(Grid):
         :rtype: 2D Numpy array [index, index]
         :return: the angular great circle distance matrix.
         """
-        if not self._angular_distance_cached:
-            self._angular_distance = self.calculate_angular_distance()
-            self._angular_distance_cached = True
-
-        return self._angular_distance
+        #  Get number of nodes
+        N = self.N
+        #  Initialize cython cof of angular distance matrix
+        cosangdist = np.zeros((N, N), dtype=FIELD)
+        _calculate_angular_distance(
+            #  Get sequences of cosLat, sinLat, cosLon and sinLon for all nodes
+            to_cy(self.cos_lat(), FIELD),
+            to_cy(self.sin_lat(), FIELD),
+            to_cy(self.cos_lon(), FIELD),
+            to_cy(self.sin_lon(), FIELD),
+            cosangdist, N)
+        return np.arccos(cosangdist)
 
     def boundaries(self):
         """

@@ -1,6 +1,6 @@
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
-# URL: <http://www.pik-potsdam.de/members/donges/software>
+# Copyright (C) 2008--2024 Jonathan F. Donges and pyunicorn authors
+# URL: <https://www.pik-potsdam.de/members/donges/software-2/software>
 # License: BSD (3-clause)
 #
 # Please acknowledge and cite the use of this software and its authors
@@ -18,19 +18,10 @@ on recurrence plots, including measures of recurrence quantification
 analysis (RQA) and recurrence network analysis.
 """
 
-#
-#  Import essential packages
-#
-
-# array object and fast numerics
 import numpy as np
 
 from .recurrence_plot import RecurrencePlot
 
-
-#
-#  Class definitions
-#
 
 class JointRecurrencePlot(RecurrencePlot):
 
@@ -139,7 +130,6 @@ class JointRecurrencePlot(RecurrencePlot):
         #  Store type of metric
         self.metric = metric
 
-        self._distance_matrix_cached = False
         self.JR = None
         """The joint recurrence matrix."""
         self.N = 0
@@ -261,33 +251,18 @@ class JointRecurrencePlot(RecurrencePlot):
         if self.silence_level <= 1:
             print("Calculating joint recurrence plot at fixed threshold...")
 
-        #  Disable caching of distances in RecurrencePlot class
-        self._distance_matrix_cached = False
-        #  Get distance matrix for the first time series
-        distance = self.distance_matrix(self.x_embedded, self.metric[0])
-
-        #  Get length of time series
+        self.embedding = self.x_embedded
+        distance = self.distance_matrix(self.metric[0])
         N = distance.shape[0]
-
-        #  Initialize first recurrence matrix
         recurrence_x = np.zeros((N, N), dtype="int8")
-
-        #  Thresholding the first distance matrix
         recurrence_x[distance < threshold[0]] = 1
-
-        #  Clean up
         del distance
 
-        #  Disable caching of distances in RecurrencePlot class
-        self._distance_matrix_cached = False
-        #  Get distance matrix for the second time series
-        distance = self.distance_matrix(self.y_embedded, self.metric[1])
-
-        #  Initialize second recurrence matrix
+        self.embedding = self.y_embedded
+        distance = self.distance_matrix(self.metric[1])
         recurrence_y = np.zeros((N, N), dtype="int8")
-
-        #  Thresholding the second distance matrix
         recurrence_y[distance < threshold[1]] = 1
+        del distance
 
         if self.lag >= 0:
             self.JR = recurrence_x[:N-self.lag, :N-self.lag] * \
@@ -298,9 +273,6 @@ class JointRecurrencePlot(RecurrencePlot):
             self.JR = recurrence_y[:N+self.lag, :N+self.lag] * \
                 recurrence_x[-self.lag:N, -self.lag:N]
         self.N = N
-
-        #  Clean up
-        del distance, recurrence_x, recurrence_y
 
     def set_fixed_threshold_std(self, threshold_std):
         """
@@ -318,11 +290,8 @@ class JointRecurrencePlot(RecurrencePlot):
             print("Calculating recurrence plot at fixed threshold "
                   "in units of time series STD...")
 
-        #  Get absolute threshold
         threshold_x = threshold_std[0] * self.x.std()
         threshold_y = threshold_std[1] * self.y.std()
-
-        #  Call set fixed threshold method
         JointRecurrencePlot.\
             set_fixed_threshold(self, (threshold_x, threshold_y))
 
@@ -341,41 +310,22 @@ class JointRecurrencePlot(RecurrencePlot):
             print("Calculating joint recurrence plot at "
                   "fixed recurrence rate...")
 
-        #  Disable caching of distances in RecurrencePlot class
-        self._distance_matrix_cached = False
-        #  Get distance matrix for the first time series
-        distance = self.distance_matrix(self.x_embedded, self.metric[0])
-
-        #  Get length of time series
+        self.embedding = self.x_embedded
+        distance = self.distance_matrix(self.metric[0])
         N = distance.shape[0]
-
-        #  Get first threshold to obtain fixed recurrence rate
         threshold_x = self.\
             threshold_from_recurrence_rate(distance, recurrence_rate[0])
-
-        #  Initialize recurrence matrix
         recurrence_x = np.zeros((N, N), dtype="int8")
-
-        #  Thresholding the distance matrix
         recurrence_x[distance < threshold_x] = 1
-
-        #  Clean up
         del distance
 
-        #  Disable caching of distances in RecurrencePlot class
-        self._distance_matrix_cached = False
-        #  Get distance matrix for the second time series
-        distance = self.distance_matrix(self.y_embedded, self.metric[1])
-
-        #  Get first threshold to obtain fixed recurrence rate
+        self.embedding = self.y_embedded
+        distance = self.distance_matrix(self.metric[1])
         threshold_y = self.\
             threshold_from_recurrence_rate(distance, recurrence_rate[1])
-
-        #  Initialize recurrence matrix
         recurrence_y = np.zeros((N, N), dtype="int8")
-
-        #  Thresholding the distance matrix
         recurrence_y[distance < threshold_y] = 1
+        del distance
 
         if self.lag >= 0:
             self.JR = recurrence_x[:N-self.lag, :N-self.lag] * \
@@ -386,6 +336,3 @@ class JointRecurrencePlot(RecurrencePlot):
             self.JR = recurrence_y[:N+self.lag, :N+self.lag] * \
                 recurrence_x[-self.lag:N, -self.lag:N]
         self.N = N
-
-        #  Clean up
-        del distance, recurrence_x, recurrence_y

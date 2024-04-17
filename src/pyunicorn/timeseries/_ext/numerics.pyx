@@ -1,6 +1,6 @@
 # This file is part of pyunicorn.
-# Copyright (C) 2008--2023 Jonathan F. Donges and pyunicorn authors
-# URL: <http://www.pik-potsdam.de/members/donges/software>
+# Copyright (C) 2008--2024 Jonathan F. Donges and pyunicorn authors
+# URL: <https://www.pik-potsdam.de/members/donges/software-2/software>
 # License: BSD (3-clause)
 #
 # Please acknowledge and cite the use of this software and its authors
@@ -624,7 +624,7 @@ def _twin_surrogates_r(int n_surrogates, int N, int dim, twins,
 # parameters for `_line_dist()`
 ctypedef int     (*line_type_i2J) (int, int)
 ctypedef int     (*line_type_ij2I)(int, int, int)
-ctypedef FIELD_t (*metric_type)(int, int, int, FIELD_t[:,:])
+ctypedef DFIELD_t (*metric_type)(int, int, int, DFIELD_t[:,:])
 
 cdef:
     inline int i2J_vertline(int i, int N): return N
@@ -632,10 +632,10 @@ cdef:
     inline int ij2I_vertline(int i, int j, int N): return i
     inline int ij2I_diagline(int i, int j, int N): return N - i + j
     metric_type metric_null = NULL
-    inline FIELD_t metric_supremum(int I, int j, int dim, FIELD_t[:,:] E):
+    inline DFIELD_t metric_supremum(int I, int j, int dim, DFIELD_t[:,:] E):
         cdef:
             int l
-            FIELD_t diff = 0, tmp_diff
+            DFIELD_t diff = 0, tmp_diff
         for l in range(dim):
             tmp_diff = abs(E[I, l] - E[j, l])
             if tmp_diff > diff:
@@ -645,7 +645,7 @@ cdef:
 
 cdef void _line_dist(
     int n_time, ndarray[NODE_t, ndim=1] hist,
-    ndarray[LAG_t, ndim=2] R, ndarray[FIELD_t, ndim=2] E, float eps, int dim,
+    ndarray[LAG_t, ndim=2] R, ndarray[DFIELD_t, ndim=2] E, float eps, int dim,
     metric_type metric, bint black,
     ndarray[MASK_t, ndim=1, cast=True] M, bint missing_values,
     line_type_i2J i2J, line_type_ij2I ij2I, bint skip_main):
@@ -710,7 +710,7 @@ cdef void _line_dist(
 def _vertline_dist(
         int n_time, ndarray[NODE_t, ndim=1] hist, ndarray[LAG_t, ndim=2] R):
     cdef:
-        ndarray[FIELD_t, ndim=2] E_null = np.array([[]], dtype=FIELD)
+        ndarray[DFIELD_t, ndim=2] E_null = np.array([[]], dtype=DFIELD)
         ndarray[MASK_t, ndim=1] M_null = np.array([], dtype=MASK)
     _line_dist(
         n_time, hist, R, E_null, 0, 0, metric_null, True, M_null, False,
@@ -719,7 +719,7 @@ def _vertline_dist(
 def _diagline_dist(
         int n_time, ndarray[NODE_t, ndim=1] hist, ndarray[LAG_t, ndim=2] R):
     cdef:
-        ndarray[FIELD_t, ndim=2] E_null = np.array([[]], dtype=FIELD)
+        ndarray[DFIELD_t, ndim=2] E_null = np.array([[]], dtype=DFIELD)
         ndarray[MASK_t, ndim=1] M_null = np.array([], dtype=MASK)
     _line_dist(
         n_time, hist, R, E_null, 0, 0, metric_null, True, M_null, False,
@@ -728,7 +728,7 @@ def _diagline_dist(
 def _white_vertline_dist(
         int n_time, ndarray[NODE_t, ndim=1] hist, ndarray[LAG_t, ndim=2] R):
     cdef:
-        ndarray[FIELD_t, ndim=2] E_null = np.array([[]], dtype=FIELD)
+        ndarray[DFIELD_t, ndim=2] E_null = np.array([[]], dtype=DFIELD)
         ndarray[MASK_t, ndim=1] M_null = np.array([], dtype=MASK)
     _line_dist(
         n_time, hist, R, E_null, 0, 0, metric_null, False, M_null, False,
@@ -736,7 +736,7 @@ def _white_vertline_dist(
 
 def _vertline_dist_sequential(
         int n_time, ndarray[NODE_t, ndim=1] hist,
-        ndarray[FIELD_t, ndim=2] E, float eps, int dim):
+        ndarray[DFIELD_t, ndim=2] E, float eps, int dim):
     cdef:
         ndarray[LAG_t, ndim=2] null_R = np.array([[]], dtype=LAG)
         ndarray[MASK_t, ndim=1] M_null = np.array([], dtype=MASK)
@@ -746,7 +746,7 @@ def _vertline_dist_sequential(
 
 def _diagline_dist_sequential(
         int n_time, ndarray[NODE_t, ndim=1] hist,
-        ndarray[FIELD_t, ndim=2] E, float eps, int dim):
+        ndarray[DFIELD_t, ndim=2] E, float eps, int dim):
     cdef:
         ndarray[LAG_t, ndim=2] null_R = np.array([[]], dtype=LAG)
         ndarray[MASK_t, ndim=1] M_null = np.array([], dtype=MASK)
@@ -758,7 +758,7 @@ def _vertline_dist_missingvalues(
         int n_time, ndarray[NODE_t, ndim=1] hist, ndarray[LAG_t, ndim=2] R,
         ndarray[MASK_t, ndim=1, cast=True] M):
     cdef:
-        ndarray[FIELD_t, ndim=2] E_null = np.array([[]], dtype=FIELD)
+        ndarray[DFIELD_t, ndim=2] E_null = np.array([[]], dtype=DFIELD)
     _line_dist(
         n_time, hist, R, E_null, 0, 0, metric_null, True, M, True,
         i2J_vertline, ij2I_vertline, False)
@@ -767,7 +767,7 @@ def _diagline_dist_missingvalues(
         int n_time, ndarray[NODE_t, ndim=1] hist, ndarray[LAG_t, ndim=2] R,
         ndarray[MASK_t, ndim=1, cast=True] M):
     cdef:
-        ndarray[FIELD_t, ndim=2] E_null = np.array([[]], dtype=FIELD)
+        ndarray[DFIELD_t, ndim=2] E_null = np.array([[]], dtype=DFIELD)
     _line_dist(
         n_time, hist, R, E_null, 0, 0, metric_null, True, M, True,
         i2J_diagline, ij2I_diagline, True)
@@ -775,7 +775,7 @@ def _diagline_dist_missingvalues(
 def _vertline_dist_sequential_missingvalues(
         int n_time, ndarray[NODE_t, ndim=1] hist,
         ndarray[MASK_t, ndim=1, cast=True] M,
-        ndarray[FIELD_t, ndim=2] E, float eps, int dim):
+        ndarray[DFIELD_t, ndim=2] E, float eps, int dim):
     cdef:
         ndarray[LAG_t, ndim=2] null_R = np.array([[]], dtype=LAG)
     _line_dist(
@@ -785,7 +785,7 @@ def _vertline_dist_sequential_missingvalues(
 def _diagline_dist_sequential_missingvalues(
         int n_time, ndarray[NODE_t, ndim=1] hist,
         ndarray[MASK_t, ndim=1, cast=True] M,
-        ndarray[FIELD_t, ndim=2] E, float eps, int dim):
+        ndarray[DFIELD_t, ndim=2] E, float eps, int dim):
     cdef:
         ndarray[LAG_t, ndim=2] null_R = np.array([[]], dtype=LAG)
     _line_dist(
