@@ -822,7 +822,7 @@ class GeoNetwork(SpatialNetwork):
     #  (Un)directed connectivity weighted link distances
 
     def _calculate_general_connectivity_weighted_distance(self, adjacency,
-                                                          degrees):
+                                                          degree):
         """
         Return general connectivity weighted link distances (CWD).
 
@@ -831,8 +831,8 @@ class GeoNetwork(SpatialNetwork):
 
         :type adjacency: 2D array [index, index]
         :arg adjacency: The adjacency matrix.
-        :type degrees: 1D array [index]
-        :arg degrees: The degree sequence.
+        :type degree: 1D array [index]
+        :arg degree: The degree sequence.
         :rtype: 1D array [index]
         :return: the general connectivity weighted distance sequence.
         """
@@ -847,8 +847,8 @@ class GeoNetwork(SpatialNetwork):
                 (adjacency[i, :] * cos_lat * D[i, :]).sum()
 
         #  Normalize by node degree and total dimensionless area
-        connectivity_weighted_distance[degrees != 0] /= \
-            degrees[degrees != 0] * norm
+        connectivity_weighted_distance[degree != 0] /= \
+            degree[degree != 0] * norm
 
         return connectivity_weighted_distance
 

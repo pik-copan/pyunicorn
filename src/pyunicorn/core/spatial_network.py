@@ -504,7 +504,7 @@ class SpatialNetwork(Network):
 
     #  (Un)directed average link distances
 
-    def _calculate_general_average_link_distance(self, adjacency, degrees,
+    def _calculate_general_average_link_distance(self, adjacency, degree,
                                                  geometry_corrected=False):
         """
         Return general average link distances (:math:`ALD`).
@@ -520,20 +520,19 @@ class SpatialNetwork(Network):
 
         :type adjacency: 2D array [index, index]
         :arg adjacency: The adjacency matrix.
-        :type degrees: 1D array [index]
-        :arg degrees: The degree sequence.
+        :type degree: 1D array [index]
+        :arg degree: The degree sequence.
         :arg bool geometry_corrected: Toggles geometry correction.
         :rtype: 1D array [index]
         :return: the general average link distance sequence.
         """
         D = self.grid.distance()
-        k = self.degree()
 
         average_link_distance = np.zeros(self.N)
 
-        #  Normalize by degree, not by number of nodes!!!
-        average_link_distance[k != 0] = \
-            (D * adjacency).sum(axis=1)[k != 0] / k[k != 0]
+        #  Normalize by degree, not by number of nodes
+        average_link_distance[degree != 0] = \
+            (D * adjacency).sum(axis=1)[degree != 0] / degree[degree != 0]
 
         if geometry_corrected:
             #  Calculate the average link distance for a fully connected
