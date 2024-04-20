@@ -101,11 +101,10 @@ class RainfallClimateNetwork(ClimateNetwork):
         self._non_local = non_local
         self.node_weight_type = node_weight_type
         self.silence_level = silence_level
-        self.time_cycle = self.data.time_cycle
 
         #  Calculate correlation measure
         correlation = self._calculate_correlation(
-            event_threshold, scale_fac, offset, time_cycle=self.time_cycle)
+            event_threshold, scale_fac, offset)
 
         ClimateNetwork.__init__(self, grid=self.data.grid,
                                 similarity_measure=correlation,
@@ -126,8 +125,7 @@ class RainfallClimateNetwork(ClimateNetwork):
     # Defines methods to calculate the correlation matrix
     #
 
-    def _calculate_correlation(self, event_threshold, scale_fac, offset,
-                               time_cycle):
+    def _calculate_correlation(self, event_threshold, scale_fac, offset):
         """
         Returns the Spearman Rho correlation matrix.
 
@@ -146,10 +144,6 @@ class RainfallClimateNetwork(ClimateNetwork):
 
         :type offset: number (float)
         :arg offset: Offset for rescaling data.
-
-        :type time_cycle: number (int)
-        :arg time_cycle: Length of annual cycle in given data (monthly: 12,
-                         daily: 365 etc.)
 
         :rtype: 2D Numpy array (index, index)
         :return: the Spearman's rho matrix at zero lag.

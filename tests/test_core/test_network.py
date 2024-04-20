@@ -240,7 +240,7 @@ def test_set_adjacency(capsys):
     assert out == out_ref
 
 
-def test_set_node_weights(capsys):
+def test_set_node_weights():
     net = Network.SmallTestNetwork()
     nw_ref = [1.5, 1.7, 1.9, 2.1, 2.3, 2.5]
     assert np.allclose(net.node_weights, nw_ref)
@@ -265,7 +265,7 @@ def test_BarabasiAlbert_igraph():
 
 
 def test_ConfigurationModel():
-    net = Network.Model("Configuration", degrees=[3 for _ in range(0, 1000)])
+    net = Network.Model("Configuration", degree=[3 for _ in range(0, 1000)])
     assert int(round(net.degree().mean())) == 3
 
 

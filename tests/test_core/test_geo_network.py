@@ -40,8 +40,7 @@ def test_ConfigurationModel():
     n = 0
     while n != 7:
         net = GeoNetwork.Model("Configuration", grid=GeoGrid.SmallTestGrid(),
-                               degrees=GeoNetwork.SmallTestNetwork().degree(),
-                               silence_level=2)
+                               degree=GeoNetwork.SmallTestNetwork().degree())
         n = net.n_links
     res = net.link_density
     exp = 0.46666667
