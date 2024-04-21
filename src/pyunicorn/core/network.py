@@ -515,6 +515,7 @@ class Network(Cached):
     #  Load and save Network object
     #
 
+    # pylint: disable=keyword-arg-before-vararg
     def save(self, filename, fileformat=None, *args, **kwds):
         """
         Save the Network object to a file.
@@ -555,6 +556,7 @@ class Network(Cached):
 
         self.graph.write(f=filename, format=fileformat, *args, **kwds)
 
+    # pylint: disable=keyword-arg-before-vararg
     @staticmethod
     def Load(filename, fileformat=None, silence_level=0, *args, **kwds):
         """

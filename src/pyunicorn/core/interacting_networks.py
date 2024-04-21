@@ -1136,6 +1136,7 @@ class InteractingNetworks(Network):
         :rtype: 1D array [node index]
         :return: the cross in degree sequence.
         """
+        # pylint: disable=arguments-out-of-order
         if link_attribute is None:
             return np.sum(self.cross_adjacency(node_list2, node_list1), axis=0)
         else:

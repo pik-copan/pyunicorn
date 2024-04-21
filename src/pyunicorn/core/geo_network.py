@@ -119,6 +119,7 @@ class GeoNetwork(SpatialNetwork):
     #  Load and save GeoNetwork object
     #
 
+    # pylint: disable=keyword-arg-before-vararg
     @staticmethod
     def Load(filename, fileformat=None, silence_level=0, *args, **kwds):
         """

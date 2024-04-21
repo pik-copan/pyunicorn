@@ -80,6 +80,7 @@ class SpatialNetwork(Network):
     #  Load and save GeoNetwork object
     #
 
+    # pylint: disable=keyword-arg-before-vararg
     def save(self, filename, fileformat=None, *args, **kwds):
         """
         Save the SpatialNetwork object to files.
@@ -128,6 +129,7 @@ class SpatialNetwork(Network):
         if filename_grid is not None:
             self.grid.save(filename=filename_grid)
 
+    # pylint: disable=keyword-arg-before-vararg
     @staticmethod
     def Load(filename, fileformat=None, silence_level=0, *args, **kwds):
         """
