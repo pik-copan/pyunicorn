@@ -33,8 +33,8 @@ graphs*.
 compiled C code. It can handle **large networks** through the
 use of sparse data structures. The package can be used interactively, from any
 Python script, and even for parallel computations on large cluster architectures.
-For information about individual releases, see our `CHANGELOG <CHANGELOG.rst>`_
-and `CONTRIBUTIONS <CONTRIBUTIONS.rst>`_.
+For information about individual releases,
+see our `CHANGELOG <CHANGELOG.rst>`_ and `CONTRIBUTIONS <CONTRIBUTIONS.rst>`_.
 
 
 License
