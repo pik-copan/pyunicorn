@@ -5,7 +5,7 @@ Introduction
 
 .. include:: ../../README.rst
     :start-after: :target: https://codecov.io/gh/pik-copan/pyunicorn
-    :end-before: For information about individual releases,
+    :end-before: License
 
 Example
 =======
