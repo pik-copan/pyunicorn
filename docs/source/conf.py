@@ -89,7 +89,7 @@ todo_include_todos = False
 modindex_common_prefix = ['pyunicorn.']
 
 # Suppress warnings for test suite.
-suppress_warnings = ['image.nonlocal_uri', 'config.cache']
+suppress_warnings = ['image.nonlocal_uri']
 
 
 # -- Options for HTML output ----------------------------------------------
