@@ -71,8 +71,7 @@ instance/
 .scrapy
 
 # Sphinx documentation
-docs/_build/
-docs/source/tutorials/images/
+docs/build/
 
 # PyBuilder
 .pybuilder/
@@ -167,4 +166,4 @@ cython_debug/
 
 # cached data
 *.data
-examples/tutorials/data
+docs/source/examples/tutorials/data

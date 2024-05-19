@@ -12,4 +12,4 @@ For further details on the used classes and methods, please refer to the
     :maxdepth: 2
     :glob:
 
-    tutorials/*
+    examples/tutorials/*

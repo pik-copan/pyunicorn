@@ -43,7 +43,7 @@ def reanalysis_data() -> Path:
         "VkL3N1cmZhY2UvYWlyLm1vbi5tZWFuLm5j")
     url = f"{service}/{data_name}?{query}"
 
-    data_dir = Path("./examples/tutorials/data")
+    data_dir = Path("./docs/source/examples/tutorials/data")
     data_file = data_dir / data_name
 
     if not data_dir.is_dir():
