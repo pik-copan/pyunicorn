@@ -33,7 +33,7 @@ def reanalysis_data() -> Path:
     """
     Locate, and potentially download, a small NOAA dataset. Currently used in:
     - `tests/test_climate/test_map_plot.py`
-    - `examples/tutorials/ClimateNetworks.ipynb`
+    - `docs/source/examples/tutorials/ClimateNetworks.ipynb`
     """
     service = "https://psl.noaa.gov/repository/entry/get"
     data_name = "air.mon.mean.nc"
