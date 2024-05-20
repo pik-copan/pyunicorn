@@ -369,7 +369,7 @@ class CouplingAnalysisPurePython:
         corr_range = self.total_time - 2*tau_max
 
         # get the bin quantile steps
-        bin_edge = numpy.ceil(corr_range/float(bins))
+        bin_edge = numpy.ceil(corr_range/float(bins)).astype(int)
 
         symbolic_array = numpy.empty((2*tau_max + 1, self.N, corr_range),
                                      dtype=dtype)

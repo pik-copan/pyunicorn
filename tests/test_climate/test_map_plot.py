@@ -23,6 +23,7 @@ from pyunicorn.climate.map_plot import MapPlot
 
 matplotlib.use('Agg')
 
+
 # pylint: disable=too-few-public-methods
 class TestMapPlot:
     """
