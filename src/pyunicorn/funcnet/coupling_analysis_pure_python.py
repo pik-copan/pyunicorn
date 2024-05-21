@@ -475,7 +475,7 @@ class CouplingAnalysisPurePython:
                 numpy.random.shuffle(array[i])
 
         # get the bin quantile steps
-        bin_edge = numpy.ceil(corr_range/float(bins))
+        bin_edge = numpy.ceil(corr_range/float(bins)).astype(int)
 
         symbolic_array = numpy.empty((1, self.N, corr_range), dtype=dtype)
 

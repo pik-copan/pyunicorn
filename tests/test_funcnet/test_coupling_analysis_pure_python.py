@@ -16,6 +16,7 @@
 Simple tests for the funcnet CouplingAnalysisPurePython class.
 """
 import numpy as np
+import pytest
 
 from pyunicorn.funcnet import CouplingAnalysis, CouplingAnalysisPurePython
 
@@ -65,6 +66,116 @@ def test_cross_correlation_max():
            np.array([[0, 4, 1, 2], [-4, 0, -3, -2],
                      [-1, 3, 0, 1], [-2, 2, -1, 0]]))
     assert np.allclose(res, exp, atol=1e-04)
+
+
+def test_shuffled_surrogate_for_cc_all():
+    coup_ana = CouplingAnalysisPurePython(CouplingAnalysis.test_data())
+    res = coup_ana.shuffled_surrogate_for_cc(tau_max=1, lag_mode='all')
+    exp = np.array([[[1., -0.0324, -0.0175,  0.0427],
+                     [-0.0324,  1.,  0.1045, 0.0211],
+                     [-0.0175,  0.1045,  1., 0.0298],
+                     [0.0427,   0.0211,  0.0298, 1.]],
+                    [[1., -0.0324, -0.0175,  0.0427],
+                     [-0.0324, 1.,  0.1045,  0.0211],
+                     [-0.0175, 0.1045,  1.,  0.0298],
+                     [0.0427,  0.0211,  0.0298,  1.]],
+                    [[1., -0.0324, -0.0175,  0.0427],
+                     [-0.0324, 1.,  0.1045,  0.0211],
+                     [-0.0175, 0.1045,  1.,  0.0298],
+                     [0.0427,  0.0211,  0.0298,  1.]]])
+    assert np.allclose(res, exp, atol=1e-04)
+
+
+def test_shuffled_surrogate_for_cc_sum():
+    coup_ana = CouplingAnalysisPurePython(CouplingAnalysis.test_data())
+    res = coup_ana.shuffled_surrogate_for_cc(tau_max=5, lag_mode='sum')
+    exp = np.array([[[6., 0.2227, 0.0897, 0.2644],
+                     [0.2227, 6., 0.6321, 0.1233],
+                     [0.0897, 0.6321, 6., 0.1810],
+                     [0.2644, 0.1233, 0.1810, 6.]],
+                    [[6., 0.2227, 0.0897, 0.2644],
+                     [0.2227, 6., 0.6321, 0.1233],
+                     [0.0897, 0.6321, 6., 0.1810],
+                     [0.2644, 0.1233, 0.1810, 6.]]])
+    assert np.allclose(res, exp, atol=1e-04)
+
+
+def test_shuffled_surrogate_for_cc_max():
+    coup_ana = CouplingAnalysisPurePython(CouplingAnalysis.test_data())
+    similarity_matrix, lag_matrix = \
+        coup_ana.shuffled_surrogate_for_cc(tau_max=5, lag_mode='max')
+    res = (similarity_matrix, lag_matrix)
+    exp = (np.array([[1., 0.0371, 0.0150, 0.0441],
+                     [0.0371, 1., 0.1054, 0.0206],
+                     [0.0150, 0.1054, 1., 0.0302],
+                     [0.0441, 0.0206, 0.0302, 1.]]),
+           np.array([[-4, -2, 0, -2],
+                     [3,  -2, 0,  0],
+                     [4,   5, 4, -5],
+                     [2,  -3, 0, -3]]))
+    assert np.allclose(res, exp, atol=1e-04)
+
+
+def test_shuffled_surrogate_for_cc_value_error():
+    with pytest.raises(ValueError,
+                       match='lag_mode must be "all", "sum" or "max".'):
+        CouplingAnalysisPurePython(CouplingAnalysis.test_data()) \
+            .shuffled_surrogate_for_cc(lag_mode='some_other')
+
+
+def test_shuffled_surrogate_for_mi_all():
+    coup_ana = CouplingAnalysisPurePython(CouplingAnalysis.test_data())
+    res = coup_ana.shuffled_surrogate_for_mi(tau_max=1, lag_mode='all')
+    exp = np.array([[[1.0003, 0.0468, 0.0425, 0.0489],
+                     [0.0468, 1.0003, 0.0440, 0.0436],
+                     [0.0425, 0.0440, 1.0003, 0.0502],
+                     [0.0489, 0.0436, 0.0502, 1.0003]],
+                    [[1.0003, 0.0468, 0.0425, 0.0489],
+                     [0.0468, 1.0003, 0.0440, 0.0436],
+                     [0.0425, 0.0440, 1.0003, 0.0502],
+                     [0.0489, 0.0436, 0.0502, 1.0003]],
+                    [[1.0003, 0.0468, 0.0425, 0.0489],
+                     [0.0468, 1.0003, 0.0440, 0.0436],
+                     [0.0425, 0.0440, 1.0003, 0.0502],
+                     [0.0489, 0.0436, 0.0502, 1.0003]]])
+    assert np.allclose(res, exp, atol=1e-04)
+
+
+def test_shuffled_surrogate_for_mi_sum():
+    coup_ana = CouplingAnalysisPurePython(CouplingAnalysis.test_data())
+    res = coup_ana.shuffled_surrogate_for_mi(tau_max=5, lag_mode='sum')
+    exp = np.array([[[6.0001, 0.2598, 0.2194, 0.2690],
+                     [0.2598, 6.0001, 0.2851, 0.2505],
+                     [0.2194, 0.2851, 6.0001, 0.2861],
+                     [0.2690, 0.2505, 0.2861, 6.0001]],
+                    [[6.0001, 0.2598, 0.2194, 0.2690],
+                     [0.2598, 6.0001, 0.2851, 0.2505],
+                     [0.2194, 0.2851, 6.0001, 0.2861],
+                     [0.2690, 0.2505, 0.2861, 6.0001]]])
+    assert np.allclose(res, exp, atol=1e-04)
+
+
+def test_shuffled_surrogate_for_mi_max():
+    coup_ana = CouplingAnalysisPurePython(CouplingAnalysis.test_data())
+    similarity_matrix, lag_matrix = \
+        coup_ana.shuffled_surrogate_for_mi(tau_max=5, lag_mode='max')
+    res = (similarity_matrix, lag_matrix)
+    exp = (np.array([[1., 0.0433, 0.0366, 0.0448],
+                     [0.0433, 1., 0.0475, 0.0418],
+                     [0.0366, 0.0475, 1., 0.0477],
+                     [0.0448, 0.0418, 0.0477, 1.]]),
+           np.array([[-4, -2, 0, -2],
+                     [3,  -2, 0,  0],
+                     [4,   5, 4, -5],
+                     [2,  -3, 0, -3]]))
+    assert np.allclose(res, exp, atol=1e-04)
+
+
+def test_shuffled_surrogate_for_mi_value_error():
+    with pytest.raises(ValueError,
+                       match='lag_mode must be "all", "sum" or "max".'):
+        CouplingAnalysisPurePython(CouplingAnalysis.test_data()) \
+            .shuffled_surrogate_for_mi(lag_mode='some_other')
 
 
 def test_mutual_information_all():

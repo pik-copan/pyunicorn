@@ -693,7 +693,7 @@ class CouplingAnalysis:
         dim, T = array.shape
 
         # get the bin quantile steps
-        bin_edge = numpy.ceil(T/float(bins))
+        bin_edge = numpy.ceil(T/float(bins)).astype(int)
 
         symb_array = numpy.zeros((dim, T), dtype=INT32TYPE)
 
