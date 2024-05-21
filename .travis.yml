@@ -68,7 +68,7 @@ install:
   - | # install Python libs via Miniconda
     travis_retry conda install -c conda-forge \
         numpy scipy python-igraph h5netcdf tqdm \
-        ipython networkx matplotlib cartopy sphinx nbsphinx nbsphinx-link \
+        ipython networkx matplotlib cartopy sphinx nbsphinx \
         tox flake8 pylint pytest-xdist pytest-cov
     conda info -a
     conda list

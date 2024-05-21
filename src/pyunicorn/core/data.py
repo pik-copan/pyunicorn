@@ -572,9 +572,7 @@ class Data:
             array /= scale_factor
             scaled_array = array.astype('uint8')
         else:
-            print(f"Data type {var_type} not supported!")
-            scale_factor = 1.
-            add_offset = 0.
+            raise ValueError(f"Data type {var_type} not supported.")
 
         return (scaled_array, scale_factor, add_offset, actual_range)
 

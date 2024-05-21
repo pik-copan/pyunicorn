@@ -16,11 +16,12 @@
 Simple tests for the funcnet CouplingAnalysis class.
 """
 import numpy as np
+import pytest
 
 from pyunicorn.core.data import Data
 from pyunicorn.funcnet import CouplingAnalysis
 
-from pyunicorn.core._ext.types import FIELD
+from pyunicorn.core._ext.types import LAG, FIELD
 
 
 def create_test_data():
@@ -92,7 +93,7 @@ def test_cross_correlation_all():
     assert np.allclose(res, exp, atol=1e-04)
 
 
-def test_mutual_information():
+def test_mutual_information_knn():
     coup_ana = CouplingAnalysis(CouplingAnalysis.test_data())
     similarity_matrix, lag_matrix = coup_ana.mutual_information(
         tau_max=5, knn=10, estimator='knn')
@@ -100,15 +101,55 @@ def test_mutual_information():
     exp = (np.array([[4.6505, 0.4387, 0.4652, 0.4126],
                      [0.147, 4.6505, 0.1065, 0.1639],
                      [0.2483, 0.2126, 4.6505, 0.2204],
-                     [0.1209, 0.199, 0.1453, 4.6505]]),
+                     [0.1209, 0.199, 0.1453, 4.6505]], dtype=FIELD),
            np.array([[0, 4, 1, 2],
                      [0, 0, 0, 0],
                      [0, 2, 0, 1],
-                     [0, 2, 0, 0]], dtype=np.int8))
+                     [0, 2, 0, 0]], dtype=LAG))
     assert np.allclose(res, exp, atol=1e-04)
 
 
-def test_information_transfer():
+def test_mutual_information_binning():
+    coup_ana = CouplingAnalysis(CouplingAnalysis.test_data())
+    similarity_matrix, lag_matrix = coup_ana.mutual_information(
+        tau_max=5, bins=6, estimator='binning')
+    res = (similarity_matrix, lag_matrix)
+    exp = (np.array([[1.7828, 0.3765, 0.3551, 0.3288],
+                     [0.1326, 1.7828, 0.1140, 0.1498],
+                     [0.1951, 0.1784, 1.7828, 0.1918],
+                     [0.1139, 0.1681, 0.1266, 1.7828]], dtype=FIELD),
+           np.array([[0, 4, 1, 2],
+                     [0, 0, 0, 0],
+                     [0, 3, 0, 1],
+                     [0, 2, 0, 0]], dtype=LAG))
+    assert np.allclose(res, exp, atol=1e-04)
+
+
+@pytest.mark.filterwarnings("ignore:divide by zero encountered in log")
+def test_mutual_information_gauss():
+    coup_ana = CouplingAnalysis(CouplingAnalysis.test_data())
+    similarity_matrix, lag_matrix = coup_ana.mutual_information(
+        tau_max=5, estimator='gauss')
+    res = (similarity_matrix, lag_matrix)
+    exp = (np.array([[np.inf, 0.4255, 0.4668, 0.4196],
+                     [0.1339, np.inf, 0.1133, 0.1574],
+                     [0.2445, 0.2089, np.inf, 0.2224],
+                     [0.1326, 0.1808, 0.1436, np.inf]], dtype=FIELD),
+           np.array([[0, 4, 1, 2],
+                     [0, 0, 0, 0],
+                     [0, 3, 0, 1],
+                     [0, 2, 0, 0]], dtype=LAG))
+    assert np.allclose(res, exp, atol=1e-04)
+
+
+def test_mutual_information_value_error():
+    with pytest.raises(ValueError,
+                       match='estimator must be "knn", "binning" or "gauss".'):
+        CouplingAnalysis(CouplingAnalysis.test_data()) \
+            .mutual_information(estimator='some_other')
+
+
+def test_information_transfer_knn():
     coup_ana = CouplingAnalysis(CouplingAnalysis.test_data())
     similarity_matrix, lag_matrix = coup_ana.information_transfer(
         tau_max=5, estimator='knn', knn=10)
@@ -119,3 +160,27 @@ def test_information_transfer():
                      [0.0066, 0.0694, 0.0401, 0.]]),
            np.array([[0, 2, 1, 2], [5, 0, 0, 0], [5, 1, 0, 1], [5, 0, 0, 0]]))
     assert np.allclose(res, exp, atol=1e-04)
+
+
+@pytest.mark.filterwarnings("ignore:divide by zero encountered in log")
+def test_information_transfer_gauss():
+    coup_ana = CouplingAnalysis(CouplingAnalysis.test_data())
+    similarity_matrix, lag_matrix = coup_ana.information_transfer(
+        tau_max=5, estimator='gauss')
+    res = (similarity_matrix, lag_matrix)
+    exp = (np.array([[0., 0.1732, 0.3256, 0.3148],
+                     [0.0006, 0., 0.0324, 0.0755],
+                     [0.0012, 0.0754, 0., 0.1365],
+                     [0.0008, 0.0753, 0.0442, 0.]], dtype=FIELD),
+           np.array([[0, 2, 1, 2],
+                     [5, 0, 0, 0],
+                     [3, 1, 0, 1],
+                     [1, 0, 0, 0]], dtype=LAG))
+    assert np.allclose(res, exp, atol=1e-04)
+
+
+def test_information_transfer_value_error():
+    with pytest.raises(ValueError,
+                       match='estimator must be "knn", "binning" or "gauss".'):
+        CouplingAnalysis(CouplingAnalysis.test_data()) \
+            .information_transfer(estimator='some_other')
