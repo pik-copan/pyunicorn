@@ -81,10 +81,12 @@ def r(obj, decimals=4):
     """
     if isinstance(obj, (np.ndarray, np.matrix)):
         if obj.dtype.kind == 'f':
-            rounded = np.around(obj.astype(np.float128),
+            rounded = np.around(obj.astype(np.longdouble),
                                 decimals=decimals).astype(np.float64)
         elif obj.dtype.kind == 'i':
             rounded = obj.astype(np.int)
+        else:
+            raise TypeError('obj is of unsupported dtype kind.')
     elif isinstance(obj, list):
         rounded = map(r, obj)
     elif isinstance(obj, tuple):
@@ -1346,8 +1348,7 @@ class Network(Cached):
                 elif direction == "in":
                     diagonal = self.indegree()
                 else:
-                    print("ERROR: argument direction of Network.laplacian "
-                          "can only take values <<in>> or <<out>>.")
+                    raise ValueError('direction must be "in" or "out".')
             else:
                 diagonal = self.degree()
 
@@ -2158,6 +2159,7 @@ class Network(Cached):
         if nsi:
             nodew = sp.csc_matrix(np.eye(self.N) * self.node_weights)
         if key is None:
+            # pylint: disable=possibly-used-before-assignment
             A = self.sp_Aplus() * nodew if nsi else self.sp_A
             AT = self.sp_Aplus().T * nodew if nsi else A.T
         else:

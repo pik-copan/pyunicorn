@@ -1153,6 +1153,7 @@ class GeoNetwork(SpatialNetwork):
                 pos2 = partial_shape[int((it+off) % length)]
                 latlon_shape.append(self.cartesian2latlon(pos1))
                 d2 = ((pos2-pos1)**2).sum()
+                assert not np.isinf(d2)
                 if d2 < mind2:
                     rep = self.cartesian2latlon((pos1+pos2)/2)
                     mind2 = d2
@@ -1163,6 +1164,7 @@ class GeoNetwork(SpatialNetwork):
             boundary.append(partial_boundary)
             shape.append(latlon_shape)
             fullshape.append(latlon_fullshape)
+            # pylint: disable-next=possibly-used-before-assignment
             representative.append(rep)
 
         # TODO: sort sub-regions by descending size!

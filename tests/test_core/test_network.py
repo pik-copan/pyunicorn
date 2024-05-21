@@ -25,6 +25,7 @@ import numpy as np
 import scipy.sparse as sp
 
 from pyunicorn import Network
+from pyunicorn.core.network import r
 
 
 # -----------------------------------------------------------------------------
@@ -172,6 +173,23 @@ def test_nsi():
     compare_nsi(dnw, nsi_measures)
     compare_nsi(nw, nsi_measures + nsi_undirected_measures)
 
+
+# -----------------------------------------------------------------------------
+# test doctest helpers
+# -----------------------------------------------------------------------------
+
+
+def test_r():
+    arr = np.random.rand(3, 3)
+    assert r(arr).dtype == np.float64
+
+
+def test_r_type_error():
+    arr = np.array(['one', 'two', 'three'])
+    with pytest.raises(TypeError, match='obj is of unsupported dtype kind.'):
+        r(arr)
+
+
 # -----------------------------------------------------------------------------
 # Class member tests with TestNetwork
 # -----------------------------------------------------------------------------
@@ -305,6 +323,11 @@ def test_laplacian():
                         [0, -1, 2, 0, -1, 0], [-1, -1, 0, 2, 0, 0],
                         [-1, -1, -1, 0, 3, 0], [-1, 0, 0, 0, 0, 1]])
     assert np.allclose(Network.SmallTestNetwork().laplacian(), lap_ref)
+
+
+def test_laplacian_value_error():
+    with pytest.raises(ValueError, match='direction must be "in" or "out".'):
+        Network.SmallDirectedTestNetwork().laplacian(direction='some_other')
 
 
 def test_nsi_laplacian():

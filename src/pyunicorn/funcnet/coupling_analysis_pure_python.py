@@ -177,6 +177,11 @@ class CouplingAnalysisPurePython:
         :rtype: 3D numpy array (float) [index, index, index]
         :return: correlation matrix with different lag_mode choices
         """
+        # pylint: disable=possibly-used-before-assignment
+
+        if lag_mode not in self.lag_modi:
+            raise ValueError('lag_mode must be "all", "sum" or "max".')
+
         corr_range = self.total_time - 2*tau_max
 
         # Shuffle a copy of dataarray separatly for each node
@@ -252,6 +257,7 @@ class CouplingAnalysisPurePython:
         ## lag_mode dict
         mode = self.lag_modi[lag_mode]
         """
+        # pylint: disable=used-before-assignment
 
         # lag_mode dict
         mode = self.lag_modi[lag_mode]
@@ -362,7 +368,7 @@ class CouplingAnalysisPurePython:
         corr_range = self.total_time - 2*tau_max
 
         # get the bin quantile steps
-        bin_edge = numpy.ceil(corr_range/float(bins))
+        bin_edge = numpy.ceil(corr_range/float(bins)).astype(int)
 
         symbolic_array = numpy.empty((2*tau_max + 1, self.N, corr_range),
                                      dtype=dtype)
@@ -433,6 +439,11 @@ class CouplingAnalysisPurePython:
         :rtype: 3D numpy array (float) [index, index, index]
         :return: correlation matrix with different lag_mode choices
         """
+        # pylint: disable=possibly-used-before-assignment
+
+        if lag_mode not in self.lag_modi:
+            raise ValueError('lag_mode must be "all", "sum" or "max".')
+
         if bins < 255:
             dtype = 'uint8'
         else:
@@ -451,7 +462,7 @@ class CouplingAnalysisPurePython:
                 numpy.random.shuffle(array[i])
 
         # get the bin quantile steps
-        bin_edge = numpy.ceil(corr_range/float(bins))
+        bin_edge = numpy.ceil(corr_range/float(bins)).astype(int)
 
         symbolic_array = numpy.empty((1, self.N, corr_range), dtype=dtype)
 
@@ -540,6 +551,7 @@ class CouplingAnalysisPurePython:
         :rtype: 3D numpy array (float) [index, index, index]
         :return: correlation matrix with different lag_mode choices
         """
+        # pylint: disable=used-before-assignment
 
         # lag_mode dict
         mode = self.lag_modi[lag_mode]
