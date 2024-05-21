@@ -81,7 +81,7 @@ def r(obj, decimals=4):
     """
     if isinstance(obj, (np.ndarray, np.matrix)):
         if obj.dtype.kind == 'f':
-            rounded = np.around(obj.astype(np.float128),
+            rounded = np.around(obj.astype(np.longdouble),
                                 decimals=decimals).astype(np.float64)
         elif obj.dtype.kind == 'i':
             rounded = obj.astype(np.int)
