@@ -95,6 +95,24 @@ def testRecurrenceNetwork(thresh, rr, metric: str):
     assert A1.dtype == A2.dtype
     assert A1.dtype == np.int16
 
+
+def testRecurrenceNetwork_setters():
+    tdata = create_test_data()
+    rn = RecurrenceNetwork(tdata, threshold=.2)
+    # recalculate with different fixed threshold
+    rn.set_fixed_threshold(.3)
+    assert rn.adjacency.shape == (len(tdata), len(tdata))
+    # recalculate with fixed threshold in units of the ts' std
+    rn.set_fixed_threshold_std(.3)
+    assert rn.adjacency.shape == (len(tdata), len(tdata))
+    # recalculate with fixed recurrence rate
+    rn.set_fixed_recurrence_rate(.2)
+    assert rn.adjacency.shape == (len(tdata), len(tdata))
+    # recalculate with fixed local recurrence rate
+    rn.set_fixed_local_recurrence_rate(.2)
+    assert rn.adjacency.shape == (len(tdata), len(tdata))
+
+
 # -----------------------------------------------------------------------------
 # inter_system_recurrence_network
 # -----------------------------------------------------------------------------
