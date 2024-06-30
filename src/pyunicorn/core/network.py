@@ -1018,6 +1018,7 @@ class Network(Cached):
 
                 # link it to some i not already linked to it:
                 i = int(link_target[int(random.uniform(last_Kstar))])
+                # FIXME: might run into endless loop!
                 while i == j or A[i, j] == 1:
                     # print("  not i",i)
                     i = int(link_target[int(random.uniform(last_Kstar))])
@@ -1196,6 +1197,7 @@ class Network(Cached):
                     #     random.uniform(len(inc_target)))])
                     i = int(link_target[int(
                         random.uniform(low=0, high=len(link_target)))])
+                    # FIXME: might run into endless loop!
                     while i == j2 or A[i, j2] == 1:
                         # i = int(inc_target[int(
                         #     random.uniform(len(inc_target)))])
