@@ -292,6 +292,27 @@ def test_WattsStrogatz():
     assert int(round(net.degree().mean())) == 4
 
 
+def test_GrowPreferentially_old():
+    n_nodes = 100
+    m = 2
+    net = Network.GrowPreferentially_old(n_nodes=n_nodes, m=m)
+    assert net.N == n_nodes
+    assert net.n_links == ((m+1) * (n_nodes - m))
+
+
+@pytest.mark.parametrize("nsi", [True, False])
+def test_GrowPreferentially(nsi):
+    n_nodes = 100
+    net = Network.GrowPreferentially(n_nodes=n_nodes, nsi=nsi)
+    assert net.N == n_nodes
+
+
+def test_GrowWeights():
+    n_nodes = 100
+    weights = Network.GrowWeights(n_nodes=n_nodes)
+    assert len(weights) == n_nodes
+
+
 def test_randomly_rewire(capsys):
     net = Network.SmallTestNetwork()
     net.randomly_rewire(iterations=10)

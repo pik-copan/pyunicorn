@@ -978,7 +978,7 @@ class Network(Cached):
         for i in range(m+1):
             for j in range(i):
                 A[i, j] = A[j, i] = 1
-            nbs[i] = range(m+1)
+            nbs[i] = list(range(m+1))
             nbs[i].remove(i)
             link_target[(m+1)*i:(m+1)*(i+1)] = i
 
@@ -989,7 +989,7 @@ class Network(Cached):
             last_W += 1
             # link it to some i:
             i = int(link_target[int(random.uniform(last_Kstar))])
-            print("n", n, "i", i)
+            # print("n", n, "i", i)
             A[i, n-1] = A[n-1, i] = 1
             nbs[n-1] = [i]
             nbs[i].append(n-1)
@@ -999,14 +999,14 @@ class Network(Cached):
             link_target[last_Kstar+1] = n-1
             last_Kstar += 2
 
-            for jj in range(m):
+            for _ in range(m):
                 # increase weight of some j not already linked to all:
                 j = int(inc_target[int(random.uniform(last_W))])
                 while len(nbs[j]) == n-1:
-                    print(" not j", j)
+                    # print(" not j", j)
                     j = int(inc_target[int(random.uniform(last_W))])
                 w[j] += 1
-                print(" jj", jj, "j", j, "w[j]", w[j])
+                # print(" jj", jj, "j", j, "w[j]", w[j])
                 inc_target[last_W] = j
                 last_W += 1
                 # link_target[last_Kstar] = j
