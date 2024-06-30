@@ -571,7 +571,7 @@ class SpatialNetwork(Network):
         if self.silence_level <= 1:
             print("Calculating average link distance...")
 
-        A = self.undirected_adjacency().A
+        A = self.undirected_adjacency().toarray()
         degree = self.degree()
 
         return self._calculate_general_average_link_distance(
@@ -648,7 +648,7 @@ class SpatialNetwork(Network):
         if self.silence_level <= 1:
             print("Calculating maximum link distance...")
 
-        A = self.undirected_adjacency().A
+        A = self.undirected_adjacency().toarray()
         D = self.grid.distance()
 
         maximum_link_distance = (D * A).max(axis=1)

@@ -40,7 +40,7 @@ def compare_results(desired, actual, rev_perm=None):
              for rs in zip(desired.values(), actual.values())]
     else:
         if sp.issparse(desired):
-            desired, actual = desired.A, actual.A
+            desired, actual = desired.toarray(), actual.toarray()
         if isinstance(desired, np.ndarray):
             actual = actual[rev_perm]
             if len(actual.shape) == 2:
@@ -336,7 +336,7 @@ def test_edge_list():
 def test_undirected_adjacency():
     net = Network(adjacency=[[0, 1], [0, 0]], directed=True)
     adj_ref = [[0, 1], [1, 0]]
-    assert np.array_equal(net.undirected_adjacency().A, adj_ref)
+    assert np.array_equal(net.undirected_adjacency().toarray(), adj_ref)
 
 
 def test_laplacian():

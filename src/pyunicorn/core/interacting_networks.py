@@ -461,7 +461,7 @@ class InteractingNetworks(Network):
         :rtype: 2D array [node index_1, node index_2]
         :return: the cross adjacency matrix.
         """
-        return self.sp_A[node_list1, :][:, node_list2].A
+        return self.sp_A[node_list1, :][:, node_list2].toarray()
 
     def internal_link_attribute(self, attribute_name, node_list):
         """

@@ -736,7 +736,7 @@ class GeoNetwork(SpatialNetwork):
         if self.silence_level <= 1:
             print("Calculating maximum neighbour AWC...")
 
-        A = self.undirected_adjacency().A
+        A = self.undirected_adjacency().toarray()
         awc = self.area_weighted_connectivity()
         max_neighbor_awc = np.zeros(self.N)
 
@@ -872,7 +872,7 @@ class GeoNetwork(SpatialNetwork):
         if self.silence_level <= 1:
             print("Calculating connectivity weighted link distance...")
 
-        A = self.undirected_adjacency().A
+        A = self.undirected_adjacency().toarray()
         degree = self.degree()
         return self._calculate_general_connectivity_weighted_distance(
             A, degree)

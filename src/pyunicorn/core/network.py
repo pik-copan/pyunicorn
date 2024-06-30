@@ -376,7 +376,7 @@ class Network(Cached):
 
         :rtype: square numpy array [node,node] of 0s and 1s
         """
-        return self.sp_A.A
+        return self.sp_A.toarray()
 
     @adjacency.setter
     def adjacency(self, adjacency):
@@ -1312,7 +1312,7 @@ class Network(Cached):
         **Example:**
 
         >>> net = Network(adjacency=[[0,1],[0,0]], directed=True)
-        >>> print(net.undirected_adjacency().A)
+        >>> print(net.undirected_adjacency().toarray())
         [[0 1] [1 0]]
 
         :rtype: array([[0|1]])
@@ -1376,7 +1376,9 @@ class Network(Cached):
         """
         if self.directed:
             raise NotImplementedError("Not implemented for directed networks.")
-        return (self.sp_nsi_diag_k() - self.sp_Aplus() * self.sp_diag_w()).A
+        return (
+            self.sp_nsi_diag_k() - self.sp_Aplus() * self.sp_diag_w()
+            ).toarray()
 
     #
     #  Calculate frequency and cumulative distributions
@@ -1616,7 +1618,7 @@ class Network(Cached):
         :rtype: array([int>=0])
         """
         if key is None:
-            return self.sp_A.sum(axis=0).A.squeeze().astype(int)
+            return self.sp_A.toarray().sum(axis=0).astype(int)
         else:
             return self.link_attribute(key).sum(axis=0).T
 
@@ -1637,7 +1639,7 @@ class Network(Cached):
         :rtype: array([int>=0])
         """
         if key is None:
-            return self.sp_A.sum(axis=1).T.A.squeeze().astype(int)
+            return self.sp_A.toarray().sum(axis=1).T.astype(int)
         else:
             return self.link_attribute(key).sum(axis=1).T
 
@@ -2020,7 +2022,7 @@ class Network(Cached):
         :rtype: 1d numpy array [node] of ints >= 0
         """
         nbks = self.undirected_adjacency().multiply(self.degree())
-        return nbks.max(axis=1).T.A.squeeze()
+        return nbks.toarray().max(axis=1).T
 
     @Cached.method(name="n.s.i. average neighbours' degrees",
                    attrs=("_mut_nw",))
@@ -2090,7 +2092,8 @@ class Network(Cached):
 
         self.nsi_degree()
         # matrix with the degrees of nodes' neighbours as rows
-        return (self.sp_Aplus() * self.sp_nsi_diag_k()).max(axis=1).T.A[0]
+        return (
+            self.sp_Aplus() * self.sp_nsi_diag_k()).toarray().max(axis=1).T
         # TODO: enable correction by typical_weight
 
     #
@@ -2652,7 +2655,7 @@ class Network(Cached):
         N, k, Ap = self.N, self.nsi_degree(), self.sp_Aplus()
         commons = Ap * self.sp_diag_w() * Ap
         kk = np.repeat([k], N, axis=0)
-        return Ap.A * commons.A / np.maximum(kk, kk.T)
+        return Ap.toarray() * commons.toarray() / np.maximum(kk, kk.T)
 
     #
     #  Measure Assortativity coefficient
@@ -3025,7 +3028,7 @@ class Network(Cached):
 
         :rtype: array([[0<=float<=1,0<=float<=1]])
         """
-        commons = (self.sp_A * self.sp_A).astype(DFIELD).A
+        commons = (self.sp_A * self.sp_A).astype(DFIELD).toarray()
         kk = np.repeat([self.degree()], self.N, axis=0)
         return commons / (kk + kk.T - commons)
 
@@ -3636,7 +3639,9 @@ class Network(Cached):
                 sp_Pi.eliminate_zeros()
 
                 # solve (1 - sp_Pi) * V = sp_Pi
-                V = splu(sp.identity(N, format='csc') - sp_Pi).solve(sp_Pi.A)
+                V = splu(
+                    sp.identity(N, format='csc') - sp_Pi
+                ).solve(sp_Pi.toarray())
 
                 if exclude_neighbors:
                     # for the result, we use only those targets i which are not
@@ -3900,7 +3905,7 @@ class Network(Cached):
                 # would need to be removed!
                 V = sp.lil_matrix((N, N))
                 V[:-1, :-1] = inv(sp_M[:-1, :-1])
-                V = V.A
+                V = V.toarray()
                 del subgraph, subnetwork, sp_A, sp_M
 
                 component_betweenness = np.zeros(N)
@@ -4075,7 +4080,7 @@ class Network(Cached):
 
                 # Note: sp_M_inv is not necessarily sparse, so the order is
                 # important for performance
-                V = ((DkI * Ap) * sp_M_inv).T.astype(DFIELD).A
+                V = ((DkI * Ap) * sp_M_inv).T.astype(DFIELD).toarray()
                 del subgraph, Ap, Dw, DwI, Dk, DkI, sp_M, sp_M_inv
 
                 # TODO: verify that this was indeed wrong
@@ -4449,7 +4454,7 @@ class Network(Cached):
 
         :rtype: 1d numpy array [node] of floats
         """
-        N, Aplus = self.N, self.sp_Aplus().A
+        N, Aplus = self.N, self.sp_Aplus().toarray()
         w, k = self.node_weights, self.nsi_degree()
         if alpha is None:
             alpha = self.total_node_weight / k.dot(w)
@@ -4495,7 +4500,7 @@ class Network(Cached):
         if max_n_clusters is None:
             max_n_clusters = int(np.ceil(np.sqrt(N)))
         # total variance is proportional to trace of CSS
-        var = CSS.diagonal().A[0]
+        var = CSS.diagonal().toarray()[0]
 
         # target eigenvalue (known upper bound) -> largest eigenvalues
         tau = sum(var)
@@ -4946,7 +4951,7 @@ class Network(Cached):
         weightProducts = np.zeros((n2, n2), dtype=DFIELD)
         weightProducts[0:n, 0:n] = np.dot(w.reshape((n, 1)), w.reshape((1, n)))
         # linked weights:
-        Aplus = self.sp_Aplus().A
+        Aplus = self.sp_Aplus().toarray()
         linkedWeights = np.zeros((n2, n2), dtype=DFIELD)
         linkedWeights[0:n, 0:n] = \
             self.node_weights.reshape((n, 1)) * Aplus * \
