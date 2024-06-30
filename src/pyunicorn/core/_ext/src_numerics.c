@@ -118,23 +118,23 @@ double _vertex_current_flow_betweenness_fast(int N, double Is, double It,
     int t=0;
     int s=0;
     int j=0;
-    double I=0;
+    double J=0;
 
     for(t=0;t<N;t++){
         for(s=0; s<t; s++){
-            I = 0.0;
+            J = 0.0;
             if(i == t || i == s){
                 continue;
             }
             else{
                 for(j=0;j<N;j++){
-                    I += admittance[i*N+j]*
+                    J += admittance[i*N+j]*
                     fabs( Is*(R[i*N+s]-R[j*N+s])+
                           It*(R[j*N+t]-R[i*N+t])
                         ) / 2.0;
                 } // for  j
             }
-            VCFB += 2.0*I/(N*(N-1));
+            VCFB += 2.0*J/(N*(N-1));
         } // for s
     } // for t
 
@@ -149,19 +149,19 @@ void _edge_current_flow_betweenness_fast(int N, double Is, double It,
     int j=0;
     int t=0;
     int s=0;
-    double I = 0.0;
+    double J = 0.0;
 
     for(i=0; i<N; i++){
         for(j=0;j<N;j++){
-            I = 0.0;
+            J = 0.0;
             for(t=0;t<N;t++){
                 for(s=0; s<t; s++){
-                    I += admittance[i*N+j]*\
+                    J += admittance[i*N+j]*\
                          fabs(Is*(R[i*N+s]-R[j*N+s])+
                               It*(R[j*N+t]-R[i*N+t]));
                 } //for s
             } // for t
-            ECFB[i*N+j] += (float) (2.* I/(N*(N-1)));
+            ECFB[i*N+j] += (float) (2.* J/(N*(N-1)));
         } // for j
     } // for i
 }

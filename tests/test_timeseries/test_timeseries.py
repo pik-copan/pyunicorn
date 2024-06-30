@@ -21,7 +21,8 @@ import numpy as np
 from numpy.testing import assert_array_almost_equal
 
 from pyunicorn.timeseries import CrossRecurrencePlot, \
-    InterSystemRecurrenceNetwork, Surrogates, VisibilityGraph
+    RecurrenceNetwork, InterSystemRecurrenceNetwork, \
+    Surrogates, VisibilityGraph
 from pyunicorn.core.data import Data
 from pyunicorn.core._ext.types import DFIELD
 
@@ -67,6 +68,49 @@ def testCrossRecurrencePlot(thresh, rr, metric: str):
     assert CR1.shape == (len(x1), len(y1))
     assert CR1.dtype == CR2.dtype
     assert CR1.dtype == np.int8
+
+
+# -----------------------------------------------------------------------------
+# recurrence_network
+# -----------------------------------------------------------------------------
+
+@pytest.mark.parametrize("thresh, rr",
+                         [(.2, None), (None, .2)], ids=str)
+def testRecurrenceNetwork(thresh, rr, metric: str):
+    # create two instances of the same test dataset
+    tdata1 = create_test_data()
+    tdata2 = create_test_data()
+    # create RecurrenceNetwork for both
+    rn1 = RecurrenceNetwork(
+            tdata1, threshold=thresh, recurrence_rate=rr, metric=metric)
+    rn2 = RecurrenceNetwork(
+            tdata2, threshold=thresh, recurrence_rate=rr, metric=metric)
+    # get respective adjacency matrices
+    A1 = rn1.adjacency
+    A2 = rn2.adjacency
+
+    assert np.array_equal(A1, A2)
+    assert A1.shape == A2.shape
+    assert A1.shape == (len(tdata1), len(tdata1))
+    assert A1.dtype == A2.dtype
+    assert A1.dtype == np.int16
+
+
+def testRecurrenceNetwork_setters():
+    tdata = create_test_data()
+    rn = RecurrenceNetwork(tdata, threshold=.2)
+    # recalculate with different fixed threshold
+    rn.set_fixed_threshold(.3)
+    assert rn.adjacency.shape == (len(tdata), len(tdata))
+    # recalculate with fixed threshold in units of the ts' std
+    rn.set_fixed_threshold_std(.3)
+    assert rn.adjacency.shape == (len(tdata), len(tdata))
+    # recalculate with fixed recurrence rate
+    rn.set_fixed_recurrence_rate(.2)
+    assert rn.adjacency.shape == (len(tdata), len(tdata))
+    # recalculate with fixed local recurrence rate
+    rn.set_fixed_local_recurrence_rate(.2)
+    assert rn.adjacency.shape == (len(tdata), len(tdata))
 
 
 # -----------------------------------------------------------------------------
