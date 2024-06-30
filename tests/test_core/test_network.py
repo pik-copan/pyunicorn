@@ -304,7 +304,7 @@ def test_GrowPreferentially_old():
 
 @pytest.mark.parametrize("nsi", [True, False])
 def test_GrowPreferentially(nsi):
-    if nsi == False:
+    if nsi is False:
         pytest.skip(
             reason="tested function might run into endless while loop")
     n_nodes = 10
