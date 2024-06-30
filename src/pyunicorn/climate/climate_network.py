@@ -132,7 +132,7 @@ class ClimateNetwork(GeoNetwork):
         Regenerate the current climate network according to a new similarity
         measure.
         """
-        ClimateNetwork.__init__(self, grid=self.data.grid,
+        ClimateNetwork.__init__(self, grid=self.grid,
                                 similarity_measure=self._similarity_measure,
                                 threshold=self._threshold,
                                 link_density=self.link_density,
@@ -145,6 +145,7 @@ class ClimateNetwork(GeoNetwork):
     #  Load and save ClimateNetwork object
     #
 
+    # pylint: disable=keyword-arg-before-vararg
     def save(self, filename, fileformat=None, *args, **kwds):
         """
         Save the ClimateNetwork object to files.
@@ -202,6 +203,7 @@ class ClimateNetwork(GeoNetwork):
             similarity_measure = self.similarity_measure()
             similarity_measure.dump(filename_similarity_measure)
 
+    # pylint: disable=keyword-arg-before-vararg
     @staticmethod
     def Load(filename, fileformat=None, silence_level=0, *args, **kwds):
         """

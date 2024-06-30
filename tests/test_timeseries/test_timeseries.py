@@ -191,7 +191,7 @@ def testCorrelatedNoiseSurrogates():
 
 def testTwinSurrogates():
     tdata = create_test_data()
-    n_index, n_times = tdata.shape
+    n_index = tdata.shape[0]
     s = Surrogates(tdata)
     tsurro = s.twin_surrogates(tdata, 1, 0, 0.2)
     corrcoef = np.corrcoef(tdata, tsurro)[n_index:, :n_index]

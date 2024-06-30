@@ -22,7 +22,7 @@ from pyunicorn.climate.tsonis import TsonisClimateNetwork
 
 def test_str(capsys):
     print(TsonisClimateNetwork.SmallTestNetwork())
-    out, err = capsys.readouterr()
+    out = capsys.readouterr()[0]
     out_ref = "TsonisClimateNetwork:\n" + \
               "ClimateNetwork:\n" + \
               "GeoNetwork:\n" + \

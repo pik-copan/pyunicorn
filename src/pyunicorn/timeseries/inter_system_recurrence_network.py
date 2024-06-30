@@ -242,7 +242,6 @@ class InterSystemRecurrenceNetwork(InteractingNetworks):
         #  Shortcuts
         N = self.N
         N_x = self.N_x
-        N_y = self.N_y
 
         #  Init
         ISRM = np.zeros((N, N))

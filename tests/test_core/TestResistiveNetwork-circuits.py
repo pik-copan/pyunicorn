@@ -179,7 +179,7 @@ def testParallelRandom():
             j.append(xx[1])
 
         # %.1f values for resistance
-        val = np.round(np.random.ranf(len(i))*100)/10
+        val = np.round(np.random.rand(len(i))*100)/10
 
         # and test
         nw1 = makeNW(i, j, val)
@@ -244,7 +244,7 @@ def testSerialRandom():
     N = 10
     p = .7
     runs = 50
-    for run in range(0, runs):
+    for _ in range(0, runs):
 
         # a random graph
         G = nx.fast_gnp_random_graph(N, p)

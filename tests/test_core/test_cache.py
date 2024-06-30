@@ -156,8 +156,7 @@ class TestCached:
         m = Cached.lru_params["maxsize"]
         k, n = 3, m // 2
         assert k < n < m
-        rs = []
-        for i in range(n):
+        for _ in range(n):
             assert X.baz() == Y.baz()
         Y.counter = 0
         for _ in range(k):

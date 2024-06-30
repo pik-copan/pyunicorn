@@ -461,7 +461,7 @@ class InteractingNetworks(Network):
         :rtype: 2D array [node index_1, node index_2]
         :return: the cross adjacency matrix.
         """
-        return self.sp_A[node_list1, :][:, node_list2].A
+        return self.sp_A[node_list1, :][:, node_list2].toarray()
 
     def internal_link_attribute(self, attribute_name, node_list):
         """
@@ -1136,6 +1136,7 @@ class InteractingNetworks(Network):
         :rtype: 1D array [node index]
         :return: the cross in degree sequence.
         """
+        # pylint: disable=arguments-out-of-order
         if link_attribute is None:
             return np.sum(self.cross_adjacency(node_list2, node_list1), axis=0)
         else:
@@ -1325,8 +1326,6 @@ class InteractingNetworks(Network):
         A = self.sp_A[node_list1+node_list2, :][:, node_list1+node_list2]
         #  Get layer sizes
         N1, N2 = len(node_list1), len(node_list2)
-        #  Convert node lists to Numpy arrays
-        nodes1, nodes2 = np.array(node_list1), np.array(node_list2)
 
         #  Initialize
         cross_clustering = np.zeros(N1)

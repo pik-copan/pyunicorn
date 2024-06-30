@@ -25,7 +25,7 @@ from pyunicorn import ResNetwork
 
 def test_init(capsys):
     print(ResNetwork.SmallTestNetwork())
-    out, err = capsys.readouterr()
+    out = capsys.readouterr()[0]
     out_ref = "ResNetwork:\nGeoNetwork:\nSpatialNetwork:\n" + \
               "Network: undirected, 5 nodes, 5 links, link density 0.500." + \
               "\nGeographical boundaries:\n" + \

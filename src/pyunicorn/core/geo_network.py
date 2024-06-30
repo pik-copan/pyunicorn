@@ -119,6 +119,7 @@ class GeoNetwork(SpatialNetwork):
     #  Load and save GeoNetwork object
     #
 
+    # pylint: disable=keyword-arg-before-vararg
     @staticmethod
     def Load(filename, fileformat=None, silence_level=0, *args, **kwds):
         """
@@ -735,7 +736,7 @@ class GeoNetwork(SpatialNetwork):
         if self.silence_level <= 1:
             print("Calculating maximum neighbour AWC...")
 
-        A = self.undirected_adjacency().A
+        A = self.undirected_adjacency().toarray()
         awc = self.area_weighted_connectivity()
         max_neighbor_awc = np.zeros(self.N)
 
@@ -822,7 +823,7 @@ class GeoNetwork(SpatialNetwork):
     #  (Un)directed connectivity weighted link distances
 
     def _calculate_general_connectivity_weighted_distance(self, adjacency,
-                                                          degrees):
+                                                          degree):
         """
         Return general connectivity weighted link distances (CWD).
 
@@ -831,8 +832,8 @@ class GeoNetwork(SpatialNetwork):
 
         :type adjacency: 2D array [index, index]
         :arg adjacency: The adjacency matrix.
-        :type degrees: 1D array [index]
-        :arg degrees: The degree sequence.
+        :type degree: 1D array [index]
+        :arg degree: The degree sequence.
         :rtype: 1D array [index]
         :return: the general connectivity weighted distance sequence.
         """
@@ -847,8 +848,8 @@ class GeoNetwork(SpatialNetwork):
                 (adjacency[i, :] * cos_lat * D[i, :]).sum()
 
         #  Normalize by node degree and total dimensionless area
-        connectivity_weighted_distance[degrees != 0] /= \
-            degrees[degrees != 0] * norm
+        connectivity_weighted_distance[degree != 0] /= \
+            degree[degree != 0] * norm
 
         return connectivity_weighted_distance
 
@@ -871,7 +872,7 @@ class GeoNetwork(SpatialNetwork):
         if self.silence_level <= 1:
             print("Calculating connectivity weighted link distance...")
 
-        A = self.undirected_adjacency().A
+        A = self.undirected_adjacency().toarray()
         degree = self.degree()
         return self._calculate_general_connectivity_weighted_distance(
             A, degree)
@@ -1021,8 +1022,9 @@ class GeoNetwork(SpatialNetwork):
         * EXPERIMENTAL! *
         """
         #  Optional import for this experimental method
+        # pylint: disable=import-outside-toplevel
         try:
-            import stripack  # @UnresolvedImport
+            import stripack
             # tries to import stripack.so which must have been compiled with
             # f2py -c -m stripack stripack.f90
         except ImportError as err:

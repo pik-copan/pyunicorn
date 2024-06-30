@@ -118,7 +118,7 @@ class NetCDFDictionary:
         content = {"global_attributes": {}, "dimensions": {}, "variables": {}}
         #  Copy all global attributes and all dimensions
         content["global_attributes"] = cdf.__dict__
-        for dim_name, dim_obj in cdf.dimensions.iteritems():
+        for dim_name, _ in cdf.dimensions.iteritems():
             content["dimensions"][dim_name] = len(cdf.dimensions[dim_name])
 
         #  Loop over variables

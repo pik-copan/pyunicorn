@@ -24,7 +24,7 @@ from pyunicorn.core.geo_grid import GeoGrid
 def test_ErdosRenyi(capsys):
     print(GeoNetwork.Model("ErdosRenyi", grid=GeoGrid.SmallTestGrid(),
                            n_nodes=6, n_links=5))
-    out, err = capsys.readouterr()
+    out = capsys.readouterr()[0]
     out_ref = "Generating Erdos-Renyi random graph with 6 nodes and 5 " + \
               "links...\nSetting area weights according to type surface " + \
               "...\nGeoNetwork:\nSpatialNetwork:\n" + \
@@ -40,8 +40,7 @@ def test_ConfigurationModel():
     n = 0
     while n != 7:
         net = GeoNetwork.Model("Configuration", grid=GeoGrid.SmallTestGrid(),
-                               degrees=GeoNetwork.SmallTestNetwork().degree(),
-                               silence_level=2)
+                               degree=GeoNetwork.SmallTestNetwork().degree())
         n = net.n_links
     res = net.link_density
     exp = 0.46666667
