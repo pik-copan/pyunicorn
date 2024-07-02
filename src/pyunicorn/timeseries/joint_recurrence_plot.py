@@ -183,8 +183,8 @@ class JointRecurrencePlot(RecurrencePlot):
             #  threshold / recurrence rate
             if np.abs(lag) > x.shape[0]:
                 #  Lag must be smaller than size of recurrence plot
-                raise ValueError("Delay value (lag) must not exceed length of \
-                                 time series!")
+                raise ValueError("Delay value (lag) must not exceed length of "
+                                 "time series!")
             if threshold is not None:
                 #  Calculate the recurrence matrix R using the radius of
                 #  neighborhood threshold
@@ -200,16 +200,16 @@ class JointRecurrencePlot(RecurrencePlot):
                 JointRecurrencePlot.\
                     set_fixed_recurrence_rate(self, recurrence_rate)
             else:
-                raise NameError("Please give either threshold or \
-                                recurrence_rate to construct the joint \
-                                recurrence plot!")
+                raise NameError("Please give either threshold or "
+                                "recurrence_rate to construct the joint "
+                                "recurrence plot!")
 
             #  No treatment of missing values yet!
             self.missing_values = False
 
         else:
-            raise ValueError("Both time series x and y need to have the same \
-                             length!")
+            raise ValueError("Both time series x and y need to have the same "
+                             "length!")
 
     def __str__(self):
         """

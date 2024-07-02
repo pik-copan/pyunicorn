@@ -21,7 +21,7 @@ import numpy as np
 from numpy.testing import assert_array_almost_equal
 
 from pyunicorn.timeseries import CrossRecurrencePlot, \
-    RecurrenceNetwork, InterSystemRecurrenceNetwork, \
+    RecurrenceNetwork, JointRecurrenceNetwork, InterSystemRecurrenceNetwork, \
     Surrogates, VisibilityGraph
 from pyunicorn.core.data import Data
 from pyunicorn.core._ext.types import DFIELD
@@ -111,6 +111,26 @@ def testRecurrenceNetwork_setters():
     # recalculate with fixed local recurrence rate
     rn.set_fixed_local_recurrence_rate(.2)
     assert rn.adjacency.shape == (len(tdata), len(tdata))
+
+
+# -----------------------------------------------------------------------------
+# joint_recurrence_network
+# -----------------------------------------------------------------------------
+
+
+def testJointRecurrenceNetwork(metric: str):
+    tdata = create_test_data()
+    x = tdata[:, 0]
+    y = tdata[:, 1]
+    n = len(tdata)
+    jrp = JointRecurrenceNetwork(x, y, threshold=(.1, .1),
+                                 metric=(metric, metric))
+    dist = {}
+    for i in "xy":
+        jrp.embedding = getattr(jrp, f"{i}_embedded")
+        dist[i] = jrp.distance_matrix(metric=metric)
+    assert all(d.shape == (n, n) for d in dist.values())
+    assert jrp.recurrence_matrix().shape == (n, n)
 
 
 # -----------------------------------------------------------------------------
