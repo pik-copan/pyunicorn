@@ -36,3 +36,17 @@ def test_recurrence(metric: str, n: int):
     assert all(d.shape == (n, n) for d in dist.values())
     assert np.allclose(dist["x"], dist["y"])
     assert jrp.recurrence_matrix().shape == (n, n)
+
+
+def test_exceptions():
+    ts1 = CouplingAnalysis.test_data()[:10, 0]
+    ts2 = CouplingAnalysis.test_data()[:12, 0]
+    # provoke error for missing thresholding parameter
+    with pytest.raises(NameError):
+        JointRecurrencePlot(ts1, ts1)
+    # provoke error for mismatched timeseries lengths
+    with pytest.raises(ValueError):
+        JointRecurrencePlot(ts1, ts2)
+    # provoke error for given lag value too large
+    with pytest.raises(ValueError):
+        JointRecurrencePlot(ts1, ts1, lag=14)
