@@ -42,19 +42,18 @@ class EventSeriesClimateNetwork(EventSeries, ClimateNetwork):
     #  Internal methods
 
     def __init__(self, data, method='ES', p_value=None, **kwargs):
-
         r"""
         Initialize an instance of EventSeriesClimateNetwork.
 
         For other applications of event series networks please use
         the EventSeries class together with the Network class.
 
-        :type data: :classL`..climate.ClimateData`
+        :type data: :class:`..climate.ClimateData`
         :arg data: The climate data used for network construction.
-        :type method: str {'ES', 'ECA', 'ES_pval', 'ECA_pval'}
+        :type method: ``str {'ES', 'ECA', 'ES_pval', 'ECA_pval'}``
         :arg method: determines if ES, ECA, or the p-values of one of the
                      methods should be used for network reconstruction.
-        :type p_value: float in [0,1]
+        :type p_value: ``float in [0,1]``
         :arg p_value: determines the p-value threshold for network
                       reconstruction. ES/ECA scores of event time series pairs
                       with p-value higher than threshold are set to zero
@@ -73,40 +72,40 @@ class EventSeriesClimateNetwork(EventSeries, ClimateNetwork):
               method that needs to be defined.
             * *lag* (``float``) --
               extra time lag between the event series.
-            * *symmetrization* (``str {'directed', 'symmetric', 'antisym',
-                                    'mean', 'max', 'min'}`` for ES,
-                                ``str {'directed', 'mean', 'max', 'min'}``
-                                for ECA) --
+            * *symmetrization* (
+              ``str {'directed', 'symmetric', 'antisym',
+              'mean', 'max', 'min'}`` for ES,
+              str {'directed', 'mean', 'max', 'min'}`` for ECA
+              ) --
               determines if and if true, which symmetrization
               should be used for the ES/ECA score matrix.
-            * *window_type* (``str {'retarded', 'advanced', 'symmetric'}``) --
+            * *window_type* (
+              ``str {'retarded', 'advanced', 'symmetric'}``
+              ) --
               Only for ECA. Determines if precursor coincidence
               rate ('advanced'), trigger coincidence rate
               ('retarded') or a general coincidence rate with the
               symmetric interval [-taumax, taumax] are computed
               ('symmetric'). Default: 'symmetric'.
-            * *threshold_method* (``str 'quantile' or 'value'
-                                  or 1D numpy array of
-                                  'quantile' or 'value'``) --
+            * *threshold_method* (
+              ``str 'quantile' or 'value' or
+              1D numpy array of 'quantile' or 'value'``
+              ) --
               specifies the method for generating a binary
               event matrix from an array of continuous time
               series. Default: None.
             * *threshold_values* (``1D Numpy array or float``) --
               quantile or real number determining threshold
               for each variable. Default: None.
-            :type threshold_types: str 'above' or 'below'
-                                or 1D list of strings
-                                'above' or 'below'
-            * *threshold_types* (``str 'above' or 'below'
-                                 or 1D list of strings of
-                                 'above' or 'below'``) --
+            * *threshold_types* (
+              ``str 'above' or 'below' or 1D list
+              of strings of 'above' or 'below'``
+              ) --
               determines for each variable if event is below
               or above threshold.
-            :type non_local: bool
             * *non_local* (``bool``) --
               determines whether links between spatially close
               nodes should be suppressed.
-            :type node_weight_type: str
             * *node_weight_type* (``str``) --
               The type of geographical node weight to be
               used.
