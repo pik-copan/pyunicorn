@@ -1404,16 +1404,16 @@ ff"""+self.color[i][1:7]+"""
         f.write("""
 </coordinates></LineString></MultiGeometry></Placemark>""")
 
-    def _improve_step(self):
-        """improve layout by one step"""
-        # TODO: fruchterman or some such
-        for i in self.shown:
-            posi = self.position[i]
-            for j, line in self.lines[i].items():
-                if j > i:
-                    posj = posi
-                    # disterr = (((posi-posj)**2).sum()-1000000.0)**2
-        self._update()
+    # def _improve_step(self):
+    #     """improve layout by one step"""
+    #     # TODO: fruchterman or some such
+    #     for i in self.shown:
+    #         posi = self.position[i]
+    #         for j, line in self.lines[i].items():
+    #             if j > i:
+    #                 posj = posi
+    #                 # disterr = (((posi-posj)**2).sum()-1000000.0)**2
+    #     self._update()
 
     def _process_expand_button_on(self, i):
         """expand a shown supernode and show collapsed descendants"""
