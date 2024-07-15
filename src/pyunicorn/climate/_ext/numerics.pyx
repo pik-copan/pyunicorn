@@ -18,8 +18,8 @@ import numpy as np
 cimport numpy as cnp
 from numpy cimport ndarray
 
-from ...core._ext.types import FIELD, DFIELD
-from ...core._ext.types cimport MASK_t, FIELD_t, DFIELD_t
+from ...core._ext.types import FIELD, INT64TYPE
+from ...core._ext.types cimport MASK_t, FIELD_t, INT64TYPE_t
 
 cdef extern from "src_numerics.c":
     void _mutual_information(
@@ -38,12 +38,12 @@ def mutual_information(
     int n_samples, int N, int n_bins, float scaling, float range_min):
 
     cdef:
-        ndarray[long, ndim=2, mode='c'] symbolic = np.zeros(
-            (N, n_samples), dtype=long)
-        ndarray[long, ndim=2, mode='c'] hist = np.zeros(
-            (N, n_bins), dtype=long)
-        ndarray[long, ndim=2, mode='c'] hist2d = np.zeros(
-            (n_bins, n_bins), dtype=long)
+        ndarray[INT64TYPE_t, ndim=2, mode='c'] symbolic = np.zeros(
+            (N, n_samples), dtype=INT64TYPE)
+        ndarray[INT64TYPE_t, ndim=2, mode='c'] hist = np.zeros(
+            (N, n_bins), dtype=INT64TYPE)
+        ndarray[INT64TYPE_t, ndim=2, mode='c'] hist2d = np.zeros(
+            (n_bins, n_bins), dtype=INT64TYPE)
         ndarray[FIELD_t, ndim=2, mode='c'] mi = np.zeros(
             (N, N), dtype=FIELD)
 
