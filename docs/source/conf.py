@@ -185,9 +185,3 @@ texinfo_documents = [
      author, 'pyunicorn', 'One line description of project.',
      'Miscellaneous'),
 ]
-
-
-# -- Options for Extensions -----------------------------------------------
-
-mathjax_path = \
-    'http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'
