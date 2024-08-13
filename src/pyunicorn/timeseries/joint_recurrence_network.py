@@ -158,18 +158,6 @@ class JointRecurrenceNetwork(JointRecurrencePlot, Network):
                 f"{JointRecurrencePlot.__str__(self)}\n"
                 f"{Network.__str__(self)}")
 
-    def clear_cache(self):
-        """
-        Clean up memory by deleting information that can be recalculated from
-        basic data.
-
-        Extends the clean up methods of the parent classes.
-        """
-        #  Call clean up of RecurrencePlot
-        JointRecurrencePlot.clear_cache(self)
-        #  Call clean up of Network
-        Network.clear_cache(self)
-
     #
     #  Methods to handle recurrence networks
     #

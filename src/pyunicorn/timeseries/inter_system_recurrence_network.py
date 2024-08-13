@@ -18,6 +18,9 @@ on recurrence plots, including measures of recurrence quantification
 analysis (RQA) and recurrence network analysis.
 """
 
+from typing import Tuple
+from collections.abc import Hashable
+
 # array object and fast numerics
 import numpy as np
 
@@ -211,22 +214,8 @@ class InterSystemRecurrenceNetwork(InteractingNetworks):
     #  Service methods
     #
 
-    def clear_cache(self):
-        """
-        Clean up memory by deleting information that can be recalculated from
-        basic data.
-
-        Extends the clean up methods of the parent classes.
-        """
-        #  Call clean up of RecurrencePlot objects
-        self.rp_x.clear_cache()
-        self.rp_y.clear_cache()
-
-        #  Call clean up of CrossRecurrencePlot object
-        self.crp_xy.clear_cache()
-
-        #  Call clean up of InteractingNetworks
-        InteractingNetworks.clear_cache(self)
+    def __cache_state__(self) -> Tuple[Hashable, ...]:
+        return (self.rp_x, self.rp_x, self.crp_xy,)
 
     #
     #  Methods to handle inter system recurrence networks
