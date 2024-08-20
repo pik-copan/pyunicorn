@@ -128,6 +128,8 @@ and *Windows*, and relies on the following packages:
     (for parallelizing costly computations)
   - `Sphinx <http://sphinx-doc.org/>`_
     (for generating documentation)
+  - `Jupyter Notebook <https://jupyter-notebook.readthedocs.io/en/latest/>`_
+    (for tutorial notebooks)
 
 
 Documentation
@@ -139,6 +141,12 @@ HTML and PDF documentation can be generated using ``Sphinx``::
     $> pip install .[docs]
     $> cd docs; make clean html latexpdf
 
+Tuturials
+---------
+
+For some example applications look into the
+`tutorials <docs/source/examples/tutorials/>`_ provided with the documentation.
+They are designed to be self-explanatory, and are set up as Jupyter notebooks.
 
 Development
 ===========
