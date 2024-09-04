@@ -4,7 +4,7 @@ Contributions
 
 Copyright
 ---------
-|copy| 2008-2024 Jonathan F. Donges and pyunicorn authors.
+\ |copy| 2008-2024 Jonathan F. Donges and pyunicorn authors.
 
 License
 -------
@@ -81,3 +81,5 @@ Acknowledgements
 ----------------
 - Travis-CI (https://www.travis-ci.com/) for providing free builds for this open
   source project.
+
+.. |copy|   unicode:: U+000A9 .. COPYRIGHT SIGN
