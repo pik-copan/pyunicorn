@@ -80,7 +80,7 @@ script:
     ${SED} -i '/-n auto/   {s//-n 2/;      h}; ${x;/./{x;q0};x;q1}' pyproject.toml
     ${SED} -i '/jobs = ./  {s//jobs = 2/;  h}; ${x;/./{x;q0};x;q1}' pyproject.toml
   - | # install Python libs via Pip: self (+ dependencies, if on Windows)
-    travis_retry pip install -v -e .[tests,docs]
+    travis_retry python -m pip install -v -e .[tests,docs]
   - | # run test suite
     tox -v
 
