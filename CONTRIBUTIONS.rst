@@ -72,10 +72,10 @@ Contributors
   maintained package)
 - `Ronja Hotz <ronja.hotz@yahoo.de>`_ (added a tutorial
   in `#190 <https://github.com/pik-copan/pyunicorn/pull/190>`_)
-- `Fritz Kühlein <fritz.kuehlein@student.uni-halle.de>`_
+- `Fritz Kühlein <fritzku@pik-potsdam.de>`_
   (fixed numerous bugs and style issues, improved test coverage and CI,
   integrated tutorial notebooks into documentation,
-  maintained package and managed release)
+  maintained package and managed releases)
 
 Acknowledgements
 ----------------

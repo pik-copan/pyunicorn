@@ -1,0 +1,135 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it using the metadata provided below.
+type: software
+title: 'Pyunicorn: Unified Complex Network and Recurrence Analysis Toolbox'
+version: 0.8.0
+date-released: '2024-09-13'
+abstract: pyunicorn (Unified Complex Network and RecurreNce analysis toolbox) is an
+  object-oriented Python package for the advanced analysis and modeling of complex networks.
+  Beyond the standard measures of complex network theory (such as degree, betweenness and
+  clustering coefficients), it provides some uncommon but interesting statistics like
+  Newman's random walk betweenness. pyunicorn also provides novel node-weighted (node
+  splitting invariant) network statistics, measures for analyzing networks of
+  interacting/interdependent networks, and special tools to model spatially embedded complex
+  networks.
+
+  Moreover, pyunicorn allows one to easily construct networks from uni- and multivariate
+  time series and event data (functional/climate networks and recurrence networks). This
+  involves linear and nonlinear measures of time series analysis for constructing functional
+  networks from multivariate data (e.g., Pearson correlation, mutual information, event
+  synchronization and event coincidence analysis). pyunicorn also features modern techniques
+  of nonlinear analysis of time series (or pairs thereof), such as recurrence quantification
+  analysis (RQA), recurrence network analysis and visibility graphs.
+
+  pyunicorn is fast, because all costly computations are performed in compiled C code. It can
+  handle large networks through the use of sparse data structures. The package can be used
+  interactively, from any Python script, and even for parallel computations on large cluster
+  architectures.
+authors:
+- family-names: Donges
+  given-names: Jonathan
+  email: donges@pik-potsdam.de
+  orcid: 0000-0001-5233-7703
+- family-names: Heitzig
+  given-names: Jobst
+  email: jobst.heitzig@pik-potsdam.de
+  orcid: 0000-0002-0442-8077
+- family-names: Beronov
+  given-names: Boyan
+  email: beronov@pik-potsdam.de
+  orcid: 0000-0002-0900-752X
+- family-names: Kühlein
+  given-names: Fritz
+  email: fritzku@pik-potsdam.de
+- family-names: Bechthold
+  given-names: Max
+  email: maxbecht@pik-potsdam.de
+  orcid: 0009-0007-7113-4814
+- family-names: Kroenke
+  given-names: Jonathan
+  email: kroenke@pik-potsdam.de
+- family-names: Barfuss
+  given-names: Wolfram
+  email: barfuss@uni-bonn.de
+  orcid: 0000-0002-9077-5242
+- family-names: Harmening
+  given-names: Nils
+- family-names: Nascimento Silva
+  given-names: Filipi
+- family-names: Kassel
+  given-names: Johannes
+- family-names: Ziehbarth
+  given-names: Malte
+- family-names: Odenweller
+  given-names: Adrian
+- family-names: Tzinis
+  given-names: Efthymios
+- family-names: Hotz
+  given-names: Ronja
+
+license: GPL-3
+repository-code: https://github.com/pik-copan/pyunicorn
+doi: 10.5281/zenodo.13742107
+
+preferred-citation:
+  type: article
+  title: 'Unified functional network and nonlinear time series analysis for complex
+    systems science: The pyunicorn package'
+  authors:
+  - family-names: Donges
+    given-names: Jonathan
+    email: donges@pik-potsdam.de
+    orcid: 0000-0001-5233-7703
+  - family-names: Heitzig
+    given-names: Jobst
+    email: jobst.heitzig@pik-potsdam.de
+    orcid: 0000-0002-0442-8077
+  - family-names: Beronov
+    given-names: Boyan
+    email: beronov@pik-potsdam.de
+    orcid: 0000-0002-0900-752X
+  - family-names: Wiedermann
+    given-names: Marc
+    orcid: 0000-0001-9869-3789
+  - family-names: Runge
+    given-names: Jakob
+  - family-names: Feng
+    given-names: Quing Yi
+  - family-names: Tupikina
+    given-names: Liubov
+  - family-names: Stolbova
+    given-names: Veronika
+  - family-names: Donner
+    given-names: Reik V.
+    email: redonner@pik-potsdam.de
+    orcid: 0000-0001-7023-6375
+  - family-names: Marwan
+    given-names: Norbert
+    email: marwan@pik-potsdam.de
+    orcid: 0000-0003-1437-7039
+  - family-names: Dijkstra
+    given-names: Henk A.
+  - family-names: Kurths
+    given-names: Jürgen
+    email: juergen.kurths@pik-potsdam.de
+    orcid: 0000-0002-5926-4276
+  abstract: We introduce the pyunicorn (Pythonic unified complex network and recurrence analysis
+    toolbox) open source software package for applying and combining modern methods of data
+    analysis and modeling from complex network theory and nonlinear time series analysis. pyunicorn
+    is a fully object-oriented and easily parallelizable package written in the language Python. It
+    allows for the construction of functional networks such as climate networks in climatology or
+    functional brain networks in neuroscience representing the structure of statistical
+    interrelationships in large data sets of time series and, subsequently, investigating this
+    structure using advanced methods of complex network theory such as measures and models for
+    spatial networks, networks of interacting networks, node-weighted statistics, or network
+    surrogates. Additionally, pyunicorn provides insights into the nonlinear dynamics of complex
+    systems as recorded in uni- and multivariate time series from a non-traditional perspective by
+    means of recurrence quantification analysis, recurrence networks, visibility graphs, and
+    construction of surrogate time series. The range of possible applications of the library is
+    outlined, drawing on several examples mainly from the field of climatology.
+  doi: 10.1063/1.4934554
+  journal: Chaos
+  month: 11
+  issue: 11
+  volume: 25
+  year: 2015

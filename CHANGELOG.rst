@@ -2,6 +2,52 @@
 Changelog
 =========
 
+0.8.0
+-----
+
+Package:
+
+- Improved `test coverage <https://app.codecov.io/gh/pik-copan/pyunicorn?search=&trend=all%20time>`_.
+- Improved style and linting by revising and reducing global message disables
+  (`#224 <https://github.com/pik-copan/pyunicorn/pull/224>`_,
+  `#231 <https://github.com/pik-copan/pyunicorn/pull/231>`_,
+  `#233 <https://github.com/pik-copan/pyunicorn/pull/233>`_).
+- Ensured ``numpy=2.0`` support
+  (`#234 <https://github.com/pik-copan/pyunicorn/pull/234>`_).
+- Removed experimental and untested code
+  (`#40 <https://github.com/pik-copan/pyunicorn/issues/40>`_,
+  `#239 <https://github.com/pik-copan/pyunicorn/pull/239>`_).
+
+New/Updated functionality:
+
+- Extended Caching to ``RecurrenceNetwork`` and child classes as well as ``Surrogates``.
+  (`#236 <https://github.com/pik-copan/pyunicorn/pull/236>`_).
+- Revised API of ``Surrogates`` to conform to OO structure assumed by ``Cached``.
+  (`#236 <https://github.com/pik-copan/pyunicorn/pull/236>`_).
+
+Documentation:
+
+- Removed malfunctioning links from Introduction
+  (`369b086 <https://github.com/pik-copan/pyunicorn/commit/369b086a8535dbfad6651caa62bee5a5488a0bfd>`_).
+- Moved tutorial notebooks into ``docs``, dropped ``nbsphinx-link`` dependency
+  (`c54102e <https://github.com/pik-copan/pyunicorn/commit/c54102e42b767271be6299f8bf8170b27bda28e6>`_).
+- Added ``EventSeriesClimateNetwork`` to API documentation
+  (`#232 <https://github.com/pik-copan/pyunicorn/pull/232>`_).
+- Removed outdated MathJax path for correct math display
+  (`0dd133c <https://github.com/pik-copan/pyunicorn/commit/0dd133c59da252b8c0e0e17f82290881508d0274>`_).
+
+Bug fixes:
+
+- Fixed unnoticed bug in ``SpatialNetwork.{in|out}average_link_distance()``
+  (`6b40587 <https://github.com/pik-copan/pyunicorn/commit/6b405873bede4ec18cd72164c734ed47964d2930>`_).
+- Substituted deprecated shorthand ``scipy.sparse.*_matrix.A`` for ``scipy>=1.14`` compatibility
+  (`1d96e58 <https://github.com/pik-copan/pyunicorn/commit/1d96e58040c831afdcd7f7bf97be3ebd6ae6815a>`_).
+- Substituted variable name ``I`` in C code, which might interfere with C's own macro for complex numbers
+  (`#225 <https://github.com/pik-copan/pyunicorn/issues/225>`_,
+  `#226 <https://github.com/pik-copan/pyunicorn/pull/232>`_).
+- Fixed setup of Travis-CI on Windows builds
+  (`#237 <https://github.com/pik-copan/pyunicorn/pull/237>`_).
+
 0.7.0
 -----
 
