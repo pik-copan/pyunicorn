@@ -18,4 +18,4 @@ utils
 
 """
 
-__all__ = ['mpi', 'navigator']
+__all__ = ['mpi']
