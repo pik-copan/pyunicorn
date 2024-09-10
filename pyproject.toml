@@ -47,7 +47,7 @@ jobs = 0
 disable = [
     "duplicate-code", "invalid-name", "fixme",
     "missing-docstring", "no-else-return",
-    "arguments-differ", "no-member", "no-name-in-module"
+    "arguments-differ", "no-name-in-module"
 ]
 
 [tool.pylint.format]

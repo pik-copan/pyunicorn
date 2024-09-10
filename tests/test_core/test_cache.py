@@ -73,6 +73,7 @@ class TestCached:
             r1, o1 = [], []
             for _ in range(m + 1):
                 r1.append(X.foo1(1))
+                # pylint: disable-next=no-member
                 o1.append(cls.Foo.foo1.__wrapped__(X, 1))
             r1.append(X.foo1(1.0))
             assert all(r == r1[0] for r in r1)
@@ -81,6 +82,7 @@ class TestCached:
             r2, o2 = [], []
             for i in range(2 * m):
                 r2.append(X.foo2(*range(i)))
+                # pylint: disable-next=no-member
                 o2.append(cls.Foo.foo2.__wrapped__(X, *range(i)))
             assert (np.diff(r2) == range(2 * m - 1)).all()
             assert all(r == o for r, o in zip(r2, o2))
@@ -88,6 +90,7 @@ class TestCached:
             r3, o3 = [], []
             for i in range(5):
                 r3.append(X.bar())
+                # pylint: disable-next=no-member
                 o3.append(cls.Foo.bar.__wrapped__(X))
             assert all(r and isinstance(r, bool) for r in r3)
             assert all(r == o for r, o in zip(r3, o3))
