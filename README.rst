@@ -1,12 +1,21 @@
-
 =========
 pyunicorn
 =========
 
 .. image:: https://app.travis-ci.com/pik-copan/pyunicorn.svg?branch=master
   :target: https://app.travis-ci.com/github/pik-copan/pyunicorn
+
 .. image:: https://codecov.io/gh/pik-copan/pyunicorn/branch/master/graph/badge.svg
   :target: https://codecov.io/gh/pik-copan/pyunicorn
+
+.. image:: https://img.shields.io/pypi/v/pyunicorn
+  :target: https://pypi.org/project/pyunicorn/
+
+.. image:: https://img.shields.io/pypi/pyversions/pyunicorn
+  :target: https://pypi.org/project/pyunicorn/
+
+.. image:: https://zenodo.org/badge/33720178.svg
+  :target: https://zenodo.org/badge/latestdoi/33720178
 
 About
 =====
@@ -71,10 +80,6 @@ and the `Stordalen Foundation <http://www.stordalenfoundation.no/>`_ via the
 `Planetary Boundary Research Network
 <https://web.archive.org/web/20200212214011/http://pb-net.org/>`_ (PB.net) among
 others.
-
-Mailing list
-------------
-Not implemented yet.
 
 
 Getting Started

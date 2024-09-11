@@ -4,7 +4,7 @@ Introduction
 ============
 
 .. include:: ../../README.rst
-    :start-after: :target: https://codecov.io/gh/pik-copan/pyunicorn
+    :start-after:   :target: https://zenodo.org/badge/latestdoi/33720178
     :end-before: For information about individual releases,
 
 Example
