@@ -3,7 +3,7 @@ message: If you use this software, please cite it using the metadata provided be
 type: software
 title: 'Pyunicorn: Unified Complex Network and Recurrence Analysis Toolbox'
 version: 0.8.0
-date-released: '2024-09-13'
+date-released: '2024-09-17'
 abstract: pyunicorn (Unified Complex Network and RecurreNce analysis toolbox) is an
   object-oriented Python package for the advanced analysis and modeling of complex networks.
   Beyond the standard measures of complex network theory (such as degree, betweenness and
@@ -69,7 +69,6 @@ authors:
 
 license: GPL-3
 repository-code: https://github.com/pik-copan/pyunicorn
-doi: 10.5281/zenodo.13742107
 
 preferred-citation:
   type: article
