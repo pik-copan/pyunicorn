@@ -81,7 +81,6 @@ and the `Stordalen Foundation <http://www.stordalenfoundation.no/>`_ via the
 <https://web.archive.org/web/20200212214011/http://pb-net.org/>`_ (PB.net) among
 others.
 
-
 Getting Started
 ===============
 

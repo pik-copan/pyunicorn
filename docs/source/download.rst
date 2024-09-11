@@ -1,4 +1,4 @@
 
 .. include:: ../../README.rst
-    :start-after: Not implemented yet.
+    :start-after: others.
     :end-before: Development
