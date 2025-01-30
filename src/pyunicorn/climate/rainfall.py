@@ -56,6 +56,7 @@ class RainfallClimateNetwork(ClimateNetwork):
     # Defines internal methods
     #
 
+    # pylint: disable=too-many-positional-arguments
     def __init__(self, data, threshold=None, link_density=None,
                  non_local=False, node_weight_type="surface",
                  event_threshold=(0, 1), scale_fac=37265, offset=10**(-7),

@@ -38,6 +38,7 @@ class GeoNetwork(SpatialNetwork):
     #  Definitions of internal methods
     #
 
+    # pylint: disable=too-many-positional-arguments
     def __init__(self, grid: GeoGrid, adjacency=None, edge_list=None,
                  directed=False, node_weight_type="surface", silence_level=0):
         """

@@ -67,8 +67,9 @@ class InterSystemRecurrenceNetwork(InteractingNetworks):
     #  Internal methods
     #
 
-    def __init__(self, x, y, metric="supremum",
-                 normalize=False, silence_level=0, **kwds):
+    # pylint: disable=too-many-positional-arguments
+    def __init__(self, x, y, metric="supremum", normalize=False,
+                 silence_level=0, **kwds):
         """
         Initialize an instance of InterSystemRecurrenceNetwork (ISRN).
 

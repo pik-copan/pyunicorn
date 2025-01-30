@@ -42,6 +42,7 @@ class ClimateData(Data, Cached):
     #  Defines internal methods
     #
 
+    # pylint: disable=too-many-positional-arguments
     def __init__(self, observable, grid, time_cycle, anomalies=False,
                  observable_name="", observable_long_name=None, window=None,
                  silence_level=0):
@@ -103,6 +104,7 @@ class ClimateData(Data, Cached):
     #
 
     @classmethod
+    # pylint: disable=too-many-positional-arguments
     def Load(cls, file_name, observable_name, file_type="NetCDF",
              dimension_names=None, window=None, vertical_level=None,
              silence_level=0, time_cycle=None, data_source=None):

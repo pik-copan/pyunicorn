@@ -43,6 +43,7 @@ class SpatialNetwork(Network):
     #  Definitions of internal methods
     #
 
+    # pylint: disable=too-many-positional-arguments
     def __init__(self, grid: Grid, adjacency=None, edge_list=None,
                  directed=False, silence_level=0):
         """

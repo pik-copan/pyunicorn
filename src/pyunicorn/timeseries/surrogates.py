@@ -638,6 +638,7 @@ class Surrogates(Cached):
 
         return (hist, lbb)
 
+    # pylint: disable=too-many-positional-arguments
     def test_threshold_significance(self, surrogate_function, test_function,
                                     realizations=1, n_bins=100,
                                     interval=(-1, 1)):

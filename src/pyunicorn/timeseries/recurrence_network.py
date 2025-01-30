@@ -56,6 +56,7 @@ class RecurrenceNetwork(RecurrencePlot, Network):
     #  Internal methods
     #
 
+    # pylint: disable=too-many-positional-arguments
     def __init__(self, time_series, metric="supremum", normalize=False,
                  missing_values=False, silence_level=0, **kwds):
         """

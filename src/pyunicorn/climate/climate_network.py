@@ -41,6 +41,7 @@ class ClimateNetwork(GeoNetwork):
     #  Definitions of internal methods
     #
 
+    # pylint: disable=too-many-positional-arguments
     def __init__(self, grid: GeoGrid, similarity_measure: np.ndarray,
                  threshold=None, link_density=None, non_local=False,
                  directed=False, node_weight_type="surface", silence_level=0):

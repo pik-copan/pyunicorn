@@ -38,6 +38,7 @@ from ..core.cache import Cached
 
 class EventSeries(Cached):
 
+    # pylint: disable=too-many-positional-arguments
     def __init__(self, data, timestamps=None, taumax=np.inf, lag=0.0,
                  threshold_method=None, threshold_values=None,
                  threshold_types=None):
@@ -424,6 +425,7 @@ class EventSeries(Cached):
         return eventmatrix
 
     @staticmethod
+    # pylint: disable=too-many-positional-arguments
     def event_synchronization(eventseriesx, eventseriesy, ts1=None, ts2=None,
                               taumax=np.inf, lag=0.0):
         """
@@ -509,6 +511,7 @@ class EventSeries(Cached):
         return countxy / norm, countyx / norm
 
     @staticmethod
+    # pylint: disable=too-many-positional-arguments
     def event_coincidence_analysis(eventseriesx, eventseriesy, taumax,
                                    ts1=None, ts2=None, lag=0.0):
         """
@@ -580,6 +583,7 @@ class EventSeries(Cached):
                 np.float32(prec21) / (l2 - n21),
                 np.float32(trig21) / (l1 - n12))
 
+    # pylint: disable=too-many-positional-arguments
     def _eca_coincidence_rate(self, eventseriesx, eventseriesy,
                               window_type='symmetric', ts1=None, ts2=None):
         """
@@ -903,6 +907,7 @@ class EventSeries(Cached):
 
         return empirical_percentiles
 
+    # pylint: disable=too-many-positional-arguments
     def event_analysis_significance(self, method=None,
                                     surrogate='shuffle', n_surr=1000,
                                     symmetrization='directed',

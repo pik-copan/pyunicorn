@@ -137,6 +137,7 @@ class Network(Cached):
     #  Definitions of internal methods
     #
 
+    # pylint: disable=too-many-positional-arguments
     def __init__(self, adjacency=None, n_nodes=None, edge_list=None,
                  directed=False, node_weights=None, silence_level=0):
         """
@@ -929,6 +930,7 @@ class Network(Cached):
         return np.array(graph.get_adjacency(type=2).data)
 
     @staticmethod
+    # pylint: disable=too-many-positional-arguments
     def GrowWeights(n_nodes=100, n_initials=1, exponent=1,
                     mode="exp",
                     split_prob=.01,  # for exponential model
@@ -1857,6 +1859,7 @@ class Network(Cached):
         """
         return self.local_clustering().mean()
 
+    # pylint: disable=too-many-positional-arguments
     def _motif_clustering_helper(self, t_func, T, key=None, nsi=False,
                                  typical_weight=None, ksum=None):
         """
@@ -3330,6 +3333,7 @@ class Network(Cached):
 
     # parallelized main loop
     @staticmethod
+    # pylint: disable=too-many-positional-arguments
     def _mpi_nsi_arenas_betweenness(
             N, sp_P, this_Aplus, w, this_w, start_i, end_i,
             exclude_neighbors, stopping_mode, this_twinness):

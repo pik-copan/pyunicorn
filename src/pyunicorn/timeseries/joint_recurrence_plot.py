@@ -64,6 +64,7 @@ class JointRecurrencePlot(RecurrencePlot):
     #  Internal methods
     #
 
+    # pylint: disable=too-many-positional-arguments
     def __init__(self, x, y, metric=("supremum", "supremum"),
                  normalize=False, lag=0, silence_level=0, **kwds):
         """

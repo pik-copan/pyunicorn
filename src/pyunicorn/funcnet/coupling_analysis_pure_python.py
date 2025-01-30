@@ -541,6 +541,7 @@ class CouplingAnalysisPurePython:
                                   bins=bins, tau_max=tau_max,
                                   lag_mode=lag_mode)
 
+    # pylint: disable=too-many-positional-arguments
     def _calculate_mi(self, array, corr_range, bins, tau_max, lag_mode):
         """
         Returns the mi matrix.

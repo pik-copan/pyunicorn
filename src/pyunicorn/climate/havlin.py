@@ -50,6 +50,7 @@ class HavlinClimateNetwork(ClimateNetwork):
     #  Defines internal methods
     #
 
+    # pylint: disable=too-many-positional-arguments
     def __init__(self, data, max_delay, threshold=None, link_density=None,
                  non_local=False, node_weight_type="surface", silence_level=0):
         """

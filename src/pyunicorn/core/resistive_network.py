@@ -71,7 +71,7 @@ class ResNetwork(GeoNetwork):
 ###############################################################################
 # ##                       MAGIC FUNCTIONS                                 ## #
 ###############################################################################
-
+    # pylint: disable=too-many-positional-arguments
     def __init__(self, resistances, grid=None, adjacency=None, edge_list=None,
                  directed=False, node_weight_type=None, silence_level=2):
 
