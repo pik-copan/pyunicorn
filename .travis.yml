@@ -38,11 +38,11 @@ virt: lxd
 language: generic
 env:
   jobs:
+    - PYTHON=3.13
     - PYTHON=3.12
     - PYTHON=3.11
     - PYTHON=3.10
     - PYTHON=3.9
-    - PYTHON=3.8
 
 before_install: export ARCH=Linux-aarch64 SED=sed
 
