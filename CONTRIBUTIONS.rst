@@ -4,7 +4,7 @@ Contributions
 
 Copyright
 ---------
-\ |copy| 2008-2024 Jonathan F. Donges and pyunicorn authors.
+\ |copy| 2008-2025 Jonathan F. Donges and pyunicorn authors.
 
 License
 -------
