@@ -847,7 +847,9 @@ class Network(Cached):
         A[1:1+m, 0] = 1
 
         # inverse cum. degree distribution
-        targets, last_child = np.zeros(2*m*(N-m), dtype=np.int8), np.zeros(N)
+        dtype = np.int16 if N < 32767 else np.int32
+        targets = np.zeros(2*m*(N-m), dtype=dtype)
+        last_child = np.zeros(N, dtype=dtype)
         targets[m:2*m] = range(1, 1+m)
         n_targets = 2*m
         for j in range(1+m, N):
