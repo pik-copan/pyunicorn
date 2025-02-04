@@ -111,5 +111,5 @@ jobs:
       install:
         - | # install executables via Chocolatey: Python, Pandoc, Codecov
           travis_retry choco install python313
-          travis_retry pip install --upgrade pip
+          travis_retry python -m pip install --upgrade pip
           travis_retry choco install pandoc codecov
