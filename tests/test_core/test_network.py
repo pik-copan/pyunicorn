@@ -282,6 +282,11 @@ def test_BarabasiAlbert_igraph():
     assert np.allclose(net.link_density, 0.02)
 
 
+def test_BarabasiAlbert():
+    net = Network.Model("BarabasiAlbert", n_nodes=100, n_links_each=1)
+    assert np.allclose(net.link_density, 0.02)
+
+
 def test_ConfigurationModel():
     net = Network.Model("Configuration", degree=[3 for _ in range(0, 1000)])
     assert int(round(net.degree().mean())) == 3
