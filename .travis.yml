@@ -80,7 +80,7 @@ script:
     ${SED} -i '/-n auto/   {s//-n 2/;      h}; ${x;/./{x;q0};x;q1}' pyproject.toml
     ${SED} -i '/jobs = ./  {s//jobs = 2/;  h}; ${x;/./{x;q0};x;q1}' pyproject.toml
   - | # install Python libs via Pip: self (+ dependencies, if on Windows)
-    travis_retry python -m pip install -v -e .[tests,docs]
+    travis_retry pip install -v -e .[tests,docs]
   - | # run test suite
     tox -v
 
@@ -110,6 +110,6 @@ jobs:
         - export PATH=/c/Python${PYTHON/.}:/c/Python${PYTHON/.}/Scripts:${PATH}
       install:
         - | # install executables via Chocolatey: Python, Pandoc, Codecov
-          travis_retry choco install python --version ${PYTHON}
+          travis_retry choco install python313
           travis_retry python -m pip install --upgrade pip
           travis_retry choco install pandoc codecov
