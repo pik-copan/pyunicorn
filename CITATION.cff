@@ -2,8 +2,6 @@ cff-version: 1.2.0
 message: If you use this software, please cite it using the metadata provided below.
 type: software
 title: 'Pyunicorn: Unified Complex Network and Recurrence Analysis Toolbox'
-version: 0.8.0
-date-released: '2024-09-17'
 abstract: pyunicorn (Unified Complex Network and RecurreNce analysis toolbox) is an
   object-oriented Python package for the advanced analysis and modeling of complex networks.
   Beyond the standard measures of complex network theory (such as degree, betweenness and
@@ -29,29 +27,29 @@ authors:
 - family-names: Donges
   given-names: Jonathan
   email: donges@pik-potsdam.de
-  orcid: 0000-0001-5233-7703
+  orcid: https://orcid.org/0000-0001-5233-7703
 - family-names: Heitzig
   given-names: Jobst
   email: jobst.heitzig@pik-potsdam.de
-  orcid: 0000-0002-0442-8077
+  orcid: https://orcid.org/0000-0002-0442-8077
 - family-names: Beronov
   given-names: Boyan
   email: beronov@pik-potsdam.de
-  orcid: 0000-0002-0900-752X
+  orcid: https://orcid.org/0000-0002-0900-752X
 - family-names: Kühlein
   given-names: Fritz
   email: fritzku@pik-potsdam.de
 - family-names: Bechthold
   given-names: Max
   email: maxbecht@pik-potsdam.de
-  orcid: 0009-0007-7113-4814
+  orcid: https://orcid.org/0009-0007-7113-4814
 - family-names: Kroenke
   given-names: Jonathan
   email: kroenke@pik-potsdam.de
 - family-names: Barfuss
   given-names: Wolfram
   email: barfuss@uni-bonn.de
-  orcid: 0000-0002-9077-5242
+  orcid: https://orcid.org/0000-0002-9077-5242
 - family-names: Harmening
   given-names: Nils
 - family-names: Nascimento Silva
@@ -67,7 +65,7 @@ authors:
 - family-names: Hotz
   given-names: Ronja
 
-license: GPL-3
+license: GPL-3.0
 repository-code: https://github.com/pik-copan/pyunicorn
 
 preferred-citation:
@@ -78,18 +76,18 @@ preferred-citation:
   - family-names: Donges
     given-names: Jonathan
     email: donges@pik-potsdam.de
-    orcid: 0000-0001-5233-7703
+    orcid: https://orcid.org/0000-0001-5233-7703
   - family-names: Heitzig
     given-names: Jobst
     email: jobst.heitzig@pik-potsdam.de
-    orcid: 0000-0002-0442-8077
+    orcid: https://orcid.org/0000-0002-0442-8077
   - family-names: Beronov
     given-names: Boyan
     email: beronov@pik-potsdam.de
-    orcid: 0000-0002-0900-752X
+    orcid: https://orcid.org/0000-0002-0900-752X
   - family-names: Wiedermann
     given-names: Marc
-    orcid: 0000-0001-9869-3789
+    orcid: https://orcid.org/0000-0001-9869-3789
   - family-names: Runge
     given-names: Jakob
   - family-names: Feng
@@ -101,17 +99,17 @@ preferred-citation:
   - family-names: Donner
     given-names: Reik V.
     email: redonner@pik-potsdam.de
-    orcid: 0000-0001-7023-6375
+    orcid: https://orcid.org/0000-0001-7023-6375
   - family-names: Marwan
     given-names: Norbert
     email: marwan@pik-potsdam.de
-    orcid: 0000-0003-1437-7039
+    orcid: https://orcid.org/0000-0003-1437-7039
   - family-names: Dijkstra
     given-names: Henk A.
   - family-names: Kurths
     given-names: Jürgen
     email: juergen.kurths@pik-potsdam.de
-    orcid: 0000-0002-5926-4276
+    orcid: https://orcid.org/0000-0002-5926-4276
   abstract: We introduce the pyunicorn (Pythonic unified complex network and recurrence analysis
     toolbox) open source software package for applying and combining modern methods of data
     analysis and modeling from complex network theory and nonlinear time series analysis. pyunicorn
