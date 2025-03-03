@@ -2,6 +2,13 @@
 Changelog
 =========
 
+0.8.2
+-----
+
+Documentation:
+
+- Review ``CITATION.cff`` to fix `Zenodo-Hook <https://zenodo.org/records/10697647>`_.
+
 
 0.8.1
 -----
@@ -13,7 +20,7 @@ Package:
 
 Documentation:
 
-- Enabled automated `Zenodo-Hook <https://zenodo.org/records/10697647>`_
+- Enabled automated `Zenodo-Hook <https://zenodo.org/records/10697647>`_.
 
 Bug Fixes:
 
