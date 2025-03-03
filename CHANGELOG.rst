@@ -2,6 +2,26 @@
 Changelog
 =========
 
+
+0.8.1
+-----
+
+Package:
+
+- Established support for Python 3.13, faded out support for Python 3.8
+  (`1bfd5d2 <https://github.com/pik-copan/pyunicorn/commit/1bfd5d2e9f89517326ee034cf9b8ed7b31d4f078>`_)
+
+Documentation:
+
+- Enabled automated `Zenodo-Hook <https://zenodo.org/records/10697647>`_
+
+Bug Fixes:
+
+- Fixed bugs in parallel code of ``Network`` class as well as ``utils.mpi`` example scripts
+  (`#241 <https://github.com/pik-copan/pyunicorn/issues/241>`_,
+  `#242 <https://github.com/pik-copan/pyunicorn/pull/242>`_).
+
+
 0.8.0
 -----
 
