@@ -2,7 +2,7 @@ from pyunicorn import Network, mpi
 
 
 def do_one():
-    net = Network.BarabasiAlbert(n_nodes=100, n_links_each=10)
+    net = Network.Model("BarabasiAlbert", n_nodes=100, n_links_each=10)
     return net.global_clustering()
 
 

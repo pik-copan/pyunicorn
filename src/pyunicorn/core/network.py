@@ -847,7 +847,9 @@ class Network(Cached):
         A[1:1+m, 0] = 1
 
         # inverse cum. degree distribution
-        targets, last_child = np.zeros(2*m*(N-m), dtype=np.int8), np.zeros(N)
+        dtype = np.int16 if N < 32767 else np.int32
+        targets = np.zeros(2*m*(N-m), dtype=dtype)
+        last_child = np.zeros(N, dtype=dtype)
         targets[m:2*m] = range(1, 1+m)
         n_targets = 2*m
         for j in range(1+m, N):
@@ -3488,9 +3490,13 @@ class Network(Cached):
                         * subnet.sp_diag_w()).todok()
 
                 if mpi.available:
-                    parts = max(1, int(np.ceil(
+                    # determine in how many parts outer loop is split at max:
+                    max_parts = max(1, int(np.ceil(
                         min((mpi.size-1) * 10.0, 0.1 * N))))
-                    step = int(np.ceil(1.0 * N / (1.0 * parts)))
+                    # corresponding step size for c index of outer loop:
+                    step = int(np.ceil(1.0 * N / (1.0 * max_parts)))
+                    # actual number of parts accounting for rounding of steps:
+                    parts = int(np.ceil(1.0 * N / (1.0 * step)))
                     if self.silence_level <= 0:
                         print(f"   parallelizing on {mpi.size-1}"
                               f" slaves into {parts} parts with "
@@ -3516,7 +3522,7 @@ class Network(Cached):
                                  stopping_mode, this_twinness),
                                 module="pyunicorn", id=index)
 
-                    # Retrieve results of all submited jobs
+                    # Retrieve results of all submitted jobs
                     component_betweenness = np.zeros(N)
                     for index in range(parts):
                         start_i = index * step
@@ -3630,11 +3636,13 @@ class Network(Cached):
 
                 component_betweenness = np.zeros(N)
                 if mpi.available:
-                    # determine in how many parts we split the outer loop:
-                    parts = max(1, int(np.ceil(
+                    # determine in how many parts outer loop is split at max:
+                    max_parts = max(1, int(np.ceil(
                         min((mpi.size-1) * 10.0, 0.1 * N))))
                     # corresponding step size for c index of outer loop:
-                    step = int(np.ceil(1.0 * N / (1.0 * parts)))
+                    step = int(np.ceil(1.0 * N / (1.0 * max_parts)))
+                    # actual number of parts accounting for rounding of steps:
+                    parts = int(np.ceil(1.0 * N / (1.0 * step)))
                     if self.silence_level <= 0:
                         print("   parallelizing on " + str((mpi.size-1))
                               + " slaves into " + str(parts) + " parts with "
@@ -3652,7 +3660,7 @@ class Network(Cached):
                         if self.silence_level <= 0:
                             print("submitting part from", start_i, "to", end_i)
                         mpi.submit_call(
-                            "_mpi_newman_betweenness",
+                            "core._ext.numerics._mpi_newman_betweenness",
                             (to_cy(this_A, ADJ), to_cy(V, DFIELD),
                              N, start_i, end_i),
                             module="pyunicorn", id=index,
@@ -3810,9 +3818,13 @@ class Network(Cached):
                 not_adjacent_or_equal = (1 - A - np.identity(N)).astype(MASK)
 
                 if mpi.available:
-                    parts = max(1, int(np.ceil(min((mpi.size-1) * 10.0,
-                                                   0.1 * N))))
-                    step = int(np.ceil(1.0*N/(1.0*parts)))
+                    # determine in how many parts outer loop is split at max:
+                    max_parts = max(1, int(np.ceil(
+                        min((mpi.size-1) * 10.0, 0.1 * N))))
+                    # corresponding step size for c index of outer loop:
+                    step = int(np.ceil(1.0 * N / (1.0 * max_parts)))
+                    # actual number of parts accounting for rounding of steps:
+                    parts = int(np.ceil(1.0 * N / (1.0 * step)))
                     if self.silence_level <= 0:
                         print("   parallelizing on " + str((mpi.size-1))
                               + " slaves into " + str(parts) + " parts with "
@@ -3828,12 +3840,12 @@ class Network(Cached):
                             not_adjacent_or_equal[start_i:end_i, :]
 
                         mpi.submit_call(
-                            "_mpi_nsi_newman_betweenness",
+                            "core._ext.numerics._mpi_nsi_newman_betweenness",
                             (to_cy(this_A, ADJ), to_cy(V, DFIELD), N, w,
                              this_not_adjacent_or_equal, start_i, end_i),
                             module="pyunicorn", id=idx)
 
-                    # Retrieve results of all submited jobs
+                    # Retrieve results of all submitted jobs
                     component_betweenness = np.zeros(N)
                     for idx in range(parts):
                         this_betweenness, start_i, end_i = mpi.get_result(idx)
