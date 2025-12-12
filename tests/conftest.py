@@ -35,13 +35,9 @@ def reanalysis_data() -> Path:
     - `tests/test_climate/test_map_plot.py`
     - `docs/source/examples/tutorials/ClimateNetworks.ipynb`
     """
-    service = "https://psl.noaa.gov/repository/entry/get"
     data_name = "air.mon.mean.nc"
-    query = (
-        "entryid=synth%3Ae570c8f9-ec09-4e89-93b4-"
-        "babd5651e7a9%3AL25jZXAucmVhbmFseXNpcy5kZXJpdm"
-        "VkL3N1cmZhY2UvYWlyLm1vbi5tZWFuLm5j")
-    url = f"{service}/{data_name}?{query}"
+    url = "https://downloads.psl.noaa.gov/Datasets/" \
+        f"ncep.reanalysis/Monthlies/surface/{data_name}"
 
     data_dir = Path("./docs/source/examples/tutorials/data")
     data_file = data_dir / data_name

@@ -17,8 +17,6 @@ from pathlib import Path
 import matplotlib
 import matplotlib.pyplot as plt
 
-import pytest
-
 from pyunicorn.climate.climate_data import ClimateData
 from pyunicorn.climate.tsonis import TsonisClimateNetwork
 from pyunicorn.climate.map_plot import MapPlot
@@ -33,7 +31,6 @@ class TestMapPlot:
     """
 
     @staticmethod
-    @pytest.mark.skip(reason="currently failing, see issue #251")
     def test_plot(reanalysis_data: Path):
         """
         Check error-free execution.
