@@ -1302,31 +1302,31 @@ class Network(Cached):
     #
 
     @Cached.method()
-    def degree(self, key=None):
+    def degree(self, link_attribute=None):
         """
         Return list of degrees.
 
-        If a link attribute key is specified, return the associated strength.
+        If a link attribute is specified, return the associated strength.
 
         **Example:**
 
         >>> Network.SmallTestNetwork().degree()
         array([3, 3, 2, 2, 3, 1])
 
-        :arg str key: link attribute key [optional]
+        :arg str link_attribute: link attribute [optional]
         :rtype: array([int>=0])
         """
         if self.directed:
-            return self.indegree(key) + self.outdegree(key)
+            return self.indegree(link_attribute) + self.outdegree(link_attribute)
         else:
-            return self.outdegree(key)
+            return self.outdegree(link_attribute)
 
     @Cached.method(attrs=("_mut_la",))
-    def indegree(self, key=None):
+    def indegree(self, link_attribute=None):
         """
         Return list of in-degrees.
 
-        If a link attribute key is specified, return the associated
+        If a link attribute is specified, return the associated
         in-strength.
 
         **Example:**
@@ -1334,20 +1334,20 @@ class Network(Cached):
         >>> Network.SmallDirectedTestNetwork().indegree()
         array([2, 2, 2, 1, 1, 0])
 
-        :arg str key: link attribute key [optional]
+        :arg str link_attribute: link attribute [optional]
         :rtype: array([int>=0])
         """
-        if key is None:
+        if link_attribute is None:
             return self.sp_A.toarray().sum(axis=0).astype(int)
         else:
-            return self.link_attribute(key).sum(axis=0).T
+            return self.link_attribute(link_attribute).sum(axis=0).T
 
     @Cached.method(attrs=("_mut_la",))
-    def outdegree(self, key=None):
+    def outdegree(self, link_attribute=None):
         """
         Return list of out-degrees.
 
-        If a link attribute key is specified, return the associated
+        If a link attribute is specified, return the associated
         out-strength.
 
         **Example:**
@@ -1355,21 +1355,21 @@ class Network(Cached):
         >>> Network.SmallDirectedTestNetwork().outdegree()
         array([2, 2, 0, 1, 2, 1])
 
-        :arg str key: link attribute key [optional]
+        :arg str link_attribute: link attribute [optional]
         :rtype: array([int>=0])
         """
-        if key is None:
+        if link_attribute is None:
             return self.sp_A.toarray().sum(axis=1).T.astype(int)
         else:
-            return self.link_attribute(key).sum(axis=1).T
+            return self.link_attribute(link_attribute).sum(axis=1).T
 
     @Cached.method(attrs=("_mut_la",))
-    def bildegree(self, key=None):
+    def bildegree(self, link_attribute=None):
         """
         Return list of bilateral degrees, i.e. the number of simultaneously in-
         and out-going edges.
 
-        If a link attribute key is specified, return the associated bilateral
+        If a link attribute is specified, return the associated bilateral
         strength.
 
         **Exmaple:**
@@ -1380,10 +1380,10 @@ class Network(Cached):
         >>> (net.bildegree() == net.degree()).all()
         True
         """
-        if key is None:
+        if link_attribute is None:
             return (self.sp_A * self.sp_A).diagonal()
         else:
-            w = self.link_attribute(key)
+            w = self.link_attribute(link_attribute)
             return (w @ w).diagonal()
 
     def sp_nsi_diag_k(self):
@@ -1397,11 +1397,11 @@ class Network(Cached):
                         shape=(self.N, self.N), format='csc', dtype=None)
 
     @Cached.method(attrs=("_mut_nw", "_mut_la"))
-    def nsi_degree(self, key=None, typical_weight=None):
+    def nsi_degree(self, link_attribute=None, typical_weight=None):
         """
         For each node, return its uncorrected or corrected n.s.i. degree.
 
-        If a link attribute key is specified, return the associated n.s.i.
+        If a link attribute is specified, return the associated n.s.i.
         strength.
 
         **Examples:**
@@ -1427,7 +1427,7 @@ class Network(Cached):
         >>> r(net.splitted_copy().degree())
         array([4, 3, 2, 2, 3, 2, 2])
 
-        :arg str key: link attribute key (optional)
+        :arg str link_attribute: link attribute (optional)
         :type typical_weight: float > 0
         :arg float typical_weight: Optional typical node weight to be used for
             correction. If None, the uncorrected measure is
@@ -1436,12 +1436,12 @@ class Network(Cached):
         :rtype: array([float])
         """
         if self.directed:
-            res = self.nsi_indegree(key) + self.nsi_outdegree(key)
+            res = self.nsi_indegree(link_attribute) + self.nsi_outdegree(link_attribute)
         else:
-            if key is None:
+            if link_attribute is None:
                 res = self.sp_Aplus() * self.node_weights
             else:
-                w = self.link_attribute(key)
+                w = self.link_attribute(link_attribute)
                 res = (self.node_weights @ w).squeeze()
 
         if typical_weight is None:
@@ -1450,11 +1450,11 @@ class Network(Cached):
             return res/typical_weight - 1.0
 
     @Cached.method(attrs=("_mut_nw", "_mut_la"))
-    def nsi_indegree(self, key=None, typical_weight=None):
+    def nsi_indegree(self, link_attribute=None, typical_weight=None):
         """
         For each node, return its n.s.i. indegree.
 
-        If a link attribute key is specified, return the associated n.s.i.
+        If a link attribute is specified, return the associated n.s.i.
         in-strength.
 
         **Examples:**
@@ -1473,7 +1473,7 @@ class Network(Cached):
         >>> net.splitted_copy().indegree()
         array([3, 2, 2, 1, 1, 1, 1])
 
-        :arg str key: link attribute key [optional]
+        :arg str link_attribute: link attribute [optional]
         :type typical_weight: float > 0
         :arg  typical_weight: Optional typical node weight to be used for
             correction. If None, the uncorrected measure is
@@ -1481,21 +1481,21 @@ class Network(Cached):
 
         :rtype: array([float])
         """
-        if key is None:
+        if link_attribute is None:
             res = self.node_weights * self.sp_Aplus()
         else:
-            res = (self.node_weights @ self.link_attribute(key)).squeeze()
+            res = (self.node_weights @ self.link_attribute(link_attribute)).squeeze()
         if typical_weight is None:
             return res
         else:
             return res/typical_weight - 1.0
 
     @Cached.method(attrs=("_mut_nw", "_mut_la"))
-    def nsi_outdegree(self, key=None, typical_weight=None):
+    def nsi_outdegree(self, link_attribute=None, typical_weight=None):
         """
         For each node, return its n.s.i. outdegree.
 
-        If a link attribute key is specified, return the associated n.s.i.
+        If a link attribute is specified, return the associated n.s.i.
         out-strength.
 
         **Examples:**
@@ -1514,7 +1514,7 @@ class Network(Cached):
         >>> net.splitted_copy().outdegree()
         array([2, 2, 0, 1, 2, 2, 2])
 
-        :arg str key: link attribute key [optional]
+        :arg str link_attribute: link attribute [optional]
         :type typical_weight: float > 0
         :arg  typical_weight: Optional typical node weight to be used for
             correction. If None, the uncorrected measure is
@@ -1522,24 +1522,24 @@ class Network(Cached):
 
         :rtype: array([float])
         """
-        if key is None:
+        if link_attribute is None:
             res = self.sp_Aplus() * self.node_weights
         else:
-            res = (self.link_attribute(key) @ self.node_weights).squeeze()
+            res = (self.link_attribute(link_attribute) @ self.node_weights).squeeze()
         if typical_weight is None:
             return res
         else:
             return res/typical_weight - 1.0
 
     @Cached.method(attrs=("_mut_nw",))
-    def nsi_bildegree(self, key=None, typical_weight=None):
+    def nsi_bildegree(self, link_attribute=None, typical_weight=None):
         """
         For each node, return its n.s.i. bilateral degree.
 
-        If a link attribute key is specified, return the associated n.s.i.
+        If a link attribute is specified, return the associated n.s.i.
         bilateral strength.
 
-        :arg str key: link attribute key [optional]
+        :arg str link_attribute: link attribute [optional]
         :type typical_weight: float > 0
         :arg  typical_weight: Optional typical node weight to be used for
             correction. If None, the uncorrected measure is
@@ -1547,7 +1547,7 @@ class Network(Cached):
 
         :rtype: array([float])
         """
-        assert key is None, "nsi_bildegree is not implemented with key yet"
+        assert link_attribute is None, "nsi_bildegree is not implemented with link_attribute yet"
         Ap = self.sp_Aplus()
         res = (Ap * sp.diags(self.node_weights, dtype=None) * Ap).diagonal()
         if typical_weight is None:
@@ -1862,7 +1862,7 @@ class Network(Cached):
         return self.local_clustering().mean()
 
     # pylint: disable=too-many-positional-arguments
-    def _motif_clustering_helper(self, t_func, T, key=None, nsi=False,
+    def _motif_clustering_helper(self, t_func, T, link_attribute=None, nsi=False,
                                  typical_weight=None, ksum=None):
         """
         Helper function to compute the local motif clustering coefficients.
@@ -1871,7 +1871,7 @@ class Network(Cached):
 
         :arg function t_func: multiplication of adjacency-type matrices
         :arg 1d numpy array [node]: denominator made out of (in/out/bil)degrees
-        :arg str key: link attribute key (optional)
+        :arg str link_attribute: link attribute (optional)
         :arg bool nsi: flag for nsi calculation (default: False)
         :type typical_weight: float > 0
         :arg float typical_weight: Optional typical node weight to be used for
@@ -1882,12 +1882,12 @@ class Network(Cached):
         """
         if nsi:
             nodew = sp.csc_matrix(np.eye(self.N) * self.node_weights)
-        if key is None:
+        if link_attribute is None:
             # pylint: disable=possibly-used-before-assignment
             A = self.sp_Aplus() * nodew if nsi else self.sp_A
             AT = self.sp_Aplus().T * nodew if nsi else A.T
         else:
-            M = sp.csc_matrix(self.link_attribute(key)**(1/3.))
+            M = sp.csc_matrix(self.link_attribute(link_attribute)**(1/3.))
             A = M * nodew if nsi else M
             AT = M.T * nodew if nsi else M.T
 
@@ -1905,12 +1905,12 @@ class Network(Cached):
                     / (T - ksum/typical_weight - bilk + 2))
 
     @Cached.method(name="the local cycle motif clustering coefficients")
-    def local_cyclemotif_clustering(self, key=None):
+    def local_cyclemotif_clustering(self, link_attribute=None):
         """
         For each node, return the clustering coefficient with respect to the
         cycle motif.
 
-        If a link attribute key is specified, return the associated link
+        If a link attribute is specified, return the associated link
         weighted version.
 
         **Example:**
@@ -1919,21 +1919,21 @@ class Network(Cached):
         Calculating local cycle motif clustering coefficient...
         array([ 0.25,  0.25,  0.  ,  0.  ,  0.5 ,  0.  ])
 
-        :arg str key: link attribute key (optional)
+        :arg str link_attribute: link attribute (optional)
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
         def t_func(x, xT):  # pylint: disable=unused-argument
             return x * x * x
         T = self.indegree() * self.outdegree() - self.bildegree()
-        return self._motif_clustering_helper(t_func, T, key=key)
+        return self._motif_clustering_helper(t_func, T, link_attribute=link_attribute)
 
     @Cached.method(name="the local mid. motif clustering coefficients")
-    def local_midmotif_clustering(self, key=None):
+    def local_midmotif_clustering(self, link_attribute=None):
         """
         For each node, return the clustering coefficient with respect to the
         mid. motif.
 
-        If a link attribute key is specified, return the associated link
+        If a link attribute is specified, return the associated link
         weighted version.
 
         **Example:**
@@ -1942,21 +1942,21 @@ class Network(Cached):
         Calculating local mid. motif clustering coefficient...
         array([ 0. ,  0. ,  0. ,  1. ,  0.5,  0. ])
 
-        :arg str key: link attribute key (optional)
+        :arg str link_attribute: link attribute (optional)
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
         def t_func(x, xT):
             return x * xT * x
         T = self.indegree() * self.outdegree() - self.bildegree()
-        return self._motif_clustering_helper(t_func, T, key=key)
+        return self._motif_clustering_helper(t_func, T, link_attribute=link_attribute)
 
     @Cached.method(name="the local in motif clustering coefficients")
-    def local_inmotif_clustering(self, key=None):
+    def local_inmotif_clustering(self, link_attribute=None):
         """
         For each node, return the clustering coefficient with respect to the
         in motif.
 
-        If a link attribute key is specified, return the associated link
+        If a link attribute is specified, return the associated link
         weighted version.
 
         **Example:**
@@ -1965,21 +1965,21 @@ class Network(Cached):
         Calculating local in motif clustering coefficient...
         array([ 0. ,  0.5,  0.5,  0. ,  0. ,  0. ])
 
-        :arg str key: link attribute key (optional)
+        :arg str link_attribute: link attribute (optional)
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
         def t_func(x, xT):
             return xT * x * x
         T = self.indegree() * (self.indegree() - 1)
-        return self._motif_clustering_helper(t_func, T, key=key)
+        return self._motif_clustering_helper(t_func, T, link_attribute=link_attribute)
 
     @Cached.method(name="the local out motif clustering coefficients")
-    def local_outmotif_clustering(self, key=None):
+    def local_outmotif_clustering(self, link_attribute=None):
         """
         For each node, return the clustering coefficient with respect to the
         out motif.
 
-        If a link attribute key is specified, return the associated link
+        If a link attribute is specified, return the associated link
         weighted version.
 
         **Example:**
@@ -1988,22 +1988,22 @@ class Network(Cached):
         Calculating local out motif clustering coefficient...
         array([ 0.5,  0.5,  0. ,  0. ,  0. ,  0. ])
 
-        :arg str key: link attribute key (optional)
+        :arg str link_attribute: link attribute (optional)
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
         def t_func(x, xT):
             return x * x * xT
         T = self.outdegree() * (self.outdegree() - 1)
-        return self._motif_clustering_helper(t_func, T, key=key)
+        return self._motif_clustering_helper(t_func, T, link_attribute=link_attribute)
 
     @Cached.method(name="the local n.s.i. cycle motif clustering coefficients",
                    attrs=("_mut_nw",))
-    def nsi_local_cyclemotif_clustering(self, key=None, typical_weight=None):
+    def nsi_local_cyclemotif_clustering(self, link_attribute=None, typical_weight=None):
         """
         For each node, return the nsi clustering coefficient with respect to
         the cycle motif.
 
-        If a link attribute key is specified, return the associated link
+        If a link attribute is specified, return the associated link
         weighted version.
 
         Reference: [Zemp2014]_
@@ -2028,7 +2028,7 @@ class Network(Cached):
         Calculating local cycle motif clustering coefficient...
         array([ 0.3333,  0.125 ,  0.    ,  0.    ,  0.5   ,  0.    ,  0.125 ])
 
-        :arg str key: link attribute key (optional)
+        :arg str link_attribute: link attribute (optional)
         :type typical_weight: float > 0
         :arg float typical_weight: Optional typical node weight to be used for
             correction. If None, the uncorrected measure is
@@ -2041,17 +2041,17 @@ class Network(Cached):
         T = ink * outk
         ksum = ink + outk
         return self._motif_clustering_helper(
-            t_func, T, key=key, nsi=True,
+            t_func, T, link_attribute=link_attribute, nsi=True,
             typical_weight=typical_weight, ksum=ksum)
 
     @Cached.method(name="the local n.s.i. mid. motif clustering coefficients",
                    attrs=("_mut_nw",))
-    def nsi_local_midmotif_clustering(self, key=None, typical_weight=None):
+    def nsi_local_midmotif_clustering(self, link_attribute=None, typical_weight=None):
         """
         For each node, return the nsi clustering coefficient with respect to
         the mid motif.
 
-        If a link attribute key is specified, return the associated link
+        If a link attribute is specified, return the associated link
         weighted version.
 
         Reference: [Zemp2014]_
@@ -2076,7 +2076,7 @@ class Network(Cached):
         Calculating local mid. motif clustering coefficient...
         array([ 0. ,  0. ,  0. ,  1. ,  0.8,  0. ,  0.8])
 
-        :arg str key: link attribute key (optional)
+        :arg str link_attribute: link attribute (optional)
         :type typical_weight: float > 0
         :arg float typical_weight: Optional typical node weight to be used for
             correction. If None, the uncorrected measure is
@@ -2089,17 +2089,17 @@ class Network(Cached):
         T = ink * outk
         ksum = ink + outk
         return self._motif_clustering_helper(
-            t_func, T, key=key, nsi=True,
+            t_func, T, link_attribute=link_attribute, nsi=True,
             typical_weight=typical_weight, ksum=ksum)
 
     @Cached.method(name="the local n.s.i. in motif clustering coefficients",
                    attrs=("_mut_nw",))
-    def nsi_local_inmotif_clustering(self, key=None, typical_weight=None):
+    def nsi_local_inmotif_clustering(self, link_attribute=None, typical_weight=None):
         """
         For each node, return the nsi clustering coefficient with respect to
         the in motif.
 
-        If a link attribute key is specified, return the associated link
+        If a link attribute is specified, return the associated link
         weighted version.
 
         Reference: [Zemp2014]_
@@ -2125,7 +2125,7 @@ class Network(Cached):
         array([ 0.    ,  0.5   ,  0.6667,  0.    ,  1.    ,  0.    ,  0.5   ])
 
 
-        :arg str key: link attribute key (optional)
+        :arg str link_attribute: link attribute (optional)
         :type typical_weight: float > 0
         :arg float typical_weight: Optional typical node weight to be used for
             correction. If None, the uncorrected measure is
@@ -2137,17 +2137,17 @@ class Network(Cached):
         T = ink**2
         ksum = ink * 2
         return self._motif_clustering_helper(
-            t_func, T, key=key, nsi=True,
+            t_func, T, link_attribute=link_attribute, nsi=True,
             typical_weight=typical_weight, ksum=ksum)
 
     @Cached.method(name="the local n.s.i. out motif clustering coefficients",
                    attrs=("_mut_nw",))
-    def nsi_local_outmotif_clustering(self, key=None, typical_weight=None):
+    def nsi_local_outmotif_clustering(self, link_attribute=None, typical_weight=None):
         """
         For each node, return the nsi clustering coefficient with respect to
         the out motif.
 
-        If a link attribute key is specified, return the associated link
+        If a link attribute is specified, return the associated link
         weighted version.
 
         Reference: [Zemp2014]_
@@ -2172,7 +2172,7 @@ class Network(Cached):
         Calculating local out motif clustering coefficient...
         array([ 0.5   ,  0.5   ,  0.    ,  0.    ,  0.3333,  1.    ,  0.5   ])
 
-        :arg str key: link attribute key (optional)
+        :arg str link_attribute: link attribute (optional)
         :type typical_weight: float > 0
         :arg float typical_weight: Optional typical node weight to be used for
             correction. If None, the uncorrected measure is
@@ -2184,7 +2184,7 @@ class Network(Cached):
         T = outk**2
         ksum = outk * 2
         return self._motif_clustering_helper(
-            t_func, T, key=key, nsi=True,
+            t_func, T, link_attribute=link_attribute, nsi=True,
             typical_weight=typical_weight, ksum=ksum)
 
     @Cached.method(name="transitivity coefficient (C_1)")
