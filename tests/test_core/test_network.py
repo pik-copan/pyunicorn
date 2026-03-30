@@ -359,21 +359,36 @@ def test_degree():
     assert (deg == deg_ref).all()
 
 
-def test_indegree():
-    deg = Network.SmallDirectedTestNetwork().indegree()
-    deg_ref = np.array([2, 2, 2, 1, 1, 0])
-    assert (deg == deg_ref).all()
+@pytest.mark.parametrize(
+    "link_attribute, deg_ref",
+    [(None, np.array([2, 2, 2, 1, 1, 0])),
+     ("link_weights", np.array([3.6, 4.3, 4.6, 2.5, 1., 0.]))]
+)
+def test_indegree(link_attribute, deg_ref):
+    deg = Network.SmallDirectedTestNetwork()\
+        .indegree(link_attribute=link_attribute)
+    assert np.allclose(deg, deg_ref)
 
 
-def test_outdegree():
-    deg = Network.SmallDirectedTestNetwork().outdegree()
-    deg_ref = np.array([2, 2, 0, 1, 2, 1])
-    assert (deg == deg_ref).all()
+@pytest.mark.parametrize(
+    "link_attribute, deg_ref",
+    [(None, np.array([2, 2, 0, 1, 2, 1])),
+     ("link_weights", np.array([3.8, 2.9, 0., 3., 4.8, 1.5]))]
+)
+def test_outdegree(link_attribute, deg_ref):
+    deg = Network.SmallDirectedTestNetwork()\
+        .outdegree(link_attribute=link_attribute)
+    assert np.allclose(deg, deg_ref)
 
 
-def test_bildegree():
-    deg = Network.SmallDirectedTestNetwork().bildegree()
-    deg_ref = np.array([0, 0, 0, 0, 0, 0], dtype=np.int16)
+@pytest.mark.parametrize(
+    "link_attribute, deg_ref",
+    [(None, np.array([0, 0, 0, 0, 0, 0], dtype=np.int16)),
+     ("link_weights", np.array([0, 0, 0, 0, 0, 0], dtype=np.int16))]
+)
+def test_bildegree(link_attribute, deg_ref):
+    deg = Network.SmallDirectedTestNetwork()\
+        .bildegree(link_attribute=link_attribute)
     assert (deg == deg_ref).all()
 
     net = Network.SmallTestNetwork()
