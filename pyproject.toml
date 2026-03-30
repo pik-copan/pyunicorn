@@ -162,6 +162,7 @@ extend-exclude = [
 per-file-ignores = [
   "*/__init__.py:F401,F403",
 ]
+max-line-length = 100
 
 [tool.pylint.main]
 ignore = [
@@ -180,7 +181,6 @@ disable = [
 ]
 
 [tool.pylint.format]
-max-line-length = 79
 max-module-lines = 6000
 
 [tool.pylint.refactoring]
