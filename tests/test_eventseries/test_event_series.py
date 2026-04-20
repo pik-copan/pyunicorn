@@ -16,6 +16,7 @@
 Tests for the EventSeries class.
 """
 import numpy as np
+import pytest
 from pyunicorn.eventseries import EventSeries
 
 
@@ -576,3 +577,288 @@ def test_significance():
                                                      symmetrization='mean',
                                                      window_type='retarded'),
                     np.array([[0.0, 1.0], [1.0, 0.0]]), atol=1e-04)
+
+
+# ==========================================================================
+# Additional tests covering the optimized kernels, new getters, fallback
+# paths, optional joblib parallelization, NaN handling, and input validation.
+# These tests are intentionally small and deterministic (fixed RNG seeds)
+# so they remain stable and fast in CI.
+# ==========================================================================
+
+
+def _make_binary_matrix(T, N, p=0.2, seed=0):
+    """Utility: reproducible binary event matrix with roughly p-fraction
+    events per variable."""
+    rng = np.random.default_rng(seed)
+    return (rng.random((T, N)) < p).astype(int)
+
+
+def test_getters():
+    """Cover the public getter methods and the __str__ representation."""
+    data = _make_binary_matrix(120, 4, seed=1)
+    ts = np.linspace(0.0, 11.9, 120)
+    es = EventSeries(data, timestamps=ts, taumax=2.5, lag=0.5)
+
+    assert es.get_T() == 120
+    assert es.get_N() == 4
+    assert np.allclose(es.get_timestamps(), ts)
+    assert es.get_taumax() == 2.5
+    assert es.get_lag() == 0.5
+    # __str__ is covered via repr() to hit that branch too
+    s = str(es)
+    assert "EventSeries" in s and "4 variables" in s and "120 timesteps" in s
+
+
+def test_es_sparse_with_nonzero_lag():
+    """Finite taumax with nonzero lag routes through the sparse
+    binary-search kernel (`_compute_es_matrix_sparse_lag`).
+    Verify matrix-level result matches the pairwise reference."""
+    eventmatrix = _make_binary_matrix(200, 3, p=0.2, seed=2)
+    taumax = 4
+    lag = 1.5
+
+    esob = EventSeries(eventmatrix, taumax=taumax, lag=lag)
+    fast = esob.event_series_analysis(method='ES',
+                                      symmetrization='directed')
+
+    # Reference: pairwise public API per (i, j) pair
+    N = eventmatrix.shape[1]
+    ref = np.zeros((N, N))
+    for i in range(N):
+        for j in range(i + 1, N):
+            ref[i, j], ref[j, i] = \
+                EventSeries.event_synchronization(eventmatrix[:, i],
+                                                  eventmatrix[:, j],
+                                                  taumax=taumax, lag=lag)
+    assert np.allclose(fast, ref, atol=1e-04)
+
+
+def test_es_pairwise_fallback():
+    """taumax=inf combined with lag != 0 should route through
+    `_ndim_event_synchronization_pairwise`. We assert agreement with
+    the pairwise public API on the same inputs."""
+    eventmatrix = _make_binary_matrix(200, 3, p=0.2, seed=3)
+    lag = 0.75
+    esob = EventSeries(eventmatrix, taumax=np.inf, lag=lag)
+    fast = esob.event_series_analysis(method='ES',
+                                      symmetrization='directed')
+
+    N = eventmatrix.shape[1]
+    ref = np.zeros((N, N))
+    for i in range(N):
+        for j in range(i + 1, N):
+            ref[i, j], ref[j, i] = \
+                EventSeries.event_synchronization(eventmatrix[:, i],
+                                                  eventmatrix[:, j],
+                                                  taumax=np.inf, lag=lag)
+    assert np.allclose(fast, ref, atol=1e-04)
+
+
+def test_eca_vectorized_nonzero_lag():
+    """Integer lag != 0 with uniform integer timestamps triggers the
+    vectorized cumsum + BLAS kernel. Compare against the pairwise
+    reference implementation for each of the three window_types."""
+    eventmatrix = _make_binary_matrix(120, 3, p=0.25, seed=4)
+    taumax = 3
+    lag = 2  # integer so the vectorized path is used
+
+    for window_type in ['advanced', 'retarded', 'symmetric']:
+        esob = EventSeries(eventmatrix, taumax=taumax, lag=lag)
+        fast = esob.event_series_analysis(method='ECA',
+                                          symmetrization='directed',
+                                          window_type=window_type)
+
+        N = eventmatrix.shape[1]
+        ref = np.zeros((N, N))
+        for i in range(N):
+            for j in range(i + 1, N):
+                if window_type == 'symmetric':
+                    ref[i, j], ref[j, i] = \
+                        eca_implementation_for_symmetric_window(
+                            eventmatrix[:, i], eventmatrix[:, j],
+                            taumax=taumax, lag=lag)
+                else:
+                    p, t, p2, t2 = \
+                        eca_second_implementaion(eventmatrix[:, i],
+                                                 eventmatrix[:, j],
+                                                 deltaT=taumax, lag=lag)
+                    if window_type == 'advanced':
+                        ref[i, j], ref[j, i] = p, p2
+                    else:  # 'retarded'
+                        ref[i, j], ref[j, i] = t, t2
+        assert np.allclose(fast, ref, atol=1e-04), \
+            f"vectorized ECA mismatch for window_type={window_type}"
+
+
+def test_eca_pairwise_symmetric_nonuniform():
+    """Non-uniform timestamps force the pairwise ECA fallback
+    (`_compute_eca_pairwise`). Verify against the reference symmetric
+    implementation."""
+    eventmatrix = _make_binary_matrix(60, 3, p=0.3, seed=5)
+    rng = np.random.default_rng(6)
+    ts = np.sort(rng.uniform(0.0, 60.0, size=60))  # non-uniform spacing
+
+    taumax = 2.5
+    esob = EventSeries(eventmatrix, timestamps=ts, taumax=taumax, lag=0.0)
+    fast = esob.event_series_analysis(method='ECA',
+                                      symmetrization='directed',
+                                      window_type='symmetric')
+
+    N = eventmatrix.shape[1]
+    ref = np.zeros((N, N))
+    for i in range(N):
+        for j in range(i + 1, N):
+            ref[i, j], ref[j, i] = \
+                eca_implementation_for_symmetric_window(eventmatrix[:, i],
+                                                        eventmatrix[:, j],
+                                                        ts1=ts, ts2=ts,
+                                                        taumax=taumax,
+                                                        lag=0.0)
+    assert np.allclose(fast, ref, atol=1e-04)
+
+
+def test_joblib_parallel_equivalence():
+    """If joblib is available, n_jobs>1 must produce bit-for-bit identical
+    matrices to n_jobs=1 for both the blocked-dense and sparse kernels."""
+    # pylint: disable=protected-access
+    pytest.importorskip("joblib")
+    eventmatrix = _make_binary_matrix(150, 4, p=0.2, seed=7)
+
+    # Blocked dense kernel path (taumax=inf, lag=0)
+    es_block = EventSeries(eventmatrix, taumax=np.inf, lag=0.0)
+    node_data = es_block._precompute_es_node_data()
+    serial = es_block._compute_es_matrix_blocked(node_data, n_jobs=1)
+    parallel = es_block._compute_es_matrix_blocked(node_data, n_jobs=2)
+    assert np.allclose(serial, parallel, atol=1e-10)
+
+    # Sparse kernel path (finite taumax)
+    es_sparse = EventSeries(eventmatrix, taumax=5, lag=1.0)
+    node_data_s = es_sparse._precompute_es_node_data()
+    serial_s = es_sparse._compute_es_matrix_sparse_lag(node_data_s, n_jobs=1)
+    parallel_s = es_sparse._compute_es_matrix_sparse_lag(node_data_s,
+                                                         n_jobs=2)
+    assert np.allclose(serial_s, parallel_s, atol=1e-10)
+
+
+def test_nan_handling_quantile():
+    """Modification 2: make_event_matrix must use np.nanquantile so NaNs
+    in continuous input don't propagate to the thresholds."""
+    rng = np.random.default_rng(8)
+    data = rng.normal(size=(200, 2))
+    # Inject NaNs into both variables
+    data[5, 0] = np.nan
+    data[17, 1] = np.nan
+    data[42, 0] = np.nan
+
+    es = EventSeries(data,
+                     threshold_method='quantile',
+                     threshold_values=np.array([0.9, 0.1]),
+                     threshold_types=np.array(['above', 'below']))
+    evmat = es.get_event_matrix()
+    # Thresholds must be finite even though the raw data contains NaNs
+    # (i.e. at least one event should have been detected per variable)
+    assert evmat.sum() > 0
+    # NaN input positions must not themselves be marked as events
+    assert evmat[5, 0] == 0
+    assert evmat[17, 1] == 0
+    assert evmat[42, 0] == 0
+
+
+def test_edge_cases_few_events():
+    """Nodes with 0, 1, 2 events are handled without crashing: they
+    should produce zero scores (no inner events → _precompute_es_node_data
+    returns empty arrays)."""
+    T, N = 50, 4
+    eventmatrix = np.zeros((T, N), dtype=int)
+    # Column 0: 0 events. Column 1: 1 event. Column 2: 2 events.
+    # Column 3: several events.
+    eventmatrix[10, 1] = 1
+    eventmatrix[[5, 30], 2] = 1
+    eventmatrix[[3, 11, 19, 27, 35], 3] = 1
+
+    # Finite taumax → sparse kernel must accept empty/tiny event arrays
+    esob = EventSeries(eventmatrix, taumax=3, lag=0.0)
+    out = esob.event_series_analysis(method='ES', symmetrization='directed')
+    assert out.shape == (N, N)
+    assert np.all(np.isfinite(out))
+    # Zero events vs anything is 0
+    assert np.all(out[0, :] == 0) and np.all(out[:, 0] == 0)
+    # 1-event node also produces zeros (no inner events)
+    assert np.all(out[1, :] == 0) and np.all(out[:, 1] == 0)
+
+    # Blocked-dense kernel path (taumax=inf, lag=0) exercises the
+    # empty-inner-events branch of _compute_es_block
+    esob_inf = EventSeries(eventmatrix, taumax=np.inf, lag=0.0)
+    out_inf = esob_inf.event_series_analysis(method='ES',
+                                             symmetrization='directed')
+    assert out_inf.shape == (N, N) and np.all(np.isfinite(out_inf))
+
+
+def test_invalid_inputs():
+    """Exercise the IOError branches in the constructor, make_event_matrix
+    and the public analysis/significance methods."""
+    # Non-binary data without threshold_method
+    with pytest.raises(IOError):
+        EventSeries(np.array([[0, 2], [1, 3]]))
+
+    # Non-ndarray data with threshold_method set
+    with pytest.raises(IOError):
+        EventSeries([[0.1, 0.5], [0.3, 0.7]], threshold_method='quantile',
+                    threshold_values=np.array([0.5, 0.5]),
+                    threshold_types=np.array(['above', 'above']))
+
+    # Mismatched timestamps length
+    with pytest.raises(IOError):
+        EventSeries(np.random.randint(2, size=(20, 2)),
+                    timestamps=np.arange(10))
+
+    # Invalid threshold_method
+    rng = np.random.default_rng(9)
+    cont = rng.normal(size=(40, 2))
+    with pytest.raises(IOError):
+        EventSeries(cont, threshold_method='nonsense',
+                    threshold_values=np.array([0.5, 0.5]),
+                    threshold_types=np.array(['above', 'above']))
+
+    # Invalid threshold_types
+    with pytest.raises(IOError):
+        EventSeries(cont, threshold_method='quantile',
+                    threshold_values=np.array([0.5, 0.5]),
+                    threshold_types=np.array(['above', 'sideways']))
+
+    # Valid event matrix — now exercise analysis-level validations
+    evmat = np.random.randint(2, size=(40, 2))
+    es = EventSeries(evmat, taumax=2.0)
+    with pytest.raises(IOError):
+        es.event_series_analysis(method='XYZ')
+    with pytest.raises(IOError):
+        es.event_series_analysis(method='ES', symmetrization='bogus')
+    with pytest.raises(IOError):
+        es.event_series_analysis(method='ECA', symmetrization='antisym',
+                                 window_type='symmetric')
+    with pytest.raises(IOError):
+        es.event_series_analysis(method='ECA', symmetrization='directed',
+                                 window_type='diagonal')
+
+    # ECA with taumax=inf must raise ValueError
+    es_inf = EventSeries(evmat, taumax=np.inf)
+    with pytest.raises(ValueError):
+        es_inf.event_series_analysis(method='ECA', symmetrization='directed',
+                                     window_type='symmetric')
+
+    # Significance-path validations
+    with pytest.raises(IOError):
+        es.event_analysis_significance(method='XYZ')
+    with pytest.raises(IOError):
+        es.event_analysis_significance(method='ECA', surrogate='nonsense')
+    with pytest.raises(IOError):
+        es.event_analysis_significance(method='ES', surrogate='analytic')
+    with pytest.raises(IOError):
+        es.event_analysis_significance(method='ECA', surrogate='analytic',
+                                       symmetrization='mean',
+                                       window_type='advanced')
+    with pytest.raises(IOError):
+        es.event_analysis_significance(method='ECA', surrogate='analytic',
+                                       symmetrization='directed',
+                                       window_type='symmetric')
