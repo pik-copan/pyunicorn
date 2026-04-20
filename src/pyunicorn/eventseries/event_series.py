@@ -107,18 +107,18 @@ def _pad_block(node_data, indices):
     """
     max_len = max((node_data[i]['inner_count'] for i in indices), default=0)
     nA = len(indices)
-    times  = np.zeros((nA, max_len), dtype=np.float64)
-    tau2   = np.zeros((nA, max_len), dtype=np.float64)
-    mask   = np.zeros((nA, max_len), dtype=bool)
+    times = np.zeros((nA, max_len), dtype=np.float64)
+    tau2 = np.zeros((nA, max_len), dtype=np.float64)
+    mask = np.zeros((nA, max_len), dtype=bool)
     counts = np.zeros(nA, dtype=np.int32)
     for row, idx in enumerate(indices):
-        info   = node_data[idx]
+        info = node_data[idx]
         length = info['inner_count']
         counts[row] = length
         if length:
             times[row, :length] = info['inner_times']
-            tau2[row,  :length] = info['tau2_inner']
-            mask[row,  :length] = True
+            tau2[row, :length] = info['tau2_inner']
+            mask[row, :length] = True
     return times, tau2, mask, counts
 
 
@@ -139,11 +139,11 @@ def _compute_es_block(node_data, block_a, block_b):
         return block_xy, block_yx
 
     valid = A_mask[:, None, :, None] & B_mask[None, :, None, :]
-    D2    = 2.0 * (A_times[:, None, :, None] - B_times[None, :, None, :])
-    tau2  = np.minimum(A_tau2[:, None, :, None], B_tau2[None, :, None, :])
+    D2 = 2.0 * (A_times[:, None, :, None] - B_times[None, :, None, :])
+    tau2 = np.minimum(A_tau2[:, None, :, None], B_tau2[None, :, None, :])
 
-    Axy    = valid & (D2 > 0.0) & (D2 <= tau2)
-    Ayx    = valid & (D2 < 0.0) & (D2 >= -tau2)
+    Axy = valid & (D2 > 0.0) & (D2 <= tau2)
+    Ayx = valid & (D2 < 0.0) & (D2 >= -tau2)
     eqtime = valid & (D2 == 0.0)
 
     row_any_Ayx = Ayx.any(axis=3, keepdims=True)
@@ -151,25 +151,27 @@ def _compute_es_block(node_data, block_a, block_b):
     row_any_Axy = Axy.any(axis=3, keepdims=True)
     col_any_Axy = Axy.any(axis=2, keepdims=True)
 
-    countxy       = Axy.sum(axis=(2, 3)).astype(np.float64)
-    countyx       = Ayx.sum(axis=(2, 3)).astype(np.float64)
-    eqcount       = eqtime.sum(axis=(2, 3)).astype(np.float64)
-    countxydouble = (Axy & (row_any_Ayx | col_any_Ayx)).sum(axis=(2, 3)).astype(np.float64)
-    countyxdouble = (Ayx & (row_any_Axy | col_any_Axy)).sum(axis=(2, 3)).astype(np.float64)
+    countxy = Axy.sum(axis=(2, 3)).astype(np.float64)
+    countyx = Ayx.sum(axis=(2, 3)).astype(np.float64)
+    eqcount = eqtime.sum(axis=(2, 3)).astype(np.float64)
+    countxydouble = (Axy & (row_any_Ayx | col_any_Ayx)).sum(
+        axis=(2, 3)).astype(np.float64)
+    countyxdouble = (Ayx & (row_any_Axy | col_any_Axy)).sum(
+        axis=(2, 3)).astype(np.float64)
 
     numer_xy = countxy + 0.5 * eqcount - 0.5 * countxydouble
     numer_yx = countyx + 0.5 * eqcount - 0.5 * countyxdouble
 
-    denom = np.sqrt(
-        A_counts[:, None].astype(np.float64) * B_counts[None, :].astype(np.float64)
-    )
+    A_cf = A_counts[:, None].astype(np.float64)
+    B_cf = B_counts[None, :].astype(np.float64)
+    denom = np.sqrt(A_cf * B_cf)
     good = denom > 0.0
     block_xy[good] = numer_xy[good] / denom[good]
     block_yx[good] = numer_yx[good] / denom[good]
     return block_xy, block_yx
 
 
-def _compute_es_pair_sparse_lag(tx, tau2x, ty, tau2y, taumax, lag):
+def _compute_es_pair_sparse_lag(tx, tau2x, ty, tau2y, *, taumax, lag):
     """
     Exact ES for one pair using sorted inner-event times + binary search,
     extended to support any scalar lag (Optimization 1).
@@ -203,15 +205,15 @@ def _compute_es_pair_sparse_lag(tx, tau2x, ty, tau2y, taumax, lag):
 
     cumcounts_lo = np.concatenate([[0], np.cumsum(counts[:-1])])
     offsets = np.arange(total, dtype=np.intp) - np.repeat(cumcounts_lo, counts)
-    k_inds  = np.repeat(np.arange(lx, dtype=np.intp), counts)
-    l_inds  = np.repeat(lo, counts).astype(np.intp) + offsets
+    k_inds = np.repeat(np.arange(lx, dtype=np.intp), counts)
+    l_inds = np.repeat(lo, counts).astype(np.intp) + offsets
 
-    D2_sp   = 2.0 * (tx[k_inds] - ty[l_inds] - lag)
+    D2_sp = 2.0 * (tx[k_inds] - ty[l_inds] - lag)
     tau2_sp = np.minimum(tau2x[k_inds], tau2y[l_inds])
 
     Axy_sp = (D2_sp > 0.0) & (D2_sp <= tau2_sp)
     Ayx_sp = (D2_sp < 0.0) & (D2_sp >= -tau2_sp)
-    eq_sp  = D2_sp == 0.0
+    eq_sp = D2_sp == 0.0
     eqtime = float(eq_sp.sum())
 
     row_any_Ayx = np.zeros(lx, dtype=bool)
@@ -219,8 +221,10 @@ def _compute_es_pair_sparse_lag(tx, tau2x, ty, tau2y, taumax, lag):
     row_any_Axy = np.zeros(lx, dtype=bool)
     col_any_Axy = np.zeros(ly, dtype=bool)
 
-    k_ayx = k_inds[Ayx_sp];  l_ayx = l_inds[Ayx_sp]
-    k_axy = k_inds[Axy_sp];  l_axy = l_inds[Axy_sp]
+    k_ayx = k_inds[Ayx_sp]
+    l_ayx = l_inds[Ayx_sp]
+    k_axy = k_inds[Axy_sp]
+    l_axy = l_inds[Axy_sp]
 
     if len(k_ayx):
         np.logical_or.at(row_any_Ayx, k_ayx, True)
@@ -242,7 +246,7 @@ def _compute_es_pair_sparse_lag(tx, tau2x, ty, tau2y, taumax, lag):
     return countxy / norm, countyx / norm
 
 
-def _process_es_rows_sparse_lag(r_start, r_end, N, node_data, taumax, lag):
+def _process_es_rows_sparse_lag(r_start, r_end, N, node_data, *, taumax, lag):
     """
     Process all pairs (i, j > i) where i in [r_start, r_end) — row-based
     chunk for joblib (Optimization 1 / 4).
@@ -258,7 +262,7 @@ def _process_es_rows_sparse_lag(r_start, r_end, N, node_data, taumax, lag):
                 xy, yx = _compute_es_pair_sparse_lag(
                     ndi['inner_times'], ndi['tau2_inner'],
                     ndj['inner_times'], ndj['tau2_inner'],
-                    taumax, lag,
+                    taumax=taumax, lag=lag,
                 )
                 results.append((i, j, xy, yx))
     return results
@@ -270,7 +274,7 @@ def _process_es_rows_sparse_lag(r_start, r_end, N, node_data, taumax, lag):
 
 class EventSeries(Cached):
 
-    def __init__(self, data, timestamps=None, taumax=np.inf, lag=0.0,
+    def __init__(self, data, *, timestamps=None, taumax=np.inf, lag=0.0,
                  threshold_method=None, threshold_values=None,
                  threshold_types=None):
         """
@@ -344,8 +348,8 @@ class EventSeries(Cached):
             # time series
             # Modification 1: Removed the axis-swap heuristic that previously
             # transposed data when data.shape[1] > data.shape[0].  That
-            # heuristic assumed datasets with more variables than timesteps were
-            # accidentally transposed, which is not always a valid assumption.
+            # heuristic assumed datasets with more variables than timesteps
+            # were accidentally transposed, which is not always true.
             if isinstance(data, np.ndarray):
                 self.__eventmatrix = \
                     self.make_event_matrix(data,
@@ -675,7 +679,8 @@ class EventSeries(Cached):
         return eventmatrix
 
     @staticmethod
-    def event_synchronization(eventseriesx, eventseriesy, ts1=None, ts2=None,
+    def event_synchronization(eventseriesx, eventseriesy, *,
+                              ts1=None, ts2=None,
                               taumax=np.inf, lag=0.0):
         """
         Calculates the directed event synchronization from two event series X
@@ -760,7 +765,7 @@ class EventSeries(Cached):
         return countxy / norm, countyx / norm
 
     @staticmethod
-    def event_coincidence_analysis(eventseriesx, eventseriesy, taumax,
+    def event_coincidence_analysis(eventseriesx, eventseriesy, taumax, *,
                                    ts1=None, ts2=None, lag=0.0):
         """
          Event coincidence analysis:
@@ -831,7 +836,7 @@ class EventSeries(Cached):
                 np.float32(prec21) / (l2 - n21),
                 np.float32(trig21) / (l1 - n12))
 
-    def _eca_coincidence_rate(self, eventseriesx, eventseriesy,
+    def _eca_coincidence_rate(self, eventseriesx, eventseriesy, *,
                               window_type='symmetric', ts1=None, ts2=None):
         """
          Event coincidence analysis:
@@ -1030,9 +1035,9 @@ class EventSeries(Cached):
         synchronization from j to i without symmetrization.
 
         Routing (Optimizations 1 & 2):
-          finite taumax, any lag  →  sparse binary-search with lag   (fast, exact)
-          infinite taumax, lag=0  →  blocked-dense 4-D tensor        (vectorized)
-          infinite taumax, lag≠0  →  pairwise loop                   (fallback)
+          finite taumax, any lag  →  sparse binary-search   (fast, exact)
+          infinite taumax, lag=0  →  blocked-dense 4-D      (vectorized)
+          infinite taumax, lag≠0  →  pairwise loop          (fallback)
 
         :rtype: NxN numpy array where N is the number of variables of the
                 eventmatrix
@@ -1041,7 +1046,8 @@ class EventSeries(Cached):
         node_data = self._precompute_es_node_data()
 
         if np.isfinite(self.__taumax):
-            # Optimization 1: sparse binary-search kernel — exact, O(N²·L·taumax/T)
+            # Optimization 1: sparse binary-search kernel
+            # (exact, O(N²·L·taumax/T))
             return self._compute_es_matrix_sparse_lag(node_data)
         else:
             if self.__lag != 0.0:
@@ -1088,16 +1094,16 @@ class EventSeries(Cached):
             event_times = ts[E[:, n] > 0.5].astype(np.float64)
             if len(event_times) <= 2:
                 inner_times = np.empty(0, dtype=np.float64)
-                tau2_inner  = np.empty(0, dtype=np.float64)
+                tau2_inner = np.empty(0, dtype=np.float64)
             else:
                 inner_times = event_times[1:-1].copy()
-                diffs       = np.diff(event_times)
-                tau2_inner  = np.minimum(diffs[:-1], diffs[1:])
-                tau2_inner  = np.minimum(tau2_inner, cap)
+                diffs = np.diff(event_times)
+                tau2_inner = np.minimum(diffs[:-1], diffs[1:])
+                tau2_inner = np.minimum(tau2_inner, cap)
             node_data.append({
                 'event_times': event_times,
                 'inner_times': inner_times,
-                'tau2_inner':  tau2_inner,
+                'tau2_inner': tau2_inner,
                 'inner_count': len(inner_times),
             })
         return node_data
@@ -1163,13 +1169,16 @@ class EventSeries(Cached):
 
         if n_jobs != 1 and _JOBLIB_AVAILABLE:
             results_list = Parallel(n_jobs=n_jobs)(
-                delayed(_process_es_rows_sparse_lag)(r0, r1, N, node_data,
-                                                     taumax, lag)
+                delayed(_process_es_rows_sparse_lag)(
+                    r0, r1, N, node_data, taumax=taumax, lag=lag
+                )
                 for r0, r1 in row_chunks
             )
         else:
             results_list = [
-                _process_es_rows_sparse_lag(r0, r1, N, node_data, taumax, lag)
+                _process_es_rows_sparse_lag(
+                    r0, r1, N, node_data, taumax=taumax, lag=lag
+                )
                 for r0, r1 in tqdm(row_chunks, desc='ES sparse (lag)',
                                    unit='chunk')
             ]
@@ -1211,7 +1220,7 @@ class EventSeries(Cached):
         ts = self.__timestamps
         dts = np.diff(ts)
         is_uniform_integer = (len(dts) > 0
-                               and np.allclose(dts, 1.0, rtol=1e-9, atol=1e-9))
+                              and np.allclose(dts, 1.0, rtol=1e-9, atol=1e-9))
         is_integer_lag = np.isclose(self.__lag, round(self.__lag),
                                     rtol=1e-9, atol=1e-9)
 
@@ -1280,10 +1289,10 @@ class EventSeries(Cached):
 
         if tau == 0 and lag == 0:
             tau_start = -1
-            tau_end   = -1
+            tau_end = -1
         else:
             tau_start = tau + lag
-            tau_end   = tau + lag
+            tau_end = tau + lag
 
         def _n_boundary_start(n, t_eff):
             if N_events[n] == 0 or t_eff < 0:
@@ -1305,7 +1314,7 @@ class EventSeries(Cached):
                 if N_events[n] > 0 else ts[0]
 
         if window_type == 'advanced':
-            E_cs     = np.cumsum(E, axis=0)
+            E_cs = np.cumsum(E, axis=0)
             E_window = E_cs.copy()
             if tau > 0:
                 E_window[tau + 1:] -= E_cs[:-tau - 1]
@@ -1314,25 +1323,25 @@ class EventSeries(Cached):
             E_smeared = (E_window > 0).astype(np.float64)
             E_smeared = _shift(E_smeared, lag)
 
-            n_start   = np.array([_n_boundary_start(n, tau_start)
-                                   for n in range(N)])
+            n_start = np.array([_n_boundary_start(n, tau_start)
+                                for n in range(N)])
             E_trimmed = E.copy()
             for n in range(N):
                 if N_events[n] > 0 and tau_start >= 0:
                     E_trimmed[ts <= _first_ev_ts(n) + tau_start, n] = 0.0
 
-            adj_N        = np.where(N_events - n_start > 0,
-                                    N_events - n_start, 1.0)
-            counts_f64   = E_trimmed.T @ E_smeared
-            adj_N_f32    = adj_N.astype(np.float32)
+            adj_N = np.where(N_events - n_start > 0,
+                             N_events - n_start, 1.0)
+            counts_f64 = E_trimmed.T @ E_smeared
+            adj_N_f32 = adj_N.astype(np.float32)
             directed_f32 = counts_f64.astype(np.float32) / adj_N_f32[:, None]
-            directed     = directed_f32.astype(np.float64)
+            directed = directed_f32.astype(np.float64)
             np.fill_diagonal(directed, 0.0)
 
         elif window_type == 'retarded':
-            E_rev        = E[::-1]
-            E_cs_rev     = np.cumsum(E_rev, axis=0)
-            E_win_rev    = E_cs_rev.copy()
+            E_rev = E[::-1]
+            E_cs_rev = np.cumsum(E_rev, axis=0)
+            E_win_rev = E_cs_rev.copy()
             if tau > 0:
                 E_win_rev[tau + 1:] -= E_cs_rev[:-tau - 1]
             else:
@@ -1340,46 +1349,46 @@ class EventSeries(Cached):
             E_smeared_fwd = (E_win_rev[::-1] > 0).astype(np.float64)
             E_smeared_fwd = _shift(E_smeared_fwd, -lag)
 
-            n_end         = np.array([_n_boundary_end(n, tau_end)
-                                       for n in range(N)])
+            n_end = np.array([_n_boundary_end(n, tau_end)
+                              for n in range(N)])
             E_trimmed_fwd = E.copy()
             for n in range(N):
                 if N_events[n] > 0 and tau_end >= 0:
                     E_trimmed_fwd[ts >= _last_ev_ts(n) - tau_end, n] = 0.0
 
-            adj_N        = np.where(N_events - n_end > 0,
-                                    N_events - n_end, 1.0)
-            counts_f64   = E_smeared_fwd.T @ E_trimmed_fwd
-            adj_N_f32    = adj_N.astype(np.float32)
+            adj_N = np.where(N_events - n_end > 0,
+                             N_events - n_end, 1.0)
+            counts_f64 = E_smeared_fwd.T @ E_trimmed_fwd
+            adj_N_f32 = adj_N.astype(np.float32)
             directed_f32 = counts_f64.astype(np.float32) / adj_N_f32[None, :]
-            directed     = directed_f32.astype(np.float64)
+            directed = directed_f32.astype(np.float64)
             np.fill_diagonal(directed, 0.0)
 
         elif window_type == 'symmetric':
-            E_cs    = np.cumsum(E, axis=0)
+            E_cs = np.cumsum(E, axis=0)
             E_win_b = E_cs.copy()
             if tau > 0:
                 E_win_b[tau + 1:] -= E_cs[:-tau - 1]
             else:
                 E_win_b = E.copy()
 
-            E_rev      = E[::-1]
-            E_cs_rev   = np.cumsum(E_rev, axis=0)
-            E_win_f_r  = E_cs_rev.copy()
+            E_rev = E[::-1]
+            E_cs_rev = np.cumsum(E_rev, axis=0)
+            E_win_f_r = E_cs_rev.copy()
             if tau > 0:
                 E_win_f_r[tau + 1:] -= E_cs_rev[:-tau - 1]
             else:
                 E_win_f_r = E_rev.copy()
             E_win_f = E_win_f_r[::-1]
 
-            E_sym         = E_win_b + E_win_f - E
+            E_sym = E_win_b + E_win_f - E
             E_smeared_sym = (E_sym > 0).astype(np.float64)
             E_smeared_sym = _shift(E_smeared_sym, lag)
 
-            n_start       = np.array([_n_boundary_start(n, tau_start)
-                                       for n in range(N)])
-            n_end         = np.array([_n_boundary_end(n, tau_end)
-                                       for n in range(N)])
+            n_start = np.array([_n_boundary_start(n, tau_start)
+                                for n in range(N)])
+            n_end = np.array([_n_boundary_end(n, tau_end)
+                              for n in range(N)])
             E_trimmed_sym = E.copy()
             for n in range(N):
                 if N_events[n] > 0:
@@ -1390,12 +1399,12 @@ class EventSeries(Cached):
                         mask |= ts >= _last_ev_ts(n) - tau_end
                     E_trimmed_sym[mask, n] = 0.0
 
-            adj_N        = np.where(N_events - n_start - n_end > 0,
-                                    N_events - n_start - n_end, 1.0)
-            counts_f64   = E_trimmed_sym.T @ E_smeared_sym
-            adj_N_f32    = adj_N.astype(np.float32)
+            adj_N = np.where(N_events - n_start - n_end > 0,
+                             N_events - n_start - n_end, 1.0)
+            counts_f64 = E_trimmed_sym.T @ E_smeared_sym
+            adj_N_f32 = adj_N.astype(np.float32)
             directed_f32 = counts_f64.astype(np.float32) / adj_N_f32[:, None]
-            directed     = directed_f32.astype(np.float64)
+            directed = directed_f32.astype(np.float64)
             np.fill_diagonal(directed, 0.0)
 
         return directed
@@ -1484,7 +1493,7 @@ class EventSeries(Cached):
 
         return empirical_percentiles
 
-    def event_analysis_significance(self, method=None,
+    def event_analysis_significance(self, *, method=None,
                                     surrogate='shuffle', n_surr=1000,
                                     symmetrization='directed',
                                     window_type='symmetric'):
