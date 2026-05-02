@@ -76,6 +76,11 @@ Contributors
   (fixed numerous bugs and style issues, improved test coverage and CI,
   integrated tutorial notebooks into documentation,
   maintained package and managed releases)
+- `Guruprem Bishnoi <guruprembishnoi2929@gmail.com>`_
+  (optimized ``eventseries`` ES/ECA kernels with sparse binary-search,
+  blocked-dense, and vectorized cumsum/BLAS paths; added optional
+  ``joblib`` parallelization, NaN-aware quantile thresholding, public
+  getter methods, and progress bars; expanded the test suite)
 
 Acknowledgements
 ----------------
