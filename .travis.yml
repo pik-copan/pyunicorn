@@ -81,9 +81,9 @@ jobs:
       language: shell
       before_install:
         - export ARCH=Windows-x86_64
-        - export PATH=/c/Python${PYTHON/.}:/c/Python${PYTHON/.}/Scripts:${PATH}
       install:
-        - | # install executables via Chocolatey: Python, Pandoc, Codecov
-          powershell -ExecutionPolicy ByPass -c {$env:UV_UNMANAGED_INSTALL = "C:\Users\travis\.local\bin";irm https://astral.sh/uv/install.ps1 | iex}
+        - | # install uv
+          powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
           powershell $env:Path = "C:\Users\travis\.local\bin;$env:Path"
+        - | # install executables via chocolatey: pandoc
           travis_retry choco install pandoc
