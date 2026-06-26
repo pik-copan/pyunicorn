@@ -84,5 +84,5 @@ jobs:
         - export PATH=/c/Python${PYTHON/.}:/c/Python${PYTHON/.}/Scripts:${PATH}
       install:
         - | # install executables via Chocolatey: Python, Pandoc, Codecov
-          travis_retry powershell -ExecutionPolicy ByPass -c {$env:UV_UNMANAGED_INSTALL = "C:\\";irm https://astral.sh/uv/install.ps1 | iex}
+          powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
           travis_retry choco install pandoc
