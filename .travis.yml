@@ -48,38 +48,23 @@ env:
     - PYTHON=3.11
     - PYTHON=3.10
 
-before_install: export ARCH=Linux-aarch64
+before_install:
+ - export ARCH=Linux-aarch64
+ - sudo apt-get -y install pandoc
 
 install:
-  - | # install Miniconda
-    travis_retry wget https://repo.anaconda.com/miniconda/Miniconda3-latest-${ARCH}.sh -O miniconda.sh
-    bash miniconda.sh -b -p ${HOME}/miniconda
-    export PATH="${HOME}/miniconda/bin:${PATH}"; hash -r
-    conda config --set quiet yes --set always_yes yes --set changeps1 no
-    travis_retry conda update -n base -c defaults conda
-    travis_retry conda update --all
-    conda config --set solver libmamba
-    conda info -a
-    conda list
-  - | # install executables via Miniconda: Python, Pandoc, Codecov
-    travis_retry conda create -n test-env
-    eval "$(conda shell.bash hook)"
-    conda activate test-env
-    travis_retry conda install -c conda-forge python=${PYTHON} pandoc codecov
-    travis_retry conda update  -c conda-forge --all
-    conda info -a
-    conda list
-  - | # install Python libs via Miniconda
-    travis_retry conda install -c conda-forge \
-        numpy scipy python-igraph h5netcdf[h5py] tqdm \
-        ipython networkx matplotlib cartopy sphinx nbsphinx \
-        tox ruff pytest-xdist pytest-cov
-    conda info -a
-    conda list
+  - | # install uv and add to PATH
+    travis_retry wget -qO- https://astral.sh/uv/install.sh | env UV_UNMANAGED_INSTALL="${HOME}/.local/bin" sh
+    export PATH="${HOME}/.local/bin:${PATH}"; hash -r
+  - | # create and activate virtual environment
+    uv venv --python ${PYTHON}
+    source .venv/bin/activate
+  - | # install python libs by synching environment with pyproject.toml
+    uv sync
 
 script:
   - | # install Python libs via Pip: self (+ dependencies, if on Windows)
-    travis_retry pip install -v -e . --group test --group docs
+    travis_retry uv pip install -v -e . --group test --group docs
   - | # run test suite
     tox -v
 
