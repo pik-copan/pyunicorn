@@ -1916,6 +1916,7 @@ class Network(Cached):
         :arg str link_attribute: link attribute (optional)
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
+        def t_func(x, xT):
             return x * x * x
         T = self.indegree() * self.outdegree() - self.bildegree()
         return self._motif_clustering_helper(t_func, T, link_attribute=link_attribute)
@@ -2027,6 +2028,7 @@ class Network(Cached):
             correction. If None, the uncorrected measure is
             returned. (Default: None)
         """
+        def t_func(x, xT):
             return x * x * x
         ink = self.nsi_indegree(typical_weight=typical_weight)
         outk = self.nsi_outdegree(typical_weight=typical_weight)
