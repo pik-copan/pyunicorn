@@ -79,7 +79,7 @@ install:
 
 script:
   - | # install Python libs via Pip: self (+ dependencies, if on Windows)
-    travis_retry pip install -v -e . --group tests --group docs
+    travis_retry pip install -v -e . --group test --group docs
   - | # run test suite
     tox -v
 
