@@ -41,7 +41,6 @@ class ClimateNetwork(GeoNetwork):
     #  Definitions of internal methods
     #
 
-    # pylint: disable=too-many-positional-arguments
     def __init__(self, grid: GeoGrid, similarity_measure: np.ndarray,
                  threshold=None, link_density=None, non_local=False,
                  directed=False, node_weight_type="surface", silence_level=0):
@@ -146,7 +145,6 @@ class ClimateNetwork(GeoNetwork):
     #  Load and save ClimateNetwork object
     #
 
-    # pylint: disable=keyword-arg-before-vararg
     def save(self, filename, fileformat=None, *args, **kwds):
         """
         Save the ClimateNetwork object to files.
@@ -204,7 +202,6 @@ class ClimateNetwork(GeoNetwork):
             similarity_measure = self.similarity_measure()
             similarity_measure.dump(filename_similarity_measure)
 
-    # pylint: disable=keyword-arg-before-vararg
     @staticmethod
     def Load(filename, fileformat=None, silence_level=0, *args, **kwds):
         """

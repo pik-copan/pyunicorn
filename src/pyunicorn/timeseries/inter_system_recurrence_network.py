@@ -67,7 +67,6 @@ class InterSystemRecurrenceNetwork(InteractingNetworks):
     #  Internal methods
     #
 
-    # pylint: disable=too-many-positional-arguments
     def __init__(self, x, y, metric="supremum", normalize=False,
                  silence_level=0, **kwds):
         """

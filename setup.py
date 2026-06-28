@@ -13,7 +13,6 @@
 # for complex systems science: The pyunicorn package"
 
 
-# pylint: disable=import-error
 from platform import system
 import os
 

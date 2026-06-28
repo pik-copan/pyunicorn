@@ -721,7 +721,6 @@ def test_eca_pairwise_symmetric_nonuniform():
 def test_joblib_parallel_equivalence():
     """If joblib is available, n_jobs>1 must produce bit-for-bit identical
     matrices to n_jobs=1 for both the blocked-dense and sparse kernels."""
-    # pylint: disable=protected-access
     pytest.importorskip("joblib")
     eventmatrix = _make_binary_matrix(150, 4, p=0.2, seed=7)
 

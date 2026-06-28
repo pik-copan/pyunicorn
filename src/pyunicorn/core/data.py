@@ -47,7 +47,6 @@ class Data:
     #  Define internal methods
     #
 
-    # pylint: disable=too-many-positional-arguments
     def __init__(self, observable: np.ndarray, grid: GeoGrid,
                  observable_name: str = None, observable_long_name: str = None,
                  window: Optional[dict] = None, silence_level: int = 0):
@@ -130,7 +129,6 @@ class Data:
     #
 
     @classmethod
-    # pylint: disable=too-many-positional-arguments
     def Load(cls, file_name, observable_name, file_type, dimension_names=None,
              window=None, vertical_level=None, silence_level=0):
         """
@@ -234,7 +232,6 @@ class Data:
     #
 
     @classmethod
-    # pylint: disable=too-many-positional-arguments
     def _get_netcdf_data(cls, file_name, file_type, observable_name,
                          dimension_names, vertical_level=None,
                          silence_level=0):
@@ -340,7 +337,6 @@ class Data:
         return res
 
     @classmethod
-    # pylint: disable=too-many-positional-arguments
     def _load_data(cls, file_name, file_type, observable_name,
                    dimension_names, vertical_level=None, silence_level=0):
         """

@@ -78,7 +78,6 @@ class RecurrencePlot(Cached):
     #  Internal methods
     #
 
-    # pylint: disable=too-many-positional-arguments
     def __init__(self, time_series: NDArray, metric: str = "supremum",
                  normalize: bool = False, missing_values: bool = False,
                  sparse_rqa: bool = False, silence_level: int = 0,
