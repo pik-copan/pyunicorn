@@ -97,7 +97,7 @@ The package has also grown by a range of new or updated functionality:
 - The mix-in `Cached` consolidates the previously inconsistent mechanisms for object state management and for memoisation of expensive properties and methods.
 - The `MapPlot` class was refactored and simplified.
 
-A comprehensive record of additions since the original publication can be found in our [Changelog](https://github.com/pik-copan/pyunicorn/blob/master/CHANGELOG.rst).
+A comprehensive record of additions since the original publication can be found in our [CHANGELOG](https://github.com/pik-copan/pyunicorn/blob/joss-paper/CHANGELOG.rst).
 
 # Research impact statement
 \label{research_impact_statement}
@@ -125,6 +125,6 @@ FK coordinated software maintenance and releases in recent years. BB contributed
 
 # Acknowledgements
 
-We acknowledge all code and bug report contributions to `pyunicorn` since its open source release, see [CONTRIBUTIONS](https://github.com/pik-copan/pyunicorn/blob/master/CONTRIBUTIONS.rst). We are especially thankful for temporary support of the long-term development and maintenance work by Jonathan Kroenke, Nils Harmening, Johannes Kassel, Lena Schmidt, Ronja Hotz and Wolfram Barfuss, as well as a recent valuable contribution by Guruprem Bishnoi. The more recent development of `pyunicorn` was financially supported by the German Federal Ministry of Education and Research (BMBF) within the scope of the projects GOTHAM (grant no. 01LP1611A) and ROADMAP (grant no. 01LP2002B). We are grateful to `pyunicorn`'s original co-developer Jobst Heitzig for his availability for consultation. Lastly, FK would like to thank Jakob Harteg and Lorenz Sieben for inspiration on scientific software development in Python.
+We acknowledge all code and bug report contributions to `pyunicorn` since its open source release, see [CONTRIBUTIONS](https://github.com/pik-copan/pyunicorn/blob/joss-paper/CONTRIBUTIONS.rst). We are especially thankful for temporary support of the long-term development and maintenance work by Jonathan Kroenke, Nils Harmening, Johannes Kassel, Lena Schmidt, Ronja Hotz and Wolfram Barfuss, as well as a recent valuable contribution by Guruprem Bishnoi. The more recent development of `pyunicorn` was financially supported by the German Federal Ministry of Education and Research (BMBF) within the scope of the projects GOTHAM (grant no. 01LP1611A) and ROADMAP (grant no. 01LP2002B). We are grateful to `pyunicorn`'s original co-developer Jobst Heitzig for his availability for consultation. Lastly, FK would like to thank Jakob Harteg and Lorenz Sieben for inspiration on scientific software development in Python.
 
 # References
