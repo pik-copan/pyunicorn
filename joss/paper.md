@@ -28,11 +28,11 @@ authors:
   - given-names: Reik V.
     surname: Donner
     orcid: 0000-0001-7023-6375
-    affiliation: 5, 7
+    affiliation: 5, 6
   - given-names: Jonathan F.
     surname: Donges
     orcid: 0000-0001-5233-7703
-    affiliation: 1, 2, 6
+    affiliation: 1, 2, 7
 
 affiliations:
   - index: 1
@@ -67,16 +67,16 @@ affiliations:
     ror: "04vjfp916"
   - index: 6
     name: >
-      Stockholm Resilience Center,
-      Stockholm University,
-      Sweden
-    ror: "0145rpw38"
-  - index: 7
-    name: >
       Complexity Science Research Department,
       Potsdam Institute for Climate Impact Research,
       Germany
     ror: "03e8s1d88"
+  - index: 7
+    name: >
+      Stockholm Resilience Center,
+      Stockholm University,
+      Sweden
+    ror: "0145rpw38"
 
 date: 10 July 2026
 
@@ -112,7 +112,7 @@ delay $\tau = 6$ ka.
 (C) Recurrence plot for B, with recurrence threshold $\epsilon = 10$.
 (D) Recurrence network for C, with nodes of darker colour representing later
 points in time.
-](img/recurrence_network_steps.png){#fig:recnet width=100%}
+](img/recurrence_network_steps.pdf){#fig:recnet width=100%}
 
 `pyunicorn` is implemented in `Python` and `C/Cython` [@behnel_cython_2011], and
 was first published over a decade ago [@donges_unified_2015]. Since then, it has
@@ -211,7 +211,7 @@ analysis. Thorough summaries of relevant concepts and algorithms can be found in
 ![
 Overview of `pyunicorn`’s modules/classes, with an example class inheritance
 relation.
-](img/module_overview.png){#fig:modules width=90%}
+](img/module_overview.pdf){#fig:modules width=90%}
 
 `pyunicorn` follows an object-oriented design, with module and class hierarchies
 that isolate core data structures and that reflect conceptual relationships
@@ -339,9 +339,9 @@ Barfuss, Guruprem Bishnoi, Nils Harmening, Ronja Hotz, Johannes Kassel, Jonathan
 Kroenke and Lena Schmidt. Recent development was financially supported by the
 German Federal Ministry of Education and Research (BMBF) within the scope of the
 projects GOTHAM (grant no. 01LP1611A) and ROADMAP (grant no. 01LP2002B). We are
-grateful to `pyunicorn`'s original co-developer Jobst Heitzig for his
-availability for consultation. Lastly, FK would like to thank Jakob Harteg and
-Lorenz Sieben for inspiration on scientific software development in `Python`.
+grateful to Norbert Marwan and `pyunicorn`'s original co-developer Jobst Heitzig
+for their availability for consultation. Lastly, FK would like to thank Jakob Harteg
+and Lorenz Sieben for inspiration on scientific software development in `Python`.
 
 
 # References
