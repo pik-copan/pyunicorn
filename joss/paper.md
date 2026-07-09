@@ -38,7 +38,8 @@ affiliations:
   - index: 1
     name: >
       Earth Resilience Science Unit,
-      Potsdam Institute for Climate Impact Research,
+      Potsdam Institute for Climate Impact Research
+      (PIK) -- Member of the Leibiz Association,
       Germany
     ror: "03e8s1d88"
   - index: 2
@@ -67,8 +68,9 @@ affiliations:
     ror: "04vjfp916"
   - index: 6
     name: >
-      Complexity Science Research Department,
-      Potsdam Institute for Climate Impact Research,
+      Research Department IV - Complexity Science,
+      Potsdam Institute for Climate Impact Research
+      (PIK) -- Member of the Leibiz Association,
       Germany
     ror: "03e8s1d88"
   - index: 7
@@ -84,32 +86,33 @@ bibliography: paper.bib
 ---
 
 
-# Summary
+# 1. Summary
 
 The `pyunicorn` (Unified Complex Network and Recurrence Analysis) toolbox
 provides a unique collection of algorithms for data-driven assessment of complex
-system phenomena across disciplines -- such as dynamical complexity, causal
-interrelations, teleconnections, and tipping dynamics. Its computational methods
-combine network theory and nonlinear time series analysis, with a focus on
-constructing and quantifying the following types of numerical objects:
+system phenomena across disciplines, including the quantification of different
+aspects of dynamical complexity, spatio-temporal interrelations, extreme events and
+critical transitions. Its computational methods combine network theory and nonlinear
+time series analysis, with a focus on constructing and quantifying the following types
+of numerical objects:
 
-- **Time series network** (e.g., recurrence network, visibility graph):
+- **Time series networks** (e.g., recurrence networks, visibility graphs):
   Interval-based states/events/patterns in a time series are linked
   according to some embedding similarity.
-- **Functional network** (e.g., climate network):
-  Members of a collection of correlated time series, such as subsystem
-  trajectories, are linked according to some statistical similarity.
-- **Surrogate network/time series** (e.g., white-noise time series surrogate):
+- **Functional networks** (e.g., climate networks):
+  Members of a collection of mutually dependent time series, such as subsystem
+  trajectories, are linked according to some statistical association measure.
+- **Surrogate networks/time series** (e.g., twin surrogates): 
   A sample from a conditional distribution over networks/time series, as used in
   hypothesis testing.
 
 ![
 Example of a recurrence network in climatology, taken from
-[@marwan_palaeo_2021][^1].
+@marwan_palaeo_2021[^1].
 (A) Time series of January insolation at latitude 20°N.
 (B) Delay coordinate embedding for A, with embedding dimension $m = 2$ and
 delay $\tau = 6$ ka.
-(C) Recurrence plot for B, with recurrence threshold $\epsilon = 10$.
+(C) Recurrence plot for B, with recurrence threshold $\epsilon = 10$ W/m$^2$.
 (D) Recurrence network for C, with nodes of darker colour representing later
 points in time.
 ](img/recurrence_network_steps.pdf){#fig:recnet width=100%}
@@ -128,10 +131,10 @@ https://creativecommons.org/licenses/by-nc-nd/4.0/) license.
 [^2]: Cf. [Semantic Versioning specification](https://semver.org).
 
 
-# Statement of need
+# 2. Statement of need
 
-Network theory and dynamical systems theory have long provided two complementary
-perspectives on complex systems: The former reasons about the structure of
+Network theory and dynamical system theory have long provided two complementary
+perspectives on complex systems: The former focuses on analyzing the structure of
 interactions (links/edges) between subsystems (nodes/vertices), whereas the
 latter characterises composite dynamical behaviour, such as predictability and
 chaos, bifurcations and regime shifts. When the development of `pyunicorn` began
@@ -147,11 +150,11 @@ embedding space [@marwan_2007; @marwan_rna_2009; @donges_rna_2012] (cf.
 \autoref{fig:recnet}), and visibility relations within function graphs of scalar
 time series [@lacasa_visibilitygraph_2008].
 
-On the other hand, linear or nonlinear statistical similarity metrics from the
+On the other hand, linear or nonlinear statistical association measures from the
 time series analysis literature can be used to construct a **functional
-network** from a system of time series, which yields a topological description
-of correlation structure. This methodology was especially put forward in
-neuroscience [@zhou_brain_2006; @zhou_brain_2007; @bullmore_brain_2009] and
+network** from a collection of time series, which yields a topological description
+of functional interdependence structure. This methodology was especially put forward
+in neuroscience [@zhou_brain_2006; @zhou_brain_2007; @bullmore_brain_2009] and
 climatology [@donges_cn_2009; @donges_cn_eigen_2015], and has found further
 applications in fields such as economics and finance [@huang_stock_2009].
 
@@ -165,7 +168,7 @@ Earth system science, `pyunicorn`'s network approach is "widely applicable in
 numerous fields" [@donges_unified_2015].
 
 
-# State of the field
+# 3. State of the field
 
 Long-established packages such as [`networkx`](https://networkx.org)
 [@hagberg_networkx_2008], [`python-igraph`](https://python.igraph.org)
@@ -174,10 +177,11 @@ Long-established packages such as [`networkx`](https://networkx.org)
 addition, [`graph-tool`](https://graph-tool.skewed.de/)
 [@peixoto_graph-tool_2014] implements nonparametric Bayesian methods for
 hierarchical community detection. More specialised packages include:
-[`PyRQA`](https://pypi.org/project/PyRQA/) for recurrence quantification
-analysis on large datasets [@rawald_pyrqa_2017],
-[`ordpy`](https://ordpy.readthedocs.io/) for time series analysis with ordinal
-networks [@pessa_ordpy_2021], [`smt`](https://smt.readthedocs.io/en/stable/)
+[`PyRQA`](https://pypi.org/project/PyRQA/) [@rawald_pyrqa_2017] and
+[`AccRQA`](https://github.com/KAdamek/AccRQA) [@adamek_accrqa_2026] for
+recurrence quantification analysis on large datasets,
+[`ordpy`](https://ordpy.readthedocs.io/) [@pessa_ordpy_2021] for time series analysis with ordinal
+networks, [`smt`](https://smt.readthedocs.io/en/stable/)
 [@saves_smt_2024] for surrogate modelling of time series,
 [`irreversibility`](https://pypi.org/project/irreversibility/)
 [@zanin_irreversibility_2025] for irreversibility tests of time series, and
@@ -196,17 +200,16 @@ other programming languages, including `Matlab` -- e.g.,
 Yet, `pyunicorn` has maintained its unique position, bridging and complementing
 the above application areas, while building on established graph packages. For
 instance, `pyunicorn.Network` is implemented by extending `python-igraph.Graph`
-with more advanced constructs, such as *coupled multilayer networks*
+with more advanced constructs, such as *coupled* or *multilayer networks*
 [@donges_coupled_2011] and *node-weighted*/*node-splitting-invariant* network
 measures [@heitzig_nsi_2012; @wiedermann_interacting_nsi_2013;
 @zemp_dirweigh_nsi_2014]. Overall, `pyunicorn`'s strength lies in its
 integration of methods from complex network theory and nonlinear time series
-analysis. Thorough summaries of relevant concepts and algorithms can be found in
-[@zou_networks_timeseries_2019; @silva_timeseries_networks_2021;
-@marwan_palaeo_2021].
+analysis. @zou_networks_timeseries_2019, @silva_timeseries_networks_2021 and
+@marwan_palaeo_2021 provide thorough summaries of relevant concepts and algorithms.
 
 
-# Software design
+# 4. Software design
 
 ![
 Overview of `pyunicorn`’s modules/classes, with an example class inheritance
@@ -214,7 +217,7 @@ relation.
 ](img/module_overview.pdf){#fig:modules width=90%}
 
 `pyunicorn` follows an object-oriented design, with module and class hierarchies
-that isolate core data structures and that reflect conceptual relationships
+that isolate core data structures and reflect conceptual relationships
 between analysis methods. For example, `RecurrenceNetwork` inherits much of its
 functionality from `RecurrencePlot` and `Network` (cf. \autoref{fig:modules}).
 
@@ -231,10 +234,10 @@ interfaces.
 Overall, this design covers many common use cases in complex system science: It
 supports data imports from various formats and libraries, it is easy to navigate
 in terms of analysis methods, and it integrates naturally with the `Python`
-numerical computing ecosystem. While `pyunicorn` is not designed for out-of-core
-and for high-performance computing, its graph algorithms achieve a performance
-level that is comparable to, or competitive with, many other general-purpose
-implementations.
+numerical computing ecosystem. While `pyunicorn` is not explicitly designed for
+out-of-core and for high-performance computing, its graph algorithms achieve a
+performance level that is comparable to, or competitive with, many other
+general-purpose implementations.
 
 The library has been repeatedly updated to reflect changing standards in package
 management, extension compilation, linting, testing and continuous integration,
@@ -249,12 +252,12 @@ inputs.
 
 `pyunicorn` has also grown by a range of new or improved functionality:
 
-- Spatial and interacting network analyses were generalised, by adding
+- Spatial and coupled network analyses were generalised, by adding
   `SpatialNetwork`, by adding a Watts-Strogatz model to `Network`, and by adding
-  new metrics to `RecurrencePlot`, `CoupledClimateNetwork` and
+  new measures to `RecurrencePlot`, `CoupledClimateNetwork` and
   `InteractingNetwork`.
-- Various metrics in `Network`, and especially their node-splitting-invariant
-  versions, were generalised to support weighted and directed networks.
+- Various measures in `Network`, and especially their node-splitting-invariant
+  variants, were generalised to support weighted and directed networks.
 - `EventSeries` was added in a new module, along with
   `EventSeriesClimateNetwork` in the existing `climate` module.
 - Subsequently, `EventSeries` received several algorithmic improvements.
@@ -267,7 +270,7 @@ A comprehensive record of updates can be found in the [Changelog](
 https://github.com/pik-copan/pyunicorn/blob/joss-paper/CHANGELOG.rst).
 
 
-# Research impact statement
+# 5. Research impact statement
 \label{sec:impact}
 
 Since its initial release, `pyunicorn` has found applications across many
@@ -302,8 +305,8 @@ scientific disciplines[^3]:
   @sales_stickiness_2023; @subramaniyam_signatures_2015;
   @lekscha_phasespace_2018; @alberti_magnetic_2020].
 
-Furthermore, `pyunicorn`’s tutorial notebooks provide valuable methodological
-introductions to complex system analysis, and have been repeatedly employed in
+Furthermore, `pyunicorn`’s tutorial notebooks provide introductions to various
+complex system analysis methodologies, and have been repeatedly employed in
 academic teaching.
 
 [^3]: 26 out of the 46 surveyed publications are unaffiliated with the package
@@ -326,7 +329,7 @@ contributed to maintenance and wrote tutorials. JFD and RVD organised funding
 and supervised development.
 *Manuscript:*
 FK and BB developed the full draft. MB drafted \autoref{sec:impact}. MB, JFD and
-RVD provided reviews and edits. FK and JFD coordinated the publication.
+RVD provided reviews and edits.
 
 
 # Acknowledgements
@@ -339,9 +342,9 @@ Barfuss, Guruprem Bishnoi, Nils Harmening, Ronja Hotz, Johannes Kassel, Jonathan
 Kroenke and Lena Schmidt. Recent development was financially supported by the
 German Federal Ministry of Education and Research (BMBF) within the scope of the
 projects GOTHAM (grant no. 01LP1611A) and ROADMAP (grant no. 01LP2002B). We are
-grateful to Norbert Marwan and `pyunicorn`'s original co-developer Jobst Heitzig
-for their availability for consultation. Lastly, FK would like to thank Jakob Harteg
-and Lorenz Sieben for inspiration on scientific software development in `Python`.
+grateful to Jobst Heitzig and Norbert Marwan for their availability for consultation.
+Lastly, FK would like to thank Jakob Harteg and Lorenz Sieben for inspiration on
+scientific software development in `Python`.
 
 
 # References
