@@ -39,7 +39,7 @@ affiliations:
     name: >
       Earth Resilience Science Unit,
       Potsdam Institute for Climate Impact Research
-      (PIK) -- Member of the Leibiz Association,
+      (PIK) -- Member of the Leibniz Association,
       Germany
     ror: "03e8s1d88"
   - index: 2
@@ -70,7 +70,7 @@ affiliations:
     name: >
       Research Department IV - Complexity Science,
       Potsdam Institute for Climate Impact Research
-      (PIK) -- Member of the Leibiz Association,
+      (PIK) -- Member of the Leibniz Association,
       Germany
     ror: "03e8s1d88"
   - index: 7
@@ -127,7 +127,8 @@ consolidate the package. The present paper accompanies the resulting first major
 version release[^2], and compiles applications published to date.
 
 [^1]: Published under the [Creative Commons CC BY-NC-ND 4.0](
-https://creativecommons.org/licenses/by-nc-nd/4.0/) license.
+https://creativecommons.org/licenses/by-nc-nd/4.0/) license
+and reprinted with permission from Elsevier.
 [^2]: Cf. [Semantic Versioning specification](https://semver.org).
 
 
