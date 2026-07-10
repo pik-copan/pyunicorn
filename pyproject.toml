@@ -148,16 +148,17 @@ source = ["src/pyunicorn"]
 # static analysis ==============================================================
 
 [tool.ruff]
-
-# Same as Black.
 line-length = 100
-indent-width = 4
 
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`) codes by default.
 # Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
 # McCabe complexity (`C901`) by default.
-select = []
+select = ["E4", "E7", "E9", "F", "W"]
 ignore = [
-  "F401"  # "unused-import": resolve these cases
+  "E702",  # "multiple-statements-on-one-line-colon"
   ]
+
+[tool.ruff.lint.per-file-ignores]
+# Ignore `F401` (unused-import) in all `__init__.py` files
+"__init__.py" = ["F401"]

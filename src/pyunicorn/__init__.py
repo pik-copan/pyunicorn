@@ -30,4 +30,4 @@ timeseries
 
 from .version import __version__
 from .utils import mpi
-from .core import *
+from .core import *  # noqa: F403 (undefined-local-with-import-star)

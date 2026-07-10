@@ -163,7 +163,7 @@ please make sure that all tests pass. The test suite is managed by `tox
 <https://tox.wiki/>`_ and is configured to use system-wide packages
 when available. Install the test dependencies as follows::
 
-    $> pip install --group tests
+    $> pip install --group test
 
 The test suite can be run from anywhere in the project tree by issuing::
 
@@ -176,6 +176,5 @@ To display the defined test environments and target them individually::
 
 To test individual files::
 
-    $> flake8 src/pyunicorn/core/network.py     # style check
-    $> pylint src/pyunicorn/core/network.py     # static code analysis
+    $> ruff check src/pyunicorn/core/network.py # linting and formatting
     $> pytest tests/test_core/test_network.py   # unit tests
