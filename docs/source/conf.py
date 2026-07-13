@@ -112,7 +112,12 @@ html_static_path = ['_static']
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
+# Note: We handle the logo in the layout.html template, so we don't need to set it here.
 # html_logo = '_static/logo.png'
+
+# The name of an image file (relative to this directory) that serves as a favicon of the
+# html documentation.
+html_favicon = '_static/icon.png'
 
 # Custom sidebar templates, maps document names to template names.
 html_sidebars = {
