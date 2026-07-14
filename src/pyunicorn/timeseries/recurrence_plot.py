@@ -145,7 +145,7 @@ class RecurrencePlot(Cached):
         """The time series from which the recurrence plot is constructed."""
 
         #  Reshape time series
-        self.time_series.shape = (self.time_series.shape[0], -1)
+        self.time_series = self.time_series.reshape((self.time_series.shape[0], -1))
 
         #  Store type of metric
         self._known_metrics = ("manhattan", "euclidean", "supremum")

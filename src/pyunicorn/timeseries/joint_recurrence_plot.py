@@ -145,8 +145,8 @@ class JointRecurrencePlot(RecurrencePlot):
             """The time series y."""
 
             #  Reshape time series
-            self.x.shape = (self.x.shape[0], -1)
-            self.y.shape = (self.y.shape[0], -1)
+            self.x = self.x.reshape((self.x.shape[0], -1))
+            self.y = self.y.reshape((self.y.shape[0], -1))
 
             #  Normalize time series
             if normalize:
