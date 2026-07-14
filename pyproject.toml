@@ -16,7 +16,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyunicorn"
-version = "0.9.0"
+version = "1.0.0"
 description = "Unified complex network and recurrence analysis toolbox"
 keywords = [
   "complex network", "nonlinear time series analysis",

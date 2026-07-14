@@ -2,14 +2,45 @@
 Changelog
 =========
 
+1.0.0
+-----
+
+New/updated functionality:
+
+- ``eventseries.EventSeries``: Overhauled and improved performance through vectorized ECA, enabled sparse ES with lag,
+  added progressbar, enabled NaN handling and thoroughly reviewed tutorial.
+  (`#257 <https://github.com/pik-copan/pyunicorn/pull/253>`_)
+- ``core.Network``: disambiguated arguments ``key`` –> ``link_attribute``, which had been used interchangeably
+  across edge-weighted measures, and added basic tests for respective methods.
+  (`#256 <https://github.com/pik-copan/pyunicorn/pull/256>`_,
+  `#249 <https://github.com/pik-copan/pyunicorn/issues/249>`_)
+
+Package:
+
+- renamed default branch ``master`` –> ``main``
+  (`efba5ed <https://github.com/pik-copan/pyunicorn/commit/efba5ed045ae695ecbf52b0e66d5270a7e91ae89>`_)
+- CI: removed ``pylint`` and ``flake8`` in favour of ``ruff`` linter and formatter.
+  (`#196 <https://github.com/pik-copan/pyunicorn/issues/196>`_,
+  `#261 <https://github.com/pik-copan/pyunicorn/pull/261>`_)
+- CI: configured Travis CI to employ ``uv`` for packaging, instead of conda.
+  (`#254 <https://github.com/pik-copan/pyunicorn/issues/254>`_,
+  `#259 <https://github.com/pik-copan/pyunicorn/pull/259>`_)
+- CI: allowed max. line length of 100 characters
+  (`f26a435 <https://github.com/pik-copan/pyunicorn/commit/f26a435c50cae2acce840ad066ad29dc69528674>`_)
+
+Documentation:
+
+- touched up and migrated docs to `pyunicorn.readthedocs.io <pyunicorn.readthedocs.io>`_
+  (`#260 <https://github.com/pik-copan/pyunicorn/pull/260>`_)
+
 0.9.0
 -----
 
 New/updated functionality:
 
-- enabled link/edge weighting in calculation of shortest path betweenness centrality (i.e. ``Network.betweenness()``) and
-  corrected implementation of ``Network.nsi_betweenness()`` to enable calculation of n.s.i. shortest path betweenness
-  centrality of directed networks.
+- enabled link/edge weighting in calculation of shortest path betweenness centrality
+  (i.e. ``Network.betweenness()``) and corrected implementation of ``Network.nsi_betweenness()``
+  to enable calculation of n.s.i. shortest path betweenness centrality of directed networks.
   (`#142 <https://github.com/pik-copan/pyunicorn/issues/142>`_, 
   `#248 <https://github.com/pik-copan/pyunicorn/issues/248>`_, 
   `#250 <https://github.com/pik-copan/pyunicorn/pull/250>`_)
@@ -48,7 +79,6 @@ Bug Fixes:
 Documentation:
 
 - Review ``CITATION.cff`` to fix `Zenodo-Hook <https://zenodo.org/records/10697647>`_.
-
 
 0.8.1
 -----
