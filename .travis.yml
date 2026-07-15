@@ -61,10 +61,8 @@ script:
   - | # create and activate virtual environment
     uv venv --python ${PYTHON}
     source .venv/bin/activate
-  - | # install python libs by synching environment with pyproject.toml
-    uv -v sync
-  - | # install pyunicorn, ensuring all dependencies are installed
-    travis_retry uv -v pip install -e . --group test --group docs --group ci
+  - | # install pyunicorn and python libs by synching environment with pyproject.toml
+    uv sync --group test --group docs --group ci
   - | # run test suite
     tox -v
 
