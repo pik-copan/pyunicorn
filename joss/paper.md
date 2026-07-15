@@ -16,11 +16,11 @@ authors:
     surname: Kühlein
     orcid: 0009-0006-7513-0688
     corresponding: true
-    affiliation: 1, 2, 3
+    affiliation: 1, 2, 3 *
   - given-names: Boyan
     surname: Beronov
     orcid: 0000-0002-0900-752X
-    affiliation: 4
+    affiliation: 4 *
   - given-names: Max
     surname: Bechthold
     orcid: 0009-0007-7113-4814
@@ -79,6 +79,9 @@ affiliations:
       Stockholm University,
       Sweden
     ror: "0145rpw38"
+  - index: "*"
+    name:
+      _These authors contributed equally to this work._
 
 date: 10 July 2026
 
@@ -129,7 +132,7 @@ development over the years, have warranted a recent concerted effort to
 consolidate the package. The present paper accompanies the resulting first major
 version release[^2], and compiles applications published to date.
 
-[^1]: Reprinted from [@marwan_palaeo_2021] with permission from Elsevier.
+[^1]: Reprinted from @marwan_palaeo_2021 with permission from Elsevier.
 Original under [CC BY-NC-ND 4.0](
 https://creativecommons.org/licenses/by-nc-nd/4.0/).
 [^2]: Cf. [Semantic Versioning specification](https://semver.org).
