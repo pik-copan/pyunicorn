@@ -98,14 +98,16 @@ algorithms combine network theory and nonlinear time series analysis, with a
 focus on constructing and quantifying the following types of numerical objects:
 
 - **Time series networks** (e.g., recurrence networks, visibility graphs):
-  Within a time series, interval-based states/events/patterns are linked
-  according to some measure of similarity.
+  Within a time series, a binary relation is computed over
+  states/events/patterns, which are in turn defined by a predicate over time
+  intervals.
 - **Functional networks** (e.g., climate networks):
   Within a collection of mutually dependent time series, members are linked
   according to some measure of statistical association.
 - **Surrogate networks/time series** (e.g., twin surrogates):
-  For hypothesis testing purposes, samples are drawn from some conditional
-  distribution over networks/time series.
+  Samples are drawn from a conditionally uniform distribution over networks/time
+  series, under some structural constraints motivated by hypothesis testing
+  purposes.
 
 ![
 Example of a recurrence network in climatology [@marwan_palaeo_2021][^1].
@@ -186,11 +188,12 @@ include: [`PyRQA`](https://pypi.org/project/PyRQA/) [@rawald_pyrqa_2017] and
 recurrence quantification analysis on large datasets,
 [`ordpy`](https://ordpy.readthedocs.io/) [@pessa_ordpy_2021] for time series
 analysis with ordinal networks, [`smt`](https://smt.readthedocs.io/en/stable/)
-[@saves_smt_2024] for surrogate modelling of time series,
+[@saves_smt_2024] and
 [`irreversibility`](https://pypi.org/project/irreversibility/)
-[@zanin_irreversibility_2025] for irreversibility tests of time series, and
+[@zanin_irreversibility_2025] for surrogate modelling and for irreversibility
+tests of time series, and
 [`pynamicalsys`](https://pypi.org/project/pynamicalsys/)
-[@sales_pynamicalsys_2025] for dynamical systems analysis.
+[@sales_pynamicalsys_2025] for dynamical system analysis.
 @siebert_timeseries_2021 provide a systematic review of `Python` packages for
 various time series analysis applications. Of course, comparable software also
 exists for other programming languages, including: [`CRP Toolbox`](
@@ -220,7 +223,7 @@ algorithms.
 ![
 Overview of `pyunicorn`’s modules/classes, with an example class inheritance
 relation.
-](img/module_overview.pdf){#fig:modules width=85%}
+](img/module_overview.pdf){#fig:modules width=90%}
 
 `pyunicorn` follows an object-oriented design, with module and class hierarchies
 that isolate core data structures and reflect relationships between analysis
@@ -255,19 +258,18 @@ increased test coverage from less than 50% to nearly 80%.
 [Changelog](
 https://github.com/pik-copan/pyunicorn/blob/joss-paper/CHANGELOG.rst)):
 
+- Many measures in `Network`, and especially their node-splitting-invariant
+  refinements, were generalised to support weighted and directed networks.
 - Spatial and coupled network analyses were generalised, by adding
   `SpatialNetwork`, by adding a Watts-Strogatz model to `Network`, and by adding
   new measures to `RecurrencePlot`, `CoupledClimateNetwork` and
   `InteractingNetwork`.
-- Numerous measures in `Network`, and especially their node-splitting-invariant
-  refinements, were generalised to support weighted and directed networks.
-- `EventSeries` was added in a new module, along with
-  `EventSeriesClimateNetwork` in the existing `climate` module.
-- Subsequently, `EventSeries` received several algorithmic improvements.
-- A collection of tutorial notebooks was added to the documentation.
+- `EventSeries` was added along with `EventSeriesClimateNetwork`, and
+  subsequently received several algorithmic improvements.
+- `MapPlot` was refactored and simplified.
 - State management and memoisation were consolidated via the new mix-in
   `Cached`.
-- `MapPlot` was refactored and simplified.
+- A collection of tutorial notebooks was added to the documentation.
 
 
 # 5. Research impact statement
