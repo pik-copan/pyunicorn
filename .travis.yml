@@ -62,9 +62,9 @@ script:
     uv venv --python ${PYTHON}
     source .venv/bin/activate
   - | # install python libs by synching environment with pyproject.toml
-    uv sync
-  - | # install Python libs via Pip: self (+ dependencies, if on Windows)
-    travis_retry uv pip install -v -e . --group test --group docs
+    uv -v sync
+  - | # install pyunicorn, ensuring all dependencies are installed
+    travis_retry uv -v pip install -e . --group test --group docs --group ci
   - | # run test suite
     tox -v
 
