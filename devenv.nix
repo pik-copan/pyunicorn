@@ -4,10 +4,9 @@
 { pkgs, lib, config, inputs, ... }:
 
 {
-  packages = with pkgs; [ stdenv.cc.cc zlib git pandoc ];
+  packages = with pkgs; [ zlib git ruff pandoc ];
 
   cachix.enable = true;
-  cachix.pull = [ "nixpkgs-python" ];
 
   languages.python = {
     enable = true;
@@ -15,11 +14,15 @@
     venv.enable = true;
     uv = {
       enable = true;
-      sync = {
-        enable = true;
-        allGroups = true;
-        allExtras = true;
-      };
+      sync.enable = true;
     };
   };
+
+  # For interactive use, create an alias `_ruff` pointing to the `ruff` version
+  # installed directly by `devenv`, thus avoiding the dynamically linked `ruff`
+  # version installed by the `uv` version installed by `devenv`, which can be
+  # problematic for Nix-based host systems.
+  scripts._ruff.exec = ''
+    $DEVENV_PROFILE/bin/ruff "$@"
+  '';
 }
