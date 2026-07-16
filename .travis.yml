@@ -42,7 +42,7 @@ env:
     - | # limit procs to available cores
       TOX_JOBS=2
     - FORCE_COLOR=1
-    - RUST_LOG=uv=debug
+    - RUST_LOG=info
   jobs:
     - PYTHON=3.14
     - PYTHON=3.13
@@ -59,12 +59,12 @@ before_install:
 
 install:
   - | # create `uv` environment and instantiate `pyproject.toml`
-    uv venv -v --python ${PYTHON}
-    uv sync -v --all-groups --no-group dev
+    uv venv --python ${PYTHON}
+    uv sync --all-groups --no-group dev
 
 script:
   - | # run test suite
-    uv run -v --no-sync tox -v
+    uv run --no-sync tox -v
 
 # report statistics
 after_success: codecov
