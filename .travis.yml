@@ -32,7 +32,7 @@ notifications:
 # default jobs: Linux, all Python versions ====================================
 
 os: linux
-dist: focal
+dist: noble
 arch: arm64
 virt: lxd
 language: generic
@@ -49,25 +49,26 @@ env:
     - PYTHON=3.10
 
 before_install:
- - export ARCH=Linux-aarch64
- - sudo apt-get -y install pandoc
+  - | # install executables and `uv`
+    sudo apt-get -y install pandoc
+    export UV_UNMANAGED_INSTALL="${HOME}/.local/bin"
+    travis_retry wget -qO- https://astral.sh/uv/install.sh | sh
+    export PATH="${UV_UNMANAGED_INSTALL}:${PATH}"; hash -r
 
 install:
-  - | # install uv and add to PATH
-    travis_retry wget -qO- https://astral.sh/uv/install.sh | env UV_UNMANAGED_INSTALL="${HOME}/.local/bin" sh
-    export PATH="${HOME}/.local/bin:${PATH}"; hash -r
-
-script:
-  - | # create and activate virtual environment
+  - | # create and activate `uv` environment
     uv venv --python ${PYTHON}
     source .venv/bin/activate
-  - | # install pyunicorn and python libs by synching environment with pyproject.toml
-    uv sync --group test --group docs --group ci
+  - | # instantiate `pyproject.toml`
+    uv sync -v --all-groups --no-group dev
+
+script:
   - | # run test suite
     tox -v
 
 # report statistics
 after_success: codecov
+
 
 # modified job: Windows, newest Python version ================================
 # (inherit only 1st `env.jobs` entry)
@@ -78,10 +79,5 @@ jobs:
     - os: windows
       language: shell
       before_install:
-        - export ARCH=Windows-x86_64
-      install:
-        - | # install uv
-          powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-          powershell $env:Path = "C:\Users\travis\.local\bin;$env:Path"
-        - | # install executables via chocolatey: pandoc
-          travis_retry choco install pandoc
+        - | # install executables and `uv`
+          travis_retry choco install pandoc uv

@@ -85,7 +85,7 @@ docs = [
   "matplotlib>=3.6",
 ]
 ci = [
-    "codecov>=2.1.13",
+  "codecov>=2.1.13",
 ]
 
 [tool.uv]
