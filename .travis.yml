@@ -32,7 +32,7 @@ notifications:
 # default jobs: Linux, all Python versions ====================================
 
 os: linux
-dist: noble
+dist: focal
 arch: arm64
 virt: lxd
 language: generic
@@ -54,11 +54,11 @@ before_install:
     export UV_UNMANAGED_INSTALL="${HOME}/.local/bin"
     travis_retry wget -qO- https://astral.sh/uv/install.sh | sh
     export PATH="${UV_UNMANAGED_INSTALL}:${PATH}"; hash -r
+  - | # create and activate `uv` environment
+    uv venv -v --python ${PYTHON}
+    source .venv/bin/activate
 
 install:
-  - | # create and activate `uv` environment
-    uv venv --python ${PYTHON}
-    source .venv/bin/activate
   - | # instantiate `pyproject.toml`
     uv sync -v --all-groups --no-group dev
 
@@ -81,3 +81,6 @@ jobs:
       before_install:
         - | # install executables and `uv`
           travis_retry choco install pandoc uv
+        - | # create and activate `uv` environment
+          uv venv -v --python ${PYTHON}
+          .venv\Scripts\activate
