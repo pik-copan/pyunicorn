@@ -140,7 +140,7 @@ and *Windows*, and relies on the following packages:
 Documentation
 -------------
 For extensive HTML documentation, jump right to the `homepage
-<http://www.pik-potsdam.de/~donges/pyunicorn/>`_. In a local source tree,
+<http://pyunicorn.readthedocs.io/>`_. In a local source tree,
 HTML and PDF documentation can be generated using ``Sphinx``::
 
     $> pip install --group docs
