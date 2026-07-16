@@ -39,8 +39,10 @@ language: generic
 
 env:
   global:
-    # limit procs to available cores
-    - TOX_JOBS=2
+    - | # limit procs to available cores
+      TOX_JOBS=2
+    - FORCE_COLOR=1
+    - RUST_LOG=uv=debug
   jobs:
     - PYTHON=3.14
     - PYTHON=3.13
@@ -64,7 +66,7 @@ install:
 
 script:
   - | # run test suite
-    tox -v
+    tox -v --colored
 
 # report statistics
 after_success: codecov
@@ -83,4 +85,4 @@ jobs:
           travis_retry choco install pandoc uv
         - | # create and activate `uv` environment
           uv venv -v --python ${PYTHON}
-          .venv\Scripts\activate
+          powershell .venv\Scripts\activate
