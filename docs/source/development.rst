@@ -1,3 +1,3 @@
 
 .. include:: ../../README.rst
-    :start-after: <https://github.com/pik-copan/pyunicorn/tree/master/docs/source/examples/tutorials>`_.
+    :start-after: <https://github.com/pik-copan/pyunicorn/tree/main/docs/source/examples/tutorials>`_.
