@@ -56,17 +56,15 @@ before_install:
     export UV_UNMANAGED_INSTALL="${HOME}/.local/bin"
     travis_retry wget -qO- https://astral.sh/uv/install.sh | sh
     export PATH="${UV_UNMANAGED_INSTALL}:${PATH}"; hash -r
-  - | # create and activate `uv` environment
-    uv venv -v --python ${PYTHON}
-    source .venv/bin/activate
 
 install:
-  - | # instantiate `pyproject.toml`
+  - | # create `uv` environment and instantiate `pyproject.toml`
+    uv venv -v --python ${PYTHON}
     uv sync -v --all-groups --no-group dev
 
 script:
   - | # run test suite
-    tox -v --colored
+    uv run -v --no-sync tox -v
 
 # report statistics
 after_success: codecov
@@ -83,6 +81,3 @@ jobs:
       before_install:
         - | # install executables and `uv`
           travis_retry choco install pandoc uv
-        - | # create and activate `uv` environment
-          uv venv -v --python ${PYTHON}
-          powershell .venv\Scripts\activate
