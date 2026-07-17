@@ -78,7 +78,6 @@ class RecurrencePlot(Cached):
     #  Internal methods
     #
 
-    # pylint: disable=too-many-positional-arguments
     def __init__(self, time_series: NDArray, metric: str = "supremum",
                  normalize: bool = False, missing_values: bool = False,
                  sparse_rqa: bool = False, silence_level: int = 0,
@@ -146,7 +145,7 @@ class RecurrencePlot(Cached):
         """The time series from which the recurrence plot is constructed."""
 
         #  Reshape time series
-        self.time_series.shape = (self.time_series.shape[0], -1)
+        self.time_series = self.time_series.reshape((self.time_series.shape[0], -1))
 
         #  Store type of metric
         self._known_metrics = ("manhattan", "euclidean", "supremum")

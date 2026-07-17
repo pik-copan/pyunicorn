@@ -2,53 +2,98 @@
 Changelog
 =========
 
+1.0.0
+-----
+
+New/updated functionality:
+
+- ``eventseries.EventSeries``: Overhauled and improved performance through
+  vectorized ECA, enabled sparse ES with lags, enabled NaN handling, added
+  progressbar, and thoroughly reviewed the tutorial
+  (`#257 <https://github.com/pik-copan/pyunicorn/pull/253>`_).
+- ``core.Network``: Disambiguated method arguments (``key`` –>
+  ``link_attribute``), which had been used interchangeably across edge-weighted
+  measures, and added basic tests for respective methods
+  (`#256 <https://github.com/pik-copan/pyunicorn/pull/256>`_,
+  `#249 <https://github.com/pik-copan/pyunicorn/issues/249>`_).
+
+Package:
+
+- Renamed the default Git branch from ``master`` to ``main``
+  (`efba5ed <https://github.com/pik-copan/pyunicorn/commit/efba5ed045ae695ecbf52b0e66d5270a7e91ae89>`_).
+- Added a `devenv <https://devenv.sh/>`_ configuration
+  (`1c94599
+  <https://github.com/pik-copan/pyunicorn/commit/1c94599e70590d4365a65e5fcd1806df9ac04510>`_,
+  `e6ee677
+  <https://github.com/pik-copan/pyunicorn/commit/e6ee67754d1aef078de0cfe99c1749bf7f5e430a>`_).
+- CI: Removed ``pylint`` and ``flake8``, in favour of ``ruff`` linter/formatter
+  (`#196 <https://github.com/pik-copan/pyunicorn/issues/196>`_,
+  `#261 <https://github.com/pik-copan/pyunicorn/pull/261>`_).
+- CI: Configured Travis CI to employ ``uv`` for packaging, instead of ``conda``
+  (`#254 <https://github.com/pik-copan/pyunicorn/issues/254>`_,
+  `#259 <https://github.com/pik-copan/pyunicorn/pull/259>`_).
+- CI: Increased max. line length to 100 characters
+  (`f26a435 <https://github.com/pik-copan/pyunicorn/commit/f26a435c50cae2acce840ad066ad29dc69528674>`_).
+
+Documentation:
+
+- Touched up and migrated docs to
+  `pyunicorn.readthedocs.io <https://pyunicorn.readthedocs.io>`_
+  (`#260 <https://github.com/pik-copan/pyunicorn/pull/260>`_).
+
 0.9.0
 -----
 
 New/updated functionality:
 
-- enabled link/edge weighting in calculation of shortest path betweenness centrality (i.e. ``Network.betweenness()``) and
-  corrected implementation of ``Network.nsi_betweenness()`` to enable calculation of n.s.i. shortest path betweenness
-  centrality of directed networks.
-  (`#142 <https://github.com/pik-copan/pyunicorn/issues/142>`_, 
-  `#248 <https://github.com/pik-copan/pyunicorn/issues/248>`_, 
-  `#250 <https://github.com/pik-copan/pyunicorn/pull/250>`_)
-- updated and enhanced structure, documentation and testing of ``Cached`` mix-in class
+- Enabled link/edge weighting in the calculation of shortest path betweenness
+  centrality (i.e. ``Network.betweenness()``), and corrected the implementation
+  of ``Network.nsi_betweenness()`` to enable the calculation of n.s.i. shortest
+  path betweenness centrality for directed networks
+  (`#142 <https://github.com/pik-copan/pyunicorn/issues/142>`_,
+  `#248 <https://github.com/pik-copan/pyunicorn/issues/248>`_,
+  `#250 <https://github.com/pik-copan/pyunicorn/pull/250>`_).
+- Extended the ``Cached`` mix-in to distinguish between class-level and
+  instance-level method caches, yielding more fine-grained control over the
+  finalisation of entries.
   (`#252 <https://github.com/pik-copan/pyunicorn/issues/252>`_,
-  `#253 <https://github.com/pik-copan/pyunicorn/pull/253>`_)
+  `#253 <https://github.com/pik-copan/pyunicorn/pull/253>`_).
 
 Package:
 
-- updated CI to discontinue macOS support
-  (`1a7973b <https://github.com/pik-copan/pyunicorn/commit/1a7973b247fd2b71315ca65a7773a8807c58959c>`_)
-- updated CI to observe end-of-life for ``python=3.9`` and add support for ``python=3.14``
-  (`#253 <https://github.com/pik-copan/pyunicorn/pull/253>`_)
-- migrated ``setup.cfg`` to ``pyproject.toml`` and established support for ``uv`` package manager
-  (`1c94599 <https://github.com/pik-copan/pyunicorn/commit/1c94599e70590d4365a65e5fcd1806df9ac04510>`_)
-- simplified CI configuration wrt. limiting of processes
-  (`d8bc4a0 <https://github.com/pik-copan/pyunicorn/commit/d8bc4a0163abd279f9ff7ceea6bbbf78adb89e70>`_)
-- updated dependencies and CI to ``h5netcdf>=1.8.1``
+- Migrated ``setup.cfg`` to ``pyproject.toml``, and established support for the
+  `uv <https://docs.astral.sh/uv/>`_ package manager
+  (`1c94599 <https://github.com/pik-copan/pyunicorn/commit/1c94599e70590d4365a65e5fcd1806df9ac04510>`_).
+- Updated CI to observe end-of-life for Python 3.9 and to add support for
+  Python 3.14
+  (`#253 <https://github.com/pik-copan/pyunicorn/pull/253>`_).
+- Discontinued macOS support in CI
+  (`1a7973b <https://github.com/pik-copan/pyunicorn/commit/1a7973b247fd2b71315ca65a7773a8807c58959c>`_).
+- Updated CI to simplify the configuration of process counts
+  (`d8bc4a0 <https://github.com/pik-copan/pyunicorn/commit/d8bc4a0163abd279f9ff7ceea6bbbf78adb89e70>`_).
+- Updated dependencies and CI to ``h5netcdf>=1.8.1``
   (`a88ab4d <https://github.com/pik-copan/pyunicorn/commit/a88ab4d08231f09e2ae5ff8024cbf39bba0d7e7a>`_)
 
 Documentation:
 
-- minor fix in API documentation (`#246 <https://github.com/pik-copan/pyunicorn/pull/246>`_)
+- Minor fix in API documentation
+  (`#246 <https://github.com/pik-copan/pyunicorn/pull/246>`_).
 
 Bug Fixes:
 
-- updated download URL for test data 
+- Updated download URL for test data 
   (`40cd2b9 <https://github.com/pik-copan/pyunicorn/commit/40cd2b96b69a377d1d300b399982ef171fedb6d2>`_,
-  `#251 <https://github.com/pik-copan/pyunicorn/issues/251>`_)
-- adapted ``Network`` to API of ``scipy>=1.19``
-  (`031fdfe <https://github.com/pik-copan/pyunicorn/commit/031fdfeddff4947941cf221f77ac78f5be5f58dd>`_)
+  `#251 <https://github.com/pik-copan/pyunicorn/issues/251>`_).
+- Adapted ``Network`` to ``scipy>=1.19`` API
+  (`031fdfe <https://github.com/pik-copan/pyunicorn/commit/031fdfeddff4947941cf221f77ac78f5be5f58dd>`_).
 
 0.8.2
 -----
 
 Documentation:
 
-- Review ``CITATION.cff`` to fix `Zenodo-Hook <https://zenodo.org/records/10697647>`_.
-
+- Reviewed ``CITATION.cff`` to fix `Zenodo-Hook
+  <https://zenodo.org/records/10697647>`_.
 
 0.8.1
 -----
@@ -56,7 +101,7 @@ Documentation:
 Package:
 
 - Established support for Python 3.13, faded out support for Python 3.8
-  (`1bfd5d2 <https://github.com/pik-copan/pyunicorn/commit/1bfd5d2e9f89517326ee034cf9b8ed7b31d4f078>`_)
+  (`1bfd5d2 <https://github.com/pik-copan/pyunicorn/commit/1bfd5d2e9f89517326ee034cf9b8ed7b31d4f078>`_).
 
 Documentation:
 
@@ -74,7 +119,7 @@ Bug Fixes:
 Package:
 
 - Improved `test coverage <https://app.codecov.io/gh/pik-copan/pyunicorn?search=&trend=all%20time>`_.
-- Improved style and linting by revising and reducing global message disables
+- Improved style and linting by revising and reducing global message silencing
   (`#224 <https://github.com/pik-copan/pyunicorn/pull/224>`_,
   `#231 <https://github.com/pik-copan/pyunicorn/pull/231>`_,
   `#233 <https://github.com/pik-copan/pyunicorn/pull/233>`_).

@@ -221,7 +221,6 @@ class CouplingAnalysis:
         else:
             return None
 
-    # pylint: disable=too-many-positional-arguments
     def mutual_information(self, tau_max=0, estimator='knn',
                            knn=10, bins=6, lag_mode='max'):
         r"""
@@ -391,7 +390,6 @@ class CouplingAnalysis:
                                 numpy.dot(x, x) * numpy.dot(y, y)))
 
                     if lag_mode == 'max':
-                        # pylint: disable=possibly-used-before-assignment
                         if ixy_z > maximum:
                             maximum = ixy_z
                             lag_at_max = tau
@@ -410,7 +408,6 @@ class CouplingAnalysis:
         else:
             return None
 
-    # pylint: disable=too-many-positional-arguments
     def information_transfer(self, tau_max=0, estimator='knn',
                              knn=10, past=1, cond_mode='ity', lag_mode='max'):
         r"""
@@ -587,7 +584,6 @@ class CouplingAnalysis:
                                 numpy.dot(x, x) * numpy.dot(y, y)))
 
                     if lag_mode == 'max':
-                        # pylint: disable=possibly-used-before-assignment
                         if ixy_z > maximum:
                             maximum = ixy_z
                             lag_at_max = tau

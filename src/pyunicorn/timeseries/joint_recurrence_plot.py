@@ -64,7 +64,6 @@ class JointRecurrencePlot(RecurrencePlot):
     #  Internal methods
     #
 
-    # pylint: disable=too-many-positional-arguments
     def __init__(self, x, y, metric=("supremum", "supremum"),
                  normalize=False, lag=0, silence_level=0, **kwds):
         """
@@ -146,8 +145,8 @@ class JointRecurrencePlot(RecurrencePlot):
             """The time series y."""
 
             #  Reshape time series
-            self.x.shape = (self.x.shape[0], -1)
-            self.y.shape = (self.y.shape[0], -1)
+            self.x = self.x.reshape((self.x.shape[0], -1))
+            self.y = self.y.reshape((self.y.shape[0], -1))
 
             #  Normalize time series
             if normalize:

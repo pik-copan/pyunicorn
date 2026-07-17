@@ -7,16 +7,16 @@
 
 [build-system]
 requires = [
-  "setuptools>=65",
+  "setuptools>=75",
   "wheel",
-  "Cython>=3.0",
-  "numpy>=1.24"
+  "Cython>=3.1",
+  "numpy>=2.2"
 ]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyunicorn"
-version = "0.9.0"
+version = "1.0.0"
 description = "Unified complex network and recurrence analysis toolbox"
 keywords = [
   "complex network", "nonlinear time series analysis",
@@ -53,47 +53,50 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-  "numpy >= 1.24",
-  "scipy >= 1.10",
-  "igraph >= 0.11",
-  "h5netcdf[h5py] >= 1.8",
-  "tqdm >= 4.66",
+  "numpy>=2.2",
+  "scipy>=1.15",
+  "igraph>=1.0",
+  "h5netcdf[h5py]>=1.8",
+  "tqdm>=4.67",
 ]
 
 [dependency-groups]
 dev = [
-  "Cython >= 3.0",
+  "Cython>=3.1",
+  "ipykernel>=7.3.0",
 ]
-tests = [
-  "tox >= 4.11",
-  "flake8 >= 7.0",
-  "Flake8-pyproject >= 1.2",
-  "pylint >= 3.0",
-  "pytest >= 8.0",
-  "pytest-xdist >= 3.5",
-  "pytest-cov >= 4.1",
-  "networkx >= 3.1",
-  "matplotlib >= 3.6",
-  "cartopy >= 0.21",
-  "requests",
-  "psutil",
+test = [
+  "tox>=4.11",
+  "ruff>=0.15",
+  "pytest>=8.4",
+  "pytest-xdist>=3.7",
+  "pytest-cov>=7.0",
+  "joblib>=1.5",
+  "networkx>=3.4",
+  "matplotlib>=3.10",
+  "cartopy>=0.25",
+  "requests>=2.33",
+  "psutil>=7.1",
 ]
 docs = [
-  "sphinx >= 7.0",
-  "nbsphinx >= 0.9.3",
-  "ipython >= 8.4",
-  "pandoc >= 2.3",
-  "matplotlib >= 3.6",
+  "sphinx>=8.1",
+  "nbsphinx>=0.9.7",
+  "ipython>=8.39",
+  "pandoc>=2.4",
+  "matplotlib>=3.10",
+]
+ci = [
+  "codecov>=2.1.13",
 ]
 
 [tool.uv]
-default-groups = ["dev", "tests", "docs"]
+default-groups = ["dev", "test", "docs"]
 
 [project.urls]
 Homepage = "https://www.pik-potsdam.de/members/donges/software-2/software"
 Documentation = "http://www.pik-potsdam.de/~donges/pyunicorn/"
 Repository = "https://github.com/pik-copan/pyunicorn"
-Changelog = "https://github.com/pik-copan/pyunicorn/blob/master/CHANGELOG.rst"
+Changelog = "https://github.com/pik-copan/pyunicorn/blob/main/CHANGELOG.rst"
 Issues = "https://github.com/pik-copan/pyunicorn/issues"
 
 [tool.setuptools]
@@ -106,25 +109,19 @@ include = [ "pyunicorn*" ]
 # testing ======================================================================
 
 [tool.tox]
-env_list = ["style", "lint", "test", "docs"]
+env_list = ["lint", "test", "docs"]
 skipsdist = true
 
 [tool.tox.env_run_base]
 sitepackages = true
 set_env = { PYTHONPATH = "{tox_root}/src" }
 pass_env = ["WINDIR", "LC_ALL"]
-allowlist_externals = ["flake8", "pylint", "pytest", "sphinx-build", "pandoc"]
-
-[tool.tox.env.style]
-package = "skip"
-commands = [[
-  "flake8", "-j{env:TOX_JOBS:auto}", "setup.py", "src/pyunicorn", "tests"
-]]
+allowlist_externals = ["ruff", "pytest", "sphinx-build", "pandoc"]
 
 [tool.tox.env.lint]
 package = "skip"
 commands = [[
-  "pylint", "-j", "{env:TOX_JOBS:0}", "setup.py", "src/pyunicorn", "tests"
+  "ruff", "check"
 ]]
 
 [tool.tox.env.test]
@@ -139,7 +136,7 @@ commands = [[
 ]]
 
 [tool.pytest.ini_options]
-minversion = 7.3
+minversion = 8.4
 addopts = "-v -r a -n auto"
 testpaths = ["tests"]
 python_files = ["test*.py", "Test*.py"]
@@ -155,44 +152,18 @@ source = ["src/pyunicorn"]
 
 # static analysis ==============================================================
 
-[tool.flake8]
-extend-exclude = [
-  ".git", ".cache", ".tox", ".ropeproject", "build", "docs/source/conf.py"
-]
-per-file-ignores = [
-  "*/__init__.py:F401,F403",
-]
-max-line-length = 100
+[tool.ruff]
+line-length = 100
 
-[tool.pylint.main]
+[tool.ruff.lint]
+# Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`) codes by default.
+# Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
+# McCabe complexity (`C901`) by default.
+select = ["E4", "E7", "E9", "F", "W"]
 ignore = [
-  ".cache", "__pycache__", ".pytest_cache", ".tox", ".venv", ".ropeproject",
-  "build", "mpi.py"
-]
-ignore-patterns = ["navigator", "numerics"]
-persistent = false
-jobs = 0
+  "E702",  # "multiple-statements-on-one-line-colon"
+  ]
 
-[tool.pylint."messages control"]
-disable = [
-  "duplicate-code", "invalid-name", "fixme",
-  "missing-docstring", "no-else-return",
-  "arguments-differ", "no-name-in-module"
-]
-
-[tool.pylint.format]
-max-module-lines = 6000
-
-[tool.pylint.refactoring]
-max-nested-blocks = 6
-
-[tool.pylint.design]
-max-args = 12
-max-locals = 95
-max-branches = 50
-max-statements = 230
-max-attributes = 23
-max-public-methods = 120
-
-[tool.pylint.reports]
-output-format = "colorized"
+[tool.ruff.lint.per-file-ignores]
+# Ignore `F401` (unused-import) in all `__init__.py` files
+"__init__.py" = ["F401"]

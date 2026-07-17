@@ -54,7 +54,6 @@ def check_single_sref(referent: object, obj: object, attr: str):
             assert r is obj
 
 
-# pylint: disable=no-member,disallowed-name
 class TestCached:
 
     # increase for testing purposes

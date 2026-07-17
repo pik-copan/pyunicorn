@@ -46,7 +46,6 @@ class VisibilityGraph(InteractingNetworks):
     #  Internal methods
     #
 
-    # pylint: disable=too-many-positional-arguments
     def __init__(self, time_series, timings=None, missing_values=False,
                  horizontal=False, silence_level=0):
         """

@@ -55,7 +55,6 @@ class HilbertClimateNetwork(ClimateNetwork):
     #  Defines internal methods
     #
 
-    # pylint: disable=too-many-positional-arguments
     def __init__(self, data, threshold=None, link_density=None,
                  non_local=False, directed=True, node_weight_type="surface",
                  silence_level=0):

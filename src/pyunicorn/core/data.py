@@ -47,7 +47,6 @@ class Data:
     #  Define internal methods
     #
 
-    # pylint: disable=too-many-positional-arguments
     def __init__(self, observable: np.ndarray, grid: GeoGrid,
                  observable_name: str = None, observable_long_name: str = None,
                  window: Optional[dict] = None, silence_level: int = 0):
@@ -130,7 +129,6 @@ class Data:
     #
 
     @classmethod
-    # pylint: disable=too-many-positional-arguments
     def Load(cls, file_name, observable_name, file_type, dimension_names=None,
              window=None, vertical_level=None, silence_level=0):
         """
@@ -234,7 +232,6 @@ class Data:
     #
 
     @classmethod
-    # pylint: disable=too-many-positional-arguments
     def _get_netcdf_data(cls, file_name, file_type, observable_name,
                          dimension_names, vertical_level=None,
                          silence_level=0):
@@ -328,7 +325,7 @@ class Data:
         # Get length of raw data time axis
         n_time = res["observable"].shape[0]
         # Reshape observable to comply with the standard shape (time, index)
-        res["observable"].shape = (n_time, -1)
+        res["observable"] = res["observable"].reshape((n_time, -1))
 
         # Get long name of observable
         res["observable_long_name"] = f.variables[observable_name].long_name
@@ -340,7 +337,6 @@ class Data:
         return res
 
     @classmethod
-    # pylint: disable=too-many-positional-arguments
     def _load_data(cls, file_name, file_type, observable_name,
                    dimension_names, vertical_level=None, silence_level=0):
         """

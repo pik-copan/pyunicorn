@@ -21,7 +21,6 @@ import numpy as np
 from .coupled_climate_network import CoupledClimateNetwork
 
 
-# pylint: disable=too-many-ancestors
 class CoupledTsonisClimateNetwork(CoupledClimateNetwork):
 
     """
@@ -48,7 +47,6 @@ class CoupledTsonisClimateNetwork(CoupledClimateNetwork):
     #  Definitions of internal methods
     #
 
-    # pylint: disable=too-many-positional-arguments
     def __init__(self, data_1, data_2, threshold=None, link_density=None,
                  non_local=False, node_weight_type="surface",
                  selected_months=None, silence_level=0):

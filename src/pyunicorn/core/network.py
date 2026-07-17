@@ -137,7 +137,6 @@ class Network(Cached):
     #  Definitions of internal methods
     #
 
-    # pylint: disable=too-many-positional-arguments
     def __init__(self, adjacency=None, n_nodes=None, edge_list=None,
                  directed=False, node_weights=None, silence_level=0):
         """
@@ -516,7 +515,6 @@ class Network(Cached):
     #  Load and save Network object
     #
 
-    # pylint: disable=keyword-arg-before-vararg
     def save(self, filename, fileformat=None, *args, **kwds):
         """
         Save the Network object to a file.
@@ -557,7 +555,6 @@ class Network(Cached):
 
         self.graph.write(f=filename, format=fileformat, *args, **kwds)
 
-    # pylint: disable=keyword-arg-before-vararg
     @staticmethod
     def Load(filename, fileformat=None, silence_level=0, *args, **kwds):
         """
@@ -932,7 +929,6 @@ class Network(Cached):
         return np.array(graph.get_adjacency(type=2).data)
 
     @staticmethod
-    # pylint: disable=too-many-positional-arguments
     def GrowWeights(n_nodes=100, n_initials=1, exponent=1,
                     mode="exp",
                     split_prob=.01,  # for exponential model
@@ -1861,7 +1857,6 @@ class Network(Cached):
         """
         return self.local_clustering().mean()
 
-    # pylint: disable=too-many-positional-arguments
     def _motif_clustering_helper(self, t_func, T, link_attribute=None, nsi=False,
                                  typical_weight=None, ksum=None):
         """
@@ -1883,7 +1878,6 @@ class Network(Cached):
         if nsi:
             nodew = sp.csc_matrix(np.eye(self.N) * self.node_weights)
         if link_attribute is None:
-            # pylint: disable=possibly-used-before-assignment
             A = self.sp_Aplus() * nodew if nsi else self.sp_A
             AT = self.sp_Aplus().T * nodew if nsi else A.T
         else:
@@ -1922,7 +1916,7 @@ class Network(Cached):
         :arg str link_attribute: link attribute (optional)
         :rtype: 1d numpy array [node] of floats between 0 and 1
         """
-        def t_func(x, xT):  # pylint: disable=unused-argument
+        def t_func(x, xT):
             return x * x * x
         T = self.indegree() * self.outdegree() - self.bildegree()
         return self._motif_clustering_helper(t_func, T, link_attribute=link_attribute)
@@ -2034,7 +2028,7 @@ class Network(Cached):
             correction. If None, the uncorrected measure is
             returned. (Default: None)
         """
-        def t_func(x, xT):  # pylint: disable=unused-argument
+        def t_func(x, xT):
             return x * x * x
         ink = self.nsi_indegree(typical_weight=typical_weight)
         outk = self.nsi_outdegree(typical_weight=typical_weight)
@@ -3343,7 +3337,6 @@ class Network(Cached):
 
     # parallelized main loop
     @staticmethod
-    # pylint: disable=too-many-positional-arguments
     def _mpi_nsi_arenas_betweenness(
             N, sp_P, this_Aplus, w, this_w, start_i, end_i,
             exclude_neighbors, stopping_mode, this_twinness):

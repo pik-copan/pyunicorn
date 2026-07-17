@@ -2,10 +2,10 @@
 pyunicorn
 =========
 
-.. image:: https://app.travis-ci.com/pik-copan/pyunicorn.svg?branch=master
+.. image:: https://app.travis-ci.com/pik-copan/pyunicorn.svg?branch=main
   :target: https://app.travis-ci.com/github/pik-copan/pyunicorn
 
-.. image:: https://codecov.io/gh/pik-copan/pyunicorn/branch/master/graph/badge.svg
+.. image:: https://codecov.io/gh/pik-copan/pyunicorn/branch/main/graph/badge.svg
   :target: https://codecov.io/gh/pik-copan/pyunicorn
 
 .. image:: https://img.shields.io/pypi/v/pyunicorn
@@ -86,6 +86,7 @@ Getting Started
 
 Installation
 ------------
+
 Official releases
 .................
 `Stable releases <https://pypi.org/project/pyunicorn/#history>`_ can be
@@ -136,11 +137,10 @@ and *Windows*, and relies on the following packages:
   - `Jupyter Notebook <https://jupyter-notebook.readthedocs.io/en/latest/>`_
     (for tutorial notebooks)
 
-
 Documentation
 -------------
 For extensive HTML documentation, jump right to the `homepage
-<http://www.pik-potsdam.de/~donges/pyunicorn/>`_. In a local source tree,
+<http://pyunicorn.readthedocs.io/>`_. In a local source tree,
 HTML and PDF documentation can be generated using ``Sphinx``::
 
     $> pip install --group docs
@@ -148,10 +148,11 @@ HTML and PDF documentation can be generated using ``Sphinx``::
 
 Tutorials
 ---------
+For some example applications, look into the self-explanatory tutorial
+notebooks: either in the documentation section :ref:`tutorials`, or in the
+corresponding `source folder
+<https://github.com/pik-copan/pyunicorn/tree/main/docs/source/examples/tutorials>`_.
 
-For some example applications look into the
-`tutorials <https://github.com/pik-copan/pyunicorn/tree/master/docs/source/examples/tutorials>`_ provided with the documentation.
-They are designed to be self-explanatory, and are set up as Jupyter notebooks.
 
 Development
 ===========
@@ -163,7 +164,7 @@ please make sure that all tests pass. The test suite is managed by `tox
 <https://tox.wiki/>`_ and is configured to use system-wide packages
 when available. Install the test dependencies as follows::
 
-    $> pip install --group tests
+    $> pip install --group test
 
 The test suite can be run from anywhere in the project tree by issuing::
 
@@ -172,10 +173,9 @@ The test suite can be run from anywhere in the project tree by issuing::
 To display the defined test environments and target them individually::
 
     $> tox -l
-    $> tox -e style,lint,test,docs
+    $> tox -e lint,test,docs
 
 To test individual files::
 
-    $> flake8 src/pyunicorn/core/network.py     # style check
-    $> pylint src/pyunicorn/core/network.py     # static code analysis
+    $> ruff check src/pyunicorn/core/network.py # linting and formatting
     $> pytest tests/test_core/test_network.py   # unit tests
