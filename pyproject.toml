@@ -94,7 +94,7 @@ default-groups = ["dev", "test", "docs"]
 
 [project.urls]
 Homepage = "https://www.pik-potsdam.de/members/donges/software-2/software"
-Documentation = "http://www.pik-potsdam.de/~donges/pyunicorn/"
+Documentation = "https://pyunicorn.readthedocs.io"
 Repository = "https://github.com/pik-copan/pyunicorn"
 Changelog = "https://github.com/pik-copan/pyunicorn/blob/main/CHANGELOG.rst"
 Issues = "https://github.com/pik-copan/pyunicorn/issues"
