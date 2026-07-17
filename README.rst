@@ -132,7 +132,7 @@ and *Windows*, and relies on the following packages:
     (for plotting features)
   - `mpi4py <https://github.com/mpi4py/mpi4py>`_
     (for parallelizing costly computations)
-  - `Sphinx <http://sphinx-doc.org/>`_
+  - `Sphinx <https://sphinx-doc.org/>`_
     (for generating documentation)
   - `Jupyter Notebook <https://jupyter-notebook.readthedocs.io/en/latest/>`_
     (for tutorial notebooks)
@@ -140,7 +140,7 @@ and *Windows*, and relies on the following packages:
 Documentation
 -------------
 For extensive HTML documentation, jump right to the `homepage
-<http://pyunicorn.readthedocs.io/>`_. In a local source tree,
+<https://pyunicorn.readthedocs.io/>`_. In a local source tree,
 HTML and PDF documentation can be generated using ``Sphinx``::
 
     $> pip install --group docs
@@ -149,8 +149,9 @@ HTML and PDF documentation can be generated using ``Sphinx``::
 Tutorials
 ---------
 For some example applications, look into the self-explanatory tutorial
-notebooks: either in the documentation section :ref:`tutorials`, or in the
-corresponding `source folder
+notebooks: either in the documentation section `Tutorials
+<https://pyunicorn.readthedocs.io/en/latest/tutorials.html>`_,
+or in the corresponding `source folder
 <https://github.com/pik-copan/pyunicorn/tree/main/docs/source/examples/tutorials>`_.
 
 
