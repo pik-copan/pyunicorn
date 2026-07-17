@@ -121,7 +121,7 @@ and delay $\tau = 6 \text{ ka}$.
 $\epsilon=10 \text{ W}/\text{m}^2$.
 (**D**) Recurrence network for **C**, with nodes of darker colour representing
 later points in time.
-](img/recurrence_network_steps.pdf){#fig:recnet width=99%}
+](img/recurrence_network_steps.pdf){#fig:recnet width=99.5%}
 
 `pyunicorn` is implemented in `Python` and `C/Cython` [@behnel_cython_2011], and
 was first published over a decade ago [@donges_unified_2015]. Since then, it has
