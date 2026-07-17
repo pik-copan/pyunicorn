@@ -42,7 +42,6 @@ env:
     - | # limit procs to available cores
       TOX_JOBS=2
     - FORCE_COLOR=1
-    - RUST_LOG=debug
   jobs:
     - PYTHON=3.14
     - PYTHON=3.13

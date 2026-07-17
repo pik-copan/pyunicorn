@@ -173,7 +173,7 @@ The test suite can be run from anywhere in the project tree by issuing::
 To display the defined test environments and target them individually::
 
     $> tox -l
-    $> tox -e style,lint,test,docs
+    $> tox -e lint,test,docs
 
 To test individual files::
 
