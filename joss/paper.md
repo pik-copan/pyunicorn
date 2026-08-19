@@ -16,11 +16,11 @@ authors:
     surname: Kühlein
     orcid: 0009-0006-7513-0688
     corresponding: true
-    affiliation: "1, 2, 3 *"
+    affiliation: "1, 2, 3, *"
   - given-names: Boyan
     surname: Beronov
     orcid: 0000-0002-0900-752X
-    affiliation: "4 *"
+    affiliation: "4, *"
   - given-names: Max
     surname: Bechthold
     orcid: 0009-0007-7113-4814
