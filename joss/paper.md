@@ -16,23 +16,23 @@ authors:
     surname: Kühlein
     orcid: 0009-0006-7513-0688
     corresponding: true
-    affiliation: 1, 2, 3 *
+    affiliation: "1, 2, 3 *"
   - given-names: Boyan
     surname: Beronov
     orcid: 0000-0002-0900-752X
-    affiliation: 4 *
+    affiliation: "4 *"
   - given-names: Max
     surname: Bechthold
     orcid: 0009-0007-7113-4814
-    affiliation: 1, 2, 3
+    affiliation: "1, 2, 3"
   - given-names: Reik V.
     surname: Donner
     orcid: 0000-0001-7023-6375
-    affiliation: 5, 6
+    affiliation: "5, 6"
   - given-names: Jonathan F.
     surname: Donges
     orcid: 0000-0001-5233-7703
-    affiliation: 1, 2, 7
+    affiliation: "1, 2, 7"
 
 affiliations:
   - index: 1
@@ -226,7 +226,7 @@ algorithms.
 ![
 Overview of `pyunicorn`’s modules/classes, with an example class inheritance
 relation.
-](img/module_overview.pdf){#fig:modules width=90%}
+](img/module_overview.pdf){#fig:modules width=95%}
 
 `pyunicorn` follows an object-oriented design, with module and class hierarchies
 that isolate core data structures and reflect relationships between analysis
