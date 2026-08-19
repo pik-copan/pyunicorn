@@ -16,64 +16,64 @@ authors:
     surname: Kühlein
     orcid: 0009-0006-7513-0688
     corresponding: true
-    affiliation: "1, 2, 3, *"
+    affiliation: 1, 2, 3, *
   - given-names: Boyan
     surname: Beronov
     orcid: 0000-0002-0900-752X
-    affiliation: "4, *"
+    affiliation: 4, *
   - given-names: Max
     surname: Bechthold
     orcid: 0009-0007-7113-4814
-    affiliation: "1, 2, 3"
+    affiliation: 1, 2, 3
   - given-names: Reik V.
     surname: Donner
     orcid: 0000-0001-7023-6375
-    affiliation: "5, 6"
+    affiliation: 5, 6
   - given-names: Jonathan F.
     surname: Donges
     orcid: 0000-0001-5233-7703
-    affiliation: "1, 2, 7"
+    affiliation: 1, 2, 7
 
 affiliations:
-  - index: "1"
+  - index: 1
     name: >
       Earth Resilience Science Unit,
       Potsdam Institute for Climate Impact Research
       (PIK) -- Member of the Leibniz Association,
       Germany
     ror: "03e8s1d88"
-  - index: "2"
+  - index: 2
     name: >
       Integrative Earth System Science,
       Max Planck Institute of Geoanthropology,
       Jena, Germany
     ror: "00js75b59"
-  - index: "3"
+  - index: 3
     name: >
       Institute of Physics and Astronomy,
       University of Potsdam,
       Germany
     ror: "03bnmw459"
-  - index: "4"
+  - index: 4
     name: >
       Computer Science Department,
       University of British Columbia,
       Vancouver, Canada
     ror: "03rmrcq20"
-  - index: "5"
+  - index: 5
     name: >
       Department of Water, Environment, Construction and Safety,
       Magdeburg-Stendal University of Applied Sciences,
       Germany
     ror: "04vjfp916"
-  - index: "6"
+  - index: 6
     name: >
       Research Department IV - Complexity Science,
       Potsdam Institute for Climate Impact Research
       (PIK) -- Member of the Leibniz Association,
       Germany
     ror: "03e8s1d88"
-  - index: "7"
+  - index: 7
     name: >
       Stockholm Resilience Center,
       Stockholm University,
