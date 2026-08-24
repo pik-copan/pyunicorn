@@ -91,7 +91,7 @@ bibliography: paper.bib
 \def\sectionautorefname{Section}
 
 
-# 1. Summary
+# Summary
 
 The `pyunicorn` (Unified Complex Network and Recurrence Analysis) toolbox
 provides a unique collection of data-driven assessment methods for complex
@@ -138,7 +138,7 @@ https://creativecommons.org/licenses/by-nc-nd/4.0/).
 [^2]: Cf. [Semantic Versioning specification](https://semver.org).
 
 
-# 2. Statement of need
+# Statement of need
 
 Network theory and dynamical system theory have long provided two complementary
 perspectives on complex systems: The former analyses the structure of
@@ -176,7 +176,7 @@ affirmed the claim that, beyond its origin in climate and Earth system science,
 [@donges_unified_2015].
 
 
-# 3. State of the field
+# State of the field
 
 Long-established packages in the `Python` ecosystem, such as
 [`networkx`](https://networkx.org) [@hagberg_networkx_2008],
@@ -221,7 +221,7 @@ analysis. @zou_networks_timeseries_2019, @silva_timeseries_networks_2021 and
 algorithms.
 
 
-# 4. Software design
+# Software design
 
 ![
 Overview of `pyunicorn`’s modules/classes, with an example class inheritance
@@ -275,7 +275,7 @@ https://github.com/pik-copan/pyunicorn/blob/joss-paper/CHANGELOG.rst)):
 - A collection of tutorial notebooks was added to the documentation.
 
 
-# 5. Research impact statement
+# Research impact statement
 \label{sec:impact}
 
 Since its initial release, `pyunicorn` has found numerous applications across
