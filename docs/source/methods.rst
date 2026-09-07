@@ -10,7 +10,7 @@ General complex networks
 Many standard complex network measures, network models and algorithms are
 supported, most of them inherited from the ``igraph`` package, e.g., degree,
 closeness and betweenness centralities, clustering coefficient and
-transitivity or commmunity detection algorithms and network models such as
+transitivity or community detection algorithms and network models such as
 Erdos-Renyi or Barabasi-Albert. Moreover, a number of less common network
 statistics like Newman's or Arenas' random walk betweenness can be computed.
 Reading and saving network data from and to many common data formats is
