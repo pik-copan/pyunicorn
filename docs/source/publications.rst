@@ -375,7 +375,7 @@ Time series analysis & Synchronization
 
 .. [Odenweller2020] A. Odenweller, R.V. Donner.
     "Disentangling synchrony from serial dependency in paired-event time series".
-    In *Pyhsical Review E*, vol. 101, 052213 (2020)
+    In *Physical Review E*, vol. 101, 052213 (2020)
     `doi:10.1103/PhysRevE.101.052213
     <https://doi.org/10.1103/PhysRevE.101.052213>`__
 
