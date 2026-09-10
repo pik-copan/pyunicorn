@@ -76,7 +76,8 @@ notably the `German Federal Ministry for Education and Research
 <http://econs.pik-potsdam.de/>`_ and `DominoES
 <https://www.pik-potsdam.de/en/institute/departments/activities/dominoes>`_),
 the `German National Academic Foundation <https://www.studienstiftung.de/en/>`_,
-and the `Stordalen Foundation <http://www.stordalenfoundation.no/>`_ via the
+and the `Stordalen Foundation
+<https://web.archive.org/web/20201111193304/http://www.stordalenfoundation.no/>`_ via the
 `Planetary Boundary Research Network
 <https://web.archive.org/web/20200212214011/http://pb-net.org/>`_ (PB.net) among
 others.
