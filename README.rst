@@ -17,6 +17,10 @@ pyunicorn
 .. image:: https://zenodo.org/badge/33720178.svg
   :target: https://zenodo.org/badge/latestdoi/33720178
 
+.. image:: https://joss.theoj.org/papers/ea9cbfa1e207714bf0a2c14824b4c210/status.svg
+  :target: https://joss.theoj.org/papers/ea9cbfa1e207714bf0a2c14824b4c210
+
+
 About
 =====
 ``pyunicorn`` (**Uni**\ fied **Co**\ mplex Network and **R**\ ecurre\ **N**\ ce
