@@ -361,7 +361,7 @@ class Surrogates(Cached):
             print("Generating correlated noise surrogates...")
 
         #  Calculate FFT of original_data time series
-        surrogates = self.original_data_fft()
+        surrogates = self.original_data_fft().copy()
 
         #  Get shapes
         len_phase = surrogates.shape[1]
