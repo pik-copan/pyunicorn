@@ -226,6 +226,25 @@ def testCorrelatedNoiseSurrogates():
                        np.abs(np.fft.fft(surrogates, axis=1))[0, 1:10])
 
 
+@pytest.mark.parametrize("n_time", [200, 201])
+@pytest.mark.parametrize("dtype", [np.float32, np.float64])
+def testCorrelatedNoiseSurrogatesKeepsOriginalFFT(n_time, dtype):
+    time = np.arange(n_time)
+    data = np.array([np.sin(time * .2), np.cos(time * .3)], dtype=dtype)
+    ts = Surrogates(data, silence_level=2)
+    original_fft = ts.original_data_fft().copy()
+    state = np.random.get_state()
+    try:
+        np.random.seed(7)
+        first = ts.correlated_noise_surrogates()
+        np.testing.assert_array_equal(ts.original_data_fft(), original_fft)
+        np.random.seed(7)
+        repeated = ts.correlated_noise_surrogates()
+        np.testing.assert_array_equal(repeated, first)
+    finally:
+        np.random.set_state(state)
+
+
 def testTwinSurrogates():
     tdata = create_test_data()
     ts = Surrogates(tdata)
