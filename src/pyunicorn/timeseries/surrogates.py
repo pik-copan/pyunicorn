@@ -371,6 +371,11 @@ class Surrogates(Cached):
         phases = random.uniform(
             low=0, high=2 * np.pi, size=(self.N, len_phase))
 
+        #  DC and (for even lengths) Nyquist coefficients must remain real.
+        phases[:, 0] = 0
+        if self.n_time % 2 == 0:
+            phases[:, -1] = 0
+
         #  Add random phases uniformly distributed in the interval [0, 2*Pi]
         surrogates *= np.exp(1j * phases)
 
