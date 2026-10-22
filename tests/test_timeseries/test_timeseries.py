@@ -226,6 +226,38 @@ def testCorrelatedNoiseSurrogates():
                        np.abs(np.fft.fft(surrogates, axis=1))[0, 1:10])
 
 
+@pytest.mark.parametrize("n_time", [1, 2, 3, 4, 200, 201])
+@pytest.mark.parametrize("dtype", [np.float32, np.float64])
+def testCorrelatedNoiseSurrogatesRealFourierEndpoints(n_time, dtype):
+    time = np.arange(n_time)
+    data = np.array([2 + np.sin(time * .2) + .4 * (-1.)**time,
+                     -3 + np.cos(time * .3)], dtype=dtype)
+    original_fft = np.fft.rfft(data, axis=1)
+    state = np.random.get_state()
+    try:
+        np.random.seed(7)
+        phases = np.random.uniform(0, 2 * np.pi, size=original_fft.shape)
+        expected_state = np.random.get_state()
+        np.random.seed(7)
+        surrogates = Surrogates(data.copy(), silence_level=2).correlated_noise_surrogates()
+        actual_state = np.random.get_state()
+        np.testing.assert_array_equal(actual_state[1], expected_state[1])
+        assert actual_state[0] == expected_state[0]
+        assert actual_state[2:] == expected_state[2:]
+    finally:
+        np.random.set_state(state)
+
+    actual_fft = np.fft.rfft(surrogates, axis=1)
+    atol = np.finfo(dtype).eps * np.abs(data).sum(axis=1).max()
+    np.testing.assert_allclose(np.abs(actual_fft), np.abs(original_fft), rtol=1e-5, atol=atol)
+    np.testing.assert_allclose(surrogates.mean(axis=1), data.mean(axis=1), atol=1e-6)
+    np.testing.assert_allclose(surrogates.var(axis=1), data.var(axis=1), rtol=1e-5, atol=1e-6)
+    if n_time > 1 and n_time % 2:
+        np.testing.assert_allclose(actual_fft[:, -1],
+                                   original_fft[:, -1] * np.exp(1j * phases[:, -1]),
+                                   rtol=1e-5, atol=atol)
+
+
 def testTwinSurrogates():
     tdata = create_test_data()
     ts = Surrogates(tdata)
