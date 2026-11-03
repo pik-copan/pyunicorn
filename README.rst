@@ -133,7 +133,7 @@ and *Windows*, and relies on the following packages:
     (for plotting features)
   - `mpi4py <https://github.com/mpi4py/mpi4py>`_
     (for parallelizing costly computations)
-  - `Sphinx <https://sphinx-doc.org/>`_
+  - `Pandoc <https://pandoc.org/>`_, `Sphinx <https://sphinx-doc.org/>`_
     (for generating documentation)
   - `Jupyter Notebook <https://jupyter-notebook.readthedocs.io/en/latest/>`_
     (for tutorial notebooks)
@@ -142,7 +142,8 @@ Documentation
 -------------
 For extensive HTML documentation, jump right to the `homepage
 <https://pyunicorn.readthedocs.io/>`_. In a local source tree,
-HTML and PDF documentation can be generated using ``Sphinx``::
+HTML and PDF documentation can be generated using ``Sphinx``
+(make sure `Pandoc <https://pandoc.org/>`_ is installed beforehand)::
 
     $> pip install --group docs
     $> cd docs; make clean html latexpdf
@@ -164,7 +165,8 @@ Test suite
 Before committing changes or opening a pull request (PR) to the code base,
 please make sure that all tests pass. The test suite is managed by `tox
 <https://tox.wiki/>`_ and is configured to use system-wide packages
-when available. Install the test dependencies as follows::
+when available. Make sure `Pandoc <https://pandoc.org/>`_ is installed,
+then install the test dependencies as follows::
 
     $> pip install --group test
 

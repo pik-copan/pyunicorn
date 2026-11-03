@@ -77,12 +77,12 @@ test = [
   "cartopy>=0.25",
   "requests>=2.33",
   "psutil>=7.1",
+  {include-group = "docs"},
 ]
 docs = [
   "sphinx>=8.1",
   "nbsphinx>=0.9.7",
   "ipython>=8.39",
-  "pandoc>=2.4",
   "matplotlib>=3.10",
 ]
 ci = [
