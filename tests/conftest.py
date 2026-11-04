@@ -37,7 +37,7 @@ def reanalysis_data() -> Path:
     """
     data_name = "air.mon.mean.nc"
     url = "https://downloads.psl.noaa.gov/Datasets/" \
-        f"ncep.reanalysis/Monthlies/surface/{data_name}"
+        f"ncep.reanalysis.derived/surface/{data_name}"
 
     data_dir = Path("./docs/source/examples/tutorials/data")
     data_file = data_dir / data_name
