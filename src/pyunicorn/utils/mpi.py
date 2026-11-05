@@ -68,12 +68,7 @@ except ImportError:
 
 
 class MPIException(Exception):
-    def __init__(self, value):
-        Exception.__init__()
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)
+    pass
 
 
 # initialize:
@@ -245,7 +240,7 @@ if am_master:
         if id is None:
             id = numpy.random.uniform()
         if id in assigned:
-            raise MPIException("id ", str(id), " already in queue!")
+            raise MPIException(f"id {id} already in queue!")
         if slave is not None and am_slave:
             raise MPIException(
                 "only the master can use slave= in submit_call()")
@@ -310,9 +305,8 @@ if am_master:
         source = assigned[id]
         if available:
             if slave_queue[source][0] != id:
-                raise MPIException("get_result(" + str(id)
-                                   + ") called before get_result("
-                                   + str(slave_queue[source][0]) + ")!")
+                raise MPIException(f"get_result({id}) called before get_result("
+                                   f"{slave_queue[source][0]})!")
             if _verbose:
                 print(f"MPI master : retrieving result for call with id {id} "
                       f"from slave {source} ...")
