@@ -261,79 +261,78 @@ class Data:
         res = {}
 
         # Open netCDF4 file
-        f = Dataset(file_name, "r")
+        with Dataset(file_name, "r") as f:
 
-        # Create reference to observable
-        observable = f.variables[observable_name][:].astype("float32")
+            # Create reference to observable
+            observable = f.variables[observable_name][:].astype("float32")
 
-        # Get time axis from NetCDF file
-        time = f.variables[dimension_names["time"]][:].astype("float32")
+            # Get time axis from NetCDF file
+            time = f.variables[dimension_names["time"]][:].astype("float32")
 
-        # Get number of dimensions of data
-        n_dim = observable.ndim
+            # Get number of dimensions of data
+            n_dim = observable.ndim
 
-        # Distinguish between regular and irregular grids
-        if file_type == "NetCDF":
-            # Create GeoGrid instance
-            lat_grid = f.variables[dimension_names["lat"]][:].astype("float32")
-            lon_grid = f.variables[dimension_names["lon"]][:].astype("float32")
-            res["grid"] = GeoGrid.RegularGrid(time, (lat_grid, lon_grid),
-                                              silence_level)
+            # Distinguish between regular and irregular grids
+            if file_type == "NetCDF":
+                # Create GeoGrid instance
+                lat_grid = f.variables[dimension_names["lat"]][:].astype("float32")
+                lon_grid = f.variables[dimension_names["lon"]][:].astype("float32")
+                res["grid"] = GeoGrid.RegularGrid(time, (lat_grid, lon_grid),
+                                                silence_level)
 
-            # If 3D data set (time, lat, lon), select whole data set
-            if n_dim == 3:
-                res["observable"] = observable.copy()
-            # If 4D data set (time, level, lat, lon), select certain vertical
-            # level.
-            elif n_dim == 4:
-                # Handle selected vertical level
-                if vertical_level is None:
-                    level = 0
+                # If 3D data set (time, lat, lon), select whole data set
+                if n_dim == 3:
+                    res["observable"] = observable.copy()
+                # If 4D data set (time, level, lat, lon), select certain vertical
+                # level.
+                elif n_dim == 4:
+                    # Handle selected vertical level
+                    if vertical_level is None:
+                        level = 0
+                    else:
+                        level = vertical_level
+
+                    res["observable"] = observable[:, level, :, :].copy()
                 else:
-                    level = vertical_level
+                    print("Regular NetCDF data sets with dimensions other than "
+                        "3 (time, lat, lon) or 4 (time, level, lat, lon) are "
+                        "not supported by Data class!")
 
-                res["observable"] = observable[:, level, :, :].copy()
-            else:
-                print("Regular NetCDF data sets with dimensions other than "
-                      "3 (time, lat, lon) or 4 (time, level, lat, lon) are "
-                      "not supported by Data class!")
+            elif file_type == "iNetCDF":
+                # Create GeoGrid instance
+                lat_seq = f.variables["grid_center_lat"][:].astype("float32")
+                lon_seq = f.variables["grid_center_lon"][:].astype("float32")
+                res["grid"] = GeoGrid(time, lat_seq, lon_seq, silence_level)
 
-        elif file_type == "iNetCDF":
-            # Create GeoGrid instance
-            lat_seq = f.variables["grid_center_lat"][:].astype("float32")
-            lon_seq = f.variables["grid_center_lon"][:].astype("float32")
-            res["grid"] = GeoGrid(time, lat_seq, lon_seq, silence_level)
+                # If 2D data set (time, index), select whole data set
+                if n_dim == 2:
+                    res["observable"] = observable.copy()
+                # If 3D data set (time, level, index), select certain vertical
+                # level.
+                elif n_dim == 3:
+                    # Handle selected vertical level
+                    if vertical_level is None:
+                        level = 0
+                    else:
+                        level = vertical_level
 
-            # If 2D data set (time, index), select whole data set
-            if n_dim == 2:
-                res["observable"] = observable.copy()
-            # If 3D data set (time, level, index), select certain vertical
-            # level.
-            elif n_dim == 3:
-                # Handle selected vertical level
-                if vertical_level is None:
-                    level = 0
+                    res["observable"] = observable[:, level, :].copy()
                 else:
-                    level = vertical_level
+                    print("Irregular NetCDF data sets with dimensions other than "
+                        "2 (time, index) or 3 (time, level, index) are not "
+                        "supported by Data class!")
 
-                res["observable"] = observable[:, level, :].copy()
-            else:
-                print("Irregular NetCDF data sets with dimensions other than "
-                      "2 (time, index) or 3 (time, level, index) are not "
-                      "supported by Data class!")
+            # Get length of raw data time axis
+            n_time = res["observable"].shape[0]
+            # Reshape observable to comply with the standard shape (time, index)
+            res["observable"] = res["observable"].reshape((n_time, -1))
 
-        # Get length of raw data time axis
-        n_time = res["observable"].shape[0]
-        # Reshape observable to comply with the standard shape (time, index)
-        res["observable"] = res["observable"].reshape((n_time, -1))
+            # Get long name of observable
+            res["observable_long_name"] = f.variables[observable_name].long_name
 
-        # Get long name of observable
-        res["observable_long_name"] = f.variables[observable_name].long_name
+            # Store name of observable
+            res["observable_name"] = observable_name
 
-        # Store name of observable
-        res["observable_name"] = observable_name
-
-        f.close()
         return res
 
     @classmethod
@@ -371,14 +370,13 @@ class Data:
     def print_data_info(self):
         """Print information on the data encapsulated by the Data object."""
         # Open netCDF4 file
-        f = Dataset(self.file_name, "r")
-        print("Global attributes:")
-        for name in f.ncattrs():
-            print(name + ":", getattr(f, name))
-        print("Variables (size):")
-        for name, obj in f.variables.items():
-            print(f"{name} ({len(obj)})")
-        f.close()
+        with Dataset(self.file_name, "r") as f:
+            print("Global attributes:")
+            for name in f.ncattrs():
+                print(name + ":", getattr(f, name))
+            print("Variables (size):")
+            for name, obj in f.variables.items():
+                print(f"{name} ({len(obj)})")
 
     def observable(self):
         """
