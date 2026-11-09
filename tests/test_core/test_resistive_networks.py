@@ -15,6 +15,7 @@
 Simple tests for the ResNetwork class.
 """
 import numpy as np
+import pytest
 
 from pyunicorn import ResNetwork
 
@@ -194,6 +195,10 @@ def test_vertex_current_flow_betweenness():
     res = net.vertex_current_flow_betweenness(1)
     exp = 0.3889
     assert np.isclose(res, exp, atol=1e-04)
+
+    for i in [-1, net.N]:
+        with pytest.raises(IndexError, match="out of range"):
+            net.vertex_current_flow_betweenness(i)
 
 
 def test_edge_current_flow_betweenness():

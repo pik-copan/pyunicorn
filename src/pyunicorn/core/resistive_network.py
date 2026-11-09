@@ -742,6 +742,8 @@ class ResNetwork(GeoNetwork):
         >>> print("%.3f" % res.vertex_current_flow_betweenness(2))
         0.044
         """
+        if not 0 <= i < self.N:
+            raise IndexError(f"node index {i} out of range for {self.N} nodes")
         # set params
         Is = It = FIELD(1.0)
         return _vertex_current_flow_betweenness(
