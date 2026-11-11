@@ -1037,7 +1037,7 @@ class EventSeries(Cached):
         Routing (Optimizations 1 & 2):
           finite taumax, any lag  →  sparse binary-search   (fast, exact)
           infinite taumax, lag=0  →  blocked-dense 4-D      (vectorized)
-          infinite taumax, lag≠0  →  pairwise loop          (fallback)
+          infinite taumax, lag!=0  →  pairwise loop          (fallback)
 
         :rtype: NxN numpy array where N is the number of variables of the
                 eventmatrix
@@ -1059,7 +1059,7 @@ class EventSeries(Cached):
     def _ndim_event_synchronization_pairwise(self):
         """
         Pairwise ES loop — identical to original pyunicorn.
-        Used as fallback when taumax=inf and lag≠0.
+        Used as fallback when taumax=inf and lag!=0.
 
         Modification 3: tqdm progress bar added.
         """
@@ -1070,7 +1070,7 @@ class EventSeries(Cached):
         lag = self.__lag
 
         directed = np.zeros((N, N))
-        for i in tqdm(range(N), desc='ES pairwise'):
+        for i in tqdm(range(N), desc='ES pairwise', ascii=True):
             for j in range(i + 1, N):
                 directed[i, j], directed[j, i] = \
                     self.event_synchronization(eventmatrix[:, i],
@@ -1133,7 +1133,7 @@ class EventSeries(Cached):
         else:
             results = [
                 _compute_es_block(node_data, ba, bb)
-                for ba, bb in tqdm(pairs, desc='ES blocks')
+                for ba, bb in tqdm(pairs, desc='ES blocks', ascii=True)
             ]
 
         for (block_a, block_b), (bxy, byx) in zip(pairs, results):
@@ -1180,7 +1180,7 @@ class EventSeries(Cached):
                     r0, r1, N, node_data, taumax=taumax, lag=lag
                 )
                 for r0, r1 in tqdm(row_chunks, desc='ES sparse (lag)',
-                                   unit='chunk')
+                                   unit='chunk', ascii=True)
             ]
 
         for results in results_list:
@@ -1241,7 +1241,7 @@ class EventSeries(Cached):
         timestamps = self.__timestamps
         directed = np.zeros((N, N))
 
-        for i in tqdm(range(N), desc=f'ECA pairwise ({window_type})'):
+        for i in tqdm(range(N), desc=f'ECA pairwise ({window_type})', ascii=True):
             for j in range(i + 1, N):
                 directed[i, j], directed[j, i] = \
                     self._eca_coincidence_rate(eventmatrix[:, i],
