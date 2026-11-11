@@ -114,7 +114,6 @@ skipsdist = true
 
 [tool.tox.env_run_base]
 sitepackages = true
-set_env = { PYTHONPATH = "{tox_root}/src" }
 pass_env = ["WINDIR", "LC_ALL"]
 allowlist_externals = ["ruff", "pytest", "sphinx-build", "pandoc"]
 
@@ -148,7 +147,15 @@ filterwarnings = [
 [tool.coverage.run]
 parallel = true
 concurrency = ["multiprocessing"]
-source = ["src/pyunicorn"]
+relative_files = true
+source_pkgs = ["pyunicorn"]
+
+[tool.coverage.paths]
+
+source = [
+    "src/pyunicorn",
+    "*/site-packages/pyunicorn",
+]
 
 # static analysis ==============================================================
 
