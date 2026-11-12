@@ -18,7 +18,7 @@ multivariate data.
 Written by Jakob Runge.
 """
 
-import numpy                        # array object and fast numerics
+import numpy as np                  # array object and fast numerics
 from scipy import special, linalg   # special math functions
 
 # import mpi                          # parallelized computations
@@ -78,8 +78,8 @@ class CouplingAnalysis:
         """
         Return example test data as discussed in pyunicorn description paper.
         """
-        numpy.random.seed(42)
-        noise = numpy.random.randn(1000, 4)
+        np.random.seed(42)
+        noise = np.random.randn(1000, 4)
         data = noise
         for t in range(2, 1000):
             data[t, 0] = 0.8 * data[t-1, 0] + noise[t, 0]
@@ -186,19 +186,19 @@ class CouplingAnalysis:
         T, N = data.shape
 
         # Sanity checks
-        if not isinstance(data, numpy.ndarray):
+        if not isinstance(data, np.ndarray):
             raise TypeError(f"data is of type {type(data)}, "
-                            "must be numpy.ndarray")
+                            "must be np.ndarray")
         if N > T:
             print(f"Warning: data.shape = {data.shape},"
                   " is it of shape (observations, variables) ?")
-        assert numpy.isnan(data).sum() == 0, "NaNs in the data"
+        assert np.isnan(data).sum() == 0, "NaNs in the data"
         assert tau_max >= 0, f"{tau_max =}"
         assert lag_mode in ['max', 'all'], f"{lag_mode =}"
 
         #  Normalize time series to zero mean and unit variance for all lags
         corr_range = T - tau_max
-        array = numpy.empty((tau_max + 1, N, corr_range), dtype=FIELD)
+        array = np.empty((tau_max + 1, N, corr_range), dtype=FIELD)
 
         for t in range(tau_max + 1):
             #  Remove mean value from time series at each node
@@ -210,7 +210,7 @@ class CouplingAnalysis:
             array[t] /= array[t].std(axis=1).reshape(N, 1)
 
             #  Correct for nodes with zero variance in their time series
-            array[t][numpy.isnan(array[t])] = 0
+            array[t][np.isnan(array[t])] = 0
 
         if lag_mode == 'max':
             return _cross_correlation_max(
@@ -301,16 +301,16 @@ class CouplingAnalysis:
         T, N = data.shape
 
         # Sanity checks
-        if not isinstance(data, numpy.ndarray):
+        if not isinstance(data, np.ndarray):
             raise TypeError(f"data is of type {type(data)}, "
-                            "must be numpy.ndarray")
+                            "must be np.ndarray")
         if N > T:
             print(f"Warning: data.shape = {data.shape},"
                   " is it of shape (observations, variables) ?")
         if T < 500:
             print(f"Warning: T = {T} ,"
                   " unreliable estimation using MI estimator")
-        assert numpy.isnan(data).sum() == 0, "NaNs in the data"
+        assert np.isnan(data).sum() == 0, "NaNs in the data"
         assert tau_max >= 0, f"{tau_max =}"
         if estimator not in ('knn', 'binning', 'gauss'):
             raise ValueError('estimator must be "knn", "binning" or "gauss".')
@@ -318,10 +318,10 @@ class CouplingAnalysis:
             assert 1 <= knn <= T/2., f"{knn =}"
 
         if lag_mode == 'max':
-            similarity_matrix = numpy.ones((N, N), dtype=FIELD)
-            lag_matrix = numpy.zeros((N, N), dtype=LAG)
+            similarity_matrix = np.ones((N, N), dtype=FIELD)
+            lag_matrix = np.zeros((N, N), dtype=LAG)
         elif lag_mode == 'all':
-            lagfuncs = numpy.zeros((N, N, tau_max+1), dtype=FIELD)
+            lagfuncs = np.zeros((N, N, tau_max+1), dtype=FIELD)
 
         if estimator == 'binning':
             self.plogp = self.create_plogp(T)
@@ -339,13 +339,13 @@ class CouplingAnalysis:
                     XYZ = X + Y + Z
                     dim = len(XYZ)
                     max_lag = tau_max
-                    array = numpy.zeros((dim, T - max_lag))
+                    array = np.zeros((dim, T - max_lag))
                     for d, node in enumerate(XYZ):
                         var, lag = node
                         array[d, :] = data[max_lag + lag: T + lag, var]
 
                     if estimator == 'knn':
-                        xyz = numpy.array([0, 1])
+                        xyz = np.array([0, 1])
 
                         k_xz, k_yz, k_z = self.get_nearest_neighbors(
                             array=array, xyz=xyz, k=knn, standardize=True)
@@ -378,16 +378,16 @@ class CouplingAnalysis:
                         # Standardize
                         array -= array.mean(axis=1).reshape(dim, 1)
                         array /= array.std(axis=1).reshape(dim, 1)
-                        if numpy.isnan(array).sum() != 0:
+                        if np.isnan(array).sum() != 0:
                             raise ValueError("nans after standardizing, \
-                                             possibly constant array!")
+                                            possibly constant array!")
 
                         x = array[0, :]
                         y = array[1, :]
 
                         ixy_z = self._par_corr_to_cmi(
-                            numpy.dot(x, y) / numpy.sqrt(
-                                numpy.dot(x, x) * numpy.dot(y, y)))
+                            np.dot(x, y) / np.sqrt(
+                                np.dot(x, x) * np.dot(y, y)))
 
                     if lag_mode == 'max':
                         if ixy_z > maximum:
@@ -497,16 +497,16 @@ class CouplingAnalysis:
         T, N = data.shape
 
         # Sanity checks
-        if not isinstance(data, numpy.ndarray):
+        if not isinstance(data, np.ndarray):
             raise TypeError(f"data is of type {type(data)},"
-                            " must be numpy.ndarray")
+                            " must be np.ndarray")
         if N > T:
             print(f"Warning: data.shape = {data.shape},"
                   " is it of shape (observations, variables) ?")
         if estimator == 'knn' and T < 500:
             print(f"Warning: T = {T} ,"
                   " unreliable estimation using knn-estimator")
-        if numpy.isnan(data).sum() != 0:
+        if np.isnan(data).sum() != 0:
             raise ValueError("NaNs in the data")
         if tau_max < 0:
             raise ValueError(f"tau_max = {tau_max}, but 0 <= tau_max")
@@ -517,10 +517,10 @@ class CouplingAnalysis:
                 raise ValueError(f"knn = {knn}, should be between 1 and T/2")
 
         if lag_mode == 'max':
-            similarity_matrix = numpy.ones((N, N), dtype=FIELD)
-            lag_matrix = numpy.zeros((N, N), dtype=LAG)
+            similarity_matrix = np.ones((N, N), dtype=FIELD)
+            lag_matrix = np.zeros((N, N), dtype=LAG)
         elif lag_mode == 'all':
-            lagfuncs = numpy.zeros((N, N, tau_max+1), dtype=FIELD)
+            lagfuncs = np.zeros((N, N, tau_max+1), dtype=FIELD)
 
         for i in range(N):
             for j in range(N):
@@ -540,13 +540,13 @@ class CouplingAnalysis:
 
                     dim = len(XYZ)
                     max_lag = tau_max + past
-                    array = numpy.zeros((dim, T - max_lag))
+                    array = np.zeros((dim, T - max_lag))
                     for d, node in enumerate(XYZ):
                         var, lag = node
                         array[d, :] = data[max_lag + lag: T + lag, var]
 
                     if estimator == 'knn':
-                        xyz = numpy.array([0, 1])
+                        xyz = np.array([0, 1])
 
                         k_xz, k_yz, k_z = self.get_nearest_neighbors(
                             array=array, xyz=xyz, k=knn, standardize=True)
@@ -558,15 +558,15 @@ class CouplingAnalysis:
 
                     elif estimator == 'gauss':
 
-                        if numpy.isnan(array).sum() != 0:
+                        if np.isnan(array).sum() != 0:
                             raise ValueError("nans in the array!")
 
                         # Standardize
                         array -= array.mean(axis=1).reshape(dim, 1)
                         array /= array.std(axis=1).reshape(dim, 1)
-                        if numpy.isnan(array).sum() != 0:
+                        if np.isnan(array).sum() != 0:
                             raise ValueError("nans after standardizing, \
-                                             possibly constant array!")
+                                            possibly constant array!")
 
                         x = array[0, :]
                         y = array[1, :]
@@ -574,14 +574,14 @@ class CouplingAnalysis:
                             confounds = array[2:, :]
                             ortho_confounds = linalg.qr(confounds.T.copy(),
                                                         mode='economic')[0].T
-                            x -= numpy.dot(numpy.dot(ortho_confounds, x),
-                                           ortho_confounds)
-                            y -= numpy.dot(numpy.dot(ortho_confounds, y),
-                                           ortho_confounds)
+                            x -= np.dot(np.dot(ortho_confounds, x),
+                                        ortho_confounds)
+                            y -= np.dot(np.dot(ortho_confounds, y),
+                                        ortho_confounds)
 
                         ixy_z = self._par_corr_to_cmi(
-                            numpy.dot(x, y) / numpy.sqrt(
-                                numpy.dot(x, x) * numpy.dot(y, y)))
+                            np.dot(x, y) / np.sqrt(
+                                np.dot(x, x) * np.dot(y, y)))
 
                     if lag_mode == 'max':
                         if ixy_z > maximum:
@@ -624,7 +624,7 @@ class CouplingAnalysis:
         :returns: transformed partial correlation.
         """
 
-        return -0.5*numpy.log(1. - par_corr**2)
+        return -0.5*np.log(1. - par_corr**2)
 
     @staticmethod
     def get_nearest_neighbors(array, xyz, k, standardize=True):
@@ -657,15 +657,15 @@ class CouplingAnalysis:
             array /= array.std(axis=1).reshape(dim, 1)
             # If the time series is constant, return nan rather than raising
             # Exception
-            if numpy.isnan(array).sum() != 0:
+            if np.isnan(array).sum() != 0:
                 raise ValueError("nans after standardizing, possibly \
                                  constant array!")
 
         # Add noise to destroy ties...
-        array += 1E-10 * numpy.random.rand(dim, T)
+        array += 1E-10 * np.random.rand(dim, T)
 
-        dim_x = int(numpy.where(xyz == 0)[0][-1] + 1)
-        dim_y = int(numpy.where(xyz == 1)[0][-1] + 1 - dim_x)
+        dim_x = int(np.where(xyz == 0)[0][-1] + 1)
+        dim_y = int(np.where(xyz == 1)[0][-1] + 1 - dim_x)
         # dim_z = maxdim - dim_x - dim_y
 
         return _get_nearest_neighbors(
@@ -691,12 +691,12 @@ class CouplingAnalysis:
         dim, T = array.shape
 
         # get the bin quantile steps
-        bin_edge = numpy.ceil(T/float(bins)).astype(int)
+        bin_edge = np.ceil(T/float(bins)).astype(int)
 
-        symb_array = numpy.zeros((dim, T), dtype=INT32TYPE)
+        symb_array = np.zeros((dim, T), dtype=INT32TYPE)
 
         # get the lower edges of the bins for every time series
-        edges = numpy.sort(array, axis=1)[:, ::bin_edge]
+        edges = np.sort(array, axis=1)[:, ::bin_edge]
         bins = edges.shape[1]
 
         # This gives the symbolic time series
@@ -721,7 +721,7 @@ class CouplingAnalysis:
 
         D, T = symb_array.shape
 
-        # Needed because numpy.bincount cannot process longs
+        # Needed because np.bincount cannot process longs
         assert isinstance(base**D, int)
         assert base**D*16./8./1024.**3 < 3., (
             'Dimension exceeds 3 GB of necessary memory '
@@ -730,13 +730,13 @@ class CouplingAnalysis:
             f'base = {base}, D = {D}: Histogram failed:'
             ' dimension D*base**D exceeds int64 data type')
 
-        flathist = numpy.zeros((base**D), dtype=INT16TYPE)
-        multisymb = numpy.zeros(T, dtype=INT64TYPE)
+        flathist = np.zeros((base**D), dtype=INT16TYPE)
+        multisymb = np.zeros(T, dtype=INT64TYPE)
 
         for i in range(D):
             multisymb += symb_array[i, :]*base**i
 
-        result = numpy.bincount(multisymb)
+        result = np.bincount(multisymb)
         flathist[:len(result)] += result
 
         return flathist.reshape(tuple(
@@ -754,7 +754,7 @@ class CouplingAnalysis:
         :returns: p*log(p) array from p=1 to p=T
         """
 
-        gfunc = numpy.zeros(T+1)
-        gfunc[1:] = numpy.arange(1, T+1, 1)*numpy.log(numpy.arange(1, T+1, 1))
+        gfunc = np.zeros(T+1)
+        gfunc[1:] = np.arange(1, T+1, 1)*np.log(np.arange(1, T+1, 1))
 
-        return numpy.vectorize(lambda t: gfunc[t])
+        return np.vectorize(lambda t: gfunc[t])
