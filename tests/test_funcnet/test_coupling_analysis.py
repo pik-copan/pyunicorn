@@ -125,7 +125,6 @@ def test_mutual_information_binning():
     assert np.allclose(res, exp, atol=1e-04)
 
 
-@pytest.mark.filterwarnings("ignore:divide by zero encountered in log")
 def test_mutual_information_gauss():
     coup_ana = CouplingAnalysis(CouplingAnalysis.test_data())
     similarity_matrix, lag_matrix = coup_ana.mutual_information(
@@ -162,7 +161,6 @@ def test_information_transfer_knn():
     assert np.allclose(res, exp, atol=1e-04)
 
 
-@pytest.mark.filterwarnings("ignore:divide by zero encountered in log")
 def test_information_transfer_gauss():
     coup_ana = CouplingAnalysis(CouplingAnalysis.test_data())
     similarity_matrix, lag_matrix = coup_ana.information_transfer(
