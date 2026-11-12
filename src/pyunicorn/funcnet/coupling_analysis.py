@@ -374,20 +374,23 @@ class CouplingAnalysis:
                         ixy_z = hxz + hyz - hz - hxyz
 
                     elif estimator == 'gauss':
+                        if X == Y:  # that is if i == j and tau == 0
+                            ixy_z = np.inf
 
-                        # Standardize
-                        array -= array.mean(axis=1).reshape(dim, 1)
-                        array /= array.std(axis=1).reshape(dim, 1)
-                        if np.isnan(array).sum() != 0:
-                            raise ValueError("nans after standardizing, \
-                                            possibly constant array!")
+                        else:
+                            # Standardize
+                            array -= array.mean(axis=1).reshape(dim, 1)
+                            array /= array.std(axis=1).reshape(dim, 1)
+                            if np.isnan(array).sum() != 0:
+                                raise ValueError("nans after standardizing, \
+                                                possibly constant array!")
 
-                        x = array[0, :]
-                        y = array[1, :]
+                            x = array[0, :]
+                            y = array[1, :]
 
-                        ixy_z = self._par_corr_to_cmi(
-                            np.dot(x, y) / np.sqrt(
-                                np.dot(x, x) * np.dot(y, y)))
+                            ixy_z = self._par_corr_to_cmi(
+                                np.dot(x, y) / np.sqrt(
+                                    np.dot(x, x) * np.dot(y, y)))
 
                     if lag_mode == 'max':
                         if ixy_z > maximum:
@@ -557,31 +560,34 @@ class CouplingAnalysis:
                                     + special.digamma(k_z)).mean())
 
                     elif estimator == 'gauss':
+                        if X == Y:  # that is if i == j and tau == 0
+                            ixy_z = np.inf
 
-                        if np.isnan(array).sum() != 0:
-                            raise ValueError("nans in the array!")
+                        else:
+                            if np.isnan(array).sum() != 0:
+                                raise ValueError("nans in the array!")
 
-                        # Standardize
-                        array -= array.mean(axis=1).reshape(dim, 1)
-                        array /= array.std(axis=1).reshape(dim, 1)
-                        if np.isnan(array).sum() != 0:
-                            raise ValueError("nans after standardizing, \
-                                            possibly constant array!")
+                            # Standardize
+                            array -= array.mean(axis=1).reshape(dim, 1)
+                            array /= array.std(axis=1).reshape(dim, 1)
+                            if np.isnan(array).sum() != 0:
+                                raise ValueError("nans after standardizing, \
+                                                possibly constant array!")
 
-                        x = array[0, :]
-                        y = array[1, :]
-                        if len(array) > 2:
-                            confounds = array[2:, :]
-                            ortho_confounds = linalg.qr(confounds.T.copy(),
-                                                        mode='economic')[0].T
-                            x -= np.dot(np.dot(ortho_confounds, x),
-                                        ortho_confounds)
-                            y -= np.dot(np.dot(ortho_confounds, y),
-                                        ortho_confounds)
+                            x = array[0, :]
+                            y = array[1, :]
+                            if len(array) > 2:
+                                confounds = array[2:, :]
+                                ortho_confounds = linalg.qr(confounds.T.copy(),
+                                                            mode='economic')[0].T
+                                x -= np.dot(np.dot(ortho_confounds, x),
+                                            ortho_confounds)
+                                y -= np.dot(np.dot(ortho_confounds, y),
+                                            ortho_confounds)
 
-                        ixy_z = self._par_corr_to_cmi(
-                            np.dot(x, y) / np.sqrt(
-                                np.dot(x, x) * np.dot(y, y)))
+                            ixy_z = self._par_corr_to_cmi(
+                                np.dot(x, y) / np.sqrt(
+                                    np.dot(x, x) * np.dot(y, y)))
 
                     if lag_mode == 'max':
                         if ixy_z > maximum:
@@ -597,6 +603,7 @@ class CouplingAnalysis:
 
         if lag_mode == 'max':
             similarity_matrix[range(N), range(N)] = 0.
+            lag_matrix[range(N), range(N)] = 0.
         elif lag_mode == 'all':
             lagfuncs[range(N), range(N), 0.] = 0.
 
